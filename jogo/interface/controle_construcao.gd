@@ -5,7 +5,7 @@ extends Node
 ##  PC      peça na mão: passar o mouse = fantasma; clicar = pôr; arrastar = traçar (esteira/cano/trilho/muro/poste)
 ##          botão direito: cancela (clique) ou move a câmera (arrasto); meio ou esquerdo sem peça = move a câmera
 ##          roda = zoom; Q/E = gira a câmera; WASD/setas = anda; R = girar peça (Shift+R ao contrário)
-##          X = remover; Ctrl+Z = desfazer; Esc = cancelar; 1..9 = peça da aba; Tab = próxima aba
+##          X = remover; V = visão de recursos; Ctrl+Z = desfazer; Esc = cancelar; 1..9 = peça da aba; Tab = próxima aba
 ##  Toque   1 dedo com peça na mão: o fantasma segue o dedo e a peça é posta ao soltar (arrastar = traçar)
 ##          1 dedo sem peça = move a câmera; 2 dedos = move + pinça (zoom) e cancelam o traço em andamento
 ##
@@ -89,6 +89,11 @@ func mudar_nivel(passo: int, ciclo := false) -> void:
 	_atualizar()
 
 
+func alternar_recursos() -> void:
+	if mundo.has_method("alternar_recursos"):
+		barra.ligar_recursos(mundo.alternar_recursos())
+
+
 func alternar_poluicao() -> void:
 	if mundo.has_method("alternar_poluicao"):
 		barra.ligar_poluicao(mundo.alternar_poluicao())
@@ -120,6 +125,7 @@ func _ferramenta(nome: String) -> void:
 		"desfazer": desfazer()
 		"cancelar": cancelar()
 		"poluicao": alternar_poluicao()
+		"recursos": alternar_recursos()
 		"nivel": mudar_nivel(1, true)
 		"pesquisa": mundo.abrir_pesquisa()
 		"menu": mundo.abrir_pausa()
@@ -185,6 +191,7 @@ func _tecla(e: InputEventKey) -> void:
 		KEY_R: girar(1 if e.shift_pressed else -1)
 		KEY_X: alternar_remover()
 		KEY_P: alternar_poluicao()
+		KEY_V: alternar_recursos()
 		KEY_N: mudar_nivel(1, true)
 		KEY_PAGEUP: mudar_nivel(1)
 		KEY_PAGEDOWN: mudar_nivel(-1)

@@ -30,6 +30,8 @@ var _eventos: Array[Dictionary] = []
 var _desenho_colonia: DesenhoColonia
 var _desenho_trens: DesenhoTrens
 var _desenho_poluicao: DesenhoPoluicao
+var _visao: VisaoRecursos
+var _fluxo: DesenhoFluxo
 var _rotulos: Dictionary = {}       ## id da estação → Label3D
 var _t_hud := 0.0
 var _sel := {}                       ## selecionado: {trem: id} ou {estrutura: id}
@@ -227,6 +229,15 @@ func _criar_desenhos() -> void:
 	_desenho_poluicao = DesenhoPoluicao.new()
 	_desenho_poluicao.poluicao = poluicao
 	add_child(_desenho_poluicao)
+	_fluxo = DesenhoFluxo.new()
+	_fluxo.mapa = mapa
+	add_child(_fluxo)
+	_visao = VisaoRecursos.new()
+	_visao.gerador = gerador
+	_visao.mapa = mapa
+	_visao.camera = camera
+	_visao.areas_interface = func() -> Array[Rect2]: return controle.barra.areas_ocupadas()
+	add_child(_visao)
 	var dc := DesenhoClima.new()
 	dc.clima = clima
 	dc.camera = camera
@@ -234,6 +245,10 @@ func _criar_desenhos() -> void:
 	dc.sol = $Sol
 	dc.fontes_calor = _fontes_calor
 	add_child(dc)
+
+
+func alternar_recursos() -> bool:
+	return _visao.alternar()
 
 
 func alternar_poluicao() -> bool:
@@ -613,10 +628,12 @@ func _process(delta: float) -> void:
 	for i in relogio.avancar(delta):
 		_tick_mundo(relogio.dt())
 	_animar_estruturas()
+	# modo construção (peça na mão): caminho e sentido das esteiras em destaque
+	_fluxo.ligado = controle != null and controle.peca != ""
 	# letreiros só de perto (a névoa por zoom e clima fica no DesenhoClima)
 	($Sol as DirectionalLight3D).directional_shadow_max_distance = clampf(camera.distancia * 1.6, 30.0, 110.0)
 	for l in _rotulos.values():
-		l.visible = camera.distancia < 75.0
+		l.visible = camera.distancia < 75.0 and not _visao.ligada     # na visão de recursos só os nomes do mapa
 	_desenho_trens.sincronizar(trens)
 	for ev in _eventos:
 		match ev.tipo:

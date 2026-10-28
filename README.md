@@ -7,6 +7,8 @@ braços mecânicos, logística de transporte e inimigos. Tema: planeta vivo — 
 ## Pastas
 - `jogo/` — projeto Godot 4.7 (código, dados, testes). Ver `jogo/README.md`.
 - `arte/` — modelos 3D, texturas e o verificador. Ver `arte/FICHA_DE_ESTILO.md` e `arte/CATALOGO.md`.
+- `docs/RECURSOS.md` — **guia dos recursos**: cada jazida (cor, item, máquina, em que bioma aparece), biomas, águas e o que
+  cada elemento natural rende. Gerado dos dados por `jogo/ferramentas/gerar_doc_recursos.py`.
 - `docs/MUNDO.md` — geração procedural e distribuição por bioma. `docs/fotos/` — capturas reais do jogo.
 
 ## Fluxo de trabalho (sem precisar abrir nada)
@@ -14,9 +16,10 @@ braços mecânicos, logística de transporte e inimigos. Tema: planeta vivo — 
 2. `jogo/ferramentas/testar.sh` — importa e roda todos os testes do jogo sem janela.
 3. `godot --path jogo --write-movie /tmp/q.png --fixed-fps 30 --quit-after 70 -- camera X Z DIST` — foto real.
 4. `python3 jogo/ferramentas/gerar_sons.py` — sintetiza os sons; `python3 jogo/ferramentas/gerar_nuvens.py` — mapa das nuvens.
-5. `godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.3.1.apk` — APK.
+5. `godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.3.2.apk` — APK.
 6. `... -- camera -3 2 11 roteiro construir` (ou `roteiro toque`) — teste visual da construção com cliques/toques injetados.
-7. `... -- camera 8 -1 44 clima chuva` — foto com clima forçado (limpo, nublado, neblina, chuva, tempestade).
+7. `python3 jogo/ferramentas/gerar_doc_recursos.py` — atualiza `docs/RECURSOS.md`.
+8. `... -- camera 8 -1 44 clima chuva` — foto com clima forçado (limpo, nublado, neblina, chuva, tempestade).
 
 ## Visual e clima
 - Estruturas e assets naturais com textura assada (`arte/blender_scripts/texturizar.py`): paleta real (albedo PBR),

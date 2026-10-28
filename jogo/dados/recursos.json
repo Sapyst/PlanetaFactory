@@ -1,0 +1,20 @@
+{
+ "_nota": "Visão de recursos (tecla V): nome, cor e máquina de cada jazida; nomes de biomas, águas e elementos do mapa.",
+ "jazidas": {
+  "jazida_ferro":   {"nome": "Ferro",    "item": "minerio_ferro", "cor": "#c4573a", "extrator": "Broca de minério"},
+  "jazida_cobre":   {"nome": "Cobre",    "item": "minerio_cobre", "cor": "#e8932f", "extrator": "Broca de minério"},
+  "jazida_carvao":  {"nome": "Carvão",   "item": "carvao",        "cor": "#2a2a2e", "extrator": "Broca de minério"},
+  "jazida_pedra":   {"nome": "Pedra",    "item": "pedra",         "cor": "#d8d2c4", "extrator": "Broca de minério"},
+  "jazida_silex":   {"nome": "Sílex",    "item": "silex",         "cor": "#7d98c4", "extrator": "Broca de minério"},
+  "jazida_areia":   {"nome": "Areia",    "item": "areia",         "cor": "#f2d47a", "extrator": "Broca de minério"},
+  "jazida_cristal": {"nome": "Cristal",  "item": "cristal_bruto", "cor": "#4fe6df", "extrator": "Extrator de cristal"},
+  "poca_seiva":     {"nome": "Seiva",    "item": "biomassa",      "cor": "#8fd146", "extrator": "Bomba"}
+ },
+ "biomas": {"campina": "Campina", "floresta_fungica": "Floresta fúngica", "deserto_silex": "Deserto de sílex",
+            "planalto_rochoso": "Planalto rochoso", "campo_cristal": "Campo de cristal", "pantano": "Pântano", "cinzal": "Cinzal"},
+ "agua": {"RIO": "Rio", "LAGO": "Lago", "LAGOA": "Lagoa", "MAR": "Mar", "OCEANO": "Oceano", "PRAIA": "Praia"},
+ "elementos": {"pedregulho": "Pedregulho", "rocha_grande": "Rocha grande", "montanha_3x3": "Morro", "montanha_5x5": "Montanha",
+               "arvore_campina_a": "Árvore", "arvore_campina_b": "Árvore", "arvore_morta": "Árvore morta", "arbusto": "Arbusto",
+               "cogumelo_gigante_a": "Cogumelo gigante", "cogumelo_gigante_b": "Cogumelo gigante", "cacto_cristal": "Cacto de cristal",
+               "rocha_agua": "Rocha na água"}
+}

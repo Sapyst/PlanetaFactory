@@ -29,6 +29,9 @@ func _ready() -> void:
 		"panorama": _roteiro_panorama()
 		"fios": _roteiro_fios()
 		"rota": _roteiro_rota()
+		"recursos":
+			em(4, func(): cena.controle.alternar_recursos())
+			em(6, func(): mover(tela(Vector2i(-15, -9))))
 		"vagao_tex": _roteiro_vagao_tex()
 		"conferir": print("DIGITAL ", digital(cena))
 	print("ROTEIRO ", roteiro, " com ", _passos.size(), " passos; tela ", get_viewport().get_visible_rect().size, " janela ", DisplayServer.window_get_size())

@@ -4,6 +4,7 @@ global uniform sampler2D nuvem_mapa : filter_linear_mipmap, repeat_enable;   // 
 global uniform float nuvem_cobertura;
 global uniform vec2 nuvem_deslocamento;
 global uniform float molhado;
+global uniform float visao_recursos;  // 0..1: visão de recursos ligada (mapa apagado, jazidas em destaque)
 global uniform vec3 sol_dir;          // direção PARA o sol (mundo, normalizada)
 const float ALTURA_NUVENS = 90.0;      // camada bem acima do chão
 
@@ -23,4 +24,10 @@ float sombra_nuvem(vec3 p) {
 	// rasgos: passagem direta (céu quase fechado; some na chuva forte)
 	float rasgo = m.g * smoothstep(0.6, 0.72, nuvem_cobertura) * (1.0 - smoothstep(0.86, 0.94, nuvem_cobertura));
 	return 1.0 - mix(transmite, 1.0, rasgo);
+}
+
+// Visão de recursos: tira a cor e escurece (o que importa — jazidas e nomes — fica por cima).
+vec3 apagar_visao(vec3 c, float quanto) {
+	float l = dot(c, vec3(0.299, 0.587, 0.114));
+	return mix(c, vec3(l * 0.6 + 0.04), visao_recursos * quanto);
 }

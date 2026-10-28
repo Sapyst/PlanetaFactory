@@ -7,7 +7,7 @@ extends CanvasLayer
 ## Não sabe de regra: só emite sinais. Categorias e textos vêm de dados/menu_construcao.json.
 
 signal peca_escolhida(nome: String)
-signal ferramenta(nome: String)       ## "girar", "remover", "desfazer", "cancelar", "poluicao", "pesquisa", "menu"
+signal ferramenta(nome: String)       ## "girar", "remover", "desfazer", "cancelar", "recursos", "poluicao", "pesquisa", "menu"
 
 const TAM_PECA := Vector2(116, 112)
 const COR_FUNDO := Color(0.09, 0.10, 0.13, 0.92)
@@ -24,6 +24,7 @@ var _ferr: VBoxContainer
 var _dica_painel: PanelContainer
 var _dica: Label
 var _paineis: Array[Control] = []
+var _canto: Control
 var _botoes_peca: Dictionary = {}      ## nome → Button
 var _botoes_ferr: Dictionary = {}
 var _info: Label
@@ -106,7 +107,7 @@ func _ready() -> void:
 	_ferr.add_theme_constant_override("separation", 4)
 	dir.add_child(_ferr)
 	for f in [["nivel", "Nível: chão", "N"], ["girar", "Girar", "R"], ["remover", "Remover", "X"], ["desfazer", "Desfazer", "Ctrl+Z"], ["cancelar", "Cancelar", "Esc"],
-			["poluicao", "Poluição", "P"], ["pesquisa", "Pesquisa", "T"], ["menu", "Menu", "Esc"]]:
+			["recursos", "Recursos", "V"], ["poluicao", "Poluição", "P"], ["pesquisa", "Pesquisa", "T"], ["menu", "Menu", "Esc"]]:
 		var b := Button.new()
 		b.text = f[1] if toque else "%s  (%s)" % [f[1], f[2]]
 		b.custom_minimum_size = Vector2(150, 46)
@@ -118,6 +119,7 @@ func _ready() -> void:
 
 	# painel de situação no canto de cima (poluição, ninhos, aranhas, alerta de ataque)
 	var canto := MarginContainer.new()
+	_canto = canto
 	canto.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	for lado in ["left", "top"]:
 		canto.add_theme_constant_override("margin_" + lado, 10)
@@ -244,6 +246,10 @@ func fechar_detalhe() -> void:
 	_det_assinatura = ""
 
 
+func ligar_recursos(sim: bool) -> void:
+	_destacar(_botoes_ferr["recursos"], sim, Color(0.35, 0.85, 0.8))
+
+
 func ligar_poluicao(sim: bool) -> void:
 	_destacar(_botoes_ferr["poluicao"], sim, Color(0.75, 0.45, 0.95))
 
@@ -278,6 +284,15 @@ func sobre_interface(pos: Vector2) -> bool:
 		if p.visible and p.get_global_rect().grow(4).has_point(pos):
 			return true
 	return false
+
+
+## Retângulos de tela tomados pela interface (rótulos do mapa não ficam embaixo deles).
+func areas_ocupadas() -> Array[Rect2]:
+	var out: Array[Rect2] = []
+	for p in _paineis + [_canto]:
+		if p != null and p.is_visible_in_tree():
+			out.append(p.get_global_rect())
+	return out
 
 
 ## Centro de um botão na tela (peça, ferramenta ou "cat:<n>") — usado pelos roteiros de teste automático.

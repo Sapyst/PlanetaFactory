@@ -57,3 +57,7 @@ nuvem_mapa={
 "type": "sampler2D",
 "value": "res://assets/texturas/nuvens.png"
 }
+visao_recursos={
+"type": "float",
+"value": 0.0
+}

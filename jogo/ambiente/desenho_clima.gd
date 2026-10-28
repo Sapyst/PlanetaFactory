@@ -10,12 +10,12 @@ extends Node3D
 ##  - chuva: partículas na GPU só em volta do que a câmera vê (menos no celular), com som em loop.
 
 const GOTAS_PC := 1600
-const GOTAS_CELULAR := 600
+const GOTAS_CELULAR := 400
 const FATIAS_PC := 10
-const FATIAS_CELULAR := 6
+const FATIAS_CELULAR := 3
 const TOPO_NEBLINA := 3.2
 const FATIAS_RAIOS_PC := 14
-const FATIAS_RAIOS_CELULAR := 7
+const FATIAS_RAIOS_CELULAR := 3
 const TOPO_RAIOS := 18.0
 const COR_NEBLINA := Color(0.72, 0.74, 0.76)
 const COR_TEMPESTADE := Color(0.36, 0.39, 0.43)
@@ -153,7 +153,8 @@ func _criar_neblina() -> void:
 
 
 func _atualizar_neblina(delta: float, neblina: float, luz: float) -> void:
-	_neblina.visible = neblina > 0.03
+	# celular: cada fatia cobre a tela inteira (custo de preenchimento) — só liga com neblina de verdade
+	_neblina.visible = neblina > (0.3 if OS.has_feature("mobile") else 0.03)
 	if not _neblina.visible:
 		return
 	var lado := clampf(camera.distancia * 2.6, 40.0, 320.0)
@@ -233,7 +234,7 @@ func _atualizar_raios_sol(v: Dictionary) -> void:
 	var buracos: float = smoothstep(0.68, 0.8, v.nuvens) * (1.0 - smoothstep(0.93, 0.99, v.nuvens))
 	var umidade: float = 0.45 + 0.35 * clima.molhado + 0.5 * v.neblina
 	var f: float = buracos * smoothstep(0.45, 0.7, v.luz) * umidade
-	_raios_sol.visible = f > 0.02
+	_raios_sol.visible = f > (0.08 if OS.has_feature("mobile") else 0.02)
 	if not _raios_sol.visible:
 		return
 	var lado := clampf(camera.distancia * 2.8, 50.0, 340.0)

@@ -79,6 +79,9 @@ void fragment() {
 		c *= 1.0 - 0.30 * molhado - 0.15 * poca;
 	}
 	c *= 1.0 - 0.6 * sombra_nuvem(mundo);
+	if (visao_recursos > 0.0) {
+		c = apagar_visao(c, camada == camada_jazida ? 0.0 : 0.85);
+	}
 	ALBEDO = c;
 	if (camada >= primeira_agua) {
 		ROUGHNESS = 0.08;

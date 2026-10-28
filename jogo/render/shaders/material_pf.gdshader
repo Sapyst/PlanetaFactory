@@ -53,6 +53,9 @@ void fragment() {
 	float m = molhado * smoothstep(0.3, 0.9, (INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).y);
 	base *= 1.0 - 0.28 * m;
 	base *= 1.0 - 0.6 * sombra_nuvem(v_mundo);
+	if (visao_recursos > 0.0) {
+		base = apagar_visao(base, 0.6);
+	}
 	ALBEDO = base;
 	ROUGHNESS = mix(aspereza, 0.45, m * 0.8);   // sem espelho: faceta molhada não pode estourar de branco
 	METALLIC = metal;
