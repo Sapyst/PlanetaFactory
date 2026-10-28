@@ -7,6 +7,9 @@ extends RefCounted
 ##  - desfazer (histórico de relatórios).
 ##
 ## Peças "virtuais" do menu: "esteira" e "cano" escolhem sozinhas reta/curva/início/fim pelo caminho e pelos vizinhos.
+## Traço de esteira inteligente: desvia de obstáculos (A* que evita curvas), nasce ligado em quem entrega no primeiro
+## tile e termina virado para quem recebe ao lado do último; ponta "fim" encostada no começo vira curva para o traço,
+## e "início" encostado de lado no fim vira curva para receber dele.
 
 const FAMILIA_ESTEIRA := ["esteira_reta", "esteira_curva_dir", "esteira_curva_esq", "esteira_inicio", "esteira_fim"]
 const FAMILIA_CANO := ["cano_reto", "cano_curva"]
@@ -24,6 +27,9 @@ var inventario: Dictionary = {}
 var pesquisa: Pesquisa = null
 ## Nível em que se constrói esteira (0 = chão, 1 = 0,5 m, 2 = 1,0 m). Rampa ↑ sobe do nível atual; ↓ desce dele.
 var nivel := 0
+const MARGEM_ROTA := 8           ## quanto o desvio pode sair do retângulo entre as pontas
+const NOS_ROTA := 6000           ## limite de busca (traço impossível cai no L, que fica vermelho)
+var _cache_rota := {}
 
 
 func _init(p_mapa: MapaOcupacao) -> void:
@@ -114,16 +120,16 @@ func plano_linha(nome: String, a: Vector2i, b: Vector2i, rot: int) -> Array[Dict
 
 func _plano_linha(nome: String, a: Vector2i, b: Vector2i, rot: int) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	if nome == "esteira" or nome == "cano":
+	if nome == "esteira":
+		return _plano_esteira(a, b, rot)
+	if nome == "cano":
 		var cam := caminho_l(a, b)
 		var dirs := _direcoes(cam, fluxo_da_rot(rot))
 		for i in cam.size():
 			var d_in: int = dirs[i - 1] if i > 0 else dirs[0]
 			var d_out: int = dirs[i]
-			var p := _peca_esteira(cam, dirs, i, nivel) if nome == "esteira" else _peca_cano(d_in, d_out)
-			out.append(_item_trocavel(p.nome, cam[i], p.rot, nivel if nome == "esteira" else 0))
-		if nome == "esteira" and nivel > 0:
-			_planejar_pilares(out, cam, dirs)
+			var p := _peca_cano(d_in, d_out)
+			out.append(_item_trocavel(p.nome, cam[i], p.rot, 0))
 		return out
 	if not nome in LINHA_RETA or a == b:
 		return _plano_peca(nome, a, rot)
@@ -135,6 +141,184 @@ func _plano_linha(nome: String, a: Vector2i, b: Vector2i, rot: int) -> Array[Dic
 			continue
 		out.append(_item(nome, cam[i], r))
 	return out
+
+
+func _plano_esteira(a: Vector2i, b: Vector2i, rot: int) -> Array[Dictionary]:
+	var n := nivel
+	var cam := rota(a, b) if n == 0 else caminho_l(a, b)
+	var dirs := _direcoes(cam, fluxo_da_rot(rot))
+	var no_traco := {}
+	for t in cam:
+		no_traco[t] = true
+	var extra: Array[Dictionary] = []
+	# começo: quem já entrega no primeiro tile define a entrada; senão, um "fim" encostado de lado vira curva para cá
+	var d_ini := -1
+	for d in 4:
+		if not no_traco.has(a - Grade.DIRECOES[d]) and _alimenta(a, d, n):
+			d_ini = d
+			break
+	if d_ini < 0:
+		for d in 4:
+			var t := a - Grade.DIRECOES[d]
+			var x := _estrutura_em(t, n)
+			if no_traco.has(t) or x.is_empty() or x.nome != "esteira_fim":
+				continue
+			var dx := fluxo_da_rot(x.rot)
+			if dx == posmod(d + 2, 4):
+				continue                              # o fim aponta para longe: o traço está atrás dele
+			var cv := _curva(dx, d)
+			extra.append(_item_trocavel(cv.nome, t, cv.rot, n))
+			d_ini = d
+			break
+	if cam.size() == 1 and d_ini >= 0:
+		dirs[0] = d_ini
+	# fim: vira para quem recebe ao lado do último tile (em frente primeiro, depois os lados; nunca para trás)
+	var ult := cam[-1]
+	var d_fim := -1
+	for d in [dirs[-1], posmod(dirs[-1] + 1, 4), posmod(dirs[-1] - 1, 4)]:
+		var t: Vector2i = ult + Grade.DIRECOES[d]
+		if no_traco.has(t):
+			continue
+		var y := _estrutura_em(t, n)
+		if not y.is_empty() and y.nome == "esteira_inicio":
+			var dy := fluxo_da_rot(y.rot)
+			if d == posmod(dy + 2, 4):
+				continue                              # o início aponta para cá: não dá para entrar
+			if d != dy:
+				var cv := _curva(d, dy)
+				extra.append(_item_trocavel(cv.nome, t, cv.rot, n))
+			d_fim = d
+			break
+		if _recebe(ult, d, n):
+			d_fim = d
+			break
+	if d_fim >= 0:
+		dirs[-1] = d_fim
+	var out: Array[Dictionary] = []
+	for i in cam.size():
+		var p := _peca_esteira(cam, dirs, i, n, d_ini, d_fim >= 0)
+		out.append(_item_trocavel(p.nome, cam[i], p.rot, n))
+	if n > 0:
+		_planejar_pilares(out, cam, dirs)
+	out.append_array(extra)
+	return out
+
+
+static func _curva(d_in: int, d_out: int) -> Dictionary:
+	var nome := "esteira_curva_dir" if d_out == posmod(d_in + 1, 4) else "esteira_curva_esq"
+	return {"nome": nome, "rot": rot_do_fluxo(d_in)}
+
+
+## Caminho de esteira no chão de a até b: o L de sempre se estiver livre (passar por cima de esteira vale: troca a
+## peça); senão o menor desvio por tiles livres, pagando cada curva (fica com poucas curvas, "de fábrica").
+## Sem caminho possível, devolve o L (que aparece vermelho onde bate).
+func rota(a: Vector2i, b: Vector2i) -> Array[Vector2i]:
+	var l := caminho_l(a, b)
+	var ok := true
+	for t in l:
+		if t != a and t != b and not _livre_rota(t, true):
+			ok = false
+			break
+	if ok:
+		return l
+	var chave := [a, b, mapa.versao]
+	if _cache_rota.has(chave):
+		return _cache_rota[chave]
+	if _cache_rota.size() > 64:
+		_cache_rota.clear()
+	var achou := _a_estrela(a, b, l)
+	var r: Array[Vector2i] = achou if not achou.is_empty() else l
+	_cache_rota[chave] = r
+	return r
+
+
+func _livre_rota(t: Vector2i, esteira_vale: bool) -> bool:
+	if mapa.tiles.has(t):
+		return esteira_vale and mapa.estruturas[mapa.tiles[t]].nome in FAMILIA_ESTEIRA
+	return mapa.motivo_bloqueio("esteira_reta", t, 0) == ""
+
+
+## `linha` = o L pretendido: sair dele custa um pouco, então o traço segue reto até perto do obstáculo e só ali contorna.
+func _a_estrela(a: Vector2i, b: Vector2i, linha: Array[Vector2i]) -> Array[Vector2i]:
+	var na_linha := {}
+	for t in linha:
+		na_linha[t] = true
+	var lo := Vector2i(mini(a.x, b.x), mini(a.y, b.y)) - Vector2i.ONE * MARGEM_ROTA
+	var hi := Vector2i(maxi(a.x, b.x), maxi(a.y, b.y)) + Vector2i.ONE * MARGEM_ROTA
+	# estado = (tile, direção de chegada); 4 = começo (sem direção)
+	var ini := Vector3i(a.x, a.y, 4)
+	var custo := {ini: 0.0}
+	var veio := {}
+	var heap: Array = [[_h(a, b), ini]]
+	var livre := {}
+	var nos := 0
+	while not heap.is_empty() and nos < NOS_ROTA:
+		var atual: Vector3i = _heap_tirar(heap)[1]
+		var t := Vector2i(atual.x, atual.y)
+		if t == b:
+			var cam: Array[Vector2i] = []
+			var s := atual
+			while true:
+				cam.push_front(Vector2i(s.x, s.y))
+				if not veio.has(s):
+					break
+				s = veio[s]
+			return cam
+		nos += 1
+		for d in 4:
+			var v: Vector2i = t + Grade.DIRECOES[d]
+			if v.x < lo.x or v.y < lo.y or v.x > hi.x or v.y > hi.y:
+				continue
+			if v != b:
+				if not livre.has(v):
+					livre[v] = _livre_rota(v, false)
+				if not livre[v]:
+					continue
+			var c: float = custo[atual] + 1.0 + (0.6 if atual.z != 4 and atual.z != d else 0.0) + (0.0 if na_linha.has(v) else 0.3)
+			var e := Vector3i(v.x, v.y, d)
+			if c < float(custo.get(e, INF)):
+				custo[e] = c
+				veio[e] = atual
+				_heap_por(heap, [c + _h(v, b), e])
+	return []
+
+
+static func _h(a: Vector2i, b: Vector2i) -> float:
+	return absi(a.x - b.x) + absi(a.y - b.y)
+
+
+static func _heap_por(h: Array, x: Array) -> void:
+	h.append(x)
+	var i := h.size() - 1
+	while i > 0:
+		var p := (i - 1) / 2
+		if h[p][0] <= h[i][0]:
+			break
+		var tmp = h[p]
+		h[p] = h[i]
+		h[i] = tmp
+		i = p
+
+
+static func _heap_tirar(h: Array) -> Array:
+	var topo: Array = h[0]
+	var ult: Array = h.pop_back()
+	if h.is_empty():
+		return topo
+	h[0] = ult
+	var i := 0
+	while true:
+		var m := i
+		for f in [2 * i + 1, 2 * i + 2]:
+			if f < h.size() and h[f][0] < h[m][0]:
+				m = f
+		if m == i:
+			break
+		var tmp = h[m]
+		h[m] = h[i]
+		h[i] = tmp
+		i = m
+	return topo
 
 
 ## Remoção em retângulo: estruturas inteiras que encostam no retângulo + obstáculos naturais.
@@ -418,9 +602,10 @@ static func _direcoes(cam: Array[Vector2i], padrao: int) -> Array[int]:
 	return out
 
 
-func _peca_esteira(cam: Array[Vector2i], dirs: Array[int], i: int, n := 0) -> Dictionary:
+## `d_ini` = de onde o primeiro tile é alimentado (-1: ninguém); `liga_fim` = o último entrega a um vizinho.
+func _peca_esteira(cam: Array[Vector2i], dirs: Array[int], i: int, n := 0, d_ini := -1, liga_fim := false) -> Dictionary:
 	var d_out: int = dirs[i]
-	var d_in: int = dirs[i - 1] if i > 0 else d_out
+	var d_in: int = dirs[i - 1] if i > 0 else (d_ini if d_ini >= 0 else d_out)
 	var r := rot_do_fluxo(d_in)
 	if d_out == posmod(d_in + 1, 4):
 		return {"nome": "esteira_curva_dir", "rot": r}
@@ -428,8 +613,8 @@ func _peca_esteira(cam: Array[Vector2i], dirs: Array[int], i: int, n := 0) -> Di
 		return {"nome": "esteira_curva_esq", "rot": r}
 	var primeiro := i == 0
 	var ultimo := i == cam.size() - 1
-	var alimentado := not primeiro or _alimenta(cam[i], d_in, n)
-	var escoa := not ultimo or _recebe(cam[i], d_out, n)
+	var alimentado := not primeiro or d_ini >= 0 or _alimenta(cam[i], d_in, n)
+	var escoa := not ultimo or liga_fim or _recebe(cam[i], d_out, n)
 	if not alimentado and escoa:
 		return {"nome": "esteira_inicio", "rot": r}
 	if alimentado and not escoa:

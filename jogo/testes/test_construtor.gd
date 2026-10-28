@@ -134,7 +134,7 @@ func test_trocar_por_cima() -> void:
 	c.executar(c.plano_linha("esteira", Vector2i(0, 0), Vector2i(4, 0), 0))
 	var p := c.plano_linha("esteira", Vector2i(2, 0), Vector2i(2, 3), 0)
 	igual(p[0].acao, "substituir", "arrastar por cima troca a peça")
-	igual(p[0].nome, "esteira_inicio", "vira cabeceira (ninguém alimenta pelo sul)")
+	verificar(p[0].nome.begins_with("esteira_curva"), "começar no meio de uma esteira desvia o fluxo para o traço novo")
 	verificar(Construtor.pode_tudo(p), "trocar não é bloqueio")
 	var igual_p := c.plano_linha("esteira", Vector2i(1, 0), Vector2i(3, 0), 0)
 	igual(igual_p[1].acao, "igual", "mesma peça e direção: nada a fazer")
@@ -144,14 +144,15 @@ func test_trocar_por_cima() -> void:
 func test_bloqueios_mostram_motivo() -> void:
 	var c := _c()
 	c.executar(c.plano_peca("fornalha", Vector2i(0, 0), 0))
+	# o traço desvia da fornalha sozinho; terminar em cima dela deixa a ponta vermelha
 	var p := c.plano_linha("esteira", Vector2i(-3, 0), Vector2i(3, 0), 0)
+	verificar(Construtor.pode_tudo(p), "contorna a fornalha: tudo verde")
+	var q := c.plano_linha("esteira", Vector2i(-3, 0), Vector2i(0, 0), 0)
 	var motivos := {}
-	for it in p:
+	for it in q:
 		motivos[it.motivo] = true
-	verificar(motivos.has("ocupado"), "passa pela fornalha: vermelho nesses tiles")
+	verificar(motivos.has("ocupado"), "ponta em cima da fornalha: vermelho")
 	verificar(motivos.has(""), "o resto continua verde")
-	var rel := c.executar(p)
-	igual(rel.colocados.size(), 5, "executa só o que pode (7 tiles − 2 da fornalha)")
 	igual(c.plano_peca("extrator_cristal", Vector2i(-5, -5), 0)[0].motivo, "sem_jazida")
 	var t := _obstaculo_perto(c)
 	igual(c.plano_peca("bau", t, 0)[0].motivo, "obstaculo", "obstáculo natural bloqueia")
@@ -242,3 +243,65 @@ func test_trem_e_destruir() -> void:
 	c2.destruir(id)
 	igual(c2._estrutura_em(Vector2i(2, 2)).nome, "esteira_fim", "ponta fechada após destruição")
 	igual(c2._historico.size(), n, "destruição não entra no desfazer")
+
+
+func test_rota_desvia_obstaculos() -> void:
+	var c := _c()
+	c.executar(c.plano_peca("fornalha", Vector2i(0, 0), 0))
+	var p := c.plano_linha("esteira", Vector2i(-4, 0), Vector2i(4, 0), 0)
+	verificar(Construtor.pode_tudo(p), "tudo verde")
+	var tiles := {}
+	for it in p:
+		tiles[it.minimo] = true
+		verificar(c.mapa.motivo_bloqueio("esteira_reta", it.minimo, 0) == "", "tile %s livre" % it.minimo)
+	igual(tiles.size(), p.size(), "sem tile repetido")
+	var curvas := 0
+	for it in p:
+		if it.nome.begins_with("esteira_curva"):
+			curvas += 1
+	verificar(curvas <= 4, "desvio limpo (%d curvas)" % curvas)
+	igual(p[1].minimo, Vector2i(-3, 0), "segue reto até perto da fornalha")
+	igual(p[0].minimo, Vector2i(-4, 0))
+	igual(p[-1].minimo, Vector2i(4, 0))
+	var rel := c.executar(p)
+	igual(rel.colocados.size(), p.size(), "tudo construído")
+
+
+func test_fim_existente_vira_curva_para_o_traco() -> void:
+	var c := _c()
+	c.executar(c.plano_linha("esteira", Vector2i(0, 0), Vector2i(3, 0), 0))     # leste, termina em fim em (3,0)
+	igual(c._estrutura_em(Vector2i(3, 0)).nome, "esteira_fim")
+	# começa ao lado do fim (não na frente): o fim vira curva para o novo traço
+	var p := c.plano_linha("esteira", Vector2i(3, 1), Vector2i(3, 4), 0)
+	igual(p[0].nome, "esteira_reta", "o primeiro já nasce alimentado")
+	c.executar(p)
+	var antigo := c._estrutura_em(Vector2i(3, 0))
+	verificar(antigo.nome.begins_with("esteira_curva"), "o fim antigo virou curva (%s)" % antigo.nome)
+	var no := Construtor.no_esteira(antigo)
+	igual(no.sai, Construtor.direcao(Vector2i(3, 0), Vector2i(3, 1)), "a curva entrega no traço novo")
+
+
+func test_ponta_vira_para_quem_recebe() -> void:
+	var c := _c()
+	c.executar(c.plano_linha("esteira", Vector2i(0, 3), Vector2i(4, 3), 0))     # linha leste em y = 3
+	# traço rumo ao norte terminando ao lado do início da linha: o início vira curva e recebe dele
+	var p := c.plano_linha("esteira", Vector2i(-1, 0), Vector2i(-1, 3), 0)
+	igual(p[3].nome, "esteira_curva_dir" if Construtor.direcao(Vector2i(-1, 2), Vector2i(-1, 3)) == 0 else p[3].nome, "último tile vira para a linha")
+	c.executar(p)
+	var ini := c._estrutura_em(Vector2i(0, 3))
+	igual(ini.nome, "esteira_reta", "o início da linha agora é alimentado")
+	# sem nada ao lado: termina em fim
+	var q := c.plano_linha("esteira", Vector2i(-6, -6), Vector2i(-6, -3), 0)
+	igual(q[-1].nome, "esteira_fim")
+
+
+func test_rota_rapida() -> void:
+	var c := _c()
+	for x in range(-10, 11, 2):
+		c.executar(c.plano_peca("bau", Vector2i(x, 0), 0))
+	var t0 := Time.get_ticks_usec()
+	var p := c.plano_linha("esteira", Vector2i(-12, -4), Vector2i(12, 4), 0)
+	var ms := (Time.get_ticks_usec() - t0) / 1000.0
+	verificar(Construtor.pode_tudo(p), "acha a passagem entre os baús")
+	verificar(ms < 40.0, "rota em %.1f ms" % ms)
+	print("      rota com desvio: %.1f ms" % ms)

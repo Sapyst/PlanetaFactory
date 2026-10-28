@@ -28,6 +28,7 @@ func _ready() -> void:
 		"vitrine": _roteiro_vitrine()
 		"panorama": _roteiro_panorama()
 		"fios": _roteiro_fios()
+		"rota": _roteiro_rota()
 		"vagao_tex": _roteiro_vagao_tex()
 		"conferir": print("DIGITAL ", digital(cena))
 	print("ROTEIRO ", roteiro, " com ", _passos.size(), " passos; tela ", get_viewport().get_visible_rect().size, " janela ", DisplayServer.window_get_size())
@@ -154,6 +155,21 @@ func _roteiro_pc() -> void:
 	em(133, func(): botao_mouse(tela(Vector2i(-2, 1)), false))
 	em(135, func(): tecla(KEY_ESCAPE))
 	# quadro ~140: muro em L, panos ligando os pilares
+
+
+## Traço inteligente: fornalha no caminho → o fantasma contorna (foto ~30); põe; um traço novo começando ao lado
+## do fim vira o fim em curva (foto ~70).
+func _roteiro_rota() -> void:
+	em(2, func():
+		var con: Construtor = cena.construtor
+		cena.sincronizar(con.executar(con.plano_peca("fornalha", Vector2i(-2, -1), 0))))
+	em(4, func(): clicar(botao("esteira")))
+	em(6, func(): mover(tela(Vector2i(-7, -1))))
+	traco_mouse(8, Vector2i(-7, -1), Vector2i(2, -1), 16)
+	em(34, func(): botao_mouse(tela(Vector2i(2, -1)), false))
+	traco_mouse(40, Vector2i(2, 0), Vector2i(2, 3), 8)
+	em(52, func(): botao_mouse(tela(Vector2i(2, 3)), false))
+	em(56, func(): mover(Vector2(640, 40)))
 
 
 ## Toque: escolhe a esteira tocando no botão, traça com um dedo, solta (põe), e dois dedos fazem pinça.
