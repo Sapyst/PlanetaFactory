@@ -4,10 +4,12 @@
 [ext_resource type="Script" path="res://cenas/camera_jogo.gd" id="2"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ceu"]
-sky_top_color = Color(0.32, 0.38, 0.52, 1)
-sky_horizon_color = Color(0.62, 0.58, 0.66, 1)
-ground_bottom_color = Color(0.12, 0.10, 0.14, 1)
-ground_horizon_color = Color(0.62, 0.58, 0.66, 1)
+sky_top_color = Color(0.25, 0.40, 0.62, 1)
+sky_horizon_color = Color(0.64, 0.69, 0.74, 1)
+sky_curve = 0.12
+ground_bottom_color = Color(0.16, 0.15, 0.14, 1)
+ground_horizon_color = Color(0.64, 0.69, 0.74, 1)
+sun_angle_max = 20.0
 
 [sub_resource type="Sky" id="sky"]
 sky_material = SubResource("ceu")
@@ -16,13 +18,23 @@ sky_material = SubResource("ceu")
 background_mode = 2
 sky = SubResource("sky")
 ambient_light_source = 3
-ambient_light_energy = 0.8
-tonemap_mode = 2
+ambient_light_sky_contribution = 1.0
+ambient_light_energy = 0.55
+reflected_light_source = 2
+tonemap_mode = 4
+tonemap_exposure = 1.05
 glow_enabled = true
-glow_intensity = 0.6
+glow_intensity = 0.35
+glow_bloom = 0.0
+glow_hdr_threshold = 1.2
 fog_enabled = true
-fog_light_color = Color(0.55, 0.52, 0.62, 1)
+fog_light_color = Color(0.66, 0.72, 0.78, 1)
 fog_density = 0.0012
+fog_aerial_perspective = 0.6
+fog_sky_affect = 0.0
+adjustment_enabled = true
+adjustment_contrast = 1.06
+adjustment_saturation = 0.92
 
 [node name="MundoDemo" type="Node3D"]
 script = ExtResource("1")
@@ -31,10 +43,20 @@ script = ExtResource("1")
 environment = SubResource("amb")
 
 [node name="Sol" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 20, 0)
-light_energy = 1.1
+transform = Transform3D(0.819, -0.369, 0.439, 0, 0.766, 0.643, -0.574, -0.527, 0.627, 0, 20, 0)
+light_color = Color(1, 0.94, 0.84, 1)
+light_energy = 1.7
+light_angular_distance = 0.6
 shadow_enabled = true
+shadow_bias = 0.04
+shadow_blur = 1.2
 directional_shadow_max_distance = 140.0
+
+[node name="Preenchimento" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.819, 0.25, -0.516, 0, 0.9, 0.436, 0.574, 0.357, -0.737, 0, 20, 0)
+light_color = Color(0.62, 0.72, 0.95, 1)
+light_energy = 0.28
+light_specular = 0.0
 
 [node name="Camera3D" type="Camera3D" parent="."]
 script = ExtResource("2")

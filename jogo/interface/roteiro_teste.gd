@@ -28,6 +28,7 @@ func _ready() -> void:
 		"vitrine": _roteiro_vitrine()
 		"panorama": _roteiro_panorama()
 		"fios": _roteiro_fios()
+		"vagao_tex": _roteiro_vagao_tex()
 		"conferir": print("DIGITAL ", digital(cena))
 	print("ROTEIRO ", roteiro, " com ", _passos.size(), " passos; tela ", get_viewport().get_visible_rect().size, " janela ", DisplayServer.window_get_size())
 
@@ -426,3 +427,17 @@ func _roteiro_fios() -> void:
 	em(62, func(): clicar(botao("poste_energia")))
 	em(64, func(): mover(tela(Vector2i(19, 9))))
 	# quadro ~75: fios da demo + prévia amarela do poste novo e o anel de 9 m
+
+
+## Teste de textura: o trem com o vagão texturizado; câmera de perto acompanhando a composição.
+func _roteiro_vagao_tex() -> void:
+	cena.controle.barra.visible = false
+	for q in range(2, 300, 2):
+		em(q, func():
+			if cena.trens.is_empty():
+				return
+			var t: Trem = cena.trens[0]
+			var c: Vector2 = t.ponto_em(t.s - t.comprimento() / 2.0).pos
+			cena.camera.alvo = Grade.ponto_mundo(c)
+			cena.camera.distancia = 9.0
+			cena.camera.posicionar())

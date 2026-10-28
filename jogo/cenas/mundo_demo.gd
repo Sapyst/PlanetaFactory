@@ -2,7 +2,7 @@ extends Node3D
 ## Cena de demonstração: mundo procedural em streaming por chunks; mini-fábrica perto do spawn
 ## (extrator → esteira → braço → estação A → trem → estação B); a poluição dela se espalha, ninhos de aranha
 ## absorvem e mandam ataques; a torre defende; o jogador constrói (controles em interface/controle_construcao.gd).
-## Argumentos: -- camera X Z DIST · acelerar N (tempo N×) · roteiro <nome>
+## Argumentos: -- camera X Z DIST · acelerar N (tempo N×) · roteiro <nome> · clima <estado>
 ## Teste sem janela: godot --headless --path jogo --quit-after 600   (o jogo roda e sai)
 ## Roteiro visual automático: ... -- roteiro construir   (ver interface/roteiro_teste.gd)
 
@@ -19,6 +19,7 @@ var fabrica: Fabrica
 var _desenho_itens: DesenhoItens
 var _fabrica_suja := false
 var poluicao: Poluicao
+var clima: Clima
 var colonia: Colonia
 var grafo := GrafoTrilhos.new()
 var trens: Array[Trem] = []
@@ -80,6 +81,7 @@ func _ready() -> void:
 	DesenhoChunk.preparar(gerador)
 	DesenhoChunk.aquecer()
 	poluicao = Poluicao.new(gerador)
+	clima = Clima.new(semente)
 	colonia = Colonia.new(mapa, poluicao, semente)
 	pesquisa = Pesquisa.new(modo == "demo")
 	fabrica = Fabrica.new(mapa)
@@ -108,6 +110,9 @@ func _ready() -> void:
 	_salvar_em = float(Sessao.config.autosalvar_s)
 	Sessao.aplicar.call_deferred()
 	Som.musica(true)
+	var ci := args.find("clima")
+	if ci >= 0 and args.size() > ci + 1:
+		clima.forcar(args[ci + 1], true)
 	_atualizar_chunks()
 	var r := args.find("roteiro")
 	if r >= 0 and args.size() > r + 1:
@@ -146,7 +151,7 @@ func salvar() -> void:
 	var ok := Salvamento.gravar({"modo": modo, "semente": semente, "tempo": _tempo,
 			"camera": [camera.alvo, camera.distancia, camera.angulo],
 			"mapa": {"estruturas": mapa.estruturas, "limpos": mapa.limpos.keys(), "prox": mapa._prox_id},
-			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores,
+			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores, "clima": clima.estado(),
 			"estoques": estoques, "inventario": inventario, "pesquisa": pesquisa.estado(),
 			"trens": trens.map(func(t: Trem): return t.para_salvar()), "prox_trem": _prox_trem})
 	if ok and is_instance_valid(controle):
@@ -160,6 +165,8 @@ func _carregar(d: Dictionary) -> void:
 	for id in d.estoques:
 		estoques[id] = d.estoques[id]
 	poluicao.valores = d.poluicao
+	if d.has("clima"):
+		clima.restaurar(d.clima)
 	colonia.restaurar(d.colonia)
 	for id in mapa.estruturas:
 		var nome: String = mapa.estruturas[id].nome
@@ -220,6 +227,13 @@ func _criar_desenhos() -> void:
 	_desenho_poluicao = DesenhoPoluicao.new()
 	_desenho_poluicao.poluicao = poluicao
 	add_child(_desenho_poluicao)
+	var dc := DesenhoClima.new()
+	dc.clima = clima
+	dc.camera = camera
+	dc.ambiente = $Ambiente
+	dc.sol = $Sol
+	dc.fontes_calor = _fontes_calor
+	add_child(dc)
 
 
 func alternar_poluicao() -> bool:
@@ -599,8 +613,7 @@ func _process(delta: float) -> void:
 	for i in relogio.avancar(delta):
 		_tick_mundo(relogio.dt())
 	_animar_estruturas()
-	# névoa mais rala quanto mais longe a câmera (de longe o mapa não desbota); letreiros só de perto
-	($Ambiente as WorldEnvironment).environment.fog_density = 0.055 / camera.distancia
+	# letreiros só de perto (a névoa por zoom e clima fica no DesenhoClima)
 	($Sol as DirectionalLight3D).directional_shadow_max_distance = clampf(camera.distancia * 1.6, 30.0, 110.0)
 	for l in _rotulos.values():
 		l.visible = camera.distancia < 75.0
@@ -624,6 +637,21 @@ func _process(delta: float) -> void:
 		_atualizar_rotulos()
 		_hud()
 	_atualizar_chunks()
+
+
+## Onde a neblina abre: máquinas queimando/trabalhando (as que poluíram neste passo) e trens. (x, z do mundo, raio)
+func _fontes_calor() -> Array:
+	var r: Array = []
+	for id in fabrica.emissao:
+		var e: Dictionary = mapa.estruturas.get(id, {})
+		if e.is_empty():
+			continue
+		var p := Grade.ponto_mundo(Grade.centro_da_area(e.minimo, e.area, e.rot))
+		r.append(Vector3(p.x, p.z, 3.0 + 0.8 * maxf(e.area.x, e.area.y)))
+	for t in trens:
+		var p := Grade.ponto_mundo(t.ponto_em(t.s).pos)
+		r.append(Vector3(p.x, p.z, 4.0))
+	return r
 
 
 ## Animação segue a simulação: máquina mexe só trabalhando; braço pela fase do ciclo.
@@ -670,6 +698,8 @@ func _tick_mundo(dt: float) -> void:
 			continue
 		var e: Dictionary = mapa.estruturas[id]
 		fontes_vivas.append({"id": id, "pos": Grade.centro_da_area(e.minimo, e.area, e.rot)})
+	clima.tick(dt)
+	poluicao.chuva = clima.valores.chuva
 	poluicao.tick(dt)
 	colonia.tick(dt, fontes_vivas)
 	_eventos.append_array(colonia.eventos)
@@ -899,8 +929,8 @@ func _hud() -> void:
 	for t in colonia.torres.values():
 		municao += t.municao
 	var aqui := poluicao.em(Grade.tile_de_mundo(camera.alvo))
-	var texto := "Poluição aqui: %.1f   ·   total: %.0f\nNinhos: %d   ·   aranhas: %d\nMunição nas torres: %d   ·   trens: %d" % [
-			aqui, poluicao.total(), colonia.ninhos.size(), colonia.aranhas.size(), municao, trens.size()]
+	var texto := "Clima: %s\nPoluição aqui: %.1f   ·   total: %.0f\nNinhos: %d   ·   aranhas: %d\nMunição nas torres: %d   ·   trens: %d" % [
+			clima.nome(), aqui, poluicao.total(), colonia.ninhos.size(), colonia.aranhas.size(), municao, trens.size()]
 	if modo != "demo":
 		var principais: Array[String] = []
 		for k in ["placa_ferro", "engrenagem", "placa_cobre", "pedra"]:

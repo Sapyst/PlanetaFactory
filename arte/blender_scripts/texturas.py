@@ -37,20 +37,20 @@ def mistura(c0, c1, t):
 
 def campina():
     a = ruido(1, 6); b = ruido(2, 40)
-    img = mistura((0.20, 0.36, 0.27), (0.33, 0.50, 0.33), np.clip(a*1.3 - 0.15, 0, 1))
-    img = mistura_sobre(img, (0.42, 0.58, 0.38), b > 0.62, 0.35)
+    img = mistura((0.25, 0.32, 0.19), (0.35, 0.42, 0.25), np.clip(a*1.3 - 0.15, 0, 1))
+    img = mistura_sobre(img, (0.47, 0.45, 0.31), b > 0.62, 0.35)
     return img * (0.9 + 0.2*ruido(3, 120)[..., None])
 
 def floresta_fungica():
     a = ruido(11, 5); v = veios(12, 10, 0.05)
-    img = mistura((0.17, 0.11, 0.19), (0.30, 0.19, 0.30), a)
-    img = mistura_sobre(img, (0.62, 0.30, 0.80), v, 0.8)
+    img = mistura((0.18, 0.15, 0.16), (0.28, 0.23, 0.25), a)
+    img = mistura_sobre(img, (0.44, 0.32, 0.46), v, 0.55)
     return img * (0.9 + 0.2*ruido(13, 100)[..., None])
 
 def deserto_silex():
     a = ruido(21, 4); p = pintas(22, 2.0, 3)
-    img = mistura((0.70, 0.58, 0.40), (0.84, 0.73, 0.52), a)
-    img = mistura_sobre(img, (0.30, 0.34, 0.46), p, 0.85)
+    img = mistura((0.62, 0.54, 0.42), (0.74, 0.65, 0.50), a)
+    img = mistura_sobre(img, (0.34, 0.35, 0.38), p, 0.8)
     return img * (0.93 + 0.14*ruido(23, 150)[..., None])
 
 def planalto_rochoso():
@@ -61,31 +61,31 @@ def planalto_rochoso():
 
 def campo_cristal():
     a = ruido(41, 6); p = pintas(42, 1.2, 2)
-    img = mistura((0.40, 0.38, 0.46), (0.55, 0.53, 0.60), a)
-    img = mistura_sobre(img, (0.30, 0.95, 0.80), p, 0.95)
+    img = mistura((0.44, 0.44, 0.47), (0.58, 0.58, 0.61), a)
+    img = mistura_sobre(img, (0.56, 0.78, 0.76), p, 0.65)
     return img * (0.92 + 0.16*ruido(43, 120)[..., None])
 
 def pantano():
     a = ruido(51, 4); u = ruido(52, 8)
-    img = mistura((0.18, 0.21, 0.12), (0.30, 0.31, 0.18), a)
+    img = mistura((0.20, 0.21, 0.14), (0.30, 0.29, 0.19), a)
     img = mistura_sobre(img, (0.10, 0.14, 0.12), np.clip((u - 0.55)*4, 0, 1), 0.85)
     return img * (0.9 + 0.2*ruido(53, 110)[..., None])
 
 def cinzal():
     a = ruido(61, 5); r = veios(62, 9, 0.03)
-    img = mistura((0.24, 0.23, 0.25), (0.38, 0.37, 0.39), a)
-    img = mistura_sobre(img, (0.95, 0.42, 0.12), r, 0.7)
+    img = mistura((0.26, 0.25, 0.25), (0.40, 0.39, 0.39), a)
+    img = mistura_sobre(img, (0.66, 0.32, 0.14), r, 0.45)
     return img * (0.9 + 0.2*ruido(63, 100)[..., None])
 
 def agua_rasa():
-    a = ruido(71, 6); return mistura((0.10, 0.38, 0.42), (0.20, 0.55, 0.55), a)
+    a = ruido(71, 6); return mistura((0.13, 0.27, 0.29), (0.21, 0.37, 0.37), a)
 
 def agua_funda():
-    a = ruido(81, 5); return mistura((0.03, 0.10, 0.20), (0.06, 0.20, 0.32), a)
+    a = ruido(81, 5); return mistura((0.05, 0.11, 0.17), (0.08, 0.17, 0.24), a)
 
 def praia():
     a = ruido(91, 6); p = pintas(92, 0.8, 2)
-    img = mistura((0.74, 0.66, 0.50), (0.86, 0.79, 0.62), a)
+    img = mistura((0.70, 0.63, 0.50), (0.80, 0.73, 0.60), a)
     return mistura_sobre(img, (0.55, 0.52, 0.48), p, 0.6)
 
 def jazida():

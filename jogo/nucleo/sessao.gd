@@ -6,7 +6,7 @@ extends Node
 const ARQ_CONFIG := "user://configuracoes.cfg"
 
 var modo := "demo"
-var config := {"volume": 0.8, "musica": 0.5, "sombras": true, "texto": 1.0, "autosalvar_s": 120, "resolucao": 1.0, "fps": true}   ## fps ligado por padrão na fase de testes
+var config := {"volume": 0.8, "musica": 0.5, "sombras": true, "texto": 1.0, "autosalvar_s": 120, "resolucao": 1.0, "fps": true, "clima": true}   ## fps ligado por padrão na fase de testes
 
 
 func _init() -> void:

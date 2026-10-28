@@ -15,6 +15,7 @@ uniform float camada_piso = 9.0;
 uniform float camada_jazida = 7.0;  // zona de minério nunca vira piso
 uniform float primeira_agua = 8.0;
 uniform float escala = 0.25;
+#include "res://render/shaders/clima.gdshaderinc"
 
 varying flat float camada;
 varying flat vec3 fluxo;           // xy = direção da correnteza (grade), z = 1 se rio
@@ -71,6 +72,13 @@ void fragment() {
 		}
 	}
 	c *= 0.88 + 0.24 * d;
+	float poca = 0.0;
+	if (camada < primeira_agua && molhado > 0.0) {
+		// chão molhado escurece; nas partes baixas do ruído junta poça (lisa, reflete o céu)
+		poca = smoothstep(0.62, 0.70, 1.0 - d) * smoothstep(0.35, 1.0, molhado);
+		c *= 1.0 - 0.30 * molhado - 0.15 * poca;
+	}
+	c *= 1.0 - 0.6 * sombra_nuvem(mundo);
 	ALBEDO = c;
 	if (camada >= primeira_agua) {
 		ROUGHNESS = 0.08;
@@ -79,6 +87,7 @@ void fragment() {
 		float onda = texture(detalhe, mundo.xz * 0.12 + corre_onda * TIME).r;
 		ALBEDO = c * (0.9 + 0.25 * onda);
 	} else {
-		ROUGHNESS = 0.92;
+		ROUGHNESS = mix(mix(0.92, 0.55, molhado), 0.06, poca);
+		SPECULAR = 0.5 + 0.4 * poca;
 	}
 }

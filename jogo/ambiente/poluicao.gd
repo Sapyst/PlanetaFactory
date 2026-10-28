@@ -9,6 +9,7 @@ extends RefCounted
 const PASSO := 1.0
 
 var valores: Dictionary = {}          ## chunk → pontos
+var chuva := 0.0                      ## 0..1, vem do clima: chuva lava o ar (chão absorve mais)
 var gerador: GeradorMundo
 var _mult: Dictionary = {}            ## chunk → multiplicador de absorção (cache)
 var _acum := 0.0
@@ -61,10 +62,11 @@ func _passo() -> void:
 	var minimo: float = _d.get("minimo_espalhar", 0.6)
 	var absorcao: float = _d.get("absorcao", 0.004)
 	var fixa: float = _d.get("absorcao_fixa", 0.02)
+	var lava := 1.0 + float(Registro.clima.get("chuva_absorcao", 0.0)) * chuva
 	var novo := {}
 	for k in valores:
 		var v: float = valores[k]
-		v -= (v * absorcao + fixa) * _multiplicador(k) * PASSO
+		v -= (v * absorcao + fixa) * _multiplicador(k) * lava * PASSO
 		if v <= 0.0:
 			continue
 		if v > minimo:

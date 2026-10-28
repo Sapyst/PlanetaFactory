@@ -35,20 +35,74 @@ def _arvore(nome, semente, altura, copa, desc):
 def arvore_campina_a(): return _arvore('arvore_campina_a', 1, 1.6, 0.40, 'Árvore da campina (bloqueia 1 tile).')
 def arvore_campina_b(): return _arvore('arvore_campina_b', 2, 2.1, 0.34, 'Árvore alta da campina (bloqueia 1 tile).')
 
+def _revolucao(p, aneis, mats):
+    """Liga anéis de vértices (mesmo nº de pontos) em quads; mats[i] = material entre o anel i e i+1.
+    Último anel pode ser um ponto só (fecha em leque)."""
+    from lib_pf import Q
+    vs = [[p.bm.verts.new(Q(v)) for v in anel] for anel in aneis]
+    for i in range(len(vs) - 1):
+        a, b = vs[i], vs[i + 1]
+        mi = p._mi(mats[i])
+        n = len(a)
+        if len(b) == 1:
+            for k in range(n):
+                p.bm.faces.new((a[k], a[(k + 1) % n], b[0])).material_index = mi
+        else:
+            for k in range(n):
+                p.bm.faces.new((a[k], a[(k + 1) % n], b[(k + 1) % n], b[k])).material_index = mi
+
+
+def _um_cogumelo(p, base, altura, chapeu, rnd, lados=14):
+    """Cogumelo orgânico: pé curvo que afina (bulbo embaixo, leve alargamento sob o chapéu), chapéu abaulado e
+    irregular com a borda ondulada e caída, lamelas por baixo (material que brilha)."""
+    curva = Vector((rnd.uniform(-1, 1), rnd.uniform(-1, 1), 0)).normalized() * altura * rnd.uniform(0.06, 0.14)
+    fase = rnd.uniform(0, 2 * PI)
+    def eixo(t):                                   # espinha do pé (curva suave)
+        return base + Vector((0, 0, altura * t)) + curva * math.sin(t * PI / 2) ** 1.5
+    def raio_pe(t):
+        return chapeu * (0.42 - 0.30 * t + 0.22 * math.exp(-t * 9.0) + 0.10 * math.exp(-(1 - t) * 10.0))
+    aneis = []
+    for i in range(10):
+        t = i / 9.0
+        c = eixo(t)
+        r = raio_pe(t)
+        aneis.append([c + Vector((math.cos(a) * r * (1 + rnd.uniform(-0.05, 0.05)), math.sin(a) * r * (1 + rnd.uniform(-0.05, 0.05)), 0))
+                      for a in (2 * PI * k / lados for k in range(lados))])
+    _revolucao(p, aneis, ['P_FungoCaule'] * 9)
+    # chapéu: perfil (raio relativo, altura relativa) de dentro (sob o chapéu) até o topo; borda ondulada
+    topo = eixo(1.0)
+    perfil = [(0.18, -0.02), (0.55, 0.00), (0.92, -0.10), (1.00, -0.04), (0.98, 0.10), (0.85, 0.28), (0.62, 0.42), (0.32, 0.50)]
+    mats = ['P_Biomassa', 'P_Biomassa', 'P_Chapeu', 'P_Chapeu', 'P_Chapeu', 'P_Chapeu', 'P_Chapeu', 'P_Chapeu']
+    aneis = []
+    for rr, hh in perfil:
+        anel = []
+        for k in range(lados):
+            a = 2 * PI * k / lados
+            onda = 1 + 0.07 * math.sin(5 * a + fase) + 0.04 * math.sin(9 * a + fase * 2) + rnd.uniform(-0.03, 0.03)
+            caida = 0.05 * math.sin(3 * a + fase) * rr           # borda que cai mais de um lado
+            anel.append(topo + Vector((math.cos(a) * chapeu * rr * onda, math.sin(a) * chapeu * rr * onda, chapeu * (hh - caida))))
+        aneis.append(anel)
+    aneis.append([topo + Vector((0, 0, chapeu * 0.54))])
+    _revolucao(p, aneis, mats)
+
+
 def _cogumelo(nome, semente, altura, chapeu, desc):
     m = bloqueio(Modelo(nome, V, descricao=desc)); p = m.parte(); rnd = random.Random(semente)
-    inc = rnd.uniform(-0.06, 0.06)
-    p.cil((inc, 0, altura/2), 0.10, altura, 'P_FungoCaule', lados=7, r2=0.07)
-    p.cil((inc, 0, altura + 0.02), chapeu*0.95, 0.06, 'P_Tronco', lados=9)
-    p.cil((inc, 0, altura + 0.14), chapeu, 0.22, 'P_Biomassa', lados=9, r2=chapeu*0.35)
-    for k in range(2):
-        a = rnd.uniform(0, 2*PI); x, y = math.cos(a)*0.28, math.sin(a)*0.28
-        p.cil((x, y, 0.10), 0.03, 0.20, 'P_FungoCaule', lados=5)
-        p.cil((x, y, 0.22), 0.09, 0.06, 'P_Biomassa', lados=6, r2=0.03)
+    _um_cogumelo(p, Vector((0, 0, 0)), altura, chapeu, rnd)
+    for k in range(3):                               # filhotes em volta do pé
+        a = rnd.uniform(0, 2 * PI); d = rnd.uniform(0.24, 0.36)
+        _um_cogumelo(p, Vector((math.cos(a) * d, math.sin(a) * d, 0)), rnd.uniform(0.14, 0.26), rnd.uniform(0.07, 0.11), rnd, lados=8)
+    # encaixa no tile 1×1 (centraliza e reduz só no plano, se precisar)
+    xs = [v.co.x for v in p.bm.verts]; ys = [v.co.y for v in p.bm.verts]
+    cx, cy = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
+    k = min(1.0, 0.92 / max(max(xs) - min(xs), max(ys) - min(ys)))
+    for v in p.bm.verts:
+        v.co.x = round((v.co.x - cx) * k, 6)
+        v.co.y = round((v.co.y - cy) * k, 6)
     return m
 
-def cogumelo_gigante_a(): return _cogumelo('cogumelo_gigante_a', 3, 1.4, 0.45, 'Cogumelo gigante da floresta fúngica. Corte dá biomassa.')
-def cogumelo_gigante_b(): return _cogumelo('cogumelo_gigante_b', 4, 2.0, 0.40, 'Cogumelo gigante alto. Corte dá biomassa.')
+def cogumelo_gigante_a(): return _cogumelo('cogumelo_gigante_a', 3, 1.3, 0.56, 'Cogumelo gigante da floresta fúngica. Corte dá biomassa.')
+def cogumelo_gigante_b(): return _cogumelo('cogumelo_gigante_b', 4, 1.8, 0.52, 'Cogumelo gigante alto. Corte dá biomassa.')
 
 def arbusto():
     m = bloqueio(Modelo('arbusto', V, descricao='Arbusto da campina (bloqueia 1 tile, limpa rápido).')); p = m.parte()

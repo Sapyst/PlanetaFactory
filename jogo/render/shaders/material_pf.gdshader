@@ -1,4 +1,6 @@
-// Material único do jogo (low-poly facetado, sem textura). Um só shader → menos trocas de estado na GPU.
+// Material único do jogo (low-poly facetado). Um só shader → menos trocas de estado na GPU.
+// Estruturas trazem uma textura assada (pintura gasta, ferrugem, sujeira: arte/blender_scripts/texturizar.py) no UV;
+// o resto da paleta (itens, mapa) continua cor lisa.
 // Efeitos ligados por uniform (por material compartilhado, não por objeto):
 //   vento   : balança a vegetação (proporcional à altura do vértice)
 //   rolagem : lona da esteira andando (UV.y = distância percorrida)
@@ -16,8 +18,13 @@ uniform float vento = 0.0;
 uniform float rolagem = 0.0;      // m/s (0 = parada)
 uniform float pulso = 0.0;
 uniform float boiar = 0.0;
+uniform sampler2D textura : source_color, filter_linear_mipmap;
+uniform bool tem_textura = false;
+uniform bool rolagem_uv2 = false;  // modelo texturizado: o UV da lona foi para o 2º canal
+#include "res://render/shaders/clima.gdshaderinc"
 
 varying float v_dist;
+varying vec3 v_mundo;
 
 void vertex() {
 	vec3 mundo = NODE_POSITION_WORLD;
@@ -31,18 +38,23 @@ void vertex() {
 	if (boiar > 0.0) {
 		VERTEX.y += sin(TIME * 1.2 + fase) * 0.015 * boiar;
 	}
-	v_dist = UV.y;
+	v_dist = rolagem_uv2 ? UV2.y : UV.y;
+	v_mundo = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
 
 void fragment() {
-	vec3 base = cor.rgb;
+	vec3 base = tem_textura ? texture(textura, UV).rgb : cor.rgb;
 	if (rolagem != 0.0) {
 		// ranhuras transversais andando no sentido do fluxo (4 por metro)
 		float r = fract((v_dist - TIME * rolagem) * 4.0);
 		base *= mix(1.0, 1.9, step(0.82, r));
 	}
+	// molhado: superfícies de cima escurecem e brilham (água parada); sombra de nuvem tira o sol
+	float m = molhado * smoothstep(0.3, 0.9, (INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).y);
+	base *= 1.0 - 0.28 * m;
+	base *= 1.0 - 0.6 * sombra_nuvem(v_mundo);
 	ALBEDO = base;
-	ROUGHNESS = aspereza;
+	ROUGHNESS = mix(aspereza, 0.45, m * 0.8);   // sem espelho: faceta molhada não pode estourar de branco
 	METALLIC = metal;
 	float e = forca_emissao;
 	if (pulso > 0.0) {

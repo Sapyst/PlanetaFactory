@@ -19,7 +19,9 @@ for f in sorted(glob.glob(os.path.join(RAIZ, '**', '*.json'), recursive=True)):
         continue
     sc = preparar_cena()
     sc.render.film_transparent = True
-    sc.display.shading.show_object_outline = True
+    sc.display.shading.show_object_outline = False
+    sc.display.shading.show_cavity = False
+    sc.display.shading.color_type = 'TEXTURE'          # estruturas texturizadas
     bpy.ops.import_scene.gltf(filepath=f[:-5] + '.glb')
     objs = [o for o in sc.objects if o.type == 'MESH']
     render(objs, os.path.join(SAIDA, d['nome'] + '.png'), res=(192, 192), margem=1.08)

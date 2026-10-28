@@ -8,9 +8,10 @@ var modelos: Dictionary = {}      ## tudo que a arte exporta (inclui mapa, inimi
 var biomas: Dictionary = {}
 var agua: Dictionary = {}
 var nomes_biomas: Array[String] = []
-var menu: Dictionary = {}
+var menu: Dictionary = {}         ## barra de construção (categorias, rótulos, textos de bloqueio)
 var inimigos: Dictionary = {}     ## poluição, ninhos, aranhas, expansão
-var progressao: Dictionary = {}   ## custos, kit inicial, pesquisas         ## barra de construção (categorias, rótulos, textos de bloqueio)
+var progressao: Dictionary = {}   ## custos, kit inicial, pesquisas
+var clima: Dictionary = {}        ## estados do clima dinâmico
 
 
 func _init() -> void:
@@ -24,6 +25,7 @@ func carregar(pasta := "res://dados") -> void:
 	menu = _ler(pasta + "/menu_construcao.json")
 	inimigos = _ler(pasta + "/inimigos.json")
 	progressao = _ler(pasta + "/progressao.json")
+	clima = _ler(pasta + "/clima.json")
 	var regras := _sem_notas(_ler(pasta + "/estruturas.json"))
 	estruturas.clear()
 	for nome in regras:

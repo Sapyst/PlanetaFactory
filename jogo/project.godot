@@ -30,3 +30,30 @@ textures/vram_compression/import_etc2_astc=true
 [input_devices]
 
 pointing/emulate_mouse_from_touch=true
+
+[shader_globals]
+
+nuvem_ruido={
+"type": "sampler2D",
+"value": "res://assets/texturas/ruido_detalhe.png"
+}
+nuvem_cobertura={
+"type": "float",
+"value": 0.0
+}
+nuvem_deslocamento={
+"type": "vec2",
+"value": Vector2(0, 0)
+}
+molhado={
+"type": "float",
+"value": 0.0
+}
+sol_dir={
+"type": "vec3",
+"value": Vector3(0.44, 0.63, 0.64)
+}
+nuvem_mapa={
+"type": "sampler2D",
+"value": "res://assets/texturas/nuvens.png"
+}

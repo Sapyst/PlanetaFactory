@@ -26,6 +26,11 @@ func _ready() -> void:
 	fps.button_pressed = bool(Sessao.config.fps)
 	fps.toggled.connect(func(v: bool): _mudar("fps", v))
 	add_child(fps)
+	var cl := CheckButton.new()
+	cl.text = "Clima dinâmico (chuva, neblina, nuvens)"
+	cl.button_pressed = bool(Sessao.config.get("clima", true))
+	cl.toggled.connect(func(v: bool): _mudar("clima", v))
+	add_child(cl)
 	var auto := HBoxContainer.new()
 	var la := Label.new()
 	la.text = "Salvar sozinho a cada"

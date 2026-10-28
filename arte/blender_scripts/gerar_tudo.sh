@@ -6,6 +6,7 @@ B="${BLENDER:-$HOME/.local/share/Steam/steamapps/common/Blender/blender}"
 for s in itens logistica maquinas mapa transporte inimigos; do
   "$B" -b --factory-startup --python "$s.py" 2>&1 | grep -E "^(OK|ERRO)"
 done
+"$B" -b --factory-startup --python texturizar.py 2>&1 | grep -E "^(TEX|ERRO)"
 "$B" -b --factory-startup --python prancha.py >/dev/null 2>&1
 "$B" -b --factory-startup --python prancha.py -- logistica >/dev/null 2>&1
 "$B" -b --factory-startup --python prancha.py -- maquinas >/dev/null 2>&1

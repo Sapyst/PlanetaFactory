@@ -3,7 +3,7 @@ extends Node
 ## Sons do mundo saem posicionados (mais baixo longe da câmera); cada som tem um intervalo mínimo para uma
 ## rajada de tiros não virar ruído. Barramentos "Efeitos" e "Musica" (volumes nas configurações).
 
-const INTERVALO := {"tiro": 0.07, "construir": 0.05, "clique": 0.03, "aranha_morre": 0.08, "alerta": 4.0, "apito_trem": 3.0}
+const INTERVALO := {"tiro": 0.07, "construir": 0.05, "clique": 0.03, "aranha_morre": 0.08, "alerta": 4.0, "apito_trem": 3.0, "trovao": 1.5}
 
 var _sons: Dictionary = {}
 var _ultimo: Dictionary = {}

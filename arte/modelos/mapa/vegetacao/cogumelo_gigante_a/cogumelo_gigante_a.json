@@ -20,15 +20,15 @@
   }
  ],
  "portas": [],
- "tris": 160,
+ "tris": 1254,
  "dims": [
-  0.886,
-  0.873,
-  1.65
+  0.92,
+  0.911,
+  1.602
  ],
  "materiais": [
   "P_Biomassa",
-  "P_FungoCaule",
-  "P_Tronco"
+  "P_Chapeu",
+  "P_FungoCaule"
  ]
 }

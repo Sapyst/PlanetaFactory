@@ -43,6 +43,7 @@ PALETA = {
     'P_FolhaClara': _cor((0.36, 0.62, 0.42), r=0.8),
     'P_Tronco':   _cor((0.30, 0.22, 0.20), r=0.9),
     'P_FungoCaule': _cor((0.78, 0.74, 0.66), r=0.8),
+    'P_Chapeu':   _cor((0.30, 0.20, 0.28), r=0.7),     # chapéu de cogumelo (fosco; o brilho fica nas lamelas)
     'P_Lodo':     _cor((0.22, 0.26, 0.14), r=0.9),
     'P_Rocha':    _cor((0.38, 0.37, 0.38), r=0.9),
     'P_RochaEscura': _cor((0.24, 0.23, 0.25), r=0.9),

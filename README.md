@@ -13,9 +13,19 @@ braços mecânicos, logística de transporte e inimigos. Tema: planeta vivo — 
 1. `arte/blender_scripts/gerar_tudo.sh` — regenera os 95 modelos + texturas, checa cada um, gera pranchas e catálogo, copia para o jogo.
 2. `jogo/ferramentas/testar.sh` — importa e roda todos os testes do jogo sem janela.
 3. `godot --path jogo --write-movie /tmp/q.png --fixed-fps 30 --quit-after 70 -- camera X Z DIST` — foto real.
-4. `python3 jogo/ferramentas/gerar_sons.py` — sintetiza os sons.
-5. `godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.1.0.apk` — APK.
+4. `python3 jogo/ferramentas/gerar_sons.py` — sintetiza os sons; `python3 jogo/ferramentas/gerar_nuvens.py` — mapa das nuvens.
+5. `godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.3.0.apk` — APK.
 6. `... -- camera -3 2 11 roteiro construir` (ou `roteiro toque`) — teste visual da construção com cliques/toques injetados.
+7. `... -- camera 8 -1 44 clima chuva` — foto com clima forçado (limpo, nublado, neblina, chuva, tempestade).
+
+## Visual e clima
+- Estruturas e assets naturais com textura assada (`arte/blender_scripts/texturizar.py`): paleta real (albedo PBR),
+  pintura gasta, ferrugem, sujeira; sem linhas de malha. Luz: AgX, sol + luz de preenchimento fria, névoa aérea.
+- Clima dinâmico (`jogo/dados/clima.json`, `jogo/ambiente/clima.gd` + `desenho_clima.gd`): estados trocam sozinhos com
+  transição suave; nuvens numa camada alta com espessura variável (grossa não passa luz, fina passa parte, rasgos
+  soltam feixes de sol); neblina de chão com corpo (fatias, abre em volta de máquinas e trens); chuva em volta da
+  câmera com chão molhado e poças; tempestade com relâmpago e trovão. A chuva lava a poluição. Pode desligar nas
+  configurações.
 
 ## Arte
 - `arte/FICHA_DE_ESTILO.md` — regras de grade, portas, cantos livres, esteira elevada, paleta e orçamento.

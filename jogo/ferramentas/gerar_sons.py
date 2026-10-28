@@ -127,9 +127,38 @@ def trilha():
     return out[: n - x]
 
 
+def chuva():
+    """6 s em loop: chiado (dois filtros) + gotas esparsas estalando; emenda cruzada no fim."""
+    n = int(6.0 * TAXA)
+    a = ruido_filtrado(n, 3200); b = ruido_filtrado(n, 700)
+    out = [a[i] * 0.55 + b[i] * 0.8 for i in range(n)]
+    for _ in range(260):
+        ini = random.randint(0, n - 400); f = random.uniform(2500, 5200); amp = random.uniform(0.05, 0.25)
+        for i in range(380):
+            out[ini + i] += math.sin(2 * math.pi * f * i / TAXA) * math.exp(-i / 60.0) * amp
+    x = int(0.5 * TAXA)
+    for i in range(x):
+        k = i / x
+        out[i] = out[i] * k + out[n - x + i] * (1 - k)
+    return out[: n - x]
+
+
+def trovao():
+    """Estalo seco seguido de ronco grave que rola e some (4 s)."""
+    n = int(4.0 * TAXA)
+    grave = ruido_filtrado(n, 90); medio = ruido_filtrado(n, 400)
+    out = []
+    for i in range(n):
+        t = i / TAXA
+        estalo = medio[i] * math.exp(-t / 0.12) * 1.6
+        rola = grave[i] * min(1.0, t / 0.15) * math.exp(-t / 1.4) * (0.75 + 0.25 * math.sin(2 * math.pi * 1.7 * t))
+        out.append(estalo + rola * 3.0)
+    return out
+
+
 os.makedirs(SAIDA, exist_ok=True)
 for nome, f in [('clique', clique), ('construir', construir), ('remover', remover), ('tiro', tiro),
                 ('aranha_morre', aranha_morre), ('alerta', alerta), ('pesquisa', pesquisa), ('apito_trem', apito_trem),
-                ('derrota', derrota), ('trilha', trilha)]:
+                ('derrota', derrota), ('trilha', trilha), ('chuva', chuva), ('trovao', trovao)]:
     gravar(nome, f())
     print('SOM', nome)
