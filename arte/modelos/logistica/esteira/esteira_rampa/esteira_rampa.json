@@ -1,0 +1,66 @@
+{
+ "nome": "esteira_rampa",
+ "categoria": "logistica/esteira",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Sobe 0.5 m em 1 tile (~26,6°, abaixo do ângulo de escorregar). Girada 180° vira descida. Apoio por pilares de canto.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S0",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -0.5,
+    0.16
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_N0",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    0.5,
+    0.66
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  }
+ ],
+ "tris": 48,
+ "dims": [
+  0.92,
+  1.0,
+  0.685
+ ],
+ "materiais": [
+  "P_Escuro",
+  "P_Esteira",
+  "P_Faixa",
+  "P_Metal"
+ ]
+}

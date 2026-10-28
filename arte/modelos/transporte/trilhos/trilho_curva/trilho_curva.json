@@ -1,0 +1,65 @@
+{
+ "nome": "trilho_curva",
+ "categoria": "transporte/trilhos",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Curva de trilho 3×3 (raio 2,5 m): entra pelo sul (tile da esquerda), sai a leste (tile de cima).",
+ "ocupa_canto": true,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_TRILHO_ENT_S0",
+   "tipo": "TRILHO",
+   "io": "ENT",
+   "pos": [
+    -1.0,
+    -1.5,
+    0.14
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_TRILHO_SAI_L0",
+   "tipo": "TRILHO",
+   "io": "SAI",
+   "pos": [
+    1.5,
+    1.0,
+    0.14
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 768,
+ "dims": [
+  2.92,
+  2.92,
+  0.14
+ ],
+ "materiais": [
+  "P_Metal",
+  "P_RochaEscura",
+  "P_Tronco"
+ ]
+}

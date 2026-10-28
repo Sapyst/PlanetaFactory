@@ -1,0 +1,33 @@
+{
+ "nome": "jazida_pedra",
+ "categoria": "mapa/jazidas",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Jazida de pedra (broca).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 120,
+ "dims": [
+  0.64,
+  0.588,
+  0.117
+ ],
+ "materiais": [
+  "P_Pedra",
+  "P_Rocha"
+ ]
+}

@@ -1,0 +1,869 @@
+[
+ {
+  "nome": "nucleo",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Núcleo: a base do jogador. Tudo que entra (esteira nas 4 bocas ou braço) vira estoque para construir.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "cristal",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.0,
+     1.3
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -1.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_ENT_N1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     1.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_ENT_L1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     1.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_ENT_O1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     -1.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 366,
+  "dims": [
+   3.0,
+   3.0,
+   2.2
+  ],
+  "materiais": [
+   "P_Concreto",
+   "P_Cristal",
+   "P_Escuro",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "extrator_cristal",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Extrator de Cristal: vai sobre jazida de cristal. Saída no meio da borda sul.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "cristal",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.0,
+     2.3
+    ]
+   },
+   {
+    "nome": "hastes",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_SAI_S1",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     -1.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 568,
+  "dims": [
+   2.9,
+   2.95,
+   3.2
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Concreto",
+   "P_Cristal",
+   "P_Escuro",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "broca_minerio",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Broca de minério (ferro, cobre, pedra, carvão, sílex). Saída sul (tile da esquerda).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "rotor",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.0,
+     1.1
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_SAI_S0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     -0.5,
+     -1.0,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 276,
+  "dims": [
+   1.9,
+   1.95,
+   1.85
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Concreto",
+   "P_Cristal",
+   "P_Escuro",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "fornalha",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Fornalha: funde minério em placa/barra. Entra pelo sul, sai pelo norte.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.5,
+     -1.0,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     1.0,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 164,
+  "dims": [
+   1.9,
+   2.0,
+   2.26
+  ],
+  "materiais": [
+   "P_Concreto",
+   "P_Cristal",
+   "P_Escuro",
+   "P_Faixa",
+   "P_Fogo",
+   "P_Tijolo"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "montadora",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Montadora: monta peças por receita. Entra pelo sul, sai pelo norte (meio).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "braco",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.0,
+     1.55
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -1.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N1",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     1.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 220,
+  "dims": [
+   2.9,
+   3.0,
+   2.425
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Concreto",
+   "P_Cristal",
+   "P_Escuro",
+   "P_Faixa",
+   "P_Metal",
+   "P_Vidro"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "refinador",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Refinador: processa fluidos (seiva, óleo). Fluido entra a oeste, sai a leste; item ao norte.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_ENT_O1",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     -1.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_L1",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     1.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     1.0,
+     1.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 488,
+  "dims": [
+   3.0,
+   2.95,
+   3.2
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Concreto",
+   "P_Cristal",
+   "P_Escuro",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "laboratorio",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Laboratório: consome pacotes de pesquisa. Entra pelo sul (meio).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "antena",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.0,
+     1.85
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -1.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 400,
+  "dims": [
+   2.9,
+   2.95,
+   2.79
+  ],
+  "materiais": [
+   "P_Concreto",
+   "P_Cristal",
+   "P_Escuro",
+   "P_Faixa",
+   "P_Metal",
+   "P_Vidro"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "gerador",
+  "categoria": "energia",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Gerador a combustão (carvão/biomassa). Combustível entra pelo sul. Energia vai por postes.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.5,
+     -1.0,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 260,
+  "dims": [
+   1.9,
+   1.95,
+   2.15
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Concreto",
+   "P_Cristal",
+   "P_Escuro",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "poste_energia",
+  "categoria": "energia",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Poste de energia: liga máquinas num raio. Ocupa só o centro do tile.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 94,
+  "dims": [
+   0.7,
+   0.4,
+   2.3
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Concreto",
+   "P_Cristal",
+   "P_Escuro",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "tanque",
+  "categoria": "energia",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Tanque de fluido. Canos nos 4 lados (tile da esquerda de cada lado).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_SAI_S0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     -0.5,
+     -1.0,
+     0.35
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_N0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     1.0,
+     0.35
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_L0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     1.0,
+     0.5,
+     0.35
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_O0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     -1.0,
+     -0.5,
+     0.35
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 322,
+  "dims": [
+   2.0,
+   2.0,
+   1.7
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Concreto",
+   "P_Escuro",
+   "P_Faixa",
+   "P_Metal",
+   "P_Vidro"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "torre_defesa",
+  "categoria": "defesa",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Torre de defesa. Munição entra pelo sul. Partes: base, giro (gira em Z), canhao (inclina).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "base",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "giro",
+    "pai": "base",
+    "pivo": [
+     0.0,
+     0.0,
+     0.86
+    ]
+   },
+   {
+    "nome": "canhao",
+    "pai": "giro",
+    "pivo": [
+     0.0,
+     -0.2,
+     1.2
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.5,
+     -1.0,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 332,
+  "dims": [
+   1.9,
+   1.95,
+   1.46
+  ],
+  "materiais": [
+   "P_Aco",
+   "P_Concreto",
+   "P_Cristal",
+   "P_Escuro",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "muro_centro",
+  "categoria": "defesa",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Pilar do muro (centro do tile). O jogo junta muro_lado para cada vizinho com muro.",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 24,
+  "dims": [
+   0.64,
+   0.64,
+   1.5
+  ],
+  "materiais": [
+   "P_Concreto",
+   "P_Faixa"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "muro_lado",
+  "categoria": "defesa",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Pano de muro do centro até a borda norte (girar para os outros lados).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 24,
+  "dims": [
+   0.48,
+   0.2,
+   1.26
+  ],
+  "materiais": [
+   "P_Concreto",
+   "P_Escuro"
+  ],
+  "erros": []
+ }
+]

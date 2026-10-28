@@ -1,0 +1,52 @@
+{
+ "nome": "vagao_carga",
+ "categoria": "transporte/veiculos",
+ "tipo": "veiculo",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Vagão de carga (3 m). Itens carregados por braços na estação.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.12
+   ]
+  },
+  {
+   "nome": "truque0",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    -0.85,
+    0.12
+   ]
+  },
+  {
+   "nome": "truque1",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.85,
+    0.12
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 332,
+ "dims": [
+  0.74,
+  2.9,
+  0.84
+ ],
+ "materiais": [
+  "P_Cobre",
+  "P_Escuro",
+  "P_Metal"
+ ]
+}

@@ -1,0 +1,32 @@
+{
+ "nome": "jazida_areia",
+ "categoria": "mapa/jazidas",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Duna de areia (broca).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 144,
+ "dims": [
+  0.681,
+  0.52,
+  0.08
+ ],
+ "materiais": [
+  "P_Areia"
+ ]
+}

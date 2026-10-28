@@ -1,0 +1,61 @@
+{
+ "nome": "bomba",
+ "categoria": "logistica/canos",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Bomba sobre poça de seiva/água: empurra fluido pela saída ao norte.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "cabecote",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    -0.07,
+    0.58
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_SAI_N0",
+   "tipo": "FLUIDO",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    0.5,
+    0.35
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  }
+ ],
+ "tris": 136,
+ "dims": [
+  0.76,
+  0.88,
+  0.82
+ ],
+ "materiais": [
+  "P_Cobre",
+  "P_Concreto",
+  "P_Escuro",
+  "P_Faixa",
+  "P_Metal"
+ ]
+}

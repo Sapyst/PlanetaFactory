@@ -1,0 +1,32 @@
+{
+ "nome": "cristal_lapidado",
+ "categoria": "itens/intermediarios",
+ "tipo": "item",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Cristal cortado: foco de energia.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 16,
+ "dims": [
+  0.156,
+  0.18,
+  0.21
+ ],
+ "materiais": [
+  "P_Cristal"
+ ]
+}

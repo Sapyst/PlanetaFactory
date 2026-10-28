@@ -1,0 +1,45 @@
+{
+ "_nota": "Barra de construção: categorias em ordem e as peças de cada uma. 'esteira' e 'cano' são peças virtuais (o jogo escolhe reta/curva/início/fim). Ícones em assets/icones/<modelo>.png.",
+ "categorias": [
+  {"nome": "Esteiras",  "pecas": ["esteira", "esteira_rampa", "rampa_desce", "divisor", "juncao"]},
+  {"nome": "Braços",    "pecas": ["braco", "braco_rapido", "braco_longo", "bau"]},
+  {"nome": "Canos",     "pecas": ["cano", "cano_t", "cano_cruz", "bomba", "tanque"]},
+  {"nome": "Produção",  "pecas": ["extrator_cristal", "broca_minerio", "fornalha", "montadora", "refinador", "laboratorio"]},
+  {"nome": "Energia",   "pecas": ["gerador", "poste_energia"]},
+  {"nome": "Defesa",    "pecas": ["torre_defesa", "muro_centro"]},
+  {"nome": "Trilhos",   "pecas": ["trilho_reto", "trilho_curva", "trilho_fim", "estacao", "sinal_trem", "trem"]}
+ ],
+ "icones": {"rampa_desce": "esteira_rampa", "esteira": "esteira_reta", "cano": "cano_reto", "trem": "locomotiva"},
+ "rotulos": {
+  "esteira": "Esteira", "esteira_rampa": "Rampa sobe", "rampa_desce": "Rampa desce", "divisor": "Divisor", "juncao": "Junção",
+  "braco": "Braço", "braco_rapido": "Braço rápido", "braco_longo": "Braço longo", "bau": "Baú",
+  "cano": "Cano", "cano_t": "Cano em T", "cano_cruz": "Cano em cruz", "bomba": "Bomba", "tanque": "Tanque",
+  "extrator_cristal": "Extrator de cristal", "broca_minerio": "Broca", "fornalha": "Fornalha",
+  "montadora": "Montadora", "refinador": "Refinador", "laboratorio": "Laboratório",
+  "gerador": "Gerador", "poste_energia": "Poste",
+  "torre_defesa": "Torre", "muro_centro": "Muro",
+  "trilho_reto": "Trilho", "trilho_curva": "Curva de trilho", "trilho_fim": "Fim de linha",
+  "estacao": "Estação", "sinal_trem": "Sinal", "trem": "Trem"
+ },
+ "jazidas": {"jazida_cristal": "cristal", "jazida_ferro": "ferro", "jazida_cobre": "cobre", "jazida_carvao": "carvão",
+             "jazida_pedra": "pedra", "jazida_silex": "sílex", "jazida_areia": "areia", "poca_seiva": "seiva"},
+ "motivos": {
+  "ocupado": "Já tem algo aqui",
+  "agua": "Não dá para construir na água",
+  "obstaculo": "Obstáculo no caminho — use Remover para limpar",
+  "sem_jazida": "Precisa ficar sobre a jazida certa",
+  "pilar_no_canto": "Um pilar de esteira ocupa o canto",
+  "estrutura desconhecida": "Peça desconhecida",
+  "inimigo": "Ninho de aranha: só cai com tiro de torre",
+  "nucleo": "O núcleo não sai do lugar",
+  "sem_recursos": "Faltam itens no núcleo",
+  "bloqueado": "Ainda não pesquisado",
+  "esteira_em_cima": "Tem esteira elevada em cima (baixa demais para esta peça)",
+  "estrutura_alta_embaixo": "Algo alto embaixo: suba o nível (botão Nível)",
+  "sem_apoio": "Sem canto livre para pilar — afaste das outras peças",
+  "nivel_fora_do_degrau": "Nível inválido",
+  "nivel_chao": "Para descer, escolha um nível elevado (botão Nível)",
+  "nivel_maximo": "Já está no nível mais alto (1,0 m)",
+  "sem_trilho": "O trem precisa ser posto em cima de um trilho reto livre"
+ }
+}

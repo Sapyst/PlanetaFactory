@@ -1,0 +1,32 @@
+{
+ "nome": "silex",
+ "categoria": "itens/recursos",
+ "tipo": "item",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Sílex: pedra dura e afiada, usada em munição e ferramentas.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 28,
+ "dims": [
+  0.22,
+  0.17,
+  0.11
+ ],
+ "materiais": [
+  "P_Silex"
+ ]
+}

@@ -1,0 +1,34 @@
+{
+ "nome": "cogumelo_gigante_b",
+ "categoria": "mapa/vegetacao",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Cogumelo gigante alto. Corte dá biomassa.",
+ "ocupa_canto": true,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 160,
+ "dims": [
+  0.788,
+  0.776,
+  2.25
+ ],
+ "materiais": [
+  "P_Biomassa",
+  "P_FungoCaule",
+  "P_Tronco"
+ ]
+}

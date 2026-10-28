@@ -1,0 +1,71 @@
+{
+ "nome": "extrator_cristal",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Extrator de Cristal: vai sobre jazida de cristal. Saída no meio da borda sul.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "cristal",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.0,
+    2.3
+   ]
+  },
+  {
+   "nome": "hastes",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_SAI_S1",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    -1.5,
+    0.16
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  }
+ ],
+ "tris": 568,
+ "dims": [
+  2.9,
+  2.95,
+  3.2
+ ],
+ "materiais": [
+  "P_Cobre",
+  "P_Concreto",
+  "P_Cristal",
+  "P_Escuro",
+  "P_Faixa",
+  "P_Metal"
+ ]
+}

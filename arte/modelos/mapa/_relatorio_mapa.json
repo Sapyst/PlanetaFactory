@@ -1,0 +1,855 @@
+[
+ {
+  "nome": "arvore_campina_a",
+  "categoria": "mapa/vegetacao",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Árvore da campina (bloqueia 1 tile).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 80,
+  "dims": [
+   0.672,
+   0.78,
+   1.493
+  ],
+  "materiais": [
+   "P_Folha",
+   "P_FolhaClara",
+   "P_Tronco"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "arvore_campina_b",
+  "categoria": "mapa/vegetacao",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Árvore alta da campina (bloqueia 1 tile).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 80,
+  "dims": [
+   0.676,
+   0.59,
+   1.747
+  ],
+  "materiais": [
+   "P_Folha",
+   "P_FolhaClara",
+   "P_Tronco"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "cogumelo_gigante_a",
+  "categoria": "mapa/vegetacao",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cogumelo gigante da floresta fúngica. Corte dá biomassa.",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 160,
+  "dims": [
+   0.886,
+   0.873,
+   1.65
+  ],
+  "materiais": [
+   "P_Biomassa",
+   "P_FungoCaule",
+   "P_Tronco"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "cogumelo_gigante_b",
+  "categoria": "mapa/vegetacao",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cogumelo gigante alto. Corte dá biomassa.",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 160,
+  "dims": [
+   0.788,
+   0.776,
+   2.25
+  ],
+  "materiais": [
+   "P_Biomassa",
+   "P_FungoCaule",
+   "P_Tronco"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "arbusto",
+  "categoria": "mapa/vegetacao",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Arbusto da campina (bloqueia 1 tile, limpa rápido).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 80,
+  "dims": [
+   0.624,
+   0.567,
+   0.432
+  ],
+  "materiais": [
+   "P_Folha",
+   "P_FolhaClara"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "cacto_cristal",
+  "categoria": "mapa/vegetacao",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Planta cristalina do deserto de sílex.",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 108,
+  "dims": [
+   0.502,
+   0.2,
+   1.03
+  ],
+  "materiais": [
+   "P_Cristal",
+   "P_Malaquita"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "arvore_morta",
+  "categoria": "mapa/vegetacao",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Árvore seca do cinzal.",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 56,
+  "dims": [
+   0.585,
+   0.473,
+   1.318
+  ],
+  "materiais": [
+   "P_Cinza"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "junco",
+  "categoria": "mapa/vegetacao",
+  "tipo": "deco",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Juncos do pântano e beira de lago (enfeite).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 132,
+  "dims": [
+   0.246,
+   0.338,
+   0.733
+  ],
+  "materiais": [
+   "P_Lodo",
+   "P_Tronco"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "grama_tufo",
+  "categoria": "mapa/vegetacao",
+  "tipo": "deco",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Tufo de grama (enfeite; balança com o vento no shader).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 24,
+  "dims": [
+   0.16,
+   0.16,
+   0.295
+  ],
+  "materiais": [
+   "P_Folha",
+   "P_FolhaClara"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "flor_luminosa",
+  "categoria": "mapa/vegetacao",
+  "tipo": "deco",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Flor bioluminescente (enfeite; brilha à noite).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 84,
+  "dims": [
+   0.236,
+   0.141,
+   0.36
+  ],
+  "materiais": [
+   "P_Cristal",
+   "P_Folha"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "seixos",
+  "categoria": "mapa/rochas",
+  "tipo": "deco",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Seixos soltos (enfeite).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 80,
+  "dims": [
+   0.445,
+   0.597,
+   0.101
+  ],
+  "materiais": [
+   "P_Rocha",
+   "P_RochaEscura"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "pedregulho",
+  "categoria": "mapa/rochas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Pedregulho (bloqueia 1 tile; dá pedra).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 40,
+  "dims": [
+   0.548,
+   0.657,
+   0.37
+  ],
+  "materiais": [
+   "P_Rocha",
+   "P_RochaEscura"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "rocha_grande",
+  "categoria": "mapa/rochas",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Rocha grande 2×2 (bloqueia; dá bastante pedra).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 80,
+  "dims": [
+   1.426,
+   1.679,
+   1.171
+  ],
+  "materiais": [
+   "P_Rocha",
+   "P_RochaEscura"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "montanha_3x3",
+  "categoria": "mapa/rochas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Formação de montanha 3×3 (intransponível; não dá para construir em cima).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 264,
+  "dims": [
+   2.667,
+   2.539,
+   2.6
+  ],
+  "materiais": [
+   "P_Cinza",
+   "P_Rocha",
+   "P_RochaEscura"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "montanha_5x5",
+  "categoria": "mapa/rochas",
+  "tipo": "estrutura",
+  "area": [
+   5,
+   5
+  ],
+  "descricao": "Montanha 5×5 (intransponível).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 380,
+  "dims": [
+   4.81,
+   4.418,
+   4.2
+  ],
+  "materiais": [
+   "P_Cinza",
+   "P_Rocha",
+   "P_RochaEscura"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "jazida_cristal",
+  "categoria": "mapa/jazidas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Jazida de cristal (extrator).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 60,
+  "dims": [
+   0.309,
+   0.665,
+   0.31
+  ],
+  "materiais": [
+   "P_Cristal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "jazida_ferro",
+  "categoria": "mapa/jazidas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Jazida de ferro (broca).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 120,
+  "dims": [
+   0.386,
+   0.548,
+   0.117
+  ],
+  "materiais": [
+   "P_Ferrugem",
+   "P_Rocha"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "jazida_cobre",
+  "categoria": "mapa/jazidas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Jazida de cobre (broca).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 120,
+  "dims": [
+   0.653,
+   0.353,
+   0.117
+  ],
+  "materiais": [
+   "P_Malaquita",
+   "P_Rocha"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "jazida_carvao",
+  "categoria": "mapa/jazidas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Jazida de carvão (broca).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 120,
+  "dims": [
+   0.54,
+   0.491,
+   0.117
+  ],
+  "materiais": [
+   "P_Carvao",
+   "P_Rocha"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "jazida_pedra",
+  "categoria": "mapa/jazidas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Jazida de pedra (broca).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 120,
+  "dims": [
+   0.64,
+   0.588,
+   0.117
+  ],
+  "materiais": [
+   "P_Pedra",
+   "P_Rocha"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "jazida_silex",
+  "categoria": "mapa/jazidas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Jazida de sílex (broca).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 120,
+  "dims": [
+   0.623,
+   0.501,
+   0.117
+  ],
+  "materiais": [
+   "P_Rocha",
+   "P_Silex"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "jazida_areia",
+  "categoria": "mapa/jazidas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Duna de areia (broca).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 144,
+  "dims": [
+   0.681,
+   0.52,
+   0.08
+  ],
+  "materiais": [
+   "P_Areia"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "poca_seiva",
+  "categoria": "mapa/jazidas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Poça de seiva (bomba por cima). Fluido do planeta.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 152,
+  "dims": [
+   0.819,
+   0.833,
+   0.084
+  ],
+  "materiais": [
+   "P_Rocha",
+   "P_RochaEscura",
+   "P_Seiva"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "vitoria_regia",
+  "categoria": "mapa/agua",
+  "tipo": "deco",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Folhas flutuantes de lago/lagoa (enfeite; boia no shader).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 92,
+  "dims": [
+   0.52,
+   0.4,
+   0.06
+  ],
+  "materiais": [
+   "P_Biomassa",
+   "P_Folha"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "rocha_agua",
+  "categoria": "mapa/rochas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Rochas de margem/rio (bloqueia 1 tile).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 60,
+  "dims": [
+   0.767,
+   0.587,
+   0.357
+  ],
+  "materiais": [
+   "P_RochaEscura"
+  ],
+  "erros": []
+ }
+]

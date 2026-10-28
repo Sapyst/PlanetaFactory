@@ -1,0 +1,32 @@
+{
+ "nome": "rocha_agua",
+ "categoria": "mapa/rochas",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Rochas de margem/rio (bloqueia 1 tile).",
+ "ocupa_canto": true,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 60,
+ "dims": [
+  0.767,
+  0.587,
+  0.357
+ ],
+ "materiais": [
+  "P_RochaEscura"
+ ]
+}

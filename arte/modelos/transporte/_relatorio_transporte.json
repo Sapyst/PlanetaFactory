@@ -1,0 +1,453 @@
+[
+ {
+  "nome": "trilho_reto",
+  "categoria": "transporte/trilhos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Trilho reto norte–sul.",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_TRILHO_ENT_S0",
+    "tipo": "TRILHO",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.14
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_TRILHO_SAI_N0",
+    "tipo": "TRILHO",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.14
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 72,
+  "dims": [
+   0.84,
+   1.0,
+   0.14
+  ],
+  "materiais": [
+   "P_Metal",
+   "P_RochaEscura",
+   "P_Tronco"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "trilho_curva",
+  "categoria": "transporte/trilhos",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Curva de trilho 3×3 (raio 2,5 m): entra pelo sul (tile da esquerda), sai a leste (tile de cima).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_TRILHO_ENT_S0",
+    "tipo": "TRILHO",
+    "io": "ENT",
+    "pos": [
+     -1.0,
+     -1.5,
+     0.14
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_TRILHO_SAI_L0",
+    "tipo": "TRILHO",
+    "io": "SAI",
+    "pos": [
+     1.5,
+     1.0,
+     0.14
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 768,
+  "dims": [
+   2.92,
+   2.92,
+   0.14
+  ],
+  "materiais": [
+   "P_Metal",
+   "P_RochaEscura",
+   "P_Tronco"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "trilho_fim",
+  "categoria": "transporte/trilhos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Fim de linha com para-choque (norte).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_TRILHO_ENT_S0",
+    "tipo": "TRILHO",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.14
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 96,
+  "dims": [
+   0.84,
+   0.92,
+   0.4
+  ],
+  "materiais": [
+   "P_Escuro",
+   "P_Faixa",
+   "P_Metal",
+   "P_RochaEscura",
+   "P_Tronco"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "estacao",
+  "categoria": "transporte/trilhos",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   3
+  ],
+  "descricao": "Estação de carga 2×3: a linha passa a oeste (encostada). Braços tiram/põem nos vagões; esteiras entram e saem a leste.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_L2",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     1.0,
+     -1.0,
+     0.16
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_L0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     1.0,
+     1.0,
+     0.16
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 140,
+  "dims": [
+   1.92,
+   2.9,
+   2.15
+  ],
+  "materiais": [
+   "P_Concreto",
+   "P_Cristal",
+   "P_Escuro",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "sinal_trem",
+  "categoria": "transporte/trilhos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Sinal de bloco: fica no tile ao lado da linha. Divide a linha em blocos (1 trem por bloco).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 100,
+  "dims": [
+   0.24,
+   0.24,
+   1.55
+  ],
+  "materiais": [
+   "P_Concreto",
+   "P_Cristal",
+   "P_Escuro",
+   "P_Fogo",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "locomotiva",
+  "categoria": "transporte/veiculos",
+  "tipo": "veiculo",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Locomotiva (3 m). Partes: corpo + 2 truques.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.12
+    ]
+   },
+   {
+    "nome": "truque0",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     -0.85,
+     0.12
+    ]
+   },
+   {
+    "nome": "truque1",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.85,
+     0.12
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 368,
+  "dims": [
+   0.72,
+   2.93,
+   1.15
+  ],
+  "materiais": [
+   "P_Cristal",
+   "P_Escuro",
+   "P_Faixa",
+   "P_Metal",
+   "P_Vidro"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "vagao_carga",
+  "categoria": "transporte/veiculos",
+  "tipo": "veiculo",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Vagão de carga (3 m). Itens carregados por braços na estação.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.12
+    ]
+   },
+   {
+    "nome": "truque0",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     -0.85,
+     0.12
+    ]
+   },
+   {
+    "nome": "truque1",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.85,
+     0.12
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 332,
+  "dims": [
+   0.74,
+   2.9,
+   0.84
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Escuro",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "vagao_tanque",
+  "categoria": "transporte/veiculos",
+  "tipo": "veiculo",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Vagão-tanque (3 m) para fluidos.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.12
+    ]
+   },
+   {
+    "nome": "truque0",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     -0.85,
+     0.12
+    ]
+   },
+   {
+    "nome": "truque1",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.85,
+     0.12
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 432,
+  "dims": [
+   0.72,
+   2.9,
+   1.05
+  ],
+  "materiais": [
+   "P_Escuro",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ }
+]

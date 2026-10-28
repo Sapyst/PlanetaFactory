@@ -1,0 +1,180 @@
+[
+ {
+  "nome": "aranha_corpo",
+  "categoria": "inimigos/aranha",
+  "tipo": "veiculo",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Corpo da aranha mecânica (origem no chão, sob o centro).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 320,
+  "dims": [
+   0.996,
+   1.956,
+   0.598
+  ],
+  "materiais": [
+   "P_Escuro",
+   "P_Inimigo",
+   "P_Metal",
+   "P_OlhoInimigo"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "aranha_femur",
+  "categoria": "inimigos/aranha",
+  "tipo": "segmento",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Fêmur (0.7 m ao longo de +X, origem no quadril).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 80,
+  "dims": [
+   0.85,
+   0.12,
+   0.16
+  ],
+  "materiais": [
+   "P_Escuro",
+   "P_Inimigo",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "aranha_tibia",
+  "categoria": "inimigos/aranha",
+  "tipo": "segmento",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Tíbia (0.9 m ao longo de +X, origem no joelho, ponta = pé).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 34,
+  "dims": [
+   0.855,
+   0.1,
+   0.113
+  ],
+  "materiais": [
+   "P_Inimigo",
+   "P_Metal",
+   "P_OlhoInimigo"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "aranha_montada",
+  "categoria": "inimigos/aranha",
+  "tipo": "veiculo",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Prévia montada (não usar no jogo; o jogo monta com IK).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 632,
+  "dims": [
+   2.913,
+   2.081,
+   0.889
+  ],
+  "materiais": [
+   "P_Escuro",
+   "P_Inimigo",
+   "P_Metal",
+   "P_OlhoInimigo"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "ninho_aranha",
+  "categoria": "inimigos/aranha",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Ninho construído pelas aranhas: gera novas aranhas. Alvo prioritário.",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 264,
+  "dims": [
+   2.757,
+   2.723,
+   1.8
+  ],
+  "materiais": [
+   "P_Escuro",
+   "P_Inimigo",
+   "P_OlhoInimigo",
+   "P_RochaEscura"
+  ],
+  "erros": []
+ }
+]

@@ -1,0 +1,135 @@
+"""Sons do jogo sintetizados por código (sem amostras de terceiros): efeitos curtos e uma trilha ambiente em loop.
+Saída: assets/sons/*.wav (mono 16 bits). Rodar: python3 ferramentas/gerar_sons.py"""
+import math, random, struct, wave, os
+
+TAXA = 22050
+AQUI = os.path.dirname(os.path.abspath(__file__))
+SAIDA = os.path.join(AQUI, '..', 'assets', 'sons')
+random.seed(7)
+
+
+def gravar(nome, amostras, taxa=TAXA):
+    pico = max(1e-9, max(abs(a) for a in amostras))
+    k = 0.85 / pico
+    with wave.open(os.path.join(SAIDA, nome + '.wav'), 'wb') as w:
+        w.setnchannels(1); w.setsampwidth(2); w.setframerate(taxa)
+        w.writeframes(b''.join(struct.pack('<h', int(max(-1, min(1, a * k)) * 32767)) for a in amostras))
+
+
+def env(i, n, ataque=0.005, queda=None):
+    t = i / TAXA
+    a = min(1.0, t / ataque) if ataque > 0 else 1.0
+    d = math.exp(-t / queda) if queda else 1.0 - i / n
+    return a * d
+
+
+def ruido_filtrado(n, corte):
+    """Ruído branco passado num passa-baixa de 1 polo (corte em Hz)."""
+    rc = 1.0 / (2 * math.pi * corte); dt = 1.0 / TAXA; al = dt / (rc + dt)
+    y = 0.0; out = []
+    for _ in range(n):
+        y += al * (random.uniform(-1, 1) - y); out.append(y)
+    return out
+
+
+def clique():
+    n = int(0.05 * TAXA)
+    return [math.sin(2 * math.pi * 1800 * i / TAXA) * env(i, n, 0.001, 0.008) for i in range(n)]
+
+
+def construir():
+    n = int(0.22 * TAXA); r = ruido_filtrado(n, 900)
+    return [(math.sin(2 * math.pi * (140 - 60 * i / n) * i / TAXA) * 0.8 + r[i] * 0.6) * env(i, n, 0.002, 0.05) for i in range(n)]
+
+
+def remover():
+    n = int(0.25 * TAXA); r = ruido_filtrado(n, 2500)
+    return [(r[i] * 0.7 + math.sin(2 * math.pi * (300 + 500 * i / n) * i / TAXA) * 0.3) * env(i, n, 0.01, 0.07) for i in range(n)]
+
+
+def tiro():
+    n = int(0.16 * TAXA); r = ruido_filtrado(n, 3500)
+    return [(r[i] + math.sin(2 * math.pi * 95 * i / TAXA) * 0.6) * env(i, n, 0.0005, 0.025) for i in range(n)]
+
+
+def aranha_morre():
+    n = int(0.6 * TAXA); r = ruido_filtrado(n, 1800); out = []
+    for i in range(n):
+        t = i / TAXA
+        metal = sum(math.sin(2 * math.pi * f * t) for f in (523, 811, 1247)) / 3
+        out.append((r[i] * 0.8 + metal * 0.4 * math.exp(-t / 0.15)) * env(i, n, 0.001, 0.18))
+    return out
+
+
+def alerta():
+    out = []
+    for nota in (660, 495, 660, 495):
+        n = int(0.16 * TAXA)
+        out += [(math.sin(2 * math.pi * nota * i / TAXA) + 0.3 * math.sin(4 * math.pi * nota * i / TAXA)) * env(i, n, 0.01, 0.12) for i in range(n)]
+    return out
+
+
+def pesquisa():
+    out = [0.0] * int(1.4 * TAXA)
+    for k, nota in enumerate((523.25, 659.25, 783.99, 1046.5)):
+        ini = int(k * 0.12 * TAXA)
+        for i in range(int(1.0 * TAXA)):
+            if ini + i < len(out):
+                t = i / TAXA
+                out[ini + i] += (math.sin(2 * math.pi * nota * t) + 0.25 * math.sin(6 * math.pi * nota * t)) * math.exp(-t / 0.35) * min(1, t / 0.004)
+    return out
+
+
+def apito_trem():
+    n = int(1.1 * TAXA); out = []
+    for i in range(n):
+        t = i / TAXA; vib = 1 + 0.004 * math.sin(2 * math.pi * 5 * t)
+        s = sum(math.sin(2 * math.pi * f * vib * t) + 0.3 * math.sin(4 * math.pi * f * vib * t) for f in (311, 392, 466))
+        a = min(1, t / 0.06) * (1 if t < 0.85 else max(0, 1 - (t - 0.85) / 0.25))
+        out.append(s * a)
+    return out
+
+
+def derrota():
+    out = []
+    for nota in (392, 349, 311, 233):
+        n = int(0.45 * TAXA)
+        out += [(math.sin(2 * math.pi * nota * i / TAXA) + 0.4 * math.sin(2 * math.pi * nota * 1.5 * i / TAXA)) * env(i, n, 0.02, 0.35) for i in range(n)]
+    return out
+
+
+def trilha():
+    """32 s em loop: pad lento (lá menor – fá – dó – sol) + grave + brilho de cristal esparso."""
+    dur = 32.0; n = int(dur * TAXA); out = [0.0] * n
+    acordes = [(220.0, 261.63, 329.63), (174.61, 220.0, 261.63), (130.81, 196.0, 261.63), (196.0, 246.94, 293.66)]
+    seg = dur / 4
+    for k, ac in enumerate(acordes):
+        ini = int(k * seg * TAXA); m = int(seg * TAXA)
+        for i in range(m):
+            t = i / TAXA
+            a = math.sin(math.pi * min(1.0, t / seg)) ** 1.5           # sobe e desce suave dentro do acorde
+            s = 0.0
+            for f in ac:
+                for desaf in (-0.6, 0.6):                                 # dois osciladores levemente desafinados
+                    s += math.sin(2 * math.pi * (f + desaf) * t + desaf)
+            s += 1.4 * math.sin(2 * math.pi * ac[0] / 2 * t)              # grave
+            out[ini + i] += s * a * 0.12
+    for _ in range(18):                                                  # brilhos de cristal
+        ini = random.randint(0, n - int(1.5 * TAXA)); f = random.choice((1046.5, 1318.5, 1568.0, 1760.0))
+        for i in range(int(1.5 * TAXA)):
+            t = i / TAXA
+            out[ini + i] += math.sin(2 * math.pi * f * t) * math.exp(-t / 0.4) * 0.08
+    # emenda do loop: 0,3 s de cruzamento entre fim e começo
+    x = int(0.3 * TAXA)
+    for i in range(x):
+        a = i / x
+        out[i] = out[i] * a + out[n - x + i] * (1 - a)
+    return out[: n - x]
+
+
+os.makedirs(SAIDA, exist_ok=True)
+for nome, f in [('clique', clique), ('construir', construir), ('remover', remover), ('tiro', tiro),
+                ('aranha_morre', aranha_morre), ('alerta', alerta), ('pesquisa', pesquisa), ('apito_trem', apito_trem),
+                ('derrota', derrota), ('trilha', trilha)]:
+    gravar(nome, f())
+    print('SOM', nome)

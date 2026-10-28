@@ -1,0 +1,62 @@
+{
+ "nome": "broca_minerio",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Broca de minério (ferro, cobre, pedra, carvão, sílex). Saída sul (tile da esquerda).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "rotor",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.0,
+    1.1
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_SAI_S0",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    -0.5,
+    -1.0,
+    0.16
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  }
+ ],
+ "tris": 276,
+ "dims": [
+  1.9,
+  1.95,
+  1.85
+ ],
+ "materiais": [
+  "P_Cobre",
+  "P_Concreto",
+  "P_Cristal",
+  "P_Escuro",
+  "P_Faixa",
+  "P_Metal"
+ ]
+}

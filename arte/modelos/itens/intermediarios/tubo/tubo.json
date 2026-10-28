@@ -1,0 +1,33 @@
+{
+ "nome": "tubo",
+ "categoria": "itens/intermediarios",
+ "tipo": "item",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Tubo de ferro para canos e máquinas.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 84,
+ "dims": [
+  0.24,
+  0.13,
+  0.13
+ ],
+ "materiais": [
+  "P_Escuro",
+  "P_Metal"
+ ]
+}

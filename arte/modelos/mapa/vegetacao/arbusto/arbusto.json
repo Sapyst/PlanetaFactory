@@ -1,0 +1,33 @@
+{
+ "nome": "arbusto",
+ "categoria": "mapa/vegetacao",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Arbusto da campina (bloqueia 1 tile, limpa rápido).",
+ "ocupa_canto": true,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 80,
+ "dims": [
+  0.624,
+  0.567,
+  0.432
+ ],
+ "materiais": [
+  "P_Folha",
+  "P_FolhaClara"
+ ]
+}

@@ -1,0 +1,4100 @@
+{
+ "muro_centro": {
+  "nome": "muro_centro",
+  "categoria": "defesa",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Pilar do muro (centro do tile). O jogo junta muro_lado para cada vizinho com muro.",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 24,
+  "dims": [
+   0.64,
+   0.64,
+   1.5
+  ],
+  "modelo": "res://assets/modelos/defesa/muro_centro.glb"
+ },
+ "muro_lado": {
+  "nome": "muro_lado",
+  "categoria": "defesa",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Pano de muro do centro até a borda norte (girar para os outros lados).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 24,
+  "dims": [
+   0.48,
+   0.2,
+   1.26
+  ],
+  "modelo": "res://assets/modelos/defesa/muro_lado.glb"
+ },
+ "torre_defesa": {
+  "nome": "torre_defesa",
+  "categoria": "defesa",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Torre de defesa. Munição entra pelo sul. Partes: base, giro (gira em Z), canhao (inclina).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "base",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "giro",
+    "pai": "base",
+    "pivo": [
+     0.0,
+     0.0,
+     0.86
+    ]
+   },
+   {
+    "nome": "canhao",
+    "pai": "giro",
+    "pivo": [
+     0.0,
+     -0.2,
+     1.2
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.5,
+     -1.0,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 332,
+  "dims": [
+   1.9,
+   1.95,
+   1.46
+  ],
+  "modelo": "res://assets/modelos/defesa/torre_defesa.glb"
+ },
+ "gerador": {
+  "nome": "gerador",
+  "categoria": "energia",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Gerador a combustão (carvão/biomassa). Combustível entra pelo sul. Energia vai por postes.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.5,
+     -1.0,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 260,
+  "dims": [
+   1.9,
+   1.95,
+   2.15
+  ],
+  "modelo": "res://assets/modelos/energia/gerador.glb"
+ },
+ "poste_energia": {
+  "nome": "poste_energia",
+  "categoria": "energia",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Poste de energia: liga máquinas num raio. Ocupa só o centro do tile.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 94,
+  "dims": [
+   0.7,
+   0.4,
+   2.3
+  ],
+  "modelo": "res://assets/modelos/energia/poste_energia.glb"
+ },
+ "tanque": {
+  "nome": "tanque",
+  "categoria": "energia",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Tanque de fluido. Canos nos 4 lados (tile da esquerda de cada lado).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_SAI_S0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     -0.5,
+     -1.0,
+     0.35
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_N0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     1.0,
+     0.35
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_L0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     1.0,
+     0.5,
+     0.35
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_O0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     -1.0,
+     -0.5,
+     0.35
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 322,
+  "dims": [
+   2.0,
+   2.0,
+   1.7
+  ],
+  "modelo": "res://assets/modelos/energia/tanque.glb"
+ },
+ "aranha_corpo": {
+  "nome": "aranha_corpo",
+  "categoria": "inimigos/aranha",
+  "tipo": "veiculo",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Corpo da aranha mecânica (origem no chão, sob o centro).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 320,
+  "dims": [
+   0.996,
+   1.956,
+   0.598
+  ],
+  "modelo": "res://assets/modelos/inimigos/aranha/aranha_corpo.glb"
+ },
+ "aranha_femur": {
+  "nome": "aranha_femur",
+  "categoria": "inimigos/aranha",
+  "tipo": "segmento",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Fêmur (0.7 m ao longo de +X, origem no quadril).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 80,
+  "dims": [
+   0.85,
+   0.12,
+   0.16
+  ],
+  "modelo": "res://assets/modelos/inimigos/aranha/aranha_femur.glb"
+ },
+ "aranha_montada": {
+  "nome": "aranha_montada",
+  "categoria": "inimigos/aranha",
+  "tipo": "veiculo",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Prévia montada (não usar no jogo; o jogo monta com IK).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 632,
+  "dims": [
+   2.913,
+   2.081,
+   0.889
+  ],
+  "modelo": "res://assets/modelos/inimigos/aranha/aranha_montada.glb"
+ },
+ "aranha_tibia": {
+  "nome": "aranha_tibia",
+  "categoria": "inimigos/aranha",
+  "tipo": "segmento",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Tíbia (0.9 m ao longo de +X, origem no joelho, ponta = pé).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 34,
+  "dims": [
+   0.855,
+   0.1,
+   0.113
+  ],
+  "modelo": "res://assets/modelos/inimigos/aranha/aranha_tibia.glb"
+ },
+ "ninho_aranha": {
+  "nome": "ninho_aranha",
+  "categoria": "inimigos/aranha",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Ninho construído pelas aranhas: gera novas aranhas. Alvo prioritário.",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 264,
+  "dims": [
+   2.757,
+   2.723,
+   1.8
+  ],
+  "modelo": "res://assets/modelos/inimigos/aranha/ninho_aranha.glb"
+ },
+ "celula_energia": {
+  "nome": "celula_energia",
+  "categoria": "itens/avancados",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Célula de energia portátil.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 96,
+  "dims": [
+   0.225,
+   0.156,
+   0.15
+  ],
+  "modelo": "res://assets/modelos/itens/avancados/celula_energia.glb"
+ },
+ "modulo_controle": {
+  "nome": "modulo_controle",
+  "categoria": "itens/avancados",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Módulo de controle com tela de cristal.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 60,
+  "dims": [
+   0.22,
+   0.18,
+   0.12
+  ],
+  "modelo": "res://assets/modelos/itens/avancados/modulo_controle.glb"
+ },
+ "motor": {
+  "nome": "motor",
+  "categoria": "itens/avancados",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Motor elétrico.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 88,
+  "dims": [
+   0.225,
+   0.164,
+   0.192
+  ],
+  "modelo": "res://assets/modelos/itens/avancados/motor.glb"
+ },
+ "municao": {
+  "nome": "municao",
+  "categoria": "itens/avancados",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Caixa de munição das torres.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 87,
+  "dims": [
+   0.22,
+   0.14,
+   0.18
+  ],
+  "modelo": "res://assets/modelos/itens/avancados/municao.glb"
+ },
+ "pacote_pesquisa": {
+  "nome": "pacote_pesquisa",
+  "categoria": "itens/avancados",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Frasco de pesquisa para o laboratório.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 70,
+  "dims": [
+   0.18,
+   0.18,
+   0.24
+  ],
+  "modelo": "res://assets/modelos/itens/avancados/pacote_pesquisa.glb"
+ },
+ "barra_aco": {
+  "nome": "barra_aco",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Lingote de aço.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 12,
+  "dims": [
+   0.17,
+   0.093,
+   0.075
+  ],
+  "modelo": "res://assets/modelos/itens/intermediarios/barra_aco.glb"
+ },
+ "bateria": {
+  "nome": "bateria",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Bateria química.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 76,
+  "dims": [
+   0.144,
+   0.144,
+   0.21
+  ],
+  "modelo": "res://assets/modelos/itens/intermediarios/bateria.glb"
+ },
+ "circuito": {
+  "nome": "circuito",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Placa de circuito.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 60,
+  "dims": [
+   0.22,
+   0.16,
+   0.045
+  ],
+  "modelo": "res://assets/modelos/itens/intermediarios/circuito.glb"
+ },
+ "cristal_lapidado": {
+  "nome": "cristal_lapidado",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cristal cortado: foco de energia.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 16,
+  "dims": [
+   0.156,
+   0.18,
+   0.21
+  ],
+  "modelo": "res://assets/modelos/itens/intermediarios/cristal_lapidado.glb"
+ },
+ "engrenagem": {
+  "nome": "engrenagem",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Engrenagem de ferro.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 92,
+  "dims": [
+   0.237,
+   0.24,
+   0.05
+  ],
+  "modelo": "res://assets/modelos/itens/intermediarios/engrenagem.glb"
+ },
+ "fio_cobre": {
+  "nome": "fio_cobre",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Carretel de fio de cobre.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 84,
+  "dims": [
+   0.205,
+   0.22,
+   0.22
+  ],
+  "modelo": "res://assets/modelos/itens/intermediarios/fio_cobre.glb"
+ },
+ "nucleo_cristal": {
+  "nome": "nucleo_cristal",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cristal lapidado preso em gaiola: armazena energia.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 76,
+  "dims": [
+   0.2,
+   0.2,
+   0.22
+  ],
+  "modelo": "res://assets/modelos/itens/intermediarios/nucleo_cristal.glb"
+ },
+ "placa_cobre": {
+  "nome": "placa_cobre",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Pilha de chapas de cobre.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 36,
+  "dims": [
+   0.232,
+   0.177,
+   0.1
+  ],
+  "modelo": "res://assets/modelos/itens/intermediarios/placa_cobre.glb"
+ },
+ "placa_ferro": {
+  "nome": "placa_ferro",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Pilha de chapas de ferro.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 36,
+  "dims": [
+   0.232,
+   0.177,
+   0.1
+  ],
+  "modelo": "res://assets/modelos/itens/intermediarios/placa_ferro.glb"
+ },
+ "tijolo": {
+  "nome": "tijolo",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Par de tijolos de pedra cozida.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 36,
+  "dims": [
+   0.22,
+   0.22,
+   0.14
+  ],
+  "modelo": "res://assets/modelos/itens/intermediarios/tijolo.glb"
+ },
+ "tubo": {
+  "nome": "tubo",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Tubo de ferro para canos e máquinas.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 84,
+  "dims": [
+   0.24,
+   0.13,
+   0.13
+  ],
+  "modelo": "res://assets/modelos/itens/intermediarios/tubo.glb"
+ },
+ "vidro": {
+  "nome": "vidro",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Painel de vidro com moldura.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 24,
+  "dims": [
+   0.22,
+   0.22,
+   0.035
+  ],
+  "modelo": "res://assets/modelos/itens/intermediarios/vidro.glb"
+ },
+ "areia": {
+  "nome": "areia",
+  "categoria": "itens/recursos",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Saco de areia: vidro e silício.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 48,
+  "dims": [
+   0.22,
+   0.22,
+   0.16
+  ],
+  "modelo": "res://assets/modelos/itens/recursos/areia.glb"
+ },
+ "biomassa": {
+  "nome": "biomassa",
+  "categoria": "itens/recursos",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Fungo vivo do planeta. Combustível e química.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 88,
+  "dims": [
+   0.223,
+   0.22,
+   0.165
+  ],
+  "modelo": "res://assets/modelos/itens/recursos/biomassa.glb"
+ },
+ "carvao": {
+  "nome": "carvao",
+  "categoria": "itens/recursos",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Combustível das fornalhas e geradores.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 40,
+  "dims": [
+   0.218,
+   0.167,
+   0.134
+  ],
+  "modelo": "res://assets/modelos/itens/recursos/carvao.glb"
+ },
+ "cristal_bruto": {
+  "nome": "cristal_bruto",
+  "categoria": "itens/recursos",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cristal arrancado pelo extrator. Base de quase tudo.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 50,
+  "dims": [
+   0.196,
+   0.16,
+   0.235
+  ],
+  "modelo": "res://assets/modelos/itens/recursos/cristal_bruto.glb"
+ },
+ "minerio_cobre": {
+  "nome": "minerio_cobre",
+  "categoria": "itens/recursos",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Rocha com malaquita (cobre).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 80,
+  "dims": [
+   0.218,
+   0.187,
+   0.162
+  ],
+  "modelo": "res://assets/modelos/itens/recursos/minerio_cobre.glb"
+ },
+ "minerio_ferro": {
+  "nome": "minerio_ferro",
+  "categoria": "itens/recursos",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Rocha com veios de ferro.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 80,
+  "dims": [
+   0.185,
+   0.195,
+   0.184
+  ],
+  "modelo": "res://assets/modelos/itens/recursos/minerio_ferro.glb"
+ },
+ "pedra": {
+  "nome": "pedra",
+  "categoria": "itens/recursos",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Rocha comum: tijolo, muro, concreto.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 20,
+  "dims": [
+   0.196,
+   0.191,
+   0.157
+  ],
+  "modelo": "res://assets/modelos/itens/recursos/pedra.glb"
+ },
+ "silex": {
+  "nome": "silex",
+  "categoria": "itens/recursos",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Sílex: pedra dura e afiada, usada em munição e ferramentas.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 28,
+  "dims": [
+   0.22,
+   0.17,
+   0.11
+  ],
+  "modelo": "res://assets/modelos/itens/recursos/silex.glb"
+ },
+ "bau": {
+  "nome": "bau",
+  "categoria": "logistica/armazenagem",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Baú 1×1. Braços colocam e tiram por qualquer lado.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 60,
+  "dims": [
+   0.84,
+   0.78,
+   0.62
+  ],
+  "modelo": "res://assets/modelos/logistica/armazenagem/bau.glb"
+ },
+ "braco": {
+  "nome": "braco",
+  "categoria": "logistica/bracos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Braço mecânico: pega do tile ao sul e solta no tile ao norte. Alcance 1 tile.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "base",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "giro",
+    "pai": "base",
+    "pivo": [
+     0.0,
+     0.0,
+     0.22
+    ]
+   },
+   {
+    "nome": "braco1",
+    "pai": "giro",
+    "pivo": [
+     0.0,
+     0.0,
+     0.36
+    ]
+   },
+   {
+    "nome": "braco2",
+    "pai": "braco1",
+    "pivo": [
+     0.0,
+     0.1,
+     0.66
+    ]
+   },
+   {
+    "nome": "garra",
+    "pai": "braco2",
+    "pivo": [
+     0.0,
+     0.34,
+     0.48
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 184,
+  "dims": [
+   0.554,
+   0.657,
+   0.71
+  ],
+  "modelo": "res://assets/modelos/logistica/bracos/braco.glb"
+ },
+ "braco_longo": {
+  "nome": "braco_longo",
+  "categoria": "logistica/bracos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Braço longo: alcance 2 tiles (pula um tile). Em repouso fica dentro do próprio tile.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "base",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "giro",
+    "pai": "base",
+    "pivo": [
+     0.0,
+     0.0,
+     0.22
+    ]
+   },
+   {
+    "nome": "braco1",
+    "pai": "giro",
+    "pivo": [
+     0.0,
+     0.0,
+     0.36
+    ]
+   },
+   {
+    "nome": "braco2",
+    "pai": "braco1",
+    "pivo": [
+     0.0,
+     0.1,
+     0.74
+    ]
+   },
+   {
+    "nome": "garra",
+    "pai": "braco2",
+    "pivo": [
+     0.0,
+     0.42,
+     0.5
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 184,
+  "dims": [
+   0.554,
+   0.737,
+   0.79
+  ],
+  "modelo": "res://assets/modelos/logistica/bracos/braco_longo.glb"
+ },
+ "braco_rapido": {
+  "nome": "braco_rapido",
+  "categoria": "logistica/bracos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Braço rápido: alcance 1 tile, 2× mais rápido, consome mais energia.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "base",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "giro",
+    "pai": "base",
+    "pivo": [
+     0.0,
+     0.0,
+     0.22
+    ]
+   },
+   {
+    "nome": "braco1",
+    "pai": "giro",
+    "pivo": [
+     0.0,
+     0.0,
+     0.36
+    ]
+   },
+   {
+    "nome": "braco2",
+    "pai": "braco1",
+    "pivo": [
+     0.0,
+     0.1,
+     0.66
+    ]
+   },
+   {
+    "nome": "garra",
+    "pai": "braco2",
+    "pivo": [
+     0.0,
+     0.34,
+     0.48
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 204,
+  "dims": [
+   0.554,
+   0.657,
+   0.71
+  ],
+  "modelo": "res://assets/modelos/logistica/bracos/braco_rapido.glb"
+ },
+ "bomba": {
+  "nome": "bomba",
+  "categoria": "logistica/canos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Bomba sobre poça de seiva/água: empurra fluido pela saída ao norte.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "cabecote",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     -0.07,
+     0.58
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_SAI_N0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 136,
+  "dims": [
+   0.76,
+   0.88,
+   0.82
+  ],
+  "modelo": "res://assets/modelos/logistica/canos/bomba.glb"
+ },
+ "cano_cruz": {
+  "nome": "cano_cruz",
+  "categoria": "logistica/canos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cano em cruz (4 lados).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_SAI_S0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     -0.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_N0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_L0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_O0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     -0.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 232,
+  "dims": [
+   1.0,
+   1.0,
+   0.52
+  ],
+  "modelo": "res://assets/modelos/logistica/canos/cano_cruz.glb"
+ },
+ "cano_curva": {
+  "nome": "cano_curva",
+  "categoria": "logistica/canos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cano em curva (sul–leste), uma malha só.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_ENT_S0",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_L0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 196,
+  "dims": [
+   0.639,
+   0.639,
+   0.489
+  ],
+  "modelo": "res://assets/modelos/logistica/canos/cano_curva.glb"
+ },
+ "cano_reto": {
+  "nome": "cano_reto",
+  "categoria": "logistica/canos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cano reto (norte–sul).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_ENT_S0",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_N0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 84,
+  "dims": [
+   0.277,
+   1.0,
+   0.489
+  ],
+  "modelo": "res://assets/modelos/logistica/canos/cano_reto.glb"
+ },
+ "cano_t": {
+  "nome": "cano_t",
+  "categoria": "logistica/canos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cano em T (sul, norte, leste).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_SAI_S0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     -0.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_N0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_L0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 188,
+  "dims": [
+   0.67,
+   1.0,
+   0.52
+  ],
+  "modelo": "res://assets/modelos/logistica/canos/cano_t.glb"
+ },
+ "divisor": {
+  "nome": "divisor",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Entra pelo sul e reparte em até 3 saídas (norte, leste, oeste). Filtro opcional.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_L0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_O0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     -0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 260,
+  "dims": [
+   1.0,
+   1.0,
+   0.61
+  ],
+  "modelo": "res://assets/modelos/logistica/esteira/divisor.glb"
+ },
+ "esteira_curva_dir": {
+  "nome": "esteira_curva_dir",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Entra pelo sul e vira à direita (sai a leste).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_L0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 300,
+  "dims": [
+   0.96,
+   0.96,
+   0.225
+  ],
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_curva_dir.glb"
+ },
+ "esteira_curva_esq": {
+  "nome": "esteira_curva_esq",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Entra pelo sul e vira à esquerda (sai a oeste).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_O0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     -0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 300,
+  "dims": [
+   0.96,
+   0.96,
+   0.225
+  ],
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_curva_esq.glb"
+ },
+ "esteira_fim": {
+  "nome": "esteira_fim",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Para-choque no norte. Itens param aqui para braços pegarem.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 100,
+  "dims": [
+   0.92,
+   0.96,
+   0.24
+  ],
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_fim.glb"
+ },
+ "esteira_inicio": {
+  "nome": "esteira_inicio",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cabeceira com motor no sul. Recebe itens por braço ou pela lateral.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 110,
+  "dims": [
+   0.92,
+   0.96,
+   0.38
+  ],
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_inicio.glb"
+ },
+ "esteira_rampa": {
+  "nome": "esteira_rampa",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Sobe 0.5 m em 1 tile (~26,6°, abaixo do ângulo de escorregar). Girada 180° vira descida. Apoio por pilares de canto.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.66
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 48,
+  "dims": [
+   0.92,
+   1.0,
+   0.685
+  ],
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_rampa.glb"
+ },
+ "esteira_reta": {
+  "nome": "esteira_reta",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira reta. Também serve elevada, apoiada em pilares de canto.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 48,
+  "dims": [
+   0.92,
+   1.0,
+   0.225
+  ],
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_reta.glb"
+ },
+ "juncao": {
+  "nome": "juncao",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Junta até 3 entradas (sul, leste, oeste) numa saída ao norte.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_ENT_L0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_ENT_O0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     -0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 260,
+  "dims": [
+   1.0,
+   1.0,
+   0.61
+  ],
+  "modelo": "res://assets/modelos/logistica/esteira/juncao.glb"
+ },
+ "pilar_base": {
+  "nome": "pilar_base",
+  "categoria": "logistica/esteira",
+  "tipo": "canto",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Sapata do pilar (vai por baixo do primeiro segmento, sem altura extra).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 12,
+  "dims": [
+   0.06,
+   0.06,
+   0.04
+  ],
+  "modelo": "res://assets/modelos/logistica/esteira/pilar_base.glb"
+ },
+ "pilar_segmento": {
+  "nome": "pilar_segmento",
+  "categoria": "logistica/esteira",
+  "tipo": "canto",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Fuste de 0.5 m. Fica no canto da grade (vértice entre 4 tiles).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 12,
+  "dims": [
+   0.06,
+   0.06,
+   0.5
+  ],
+  "modelo": "res://assets/modelos/logistica/esteira/pilar_segmento.glb"
+ },
+ "pilar_topo": {
+  "nome": "pilar_topo",
+  "categoria": "logistica/esteira",
+  "tipo": "canto",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Último 0.5 m do pilar, com mesa que apoia a esteira elevada. Altura do pilar = nível da esteira (n segmentos + topo).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 24,
+  "dims": [
+   0.3,
+   0.3,
+   0.5
+  ],
+  "modelo": "res://assets/modelos/logistica/esteira/pilar_topo.glb"
+ },
+ "vitoria_regia": {
+  "nome": "vitoria_regia",
+  "categoria": "mapa/agua",
+  "tipo": "deco",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Folhas flutuantes de lago/lagoa (enfeite; boia no shader).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 92,
+  "dims": [
+   0.52,
+   0.4,
+   0.06
+  ],
+  "modelo": "res://assets/modelos/mapa/agua/vitoria_regia.glb"
+ },
+ "jazida_areia": {
+  "nome": "jazida_areia",
+  "categoria": "mapa/jazidas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Duna de areia (broca).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 144,
+  "dims": [
+   0.681,
+   0.52,
+   0.08
+  ],
+  "modelo": "res://assets/modelos/mapa/jazidas/jazida_areia.glb"
+ },
+ "jazida_carvao": {
+  "nome": "jazida_carvao",
+  "categoria": "mapa/jazidas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Jazida de carvão (broca).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 120,
+  "dims": [
+   0.54,
+   0.491,
+   0.117
+  ],
+  "modelo": "res://assets/modelos/mapa/jazidas/jazida_carvao.glb"
+ },
+ "jazida_cobre": {
+  "nome": "jazida_cobre",
+  "categoria": "mapa/jazidas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Jazida de cobre (broca).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 120,
+  "dims": [
+   0.653,
+   0.353,
+   0.117
+  ],
+  "modelo": "res://assets/modelos/mapa/jazidas/jazida_cobre.glb"
+ },
+ "jazida_cristal": {
+  "nome": "jazida_cristal",
+  "categoria": "mapa/jazidas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Jazida de cristal (extrator).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 60,
+  "dims": [
+   0.309,
+   0.665,
+   0.31
+  ],
+  "modelo": "res://assets/modelos/mapa/jazidas/jazida_cristal.glb"
+ },
+ "jazida_ferro": {
+  "nome": "jazida_ferro",
+  "categoria": "mapa/jazidas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Jazida de ferro (broca).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 120,
+  "dims": [
+   0.386,
+   0.548,
+   0.117
+  ],
+  "modelo": "res://assets/modelos/mapa/jazidas/jazida_ferro.glb"
+ },
+ "jazida_pedra": {
+  "nome": "jazida_pedra",
+  "categoria": "mapa/jazidas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Jazida de pedra (broca).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 120,
+  "dims": [
+   0.64,
+   0.588,
+   0.117
+  ],
+  "modelo": "res://assets/modelos/mapa/jazidas/jazida_pedra.glb"
+ },
+ "jazida_silex": {
+  "nome": "jazida_silex",
+  "categoria": "mapa/jazidas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Jazida de sílex (broca).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 120,
+  "dims": [
+   0.623,
+   0.501,
+   0.117
+  ],
+  "modelo": "res://assets/modelos/mapa/jazidas/jazida_silex.glb"
+ },
+ "poca_seiva": {
+  "nome": "poca_seiva",
+  "categoria": "mapa/jazidas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Poça de seiva (bomba por cima). Fluido do planeta.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 152,
+  "dims": [
+   0.819,
+   0.833,
+   0.084
+  ],
+  "modelo": "res://assets/modelos/mapa/jazidas/poca_seiva.glb"
+ },
+ "montanha_3x3": {
+  "nome": "montanha_3x3",
+  "categoria": "mapa/rochas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Formação de montanha 3×3 (intransponível; não dá para construir em cima).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 264,
+  "dims": [
+   2.667,
+   2.539,
+   2.6
+  ],
+  "modelo": "res://assets/modelos/mapa/rochas/montanha_3x3.glb"
+ },
+ "montanha_5x5": {
+  "nome": "montanha_5x5",
+  "categoria": "mapa/rochas",
+  "tipo": "estrutura",
+  "area": [
+   5,
+   5
+  ],
+  "descricao": "Montanha 5×5 (intransponível).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 380,
+  "dims": [
+   4.81,
+   4.418,
+   4.2
+  ],
+  "modelo": "res://assets/modelos/mapa/rochas/montanha_5x5.glb"
+ },
+ "pedregulho": {
+  "nome": "pedregulho",
+  "categoria": "mapa/rochas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Pedregulho (bloqueia 1 tile; dá pedra).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 40,
+  "dims": [
+   0.548,
+   0.657,
+   0.37
+  ],
+  "modelo": "res://assets/modelos/mapa/rochas/pedregulho.glb"
+ },
+ "rocha_agua": {
+  "nome": "rocha_agua",
+  "categoria": "mapa/rochas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Rochas de margem/rio (bloqueia 1 tile).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 60,
+  "dims": [
+   0.767,
+   0.587,
+   0.357
+  ],
+  "modelo": "res://assets/modelos/mapa/rochas/rocha_agua.glb"
+ },
+ "rocha_grande": {
+  "nome": "rocha_grande",
+  "categoria": "mapa/rochas",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Rocha grande 2×2 (bloqueia; dá bastante pedra).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 80,
+  "dims": [
+   1.426,
+   1.679,
+   1.171
+  ],
+  "modelo": "res://assets/modelos/mapa/rochas/rocha_grande.glb"
+ },
+ "seixos": {
+  "nome": "seixos",
+  "categoria": "mapa/rochas",
+  "tipo": "deco",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Seixos soltos (enfeite).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 80,
+  "dims": [
+   0.445,
+   0.597,
+   0.101
+  ],
+  "modelo": "res://assets/modelos/mapa/rochas/seixos.glb"
+ },
+ "arbusto": {
+  "nome": "arbusto",
+  "categoria": "mapa/vegetacao",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Arbusto da campina (bloqueia 1 tile, limpa rápido).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 80,
+  "dims": [
+   0.624,
+   0.567,
+   0.432
+  ],
+  "modelo": "res://assets/modelos/mapa/vegetacao/arbusto.glb"
+ },
+ "arvore_campina_a": {
+  "nome": "arvore_campina_a",
+  "categoria": "mapa/vegetacao",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Árvore da campina (bloqueia 1 tile).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 80,
+  "dims": [
+   0.672,
+   0.78,
+   1.493
+  ],
+  "modelo": "res://assets/modelos/mapa/vegetacao/arvore_campina_a.glb"
+ },
+ "arvore_campina_b": {
+  "nome": "arvore_campina_b",
+  "categoria": "mapa/vegetacao",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Árvore alta da campina (bloqueia 1 tile).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 80,
+  "dims": [
+   0.676,
+   0.59,
+   1.747
+  ],
+  "modelo": "res://assets/modelos/mapa/vegetacao/arvore_campina_b.glb"
+ },
+ "arvore_morta": {
+  "nome": "arvore_morta",
+  "categoria": "mapa/vegetacao",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Árvore seca do cinzal.",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 56,
+  "dims": [
+   0.585,
+   0.473,
+   1.318
+  ],
+  "modelo": "res://assets/modelos/mapa/vegetacao/arvore_morta.glb"
+ },
+ "cacto_cristal": {
+  "nome": "cacto_cristal",
+  "categoria": "mapa/vegetacao",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Planta cristalina do deserto de sílex.",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 108,
+  "dims": [
+   0.502,
+   0.2,
+   1.03
+  ],
+  "modelo": "res://assets/modelos/mapa/vegetacao/cacto_cristal.glb"
+ },
+ "cogumelo_gigante_a": {
+  "nome": "cogumelo_gigante_a",
+  "categoria": "mapa/vegetacao",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cogumelo gigante da floresta fúngica. Corte dá biomassa.",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 160,
+  "dims": [
+   0.886,
+   0.873,
+   1.65
+  ],
+  "modelo": "res://assets/modelos/mapa/vegetacao/cogumelo_gigante_a.glb"
+ },
+ "cogumelo_gigante_b": {
+  "nome": "cogumelo_gigante_b",
+  "categoria": "mapa/vegetacao",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cogumelo gigante alto. Corte dá biomassa.",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 160,
+  "dims": [
+   0.788,
+   0.776,
+   2.25
+  ],
+  "modelo": "res://assets/modelos/mapa/vegetacao/cogumelo_gigante_b.glb"
+ },
+ "flor_luminosa": {
+  "nome": "flor_luminosa",
+  "categoria": "mapa/vegetacao",
+  "tipo": "deco",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Flor bioluminescente (enfeite; brilha à noite).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 84,
+  "dims": [
+   0.236,
+   0.141,
+   0.36
+  ],
+  "modelo": "res://assets/modelos/mapa/vegetacao/flor_luminosa.glb"
+ },
+ "grama_tufo": {
+  "nome": "grama_tufo",
+  "categoria": "mapa/vegetacao",
+  "tipo": "deco",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Tufo de grama (enfeite; balança com o vento no shader).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 24,
+  "dims": [
+   0.16,
+   0.16,
+   0.295
+  ],
+  "modelo": "res://assets/modelos/mapa/vegetacao/grama_tufo.glb"
+ },
+ "junco": {
+  "nome": "junco",
+  "categoria": "mapa/vegetacao",
+  "tipo": "deco",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Juncos do pântano e beira de lago (enfeite).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 132,
+  "dims": [
+   0.246,
+   0.338,
+   0.733
+  ],
+  "modelo": "res://assets/modelos/mapa/vegetacao/junco.glb"
+ },
+ "broca_minerio": {
+  "nome": "broca_minerio",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Broca de minério (ferro, cobre, pedra, carvão, sílex). Saída sul (tile da esquerda).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "rotor",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.0,
+     1.1
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_SAI_S0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     -0.5,
+     -1.0,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 276,
+  "dims": [
+   1.9,
+   1.95,
+   1.85
+  ],
+  "modelo": "res://assets/modelos/maquinas/broca_minerio.glb"
+ },
+ "extrator_cristal": {
+  "nome": "extrator_cristal",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Extrator de Cristal: vai sobre jazida de cristal. Saída no meio da borda sul.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "cristal",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.0,
+     2.3
+    ]
+   },
+   {
+    "nome": "hastes",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_SAI_S1",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     -1.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 568,
+  "dims": [
+   2.9,
+   2.95,
+   3.2
+  ],
+  "modelo": "res://assets/modelos/maquinas/extrator_cristal.glb"
+ },
+ "fornalha": {
+  "nome": "fornalha",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Fornalha: funde minério em placa/barra. Entra pelo sul, sai pelo norte.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.5,
+     -1.0,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     1.0,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 164,
+  "dims": [
+   1.9,
+   2.0,
+   2.26
+  ],
+  "modelo": "res://assets/modelos/maquinas/fornalha.glb"
+ },
+ "laboratorio": {
+  "nome": "laboratorio",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Laboratório: consome pacotes de pesquisa. Entra pelo sul (meio).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "antena",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.0,
+     1.85
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -1.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 400,
+  "dims": [
+   2.9,
+   2.95,
+   2.79
+  ],
+  "modelo": "res://assets/modelos/maquinas/laboratorio.glb"
+ },
+ "montadora": {
+  "nome": "montadora",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Montadora: monta peças por receita. Entra pelo sul, sai pelo norte (meio).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "braco",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.0,
+     1.55
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -1.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N1",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     1.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 220,
+  "dims": [
+   2.9,
+   3.0,
+   2.425
+  ],
+  "modelo": "res://assets/modelos/maquinas/montadora.glb"
+ },
+ "nucleo": {
+  "nome": "nucleo",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Núcleo: a base do jogador. Tudo que entra (esteira nas 4 bocas ou braço) vira estoque para construir.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "cristal",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.0,
+     1.3
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -1.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_ENT_N1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     1.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_ENT_L1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     1.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_ENT_O1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     -1.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 366,
+  "dims": [
+   3.0,
+   3.0,
+   2.2
+  ],
+  "modelo": "res://assets/modelos/maquinas/nucleo.glb"
+ },
+ "refinador": {
+  "nome": "refinador",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Refinador: processa fluidos (seiva, óleo). Fluido entra a oeste, sai a leste; item ao norte.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_ENT_O1",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     -1.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_L1",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     1.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     1.0,
+     1.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 488,
+  "dims": [
+   3.0,
+   2.95,
+   3.2
+  ],
+  "modelo": "res://assets/modelos/maquinas/refinador.glb"
+ },
+ "estacao": {
+  "nome": "estacao",
+  "categoria": "transporte/trilhos",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   3
+  ],
+  "descricao": "Estação de carga 2×3: a linha passa a oeste (encostada). Braços tiram/põem nos vagões; esteiras entram e saem a leste.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_L2",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     1.0,
+     -1.0,
+     0.16
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_L0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     1.0,
+     1.0,
+     0.16
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 140,
+  "dims": [
+   1.92,
+   2.9,
+   2.15
+  ],
+  "modelo": "res://assets/modelos/transporte/trilhos/estacao.glb"
+ },
+ "sinal_trem": {
+  "nome": "sinal_trem",
+  "categoria": "transporte/trilhos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Sinal de bloco: fica no tile ao lado da linha. Divide a linha em blocos (1 trem por bloco).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 100,
+  "dims": [
+   0.24,
+   0.24,
+   1.55
+  ],
+  "modelo": "res://assets/modelos/transporte/trilhos/sinal_trem.glb"
+ },
+ "trilho_curva": {
+  "nome": "trilho_curva",
+  "categoria": "transporte/trilhos",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Curva de trilho 3×3 (raio 2,5 m): entra pelo sul (tile da esquerda), sai a leste (tile de cima).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_TRILHO_ENT_S0",
+    "tipo": "TRILHO",
+    "io": "ENT",
+    "pos": [
+     -1.0,
+     -1.5,
+     0.14
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_TRILHO_SAI_L0",
+    "tipo": "TRILHO",
+    "io": "SAI",
+    "pos": [
+     1.5,
+     1.0,
+     0.14
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 768,
+  "dims": [
+   2.92,
+   2.92,
+   0.14
+  ],
+  "modelo": "res://assets/modelos/transporte/trilhos/trilho_curva.glb"
+ },
+ "trilho_fim": {
+  "nome": "trilho_fim",
+  "categoria": "transporte/trilhos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Fim de linha com para-choque (norte).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_TRILHO_ENT_S0",
+    "tipo": "TRILHO",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.14
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 96,
+  "dims": [
+   0.84,
+   0.92,
+   0.4
+  ],
+  "modelo": "res://assets/modelos/transporte/trilhos/trilho_fim.glb"
+ },
+ "trilho_reto": {
+  "nome": "trilho_reto",
+  "categoria": "transporte/trilhos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Trilho reto norte–sul.",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_TRILHO_ENT_S0",
+    "tipo": "TRILHO",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.14
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_TRILHO_SAI_N0",
+    "tipo": "TRILHO",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.14
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 72,
+  "dims": [
+   0.84,
+   1.0,
+   0.14
+  ],
+  "modelo": "res://assets/modelos/transporte/trilhos/trilho_reto.glb"
+ },
+ "locomotiva": {
+  "nome": "locomotiva",
+  "categoria": "transporte/veiculos",
+  "tipo": "veiculo",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Locomotiva (3 m). Partes: corpo + 2 truques.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.12
+    ]
+   },
+   {
+    "nome": "truque0",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     -0.85,
+     0.12
+    ]
+   },
+   {
+    "nome": "truque1",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.85,
+     0.12
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 368,
+  "dims": [
+   0.72,
+   2.93,
+   1.15
+  ],
+  "modelo": "res://assets/modelos/transporte/veiculos/locomotiva.glb"
+ },
+ "vagao_carga": {
+  "nome": "vagao_carga",
+  "categoria": "transporte/veiculos",
+  "tipo": "veiculo",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Vagão de carga (3 m). Itens carregados por braços na estação.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.12
+    ]
+   },
+   {
+    "nome": "truque0",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     -0.85,
+     0.12
+    ]
+   },
+   {
+    "nome": "truque1",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.85,
+     0.12
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 332,
+  "dims": [
+   0.74,
+   2.9,
+   0.84
+  ],
+  "modelo": "res://assets/modelos/transporte/veiculos/vagao_carga.glb"
+ },
+ "vagao_tanque": {
+  "nome": "vagao_tanque",
+  "categoria": "transporte/veiculos",
+  "tipo": "veiculo",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Vagão-tanque (3 m) para fluidos.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.12
+    ]
+   },
+   {
+    "nome": "truque0",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     -0.85,
+     0.12
+    ]
+   },
+   {
+    "nome": "truque1",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.85,
+     0.12
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 432,
+  "dims": [
+   0.72,
+   2.9,
+   1.05
+  ],
+  "modelo": "res://assets/modelos/transporte/veiculos/vagao_tanque.glb"
+ }
+}

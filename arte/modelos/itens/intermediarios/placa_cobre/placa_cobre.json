@@ -1,0 +1,32 @@
+{
+ "nome": "placa_cobre",
+ "categoria": "itens/intermediarios",
+ "tipo": "item",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Pilha de chapas de cobre.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 36,
+ "dims": [
+  0.232,
+  0.177,
+  0.1
+ ],
+ "materiais": [
+  "P_Cobre"
+ ]
+}

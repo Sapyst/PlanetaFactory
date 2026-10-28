@@ -1,0 +1,33 @@
+{
+ "nome": "cacto_cristal",
+ "categoria": "mapa/vegetacao",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Planta cristalina do deserto de sílex.",
+ "ocupa_canto": true,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 108,
+ "dims": [
+  0.502,
+  0.2,
+  1.03
+ ],
+ "materiais": [
+  "P_Cristal",
+  "P_Malaquita"
+ ]
+}

@@ -1,0 +1,34 @@
+{
+ "nome": "cogumelo_gigante_a",
+ "categoria": "mapa/vegetacao",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Cogumelo gigante da floresta fúngica. Corte dá biomassa.",
+ "ocupa_canto": true,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 160,
+ "dims": [
+  0.886,
+  0.873,
+  1.65
+ ],
+ "materiais": [
+  "P_Biomassa",
+  "P_FungoCaule",
+  "P_Tronco"
+ ]
+}

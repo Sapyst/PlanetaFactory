@@ -1,0 +1,67 @@
+{
+ "nome": "estacao",
+ "categoria": "transporte/trilhos",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  3
+ ],
+ "descricao": "Estação de carga 2×3: a linha passa a oeste (encostada). Braços tiram/põem nos vagões; esteiras entram e saem a leste.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_L2",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    1.0,
+    -1.0,
+    0.16
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_L0",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    1.0,
+    1.0,
+    0.16
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 140,
+ "dims": [
+  1.92,
+  2.9,
+  2.15
+ ],
+ "materiais": [
+  "P_Concreto",
+  "P_Cristal",
+  "P_Escuro",
+  "P_Faixa",
+  "P_Metal"
+ ]
+}

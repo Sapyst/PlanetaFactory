@@ -1,0 +1,52 @@
+{
+ "nome": "vagao_tanque",
+ "categoria": "transporte/veiculos",
+ "tipo": "veiculo",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Vagão-tanque (3 m) para fluidos.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.12
+   ]
+  },
+  {
+   "nome": "truque0",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    -0.85,
+    0.12
+   ]
+  },
+  {
+   "nome": "truque1",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.85,
+    0.12
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 432,
+ "dims": [
+  0.72,
+  2.9,
+  1.05
+ ],
+ "materiais": [
+  "P_Escuro",
+  "P_Faixa",
+  "P_Metal"
+ ]
+}

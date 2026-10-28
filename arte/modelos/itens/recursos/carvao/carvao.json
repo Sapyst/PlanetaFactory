@@ -1,0 +1,32 @@
+{
+ "nome": "carvao",
+ "categoria": "itens/recursos",
+ "tipo": "item",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Combustível das fornalhas e geradores.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 40,
+ "dims": [
+  0.218,
+  0.167,
+  0.134
+ ],
+ "materiais": [
+  "P_Carvao"
+ ]
+}

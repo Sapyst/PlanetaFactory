@@ -1,0 +1,35 @@
+{
+ "nome": "municao",
+ "categoria": "itens/avancados",
+ "tipo": "item",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Caixa de munição das torres.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 87,
+ "dims": [
+  0.22,
+  0.14,
+  0.18
+ ],
+ "materiais": [
+  "P_Cobre",
+  "P_Faixa",
+  "P_Municao",
+  "P_Silex"
+ ]
+}

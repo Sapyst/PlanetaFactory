@@ -1,0 +1,98 @@
+{
+ "nome": "tanque",
+ "categoria": "energia",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Tanque de fluido. Canos nos 4 lados (tile da esquerda de cada lado).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_SAI_S0",
+   "tipo": "FLUIDO",
+   "io": "SAI",
+   "pos": [
+    -0.5,
+    -1.0,
+    0.35
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_SAI_N0",
+   "tipo": "FLUIDO",
+   "io": "SAI",
+   "pos": [
+    0.5,
+    1.0,
+    0.35
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_SAI_L0",
+   "tipo": "FLUIDO",
+   "io": "SAI",
+   "pos": [
+    1.0,
+    0.5,
+    0.35
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_SAI_O0",
+   "tipo": "FLUIDO",
+   "io": "SAI",
+   "pos": [
+    -1.0,
+    -0.5,
+    0.35
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 322,
+ "dims": [
+  2.0,
+  2.0,
+  1.7
+ ],
+ "materiais": [
+  "P_Cobre",
+  "P_Concreto",
+  "P_Escuro",
+  "P_Faixa",
+  "P_Metal",
+  "P_Vidro"
+ ]
+}

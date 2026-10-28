@@ -1,0 +1,1385 @@
+[
+ {
+  "nome": "esteira_reta",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira reta. Também serve elevada, apoiada em pilares de canto.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 48,
+  "dims": [
+   0.92,
+   1.0,
+   0.225
+  ],
+  "materiais": [
+   "P_Escuro",
+   "P_Esteira",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "esteira_curva_dir",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Entra pelo sul e vira à direita (sai a leste).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_L0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 300,
+  "dims": [
+   0.96,
+   0.96,
+   0.225
+  ],
+  "materiais": [
+   "P_Escuro",
+   "P_Esteira",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "esteira_curva_esq",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Entra pelo sul e vira à esquerda (sai a oeste).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_O0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     -0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 300,
+  "dims": [
+   0.96,
+   0.96,
+   0.225
+  ],
+  "materiais": [
+   "P_Escuro",
+   "P_Esteira",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "esteira_inicio",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cabeceira com motor no sul. Recebe itens por braço ou pela lateral.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 110,
+  "dims": [
+   0.92,
+   0.96,
+   0.38
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Escuro",
+   "P_Esteira",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "esteira_fim",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Para-choque no norte. Itens param aqui para braços pegarem.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 100,
+  "dims": [
+   0.92,
+   0.96,
+   0.24
+  ],
+  "materiais": [
+   "P_Escuro",
+   "P_Esteira",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "esteira_rampa",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Sobe 0.5 m em 1 tile (~26,6°, abaixo do ângulo de escorregar). Girada 180° vira descida. Apoio por pilares de canto.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.66
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 48,
+  "dims": [
+   0.92,
+   1.0,
+   0.685
+  ],
+  "materiais": [
+   "P_Escuro",
+   "P_Esteira",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "divisor",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Entra pelo sul e reparte em até 3 saídas (norte, leste, oeste). Filtro opcional.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_L0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_O0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     -0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 260,
+  "dims": [
+   1.0,
+   1.0,
+   0.61
+  ],
+  "materiais": [
+   "P_Cristal",
+   "P_Escuro",
+   "P_Esteira",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "juncao",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Junta até 3 entradas (sul, leste, oeste) numa saída ao norte.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_ENT_L0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_ENT_O0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     -0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 260,
+  "dims": [
+   1.0,
+   1.0,
+   0.61
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Cristal",
+   "P_Escuro",
+   "P_Esteira",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "pilar_base",
+  "categoria": "logistica/esteira",
+  "tipo": "canto",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Sapata do pilar (vai por baixo do primeiro segmento, sem altura extra).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 12,
+  "dims": [
+   0.06,
+   0.06,
+   0.04
+  ],
+  "materiais": [
+   "P_Faixa"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "pilar_segmento",
+  "categoria": "logistica/esteira",
+  "tipo": "canto",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Fuste de 0.5 m. Fica no canto da grade (vértice entre 4 tiles).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 12,
+  "dims": [
+   0.06,
+   0.06,
+   0.5
+  ],
+  "materiais": [
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "pilar_topo",
+  "categoria": "logistica/esteira",
+  "tipo": "canto",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Último 0.5 m do pilar, com mesa que apoia a esteira elevada. Altura do pilar = nível da esteira (n segmentos + topo).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 24,
+  "dims": [
+   0.3,
+   0.3,
+   0.5
+  ],
+  "materiais": [
+   "P_Escuro",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "braco",
+  "categoria": "logistica/bracos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Braço mecânico: pega do tile ao sul e solta no tile ao norte. Alcance 1 tile.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "base",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "giro",
+    "pai": "base",
+    "pivo": [
+     0.0,
+     0.0,
+     0.22
+    ]
+   },
+   {
+    "nome": "braco1",
+    "pai": "giro",
+    "pivo": [
+     0.0,
+     0.0,
+     0.36
+    ]
+   },
+   {
+    "nome": "braco2",
+    "pai": "braco1",
+    "pivo": [
+     0.0,
+     0.1,
+     0.66
+    ]
+   },
+   {
+    "nome": "garra",
+    "pai": "braco2",
+    "pivo": [
+     0.0,
+     0.34,
+     0.48
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 184,
+  "dims": [
+   0.554,
+   0.657,
+   0.71
+  ],
+  "materiais": [
+   "P_Escuro",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "braco_longo",
+  "categoria": "logistica/bracos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Braço longo: alcance 2 tiles (pula um tile). Em repouso fica dentro do próprio tile.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "base",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "giro",
+    "pai": "base",
+    "pivo": [
+     0.0,
+     0.0,
+     0.22
+    ]
+   },
+   {
+    "nome": "braco1",
+    "pai": "giro",
+    "pivo": [
+     0.0,
+     0.0,
+     0.36
+    ]
+   },
+   {
+    "nome": "braco2",
+    "pai": "braco1",
+    "pivo": [
+     0.0,
+     0.1,
+     0.74
+    ]
+   },
+   {
+    "nome": "garra",
+    "pai": "braco2",
+    "pivo": [
+     0.0,
+     0.42,
+     0.5
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 184,
+  "dims": [
+   0.554,
+   0.737,
+   0.79
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Escuro",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "braco_rapido",
+  "categoria": "logistica/bracos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Braço rápido: alcance 1 tile, 2× mais rápido, consome mais energia.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "base",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "giro",
+    "pai": "base",
+    "pivo": [
+     0.0,
+     0.0,
+     0.22
+    ]
+   },
+   {
+    "nome": "braco1",
+    "pai": "giro",
+    "pivo": [
+     0.0,
+     0.0,
+     0.36
+    ]
+   },
+   {
+    "nome": "braco2",
+    "pai": "braco1",
+    "pivo": [
+     0.0,
+     0.1,
+     0.66
+    ]
+   },
+   {
+    "nome": "garra",
+    "pai": "braco2",
+    "pivo": [
+     0.0,
+     0.34,
+     0.48
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 204,
+  "dims": [
+   0.554,
+   0.657,
+   0.71
+  ],
+  "materiais": [
+   "P_Cristal",
+   "P_Escuro",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "bau",
+  "categoria": "logistica/armazenagem",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Baú 1×1. Braços colocam e tiram por qualquer lado.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 60,
+  "dims": [
+   0.84,
+   0.78,
+   0.62
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Escuro",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "cano_reto",
+  "categoria": "logistica/canos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cano reto (norte–sul).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_ENT_S0",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_N0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 84,
+  "dims": [
+   0.277,
+   1.0,
+   0.489
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Escuro"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "cano_curva",
+  "categoria": "logistica/canos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cano em curva (sul–leste), uma malha só.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_ENT_S0",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_L0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 196,
+  "dims": [
+   0.639,
+   0.639,
+   0.489
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Escuro"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "cano_t",
+  "categoria": "logistica/canos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cano em T (sul, norte, leste).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_SAI_S0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     -0.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_N0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_L0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 188,
+  "dims": [
+   0.67,
+   1.0,
+   0.52
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Concreto",
+   "P_Escuro",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "cano_cruz",
+  "categoria": "logistica/canos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cano em cruz (4 lados).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_SAI_S0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     -0.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_N0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_L0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_O0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     -0.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 232,
+  "dims": [
+   1.0,
+   1.0,
+   0.52
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Concreto",
+   "P_Escuro",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "bomba",
+  "categoria": "logistica/canos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Bomba sobre poça de seiva/água: empurra fluido pela saída ao norte.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "cabecote",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     -0.07,
+     0.58
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_SAI_N0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 136,
+  "dims": [
+   0.76,
+   0.88,
+   0.82
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Concreto",
+   "P_Escuro",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ }
+]

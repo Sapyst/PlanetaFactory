@@ -1,0 +1,31 @@
+{
+ "_nota": "tempo em segundos na velocidade 1.0 da máquina. fluidos em unidades. 'maquina' = tipo em estruturas.json",
+ "extrair_cristal":  {"maquina": "extrator", "jazida": "jazida_cristal", "entradas": {}, "saidas": {"cristal_bruto": 1}, "tempo": 2.0},
+ "minerar_ferro":    {"maquina": "broca", "jazida": "jazida_ferro",  "entradas": {}, "saidas": {"minerio_ferro": 1}, "tempo": 2.0},
+ "minerar_cobre":    {"maquina": "broca", "jazida": "jazida_cobre",  "entradas": {}, "saidas": {"minerio_cobre": 1}, "tempo": 2.0},
+ "minerar_carvao":   {"maquina": "broca", "jazida": "jazida_carvao", "entradas": {}, "saidas": {"carvao": 1}, "tempo": 2.0},
+ "minerar_pedra":    {"maquina": "broca", "jazida": "jazida_pedra",  "entradas": {}, "saidas": {"pedra": 1}, "tempo": 2.0},
+ "minerar_silex":    {"maquina": "broca", "jazida": "jazida_silex",  "entradas": {}, "saidas": {"silex": 1}, "tempo": 2.5},
+ "minerar_areia":    {"maquina": "broca", "jazida": "jazida_areia",  "entradas": {}, "saidas": {"areia": 1}, "tempo": 1.5},
+ "bombear_seiva":    {"maquina": "bomba", "jazida": "poca_seiva",    "entradas": {}, "saidas_fluido": {"seiva": 10}, "tempo": 1.0},
+
+ "fundir_ferro":     {"maquina": "fornalha", "entradas": {"minerio_ferro": 1}, "saidas": {"placa_ferro": 1}, "tempo": 3.2},
+ "fundir_cobre":     {"maquina": "fornalha", "entradas": {"minerio_cobre": 1}, "saidas": {"placa_cobre": 1}, "tempo": 3.2},
+ "cozer_tijolo":     {"maquina": "fornalha", "entradas": {"pedra": 2}, "saidas": {"tijolo": 1}, "tempo": 3.2},
+ "fundir_vidro":     {"maquina": "fornalha", "entradas": {"areia": 2}, "saidas": {"vidro": 1}, "tempo": 3.2},
+ "fundir_aco":       {"maquina": "fornalha", "entradas": {"placa_ferro": 5}, "saidas": {"barra_aco": 1}, "tempo": 16.0},
+
+ "fio":              {"maquina": "montadora", "entradas": {"placa_cobre": 1}, "saidas": {"fio_cobre": 2}, "tempo": 0.5},
+ "engrenagem":       {"maquina": "montadora", "entradas": {"placa_ferro": 2}, "saidas": {"engrenagem": 1}, "tempo": 0.5},
+ "tubo":             {"maquina": "montadora", "entradas": {"placa_ferro": 1}, "saidas": {"tubo": 1}, "tempo": 0.5},
+ "lapidar":          {"maquina": "montadora", "entradas": {"cristal_bruto": 2}, "saidas": {"cristal_lapidado": 1}, "tempo": 2.0},
+ "circuito":         {"maquina": "montadora", "entradas": {"fio_cobre": 3, "placa_ferro": 1}, "saidas": {"circuito": 1}, "tempo": 0.5},
+ "nucleo":           {"maquina": "montadora", "entradas": {"cristal_lapidado": 2, "barra_aco": 1}, "saidas": {"nucleo_cristal": 1}, "tempo": 5.0},
+ "motor":            {"maquina": "montadora", "entradas": {"engrenagem": 2, "fio_cobre": 4, "tubo": 1}, "saidas": {"motor": 1}, "tempo": 6.0},
+ "modulo":           {"maquina": "montadora", "entradas": {"circuito": 3, "cristal_lapidado": 1, "vidro": 1}, "saidas": {"modulo_controle": 1}, "tempo": 8.0},
+ "municao":          {"maquina": "montadora", "entradas": {"silex": 2, "placa_cobre": 1}, "saidas": {"municao": 1}, "tempo": 1.0},
+ "celula":           {"maquina": "montadora", "entradas": {"bateria": 2, "nucleo_cristal": 1}, "saidas": {"celula_energia": 1}, "tempo": 10.0},
+ "pesquisa":         {"maquina": "montadora", "entradas": {"cristal_lapidado": 1, "engrenagem": 1}, "saidas": {"pacote_pesquisa": 1}, "tempo": 5.0},
+
+ "bateria":          {"maquina": "refinador", "entradas": {"placa_cobre": 1, "placa_ferro": 1}, "entradas_fluido": {"seiva": 20}, "saidas": {"bateria": 1}, "tempo": 4.0}
+}

@@ -1,0 +1,98 @@
+{
+ "nome": "juncao",
+ "categoria": "logistica/esteira",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Junta até 3 entradas (sul, leste, oeste) numa saída ao norte.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S0",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -0.5,
+    0.16
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_ENT_L0",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.5,
+    0.0,
+    0.16
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_ENT_O0",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    -0.5,
+    0.0,
+    0.16
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_N0",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    0.5,
+    0.16
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  }
+ ],
+ "tris": 260,
+ "dims": [
+  1.0,
+  1.0,
+  0.61
+ ],
+ "materiais": [
+  "P_Cobre",
+  "P_Cristal",
+  "P_Escuro",
+  "P_Esteira",
+  "P_Faixa",
+  "P_Metal"
+ ]
+}

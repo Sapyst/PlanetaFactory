@@ -1,0 +1,34 @@
+{
+ "nome": "aranha_tibia",
+ "categoria": "inimigos/aranha",
+ "tipo": "segmento",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Tíbia (0.9 m ao longo de +X, origem no joelho, ponta = pé).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 34,
+ "dims": [
+  0.855,
+  0.1,
+  0.113
+ ],
+ "materiais": [
+  "P_Inimigo",
+  "P_Metal",
+  "P_OlhoInimigo"
+ ]
+}

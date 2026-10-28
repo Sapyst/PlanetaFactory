@@ -1,0 +1,36 @@
+{
+ "nome": "poste_energia",
+ "categoria": "energia",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Poste de energia: liga máquinas num raio. Ocupa só o centro do tile.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 94,
+ "dims": [
+  0.7,
+  0.4,
+  2.3
+ ],
+ "materiais": [
+  "P_Cobre",
+  "P_Concreto",
+  "P_Cristal",
+  "P_Escuro",
+  "P_Metal"
+ ]
+}

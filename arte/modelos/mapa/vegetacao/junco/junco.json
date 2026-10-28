@@ -1,0 +1,33 @@
+{
+ "nome": "junco",
+ "categoria": "mapa/vegetacao",
+ "tipo": "deco",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Juncos do pântano e beira de lago (enfeite).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 132,
+ "dims": [
+  0.246,
+  0.338,
+  0.733
+ ],
+ "materiais": [
+  "P_Lodo",
+  "P_Tronco"
+ ]
+}

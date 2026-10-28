@@ -1,0 +1,32 @@
+{
+ "nome": "tijolo",
+ "categoria": "itens/intermediarios",
+ "tipo": "item",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Par de tijolos de pedra cozida.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 36,
+ "dims": [
+  0.22,
+  0.22,
+  0.14
+ ],
+ "materiais": [
+  "P_Tijolo"
+ ]
+}

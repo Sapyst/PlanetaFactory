@@ -1,0 +1,853 @@
+[
+ {
+  "nome": "cristal_bruto",
+  "categoria": "itens/recursos",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cristal arrancado pelo extrator. Base de quase tudo.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 50,
+  "dims": [
+   0.196,
+   0.16,
+   0.235
+  ],
+  "materiais": [
+   "P_Cristal",
+   "P_Pedra"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "minerio_ferro",
+  "categoria": "itens/recursos",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Rocha com veios de ferro.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 80,
+  "dims": [
+   0.185,
+   0.195,
+   0.184
+  ],
+  "materiais": [
+   "P_Ferrugem",
+   "P_Pedra"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "minerio_cobre",
+  "categoria": "itens/recursos",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Rocha com malaquita (cobre).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 80,
+  "dims": [
+   0.218,
+   0.187,
+   0.162
+  ],
+  "materiais": [
+   "P_Malaquita",
+   "P_Pedra"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "pedra",
+  "categoria": "itens/recursos",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Rocha comum: tijolo, muro, concreto.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 20,
+  "dims": [
+   0.196,
+   0.191,
+   0.157
+  ],
+  "materiais": [
+   "P_Pedra"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "carvao",
+  "categoria": "itens/recursos",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Combustível das fornalhas e geradores.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 40,
+  "dims": [
+   0.218,
+   0.167,
+   0.134
+  ],
+  "materiais": [
+   "P_Carvao"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "biomassa",
+  "categoria": "itens/recursos",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Fungo vivo do planeta. Combustível e química.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 88,
+  "dims": [
+   0.223,
+   0.22,
+   0.165
+  ],
+  "materiais": [
+   "P_Biomassa",
+   "P_Pedra"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "areia",
+  "categoria": "itens/recursos",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Saco de areia: vidro e silício.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 48,
+  "dims": [
+   0.22,
+   0.22,
+   0.16
+  ],
+  "materiais": [
+   "P_Areia",
+   "P_Escuro"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "silex",
+  "categoria": "itens/recursos",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Sílex: pedra dura e afiada, usada em munição e ferramentas.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 28,
+  "dims": [
+   0.22,
+   0.17,
+   0.11
+  ],
+  "materiais": [
+   "P_Silex"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "placa_ferro",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Pilha de chapas de ferro.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 36,
+  "dims": [
+   0.232,
+   0.177,
+   0.1
+  ],
+  "materiais": [
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "placa_cobre",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Pilha de chapas de cobre.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 36,
+  "dims": [
+   0.232,
+   0.177,
+   0.1
+  ],
+  "materiais": [
+   "P_Cobre"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "fio_cobre",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Carretel de fio de cobre.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 84,
+  "dims": [
+   0.205,
+   0.22,
+   0.22
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Escuro"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "engrenagem",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Engrenagem de ferro.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 92,
+  "dims": [
+   0.237,
+   0.24,
+   0.05
+  ],
+  "materiais": [
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "barra_aco",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Lingote de aço.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 12,
+  "dims": [
+   0.17,
+   0.093,
+   0.075
+  ],
+  "materiais": [
+   "P_Aco"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "tijolo",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Par de tijolos de pedra cozida.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 36,
+  "dims": [
+   0.22,
+   0.22,
+   0.14
+  ],
+  "materiais": [
+   "P_Tijolo"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "vidro",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Painel de vidro com moldura.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 24,
+  "dims": [
+   0.22,
+   0.22,
+   0.035
+  ],
+  "materiais": [
+   "P_Escuro",
+   "P_Vidro"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "cristal_lapidado",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cristal cortado: foco de energia.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 16,
+  "dims": [
+   0.156,
+   0.18,
+   0.21
+  ],
+  "materiais": [
+   "P_Cristal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "tubo",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Tubo de ferro para canos e máquinas.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 84,
+  "dims": [
+   0.24,
+   0.13,
+   0.13
+  ],
+  "materiais": [
+   "P_Escuro",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "circuito",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Placa de circuito.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 60,
+  "dims": [
+   0.22,
+   0.16,
+   0.045
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Escuro",
+   "P_Placa"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "bateria",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Bateria química.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 76,
+  "dims": [
+   0.144,
+   0.144,
+   0.21
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Escuro",
+   "P_Faixa"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "nucleo_cristal",
+  "categoria": "itens/intermediarios",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cristal lapidado preso em gaiola: armazena energia.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 76,
+  "dims": [
+   0.2,
+   0.2,
+   0.22
+  ],
+  "materiais": [
+   "P_Cristal",
+   "P_Escuro",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "motor",
+  "categoria": "itens/avancados",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Motor elétrico.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 88,
+  "dims": [
+   0.225,
+   0.164,
+   0.192
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Escuro",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "modulo_controle",
+  "categoria": "itens/avancados",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Módulo de controle com tela de cristal.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 60,
+  "dims": [
+   0.22,
+   0.18,
+   0.12
+  ],
+  "materiais": [
+   "P_Cristal",
+   "P_Escuro",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "municao",
+  "categoria": "itens/avancados",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Caixa de munição das torres.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 87,
+  "dims": [
+   0.22,
+   0.14,
+   0.18
+  ],
+  "materiais": [
+   "P_Cobre",
+   "P_Faixa",
+   "P_Municao",
+   "P_Silex"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "celula_energia",
+  "categoria": "itens/avancados",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Célula de energia portátil.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 96,
+  "dims": [
+   0.225,
+   0.156,
+   0.15
+  ],
+  "materiais": [
+   "P_Cristal",
+   "P_Escuro",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "pacote_pesquisa",
+  "categoria": "itens/avancados",
+  "tipo": "item",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Frasco de pesquisa para o laboratório.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 70,
+  "dims": [
+   0.18,
+   0.18,
+   0.24
+  ],
+  "materiais": [
+   "P_Cristal",
+   "P_Escuro",
+   "P_Vidro"
+  ],
+  "erros": []
+ }
+]

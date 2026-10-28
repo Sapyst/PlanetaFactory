@@ -1,0 +1,54 @@
+{
+ "nome": "locomotiva",
+ "categoria": "transporte/veiculos",
+ "tipo": "veiculo",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Locomotiva (3 m). Partes: corpo + 2 truques.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.12
+   ]
+  },
+  {
+   "nome": "truque0",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    -0.85,
+    0.12
+   ]
+  },
+  {
+   "nome": "truque1",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.85,
+    0.12
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 368,
+ "dims": [
+  0.72,
+  2.93,
+  1.15
+ ],
+ "materiais": [
+  "P_Cristal",
+  "P_Escuro",
+  "P_Faixa",
+  "P_Metal",
+  "P_Vidro"
+ ]
+}

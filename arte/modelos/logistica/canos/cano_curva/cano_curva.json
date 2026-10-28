@@ -1,0 +1,64 @@
+{
+ "nome": "cano_curva",
+ "categoria": "logistica/canos",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Cano em curva (sul–leste), uma malha só.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_ENT_S0",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -0.5,
+    0.35
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_SAI_L0",
+   "tipo": "FLUIDO",
+   "io": "SAI",
+   "pos": [
+    0.5,
+    0.0,
+    0.35
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 196,
+ "dims": [
+  0.639,
+  0.639,
+  0.489
+ ],
+ "materiais": [
+  "P_Cobre",
+  "P_Escuro"
+ ]
+}

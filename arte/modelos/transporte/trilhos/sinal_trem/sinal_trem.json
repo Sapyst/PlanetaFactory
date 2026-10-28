@@ -1,0 +1,36 @@
+{
+ "nome": "sinal_trem",
+ "categoria": "transporte/trilhos",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Sinal de bloco: fica no tile ao lado da linha. Divide a linha em blocos (1 trem por bloco).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 100,
+ "dims": [
+  0.24,
+  0.24,
+  1.55
+ ],
+ "materiais": [
+  "P_Concreto",
+  "P_Cristal",
+  "P_Escuro",
+  "P_Fogo",
+  "P_Metal"
+ ]
+}

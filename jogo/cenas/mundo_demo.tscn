@@ -1,0 +1,42 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://cenas/mundo_demo.gd" id="1"]
+[ext_resource type="Script" path="res://cenas/camera_jogo.gd" id="2"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ceu"]
+sky_top_color = Color(0.32, 0.38, 0.52, 1)
+sky_horizon_color = Color(0.62, 0.58, 0.66, 1)
+ground_bottom_color = Color(0.12, 0.10, 0.14, 1)
+ground_horizon_color = Color(0.62, 0.58, 0.66, 1)
+
+[sub_resource type="Sky" id="sky"]
+sky_material = SubResource("ceu")
+
+[sub_resource type="Environment" id="amb"]
+background_mode = 2
+sky = SubResource("sky")
+ambient_light_source = 3
+ambient_light_energy = 0.8
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 0.6
+fog_enabled = true
+fog_light_color = Color(0.55, 0.52, 0.62, 1)
+fog_density = 0.0012
+
+[node name="MundoDemo" type="Node3D"]
+script = ExtResource("1")
+
+[node name="Ambiente" type="WorldEnvironment" parent="."]
+environment = SubResource("amb")
+
+[node name="Sol" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 20, 0)
+light_energy = 1.1
+shadow_enabled = true
+directional_shadow_max_distance = 140.0
+
+[node name="Camera3D" type="Camera3D" parent="."]
+script = ExtResource("2")
+fov = 38.0
+far = 600.0

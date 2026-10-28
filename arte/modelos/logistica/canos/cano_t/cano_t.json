@@ -1,0 +1,81 @@
+{
+ "nome": "cano_t",
+ "categoria": "logistica/canos",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Cano em T (sul, norte, leste).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_SAI_S0",
+   "tipo": "FLUIDO",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    -0.5,
+    0.35
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_SAI_N0",
+   "tipo": "FLUIDO",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    0.5,
+    0.35
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_SAI_L0",
+   "tipo": "FLUIDO",
+   "io": "SAI",
+   "pos": [
+    0.5,
+    0.0,
+    0.35
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 188,
+ "dims": [
+  0.67,
+  1.0,
+  0.52
+ ],
+ "materiais": [
+  "P_Cobre",
+  "P_Concreto",
+  "P_Escuro",
+  "P_Metal"
+ ]
+}

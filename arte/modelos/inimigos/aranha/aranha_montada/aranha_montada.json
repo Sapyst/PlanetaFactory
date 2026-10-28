@@ -1,0 +1,35 @@
+{
+ "nome": "aranha_montada",
+ "categoria": "inimigos/aranha",
+ "tipo": "veiculo",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Prévia montada (não usar no jogo; o jogo monta com IK).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 632,
+ "dims": [
+  2.913,
+  2.081,
+  0.889
+ ],
+ "materiais": [
+  "P_Escuro",
+  "P_Inimigo",
+  "P_Metal",
+  "P_OlhoInimigo"
+ ]
+}

@@ -1,0 +1,33 @@
+{
+ "nome": "jazida_ferro",
+ "categoria": "mapa/jazidas",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Jazida de ferro (broca).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 120,
+ "dims": [
+  0.386,
+  0.548,
+  0.117
+ ],
+ "materiais": [
+  "P_Ferrugem",
+  "P_Rocha"
+ ]
+}

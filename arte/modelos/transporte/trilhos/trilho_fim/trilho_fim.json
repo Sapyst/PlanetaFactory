@@ -1,0 +1,52 @@
+{
+ "nome": "trilho_fim",
+ "categoria": "transporte/trilhos",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Fim de linha com para-choque (norte).",
+ "ocupa_canto": true,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_TRILHO_ENT_S0",
+   "tipo": "TRILHO",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -0.5,
+    0.14
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  }
+ ],
+ "tris": 96,
+ "dims": [
+  0.84,
+  0.92,
+  0.4
+ ],
+ "materiais": [
+  "P_Escuro",
+  "P_Faixa",
+  "P_Metal",
+  "P_RochaEscura",
+  "P_Tronco"
+ ]
+}

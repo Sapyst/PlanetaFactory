@@ -1,0 +1,11 @@
+# Godot
+jogo/.godot/
+*.import.tmp
+# APK vai como release, não no repositório
+jogo/export/
+*.apk
+*.idsig
+# arquivos temporários do Blender
+*.blend1
+arte/modelos/_tmp/
+__pycache__/

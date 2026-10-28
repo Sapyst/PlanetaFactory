@@ -1,0 +1,35 @@
+{
+ "nome": "modulo_controle",
+ "categoria": "itens/avancados",
+ "tipo": "item",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Módulo de controle com tela de cristal.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 60,
+ "dims": [
+  0.22,
+  0.18,
+  0.12
+ ],
+ "materiais": [
+  "P_Cristal",
+  "P_Escuro",
+  "P_Faixa",
+  "P_Metal"
+ ]
+}

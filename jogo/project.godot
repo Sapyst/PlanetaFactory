@@ -1,0 +1,32 @@
+; Engine configuration file.
+config_version=5
+
+[application]
+config/name="PlanetaFactory"
+config/description="Jogo de automação em planeta vivo (PC e celular)."
+run/main_scene="res://cenas/menu.tscn"
+config/features=PackedStringArray("4.7", "Mobile")
+config/icon="res://icon.png"
+
+[autoload]
+Registro="*res://nucleo/registro.gd"
+Sessao="*res://nucleo/sessao.gd"
+Som="*res://nucleo/som.gd"
+
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/handheld/orientation=4
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[physics]
+common/physics_ticks_per_second=30
+
+[rendering]
+renderer/rendering_method="mobile"
+textures/vram_compression/import_etc2_astc=true
+
+[input_devices]
+
+pointing/emulate_mouse_from_touch=true

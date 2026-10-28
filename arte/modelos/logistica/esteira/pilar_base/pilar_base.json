@@ -1,0 +1,32 @@
+{
+ "nome": "pilar_base",
+ "categoria": "logistica/esteira",
+ "tipo": "canto",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Sapata do pilar (vai por baixo do primeiro segmento, sem altura extra).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 12,
+ "dims": [
+  0.06,
+  0.06,
+  0.04
+ ],
+ "materiais": [
+  "P_Faixa"
+ ]
+}

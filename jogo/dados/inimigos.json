@@ -1,0 +1,19 @@
+{
+ "_nota": "Poluição e aranhas. Unidades: poluição em pontos por chunk (32×32); taxas por segundo. As fontes (máquinas) emitem 'poluicao' de estruturas.json por minuto.",
+ "poluicao": {
+  "difusao": 0.05,
+  "minimo_espalhar": 0.6,
+  "absorcao": 0.003,
+  "absorcao_fixa": 0.01,
+  "absorcao_bioma": {"campina": 1.0, "floresta_fungica": 1.8, "deserto_silex": 0.35, "planalto_rochoso": 0.6,
+                     "campo_cristal": 0.8, "pantano": 1.4, "cinzal": 0.4, "_agua": 0.3}
+ },
+ "ninho": {
+  "celula": 48, "raio_sem_ninho": 52, "chance": 0.6, "chance_longe": 0.9, "vida": 400,
+  "taxa_absorcao": 0.15, "custo_aranha": 4, "max_aranhas": 8, "aranhas_iniciais": 2,
+  "grupo_ataque": 4, "raio_ataque": 160
+ },
+ "aranha": {"vida": 60, "dano": 15, "velocidade": 1.4, "alcance": 1.2, "raio_procura": 20, "altura_que_bloqueia": 0.5},
+ "expansao": {"intervalo_s": 150, "dist_min": 14, "dist_max": 30, "tempo_obra": 10, "livre_de_estruturas": 26, "longe_do_spawn": 40, "construtoras": 3, "poluicao_para_expandir": 30},
+ "torre": {"municao_inicial": 60}
+}

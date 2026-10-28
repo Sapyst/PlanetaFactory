@@ -1,0 +1,32 @@
+{
+ "nome": "barra_aco",
+ "categoria": "itens/intermediarios",
+ "tipo": "item",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Lingote de aço.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 12,
+ "dims": [
+  0.17,
+  0.093,
+  0.075
+ ],
+ "materiais": [
+  "P_Aco"
+ ]
+}

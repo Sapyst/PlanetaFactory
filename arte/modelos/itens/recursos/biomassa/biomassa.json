@@ -1,0 +1,33 @@
+{
+ "nome": "biomassa",
+ "categoria": "itens/recursos",
+ "tipo": "item",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Fungo vivo do planeta. Combustível e química.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 88,
+ "dims": [
+  0.223,
+  0.22,
+  0.165
+ ],
+ "materiais": [
+  "P_Biomassa",
+  "P_Pedra"
+ ]
+}

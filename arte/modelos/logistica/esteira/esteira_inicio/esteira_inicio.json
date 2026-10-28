@@ -1,0 +1,52 @@
+{
+ "nome": "esteira_inicio",
+ "categoria": "logistica/esteira",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Cabeceira com motor no sul. Recebe itens por braço ou pela lateral.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_SAI_N0",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    0.5,
+    0.16
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  }
+ ],
+ "tris": 110,
+ "dims": [
+  0.92,
+  0.96,
+  0.38
+ ],
+ "materiais": [
+  "P_Cobre",
+  "P_Escuro",
+  "P_Esteira",
+  "P_Faixa",
+  "P_Metal"
+ ]
+}

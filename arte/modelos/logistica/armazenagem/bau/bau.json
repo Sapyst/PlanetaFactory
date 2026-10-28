@@ -1,0 +1,35 @@
+{
+ "nome": "bau",
+ "categoria": "logistica/armazenagem",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Baú 1×1. Braços colocam e tiram por qualquer lado.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 60,
+ "dims": [
+  0.84,
+  0.78,
+  0.62
+ ],
+ "materiais": [
+  "P_Cobre",
+  "P_Escuro",
+  "P_Faixa",
+  "P_Metal"
+ ]
+}
