@@ -12,7 +12,7 @@ extends RefCounted
 ##            só pegam item que o destino aceita. Consomem energia.
 ##  máquinas  extrator/broca mineram a jazida embaixo; fornalha escolhe a receita pelo minério que chega e queima
 ##            carvão/biomassa; montadora e refinador usam a receita escolhida pelo jogador. Elétricas dependem
-##            dos postes (RedeEnergia); gerador queima combustível que braço/esteira põe nele.
+##            dos fios (Fiacao + RedeEnergia); gerador queima combustível que braço/esteira põe nele.
 ##  poluição  quem trabalhou neste tick fica em `emissao` (id → pontos), e o mundo joga na Poluicao.
 
 const FOGO_KW := 90.0            ## consumo da fornalha a combustão
@@ -195,23 +195,21 @@ func _receita_da_jazida(e: Dictionary) -> String:
 	return ""
 
 
+## Rede elétrica pelos fios do mapa (Fiacao): postes, torres, geradores e quem consome.
 func _montar_energia() -> void:
+	Fiacao.completar(mapa)
 	for id in mapa.estruturas:
 		var e: Dictionary = mapa.estruturas[id]
-		if e.nome == "poste_energia":
-			var r: Dictionary = Registro.estruturas["poste_energia"]
-			rede.adicionar_poste(Vector2(e.minimo) + Vector2(0.5, 0.5), float(r.raio_fio), float(r.raio_cobertura))
-	for id in mapa.estruturas:
-		var e: Dictionary = mapa.estruturas[id]
-		var r: Dictionary = Registro.estruturas.get(e.nome, {})
-		var kw := float(r.get("energia_kw", 0.0))
-		if kw == 0.0:
+		var papel := Fiacao.papel(e.nome)
+		if papel == "":
 			continue
-		var c := Grade.centro_da_area(e.minimo, e.area, e.rot)
-		if e.nome == "gerador":
-			_membros[id] = rede.adicionar_membro(c, kw, null, float(combustivel.get(id, 0.0)))
-		elif maquinas.has(id) or e.nome.begins_with("braco") or laboratorios.has(id):
-			_membros[id] = rede.adicionar_membro(c, kw, null)
+		var kw := float(Registro.estruturas.get(e.nome, {}).get("energia_kw", 0.0))
+		_membros[id] = rede.adicionar(id, kw, float(combustivel.get(id, 0.0)) if papel == "fonte" else 0.0)
+	for id in _membros:
+		for o in mapa.estruturas[id].get("fios", []):
+			if o > id:
+				rede.ligar(id, o)
+	rede.calcular()
 
 
 ## Ponta de caminho: lateral de outra esteira (carga lateral) ou porta de entrada de máquina/estação/torre.

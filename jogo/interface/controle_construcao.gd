@@ -350,7 +350,40 @@ func _atualizar() -> void:
 		else:
 			_plano = construtor.plano_peca(peca, _cursor, rot)
 		fantasma.mostrar(_plano, removendo)
+		_previa_fios()
 	_dica_do_plano()
+
+
+## Poste/torre/máquina no fantasma: mostra os fios que vão aparecer e o alcance do poste.
+func _previa_fios() -> void:
+	var pares := []
+	var anel := 0.0
+	var centro := Vector3.ZERO
+	if not removendo and _plano.size() >= 1:
+		for it in _plano:
+			if it.motivo != "" or Fiacao.papel(it.nome) == "":
+				continue
+			var e := {"nome": it.nome, "minimo": it.minimo, "rot": it.rot, "area": Registro.area(it.nome), "fios": []}
+			if Fiacao.papel(it.nome) == "poste":
+				for alvo in Fiacao.alvos_do_poste(construtor.mapa, e):
+					var o: Dictionary = construtor.mapa.estruturas[alvo]
+					pares.append([Fiacao.ponto_fio(e, Fiacao.centro(o)), Fiacao.ponto_fio(o, Fiacao.centro(e))])
+				anel = float(Registro.estruturas[it.nome].raio_fio)
+				centro = Grade.ponto_mundo(Fiacao.centro(e), 0.05)
+			else:
+				var melhor := -1
+				var md := INF
+				for pid in construtor.mapa.estruturas:
+					var p: Dictionary = construtor.mapa.estruturas[pid]
+					if Fiacao.papel(p.nome) == "poste":
+						var d := Fiacao.distancia(p, e)
+						if d <= Fiacao.alcance(p, e) and d < md:
+							md = d
+							melhor = pid
+				if melhor >= 0:
+					var p: Dictionary = construtor.mapa.estruturas[melhor]
+					pares.append([Fiacao.ponto_fio(p, Fiacao.centro(e)), Fiacao.ponto_fio(e, Fiacao.centro(p))])
+	fantasma.mostrar_fios(pares, centro, anel)
 
 
 func _dica_parada() -> String:

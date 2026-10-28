@@ -135,19 +135,20 @@ func gerar_chunk(chunk: Vector2i) -> ChunkDados:
 	c.terreno.resize(n * n)
 	c.bioma.resize(n * n)
 	var base := chunk * n
+	var cx := Distribuicao.contexto()          # cada tile é calculado uma vez só neste chunk
 	for j in n:
 		for i in n:
 			var t := base + Vector2i(i, j)
 			var k := j * n + i
-			c.terreno[k] = terreno(t)
-			c.bioma[k] = indice_bioma(bioma(t))
-			var jaz := distribuicao.jazida(t)
+			c.terreno[k] = distribuicao._ter(t, cx)
+			c.bioma[k] = indice_bioma(distribuicao._bio(t, cx))
+			var jaz := distribuicao.jazida(t, cx)
 			if not jaz.is_empty():
 				c.jazidas[t] = jaz
-			var ob := distribuicao.obstaculo(t)
+			var ob := distribuicao.obstaculo(t, cx)
 			if not ob.is_empty() and ob.ancora == t:
 				c.obstaculos[t] = ob
-			var dc := distribuicao.deco(t)
+			var dc := distribuicao.deco(t, cx, ob)
 			if not dc.is_empty():
 				c.decos.append(dc)
 	return c

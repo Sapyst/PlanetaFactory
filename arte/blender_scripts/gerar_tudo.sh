@@ -12,6 +12,7 @@ done
 for p in biomas transporte; do "$B" -b --factory-startup --python prancha.py -- $p >/dev/null 2>&1; done
 "$B" -b --factory-startup --python icones.py 2>&1 | grep ICONES
 "$B" -b --factory-startup --python texturas.py 2>&1 | grep EMENDA
+python3 piso_fabrica.py
 python3 catalogo.py
 python3 ../../jogo/ferramentas/sincronizar_arte.py
 rm -rf ../modelos/_tmp __pycache__

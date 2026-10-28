@@ -5,7 +5,7 @@
   {"nome": "Braços",    "pecas": ["braco", "braco_rapido", "braco_longo", "bau"]},
   {"nome": "Canos",     "pecas": ["cano", "cano_t", "cano_cruz", "bomba", "tanque"]},
   {"nome": "Produção",  "pecas": ["extrator_cristal", "broca_minerio", "fornalha", "montadora", "refinador", "laboratorio"]},
-  {"nome": "Energia",   "pecas": ["gerador", "poste_energia"]},
+  {"nome": "Energia",   "pecas": ["gerador", "poste_energia", "torre_sem_fio"]},
   {"nome": "Defesa",    "pecas": ["torre_defesa", "muro_centro"]},
   {"nome": "Trilhos",   "pecas": ["trilho_reto", "trilho_curva", "trilho_fim", "estacao", "sinal_trem", "trem"]}
  ],
@@ -16,7 +16,7 @@
   "cano": "Cano", "cano_t": "Cano em T", "cano_cruz": "Cano em cruz", "bomba": "Bomba", "tanque": "Tanque",
   "extrator_cristal": "Extrator de cristal", "broca_minerio": "Broca", "fornalha": "Fornalha",
   "montadora": "Montadora", "refinador": "Refinador", "laboratorio": "Laboratório",
-  "gerador": "Gerador", "poste_energia": "Poste",
+  "gerador": "Gerador", "poste_energia": "Poste", "torre_sem_fio": "Torre sem fio",
   "torre_defesa": "Torre", "muro_centro": "Muro",
   "trilho_reto": "Trilho", "trilho_curva": "Curva de trilho", "trilho_fim": "Fim de linha",
   "estacao": "Estação", "sinal_trem": "Sinal", "trem": "Trem"

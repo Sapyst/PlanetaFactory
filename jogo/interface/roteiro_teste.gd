@@ -26,6 +26,8 @@ func _ready() -> void:
 		"estresse": _roteiro_estresse()
 		"fundo": em(2, func(): cena.controle.barra.visible = false)
 		"vitrine": _roteiro_vitrine()
+		"panorama": _roteiro_panorama()
+		"fios": _roteiro_fios()
 		"conferir": print("DIGITAL ", digital(cena))
 	print("ROTEIRO ", roteiro, " com ", _passos.size(), " passos; tela ", get_viewport().get_visible_rect().size, " janela ", DisplayServer.window_get_size())
 
@@ -196,6 +198,9 @@ func _roteiro_trem() -> void:
 func _roteiro_ataque() -> void:
 	em(3, func():
 		var col: Colonia = cena.colonia
+		for x in range(-3, 4):                     # o mapa carrega no fundo: garante os ninhos em volta
+			for y in range(-3, 4):
+				col.descobrir_chunk(Vector2i(x, y))
 		var ninho: int = col.ninhos.keys()[0]
 		var alvo := -1
 		for id in cena.mapa.estruturas:
@@ -364,3 +369,60 @@ func _roteiro_vitrine() -> void:
 	# quadro ~135: painel de pesquisa (na demo: tudo liberado)
 	em(140, func(): cena.abrir_pausa())
 	# quadro ~150: pausa
+
+
+## Panorama: arrasta a câmera a 18 m/s por terreno novo durante 12 s (zoom padrão) e depois 6 s afastada;
+## mede o tempo de cada quadro na janela real (média, pior 5%, pior caso, quadros acima de 33 ms).
+var _tempos: PackedFloat32Array = []
+var _t_ant := 0
+var _fase := 0
+func _roteiro_panorama() -> void:
+	em(30, func(): _fase = 1; _t_ant = Time.get_ticks_usec())
+
+
+func _physics_process(_d: float) -> void:
+	pass
+
+
+func _notification(what: int) -> void:
+	if what != NOTIFICATION_PROCESS or _fase == 0:
+		return
+	var agora := Time.get_ticks_usec()
+	var dt := (agora - _t_ant) / 1000.0
+	_t_ant = agora
+	var cam: CameraJogo = cena.camera
+	cam.alvo += Vector3(18.0, 0, 6.0) * dt / 1000.0
+	cam.posicionar()
+	_tempos.append(dt)
+	var total := 0.0
+	for t in _tempos: total += t
+	if _fase == 1 and total > 12000.0:
+		_relatorio_tempos("zoom padrão (44 m)")
+		_tempos.clear()
+		cam.distancia = 110.0
+		_fase = 2
+	elif _fase == 2 and total > 6000.0:
+		_relatorio_tempos("zoom longe (110 m)")
+		_fase = 0
+		get_tree().quit()
+
+
+func _relatorio_tempos(rotulo: String) -> void:
+	var v := Array(_tempos)
+	v.sort()
+	var soma := 0.0
+	var acima := 0
+	for t in v:
+		soma += t
+		if t > 33.4: acima += 1
+	print("PANORAMA %s: %d quadros · média %.1f ms · pior 5%% %.1f ms · pior %.1f ms · %d acima de 33 ms" % [
+			rotulo, v.size(), soma / v.size(), v[int(v.size() * 0.95)], v[-1], acima])
+
+
+## Fios: a rede da demo (gerador → postes → extrator e braços) e a prévia de um poste novo com o anel de alcance.
+func _roteiro_fios() -> void:
+	em(3, func(): cena.camera.alvo = Vector3(13, 0, -2); cena.camera.distancia = 17; cena.camera.posicionar())
+	em(60, func(): clicar(botao("cat:4")))
+	em(62, func(): clicar(botao("poste_energia")))
+	em(64, func(): mover(tela(Vector2i(19, 9))))
+	# quadro ~75: fios da demo + prévia amarela do poste novo e o anel de 9 m

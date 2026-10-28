@@ -127,17 +127,24 @@ func test_maquina_dorme() -> void:
 
 func test_energia() -> void:
 	var r := RedeEnergia.new()
-	r.adicionar_poste(Vector2(0, 0)); r.adicionar_poste(Vector2(7, 0)); r.adicionar_poste(Vector2(30, 0))
-	var m1 := Maquina.new("a"); var m2 := Maquina.new("b"); var longe := Maquina.new("c")
-	r.adicionar_membro(Vector2(1, 1), 450.0, m1)
-	r.adicionar_membro(Vector2(8, -1), 450.0, m2)
-	r.adicionar_membro(Vector2(31, 0), 100.0, longe)
-	var g := r.adicionar_membro(Vector2(-1, 0), -450.0, null, 10.0)
+	for id in [1, 2, 3]:
+		r.adicionar(id, 0.0)                     # postes
+	r.adicionar(10, 450.0)
+	r.adicionar(11, 450.0)
+	r.adicionar(12, 100.0)                       # longe: rede sem gerador
+	var g := r.adicionar(20, -450.0, 10.0)
+	r.ligar(1, 2)
+	r.ligar(1, 10)
+	r.ligar(2, 11)
+	r.ligar(1, 20)
+	r.ligar(3, 12)
+	r.calcular()
 	r.tick(1.0)
-	perto(m1.energia, 0.5, 1e-3, "450 kW para 900 kW de demanda = 50%")
-	perto(m2.energia, 0.5, 1e-3, "poste a 7 m está na mesma rede")
-	perto(longe.energia, 0.0, 1e-3, "poste a 30 m é outra rede, sem gerador")
+	perto(r.satisfacao(10), 0.5, 1e-3, "450 kW para 900 kW de demanda = 50%")
+	perto(r.satisfacao(11), 0.5, 1e-3, "poste ligado por fio = mesma rede")
+	perto(r.satisfacao(12), 0.0, 1e-3, "poste sem fio até o gerador: sem energia")
 	perto(g.combustivel_mj, 10.0 - 0.45, 1e-3, "gastou 450 kJ")
+	verificar(not r.tem_fonte(12) and r.tem_fonte(11))
 
 
 func test_trilhos_rota_e_blocos() -> void:

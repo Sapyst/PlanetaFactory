@@ -63,10 +63,23 @@ func atualizar(eventos: Array[Dictionary], delta: float) -> void:
 	_desenhar_barras()
 
 
+## Só ganha nó (marcha + IK a cada quadro) a aranha perto do que a câmera vê; as outras seguem só na lógica.
+func _perto_da_vista(p: Vector2) -> bool:
+	var cam := get_viewport().get_camera_3d() as CameraJogo
+	if cam == null:
+		return true
+	return p.distance_to(Vector2(cam.alvo.x, -cam.alvo.z)) < cam.distancia * 1.25 + 12.0
+
+
 func _sincronizar_aranhas() -> void:
 	for id in colonia.aranhas:
 		var ar: Dictionary = colonia.aranhas[id]
 		var no: Aranha = _aranhas.get(id)
+		if not _perto_da_vista(ar.pos):
+			if no != null:
+				no.queue_free()
+				_aranhas.erase(id)
+			continue
 		if no == null:
 			no = Aranha.new()
 			no.position = Grade.ponto_mundo(ar.pos)
@@ -87,6 +100,11 @@ func _sincronizar_ninhos(delta: float) -> void:
 	for id in colonia.ninhos:
 		var n: Dictionary = colonia.ninhos[id]
 		var no: Node3D = _ninhos.get(id)
+		if not _perto_da_vista(n.centro):
+			if no != null:
+				no.queue_free()
+				_ninhos.erase(id)
+			continue
 		if no == null:
 			no = (load(Registro.modelos["ninho_aranha"].modelo) as PackedScene).instantiate()
 			add_child(no)

@@ -14,7 +14,16 @@ const INCL_LONGE := 74.0
 const FOV := 38.0
 const VEL_TECLADO := 1.2      ## fração da distância por segundo
 
-var alvo := Vector3(8, 0, -1)
+## Ponto olhado. Atribuir `alvo` pula direto (roteiros, carregar); o dedo/mouse mexe em `destino` e a câmera
+## desliza até lá (suave mesmo quando o toque chega em menos quadros que a tela), com inércia ao soltar.
+var alvo := Vector3(8, 0, -1):
+	set(v):
+		alvo = v
+		destino = v
+		_vel = Vector3.ZERO
+var destino := Vector3(8, 0, -1)
+var _vel := Vector3.ZERO              ## m/s do arrasto (para a inércia)
+var _ultimo_arrasto := 0
 var distancia := DIST_PADRAO
 var angulo := 0.6
 
@@ -35,14 +44,29 @@ func _process(delta: float) -> void:
 	if Input.is_physical_key_pressed(KEY_EQUAL) or Input.is_physical_key_pressed(KEY_KP_ADD): zoom(1.0 - 1.5 * delta)
 	if Input.is_physical_key_pressed(KEY_MINUS) or Input.is_physical_key_pressed(KEY_KP_SUBTRACT): zoom(1.0 + 1.5 * delta)
 	if v != Vector2.ZERO:
-		alvo += Vector3(v.x, 0, v.y).limit_length(1.0).rotated(Vector3.UP, angulo) * distancia * VEL_TECLADO * delta
-		posicionar()
+		destino += Vector3(v.x, 0, v.y).limit_length(1.0).rotated(Vector3.UP, angulo) * distancia * VEL_TECLADO * delta
+	# inércia: soltou o dedo com a câmera em movimento → continua e freia
+	if Time.get_ticks_msec() - _ultimo_arrasto > 60 and _vel.length() > 0.05:
+		destino += _vel * delta
+		_vel *= exp(-4.5 * delta)
+	if alvo.distance_squared_to(destino) > 1e-6:
+		var a := destino - alvo
+		_suave(alvo + a * (1.0 - exp(-20.0 * delta)))
 
 
 ## Inclinação (rad) para a distância atual — interpolada em escala log (o zoom é multiplicativo).
 func inclinacao() -> float:
 	var t := clampf(log(distancia / DIST_MIN) / log(DIST_MAX / DIST_MIN), 0.0, 1.0)
 	return deg_to_rad(lerpf(INCL_PERTO, INCL_LONGE, t))
+
+
+func _suave(p: Vector3) -> void:
+	var d := destino
+	var v := _vel
+	alvo = p                              # o setter zera destino/vel: devolve
+	destino = d
+	_vel = v
+	posicionar()
 
 
 func posicionar() -> void:
@@ -58,8 +82,12 @@ func arrastar(rel: Vector2) -> void:
 	var mpp := 2.0 * distancia * tan(deg_to_rad(fov) / 2.0) / maxf(get_viewport().get_visible_rect().size.y, 1.0)
 	var r := rel * mpp
 	r.y /= sin(inclinacao())                # no eixo da profundidade o chão aparece encurtado
-	alvo += Vector3(-r.x, 0, -r.y).rotated(Vector3.UP, angulo)
-	posicionar()
+	var passo := Vector3(-r.x, 0, -r.y).rotated(Vector3.UP, angulo)
+	destino += passo
+	var agora := Time.get_ticks_msec()
+	var dt := maxf((agora - _ultimo_arrasto) / 1000.0, 1.0 / 120.0)
+	_vel = _vel.lerp(passo / dt, 0.5) if dt < 0.1 else Vector3.ZERO
+	_ultimo_arrasto = agora
 
 
 func zoom(fator: float) -> void:

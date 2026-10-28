@@ -47,6 +47,7 @@ var controle: ControleConstrucao
 var _nos: Dictionary = {}           ## id da estrutura → Node3D (peças miúdas vão para _lotes)
 var _lotes: DesenhoLotes
 var _efeitos: Efeitos
+var _fios: DesenhoFios
 
 @onready var camera: CameraJogo = $Camera3D
 
@@ -77,6 +78,7 @@ func _ready() -> void:
 	gerador = GeradorMundo.new(semente)
 	mapa = MapaOcupacao.new(gerador)
 	DesenhoChunk.preparar(gerador)
+	DesenhoChunk.aquecer()
 	poluicao = Poluicao.new(gerador)
 	colonia = Colonia.new(mapa, poluicao, semente)
 	pesquisa = Pesquisa.new(modo == "demo")
@@ -208,6 +210,9 @@ func _criar_desenhos() -> void:
 	_desenho_itens.fabrica = fabrica
 	_desenho_itens.mapa = mapa
 	add_child(_desenho_itens)
+	_fios = DesenhoFios.new()
+	_fios.mapa = mapa
+	add_child(_fios)
 	_efeitos = Efeitos.new()
 	_efeitos.fabrica = fabrica
 	_efeitos.mapa = mapa
@@ -235,36 +240,80 @@ func _criar_construcao() -> void:
 
 
 # ------------------------------------------------------------------ mundo
+## Streaming do mapa sem travar a câmera:
+##  - quer os chunks no raio da vista + 1 de folga (pré-carrega antes de aparecer);
+##  - gerar e calcular a malha vai para a fila de trabalho em segundo plano (até TAREFAS ao mesmo tempo, os mais
+##    perto do centro primeiro);
+##  - na linha principal só monta o que ficou pronto: 1 chunk por quadro;
+##  - descarrega só quando passa 2 chunks da vista (ir e voltar não recarrega).
+const TAREFAS := 3
+
+var _fila_pronta: Dictionary = {}      ## chunk → dados prontos (escrito pelas tarefas de fundo)
+var _em_preparo: Dictionary = {}       ## chunk → id da tarefa
+var _trava := Mutex.new()
+
+
 func _atualizar_chunks() -> void:
 	var c := Grade.chunk_de(Grade.tile_de_mundo(camera.alvo))
-	var querer := {}
-	var raio := clampi(ceili(camera.distancia * 0.75 / Grade.TAM_CHUNK) + 1, RAIO_MIN, RAIO_MAX)
-	for dx in range(-raio, raio + 1):
-		for dy in range(-raio, raio + 1):
-			querer[c + Vector2i(dx, dy)] = true
+	var raio := clampi(ceili(camera.distancia * 0.75 / Grade.TAM_CHUNK) + 1, RAIO_MIN, RAIO_MAX - (1 if OS.has_feature("mobile") else 0))
+	# descarrega o que ficou bem para trás
 	for k in chunks.keys():
-		if not querer.has(k):
+		if maxi(absi(k.x - c.x), absi(k.y - c.y)) > raio + 2:
 			chunks[k].queue_free()
 			chunks.erase(k)
-	for k in querer:
-		if not chunks.has(k):
-			colonia.descobrir_chunk(k)           # ninhos daquele pedaço do mapa (antes do chão: não depende dele)
+	# monta 1 chunk pronto por quadro (o mais perto)
+	_trava.lock()
+	var prontos := _fila_pronta.keys()
+	_trava.unlock()
+	if not prontos.is_empty():
+		prontos.sort_custom(func(a, b): return (a - c).length_squared() < (b - c).length_squared())
+		var k: Vector2i = prontos[0]
+		_trava.lock()
+		var dados: Dictionary = _fila_pronta[k]
+		_fila_pronta.erase(k)
+		_trava.unlock()
+		WorkerThreadPool.wait_for_task_completion(_em_preparo[k])
+		_em_preparo.erase(k)
+		if maxi(absi(k.x - c.x), absi(k.y - c.y)) <= raio + 2:
+			if chunks.has(k):
+				chunks[k].queue_free()            # redesenho: troca o velho pelo novo
+			colonia.descobrir_chunk(k)
 			var d := DesenhoChunk.new()
 			add_child(d)
-			d.construir(gerador.gerar_chunk(k), gerador, mapa)
+			d.montar(dados, mapa)
 			chunks[k] = d
-			return   # um chunk por quadro: sem engasgo
-
-
-## Redesenha um chunk já visível (obstáculo limpo ou devolvido).
-func _redesenhar_chunk(k: Vector2i) -> void:
-	if not chunks.has(k):
+	# encomenda os que faltam, do centro para fora
+	if _em_preparo.size() >= TAREFAS:
 		return
-	chunks[k].queue_free()
-	var d := DesenhoChunk.new()
-	add_child(d)
-	d.construir(gerador.gerar_chunk(k), gerador, mapa)
-	chunks[k] = d
+	var faltam: Array[Vector2i] = []
+	for dx in range(-raio - 1, raio + 2):
+		for dy in range(-raio - 1, raio + 2):
+			var k := c + Vector2i(dx, dy)
+			if not chunks.has(k) and not _em_preparo.has(k):
+				faltam.append(k)
+	faltam.sort_custom(func(a, b): return (a - c).length_squared() < (b - c).length_squared())
+	for k in faltam.slice(0, TAREFAS - _em_preparo.size()):
+		_encomendar(k)
+
+
+func _encomendar(k: Vector2i) -> void:
+	var g := gerador
+	_em_preparo[k] = WorkerThreadPool.add_task(func():
+		var dados := DesenhoChunk.preparar_dados(k, g)
+		_trava.lock()
+		_fila_pronta[k] = dados
+		_trava.unlock())
+
+
+## Redesenha um chunk já visível (obstáculo limpo ou devolvido): o novo é preparado no fundo e troca o velho.
+func _redesenhar_chunk(k: Vector2i) -> void:
+	if chunks.has(k) and not _em_preparo.has(k):
+		_encomendar(k)
+
+
+func _exit_tree() -> void:
+	for k in _em_preparo:
+		WorkerThreadPool.wait_for_task_completion(_em_preparo[k])
 
 
 # ------------------------------------------------------------------ construção → desenho
@@ -288,6 +337,21 @@ func sincronizar(rel: Dictionary) -> void:
 			redesenhar[Grade.chunk_de(t)] = true
 	for k in redesenhar:
 		_redesenhar_chunk(k)
+	# piso de fábrica e objetos naturais debaixo de construção: só os chunks tocados (com 1 tile de margem)
+	var tocados := {}
+	var areas: Array = rel.removidos.duplicate()
+	for id in rel.colocados:
+		if mapa.estruturas.has(id):
+			areas.append(mapa.estruturas[id])
+	for e in areas:
+		if e.nome == "pilar":
+			continue
+		for t in Grade.tiles_da_area(e.minimo, Registro.area(e.nome), e.rot):
+			for d in [Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(1, 1)]:
+				tocados[Grade.chunk_de(t + d)] = true
+	for k in tocados:
+		if chunks.has(k) and not redesenhar.has(k):
+			chunks[k].atualizar(mapa)
 	var religar := {}
 	for t in muros:
 		for d in [Vector2i.ZERO] + Array(Grade.DIRECOES):
@@ -537,6 +601,7 @@ func _process(delta: float) -> void:
 	_animar_estruturas()
 	# névoa mais rala quanto mais longe a câmera (de longe o mapa não desbota); letreiros só de perto
 	($Ambiente as WorldEnvironment).environment.fog_density = 0.055 / camera.distancia
+	($Sol as DirectionalLight3D).directional_shadow_max_distance = clampf(camera.distancia * 1.6, 30.0, 110.0)
 	for l in _rotulos.values():
 		l.visible = camera.distancia < 75.0
 	_desenho_trens.sincronizar(trens)
@@ -772,6 +837,18 @@ func _detalhe() -> void:
 	elif fabrica.bracos.has(id):
 		var b: Braco = fabrica.bracos[id]
 		linhas.append("Segurando: %s\nEnergia: %d%%\nEntregues: %d" % [_nome_item(b.segurando) if b.segurando != "" else "nada", b.energia * 100, b.entregues])
+	match Fiacao.papel(e.nome):
+		"consumo":
+			var fontes := Fiacao.ligacoes(mapa, e)
+			linhas.append("Energia: %d%% · ligada a %d poste(s)" % [fabrica.rede.satisfacao(id) * 100, fontes] if fontes > 0 else "Energia: SEM FIO — ponha um poste a até 5 m")
+			for n in [1, 2, 3]:
+				botoes.append({"texto": "Aceitar %d fonte(s) de energia" % n, "ligado": int(e.get("fontes", 1)) == n,
+						"acao": func(): Fiacao.mudar_vagas(mapa, id, n); _fabrica_suja = true; _detalhe()})
+		"poste":
+			var r: Dictionary = Registro.estruturas[e.nome]
+			linhas.append("Fios: %d · alcance %d m até outro poste, %d m até máquinas%s" % [e.get("fios", []).size(), r.raio_fio, r.raio_ligacao,
+					" (sem fio)" if Fiacao.eh_sem_fio(e.nome) else ""])
+			linhas.append("Na rede: %s" % ("gerador ligado" if fabrica.rede.tem_fonte(id) else "nenhum gerador"))
 	if linhas.is_empty():
 		linhas.append(Registro.modelos.get(e.nome, {}).get("descricao", ""))
 	barra.detalhe(titulo, "\n".join(linhas), botoes)

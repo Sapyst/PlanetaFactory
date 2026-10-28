@@ -1,6 +1,6 @@
 # Catálogo de modelos
 
-96 modelos. Gerado por `blender_scripts/catalogo.py` — não editar à mão.
+97 modelos. Gerado por `blender_scripts/catalogo.py` — não editar à mão.
 
 Portas: `ITEM`/`FLUIDO`/`TRILHO`, `ENT`/`SAI`, lado (S/N/L/O) e índice do tile na borda. Ficam no .glb como nós `PORTA_*`.
 Partes: peças móveis exportadas separadas (o jogo anima pelo nome — ver jogo/render/animacao/animador.gd).
@@ -105,6 +105,7 @@ Texturas de chão em `texturas/` (loop sem emenda; relatório em `texturas/_emen
 | `gerador` | 2×2 | 260 | 1,90 × 1,95 × 2,15 | ITEM_ENT_S1 | Gerador a combustão (carvão/biomassa). Combustível entra pelo sul. Energia vai por postes. |
 | `poste_energia` | 1×1 | 94 | 0,70 × 0,40 × 2,30 | — | Poste de energia: liga máquinas num raio. Ocupa só o centro do tile. |
 | `tanque` | 2×2 | 322 | 2,00 × 2,00 × 1,70 | FLUIDO_SAI_S0, FLUIDO_SAI_N0, FLUIDO_SAI_L0, FLUIDO_SAI_O0 | Tanque de fluido. Canos nos 4 lados (tile da esquerda de cada lado). |
+| `torre_sem_fio` | 1×1 | 250 | 0,80 × 0,80 × 2,90 | — · partes: cristal | Torre de energia sem fio: liga postes/torres e máquinas a distância, sem cabo. |
 
 ## Defesa
 

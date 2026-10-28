@@ -23,6 +23,7 @@
   "laboratorio": {"placa_ferro": 10, "placa_cobre": 10, "engrenagem": 5},
   "gerador": {"placa_ferro": 10, "tubo": 5, "pedra": 10},
   "poste_energia": {"placa_ferro": 1, "placa_cobre": 1},
+  "torre_sem_fio": {"placa_cobre": 20, "circuito": 10, "cristal_lapidado": 5},
   "torre_defesa": {"placa_ferro": 10, "engrenagem": 6, "placa_cobre": 5},
   "muro_centro": {"pedra": 5},
   "trilho_reto": {"placa_ferro": 2, "pedra": 1},
@@ -47,6 +48,7 @@
   "aco":         {"nome": "Aço",               "pacotes": 20, "tempo": 5, "requer": [], "libera": [], "receitas": ["fundir_aco"]},
   "ferrovia":    {"nome": "Ferrovia",          "pacotes": 30, "tempo": 6, "requer": ["logistica", "aco"], "libera": ["trilho_reto", "trilho_curva", "trilho_fim", "estacao", "sinal_trem", "trem"], "receitas": []},
   "refino":      {"nome": "Refino de seiva",   "pacotes": 40, "tempo": 6, "requer": ["fluidos", "eletronica", "aco"], "libera": ["refinador"], "receitas": ["bateria", "nucleo", "modulo"]},
+  "sem_fio":     {"nome": "Energia sem fio",   "pacotes": 30, "tempo": 6, "requer": ["eletronica"], "libera": ["torre_sem_fio"], "receitas": []},
   "energia":     {"nome": "Energia avançada",  "pacotes": 60, "tempo": 8, "requer": ["refino"], "libera": [], "receitas": ["celula"]}
  }
 }

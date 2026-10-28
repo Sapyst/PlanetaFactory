@@ -10,6 +10,9 @@ uniform sampler2DArray texturas : source_color, filter_linear_mipmap, repeat_ena
 uniform sampler2D detalhe : filter_linear_mipmap, repeat_enable;
 uniform sampler2D mapa_camadas : filter_nearest;
 uniform vec2 origem_mapa;          // tile (grade) do pixel (0, 0) do mapa de camadas
+uniform sampler2D mapa_fabrica : filter_nearest;   // 1 = tile com construção (mesma grade do mapa de camadas)
+uniform float camada_piso = 9.0;
+uniform float camada_jazida = 7.0;  // zona de minério nunca vira piso
 uniform float primeira_agua = 8.0;
 uniform float escala = 0.25;
 
@@ -24,6 +27,11 @@ void vertex() {
 	if (camada >= primeira_agua) {
 		VERTEX.y += sin(TIME * 0.9 + mundo.x * 0.7 + mundo.z * 0.5) * 0.02;
 	}
+}
+
+float fabrica_em(vec2 grade) {
+	ivec2 px = clamp(ivec2(floor(grade - origem_mapa)), ivec2(0), ivec2(33));
+	return texelFetch(mapa_fabrica, px, 0).r;
 }
 
 float camada_em(vec2 grade) {
@@ -51,6 +59,16 @@ void fragment() {
 		vec3 ca = texture(texturas, vec3(uv, a)).rgb;
 		vec3 cb = texture(texturas, vec3(uv, b)).rgb;
 		c = mix(ca, cb, 0.45);
+		// piso de fábrica: o mapa já vem espalhado 2 tiles em volta das construções (forte perto, fraco longe);
+		// 4 leituras deformadas dão a borda irregular e suave. Jazida nunca vira piso.
+		float f = fabrica_em(grade + w1 * 1.3) + fabrica_em(grade + w2 * 1.0)
+				+ fabrica_em(grade + vec2(w2.y, -w1.x) * 1.4) + fabrica_em(grade);
+		f = smoothstep(0.18, 0.55, f * 0.25);
+		if (camada == camada_jazida || a == camada_jazida) { f = 0.0; }   // recurso fica à vista
+		if (f > 0.0) {
+			vec3 piso = texture(texturas, vec3(grade * vec2(0.25, -0.25), camada_piso)).rgb;
+			c = mix(c, piso, f);
+		}
 	}
 	c *= 0.88 + 0.24 * d;
 	ALBEDO = c;

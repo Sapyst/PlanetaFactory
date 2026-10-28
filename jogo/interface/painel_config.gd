@@ -15,11 +15,17 @@ func _ready() -> void:
 	_deslizante("Volume dos efeitos", "volume", 0.0, 1.0, 0.05)
 	_deslizante("Volume da música", "musica", 0.0, 1.0, 0.05)
 	_deslizante("Tamanho da interface", "texto", 0.8, 1.6, 0.1)
+	_deslizante("Resolução do 3D (menos = mais leve)", "resolucao", 0.5, 1.0, 0.05)
 	var sombra := CheckButton.new()
 	sombra.text = "Sombras (desligar deixa mais leve no celular)"
 	sombra.button_pressed = bool(Sessao.config.sombras)
 	sombra.toggled.connect(func(v: bool): _mudar("sombras", v))
 	add_child(sombra)
+	var fps := CheckButton.new()
+	fps.text = "Mostrar FPS (quadros por segundo)"
+	fps.button_pressed = bool(Sessao.config.fps)
+	fps.toggled.connect(func(v: bool): _mudar("fps", v))
+	add_child(fps)
 	var auto := HBoxContainer.new()
 	var la := Label.new()
 	la.text = "Salvar sozinho a cada"

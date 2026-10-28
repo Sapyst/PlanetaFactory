@@ -15,6 +15,7 @@ var _usados: Dictionary = {}              ## nome → quantos em uso neste desen
 var _pegadas: Array[MeshInstance3D] = []
 var _setas: Array[MeshInstance3D] = []
 var _malha_pegada: PlaneMesh
+var _linhas: MeshInstance3D           ## prévia dos fios + anel do alcance do poste
 var _malha_seta: ArrayMesh
 
 
@@ -22,6 +23,13 @@ func _ready() -> void:
 	_malha_pegada = PlaneMesh.new()
 	_malha_pegada.size = Vector2(0.94, 0.94)
 	_malha_seta = _criar_seta()
+	_linhas = MeshInstance3D.new()
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.vertex_color_use_as_albedo = true
+	m.no_depth_test = true
+	_linhas.material_override = m
+	add_child(_linhas)
 
 
 ## plano: itens do Construtor. remover = true pinta tudo de vermelho (o que vai sumir).
@@ -71,6 +79,27 @@ func mostrar(plano: Array[Dictionary], remover := false) -> void:
 func limpar() -> void:
 	_usados.clear()
 	_esconder_resto(0, 0)
+	_linhas.mesh = null
+
+
+## Prévia elétrica: linhas até quem vai ser ligado e, para poste, anel do alcance até outro poste.
+func mostrar_fios(pares: Array, centro: Vector3, raio: float) -> void:
+	if pares.is_empty() and raio <= 0.0:
+		_linhas.mesh = null
+		return
+	var im := ImmediateMesh.new()
+	im.surface_begin(Mesh.PRIMITIVE_LINES)
+	for p in pares:
+		im.surface_set_color(Color(1.0, 0.9, 0.35))
+		im.surface_add_vertex(p[0])
+		im.surface_add_vertex(p[1])
+	if raio > 0.0:
+		for i in 48:
+			im.surface_set_color(Color(0.55, 0.85, 1.0, 0.8))
+			im.surface_add_vertex(centro + Vector3(cos(i * TAU / 48), 0, sin(i * TAU / 48)) * raio)
+			im.surface_add_vertex(centro + Vector3(cos((i + 1) * TAU / 48), 0, sin((i + 1) * TAU / 48)) * raio)
+	im.surface_end()
+	_linhas.mesh = im
 
 
 func _cor(it: Dictionary, remover: bool) -> Color:

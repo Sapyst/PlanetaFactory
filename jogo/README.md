@@ -26,10 +26,27 @@ godot --headless --path jogo --fixed-fps 30 --quit-after 4000 -- acelerar 8 rela
 - Pesquisa (botão Pesquisa / T): laboratório com energia gasta pacotes de pesquisa (montadora: cristal lapidado +
   engrenagem). Árvore e custos em `dados/progressao.json`.
 
+## Energia por fios
+Só se põe postes; os fios aparecem sozinhos (`energia/fiacao.gd`): poste ↔ poste até 9 m (5 vizinhos mais perto),
+poste ↔ gerador e máquina até 5 m da borda. Máquina já ligada não troca de poste; no painel dela: "aceitar 1/2/3
+fontes". Remover um poste religa quem ficou sem. Fantasma do poste mostra os fios que vai criar e o anel de 9 m.
+**Torre sem fio** (pesquisa "Energia sem fio"): liga torres até 40 m e máquinas até 14 m, feixe ciano em vez de cabo.
+
+## Chão de fábrica
+Em volta de cada construção o chão vira piso de concreto (espalha 2 tiles, borda irregular e suave); zona de
+minério nunca vira piso. Cristais, grama e seixos debaixo de construção (ou no piso) não aparecem.
+
 ## Esteira elevada
 Botão **Nível** (N, PageUp/PageDown): chão, 0,5 m, 1,0 m. "Rampa sobe" sobe do nível atual (e o nível sobe junto);
 "Rampa desce" desce. O traço elevado planeja pilares nos cantos da grade (aparecem no fantasma); passa por cima de
 esteira/trilho (baixos) e não de máquina; nada alto pode ser construído debaixo depois. Remover leva os pilares junto.
+
+## Fluidez (câmera)
+Mapa gerado em segundo plano (WorkerThreadPool, até 3 chunks ao mesmo tempo, com cache por chunk na geração) e
+montado 1 por quadro; pré-carrega 1 chunk além da vista e só descarrega a 2. Câmera desliza com inércia.
+Medido arrastando a câmera 18 m/s (`-- modo demo roteiro panorama`): antes 71 quadros > 33 ms e picos de 95 ms;
+depois 0 quadros > 33 ms. Celular: 3D a 70% da resolução, sem sombra, sem brilho; aranhas só desenhadas perto da
+vista. Contador de FPS embutido (ligado por padrão na fase de testes; Configurações desliga).
 
 ## Desempenho (medido: `testes/test_zdesempenho.gd` e `-- modo demo roteiro estresse`)
 2 140 peças, 4 400 itens, 60 aranhas, 20 torres: passo de simulação ≈ 0,1 ms (fábrica) + 0,7 ms (aranhas/torres);
@@ -39,7 +56,7 @@ remontar a fábrica inteira ≈ 20 ms por construção. Desenho: esteiras/canos/
 com o zoom acima de 50 m. Se precisar de mais, é essa parte (não a simulação) que vale passar para C++.
 
 ## Android
-`godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.1.0.apk` (arm64, Vulkan Mobile,
+`godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.2.0.apk` (arm64, Vulkan Mobile,
 paisagem, assinado com a chave de depuração em ~/.local/share/archivys_keys). Testado no emulador (x86_64, versão de
 teste com OpenGL; o Vulkan do emulador sem janela não apresenta quadros): menu, jogo novo e construir com o dedo ok.
 

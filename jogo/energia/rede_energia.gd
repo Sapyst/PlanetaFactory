@@ -1,89 +1,85 @@
 class_name RedeEnergia
 extends RefCounted
-## Postes ligam-se entre si até `raio_fio`; cada poste alimenta o que estiver no quadrado de `raio_cobertura`.
-## Cada rede (componente conexo) divide a geração entre o consumo: satisfação = min(1, geração / demanda).
-## Geradores queimam combustível do próprio estoque (MJ); sem combustível não geram.
+## Rede elétrica como grafo de FIOS: nós = postes, torres sem fio, geradores e máquinas; arestas = ligações
+## (mapa: "fios" de cada estrutura, criadas pela Fiacao). Cada pedaço ligado (componente conexo) divide a geração
+## entre o consumo: satisfação = min(1, geração / demanda). Geradores queimam combustível do próprio estoque (MJ);
+## sem combustível não geram. Máquina com mais de uma fonte junta as redes (é o mesmo circuito).
 
-var postes: Array[Dictionary] = []          ## {pos: Vector2, raio_fio, raio_cobertura}
-var membros: Array[Dictionary] = []         ## {pos: Vector2, kw (+consome / −gera), obj, combustivel_mj}
+var nos: Dictionary = {}                    ## id → {kw (+consome / −gera), combustivel_mj, rede}
+var _arestas: Dictionary = {}               ## id → Array[int]
 var satisfacao_por_rede: Dictionary = {}
-var _rede_do_poste := PackedInt32Array()
 
 
-func adicionar_poste(pos: Vector2, raio_fio := 7.5, raio_cobertura := 2.5) -> void:
-	postes.append({"pos": pos, "raio_fio": raio_fio, "raio_cobertura": raio_cobertura})
-	_recalcular_redes()
+func adicionar(id: int, kw: float, combustivel_mj := 0.0) -> Dictionary:
+	var n := {"kw": kw, "combustivel_mj": combustivel_mj, "rede": -1}
+	nos[id] = n
+	if not _arestas.has(id):
+		_arestas[id] = []
+	return n
 
 
-func adicionar_membro(pos: Vector2, kw: float, obj: Object = null, combustivel_mj := 0.0) -> Dictionary:
-	var m := {"pos": pos, "kw": kw, "obj": obj, "combustivel_mj": combustivel_mj, "rede": -1}
-	membros.append(m)
-	_ligar(m)
-	return m
+func ligar(a: int, b: int) -> void:
+	if not nos.has(a) or not nos.has(b) or a == b:
+		return
+	_arestas[a].append(b)
+	_arestas[b].append(a)
 
 
-func _recalcular_redes() -> void:
-	var n := postes.size()
-	var pai := PackedInt32Array()
-	pai.resize(n)
-	for i in n:
-		pai[i] = i
-	for i in n:
-		for j in range(i + 1, n):
-			var r: float = minf(postes[i].raio_fio, postes[j].raio_fio)
-			if (postes[i].pos as Vector2).distance_to(postes[j].pos) <= r:
-				var a := _raiz(pai, i)
-				var b := _raiz(pai, j)
-				if a != b:
-					pai[a] = b
-	_rede_do_poste.resize(n)
-	for i in n:
-		_rede_do_poste[i] = _raiz(pai, i)
-	for m in membros:
-		_ligar(m)
+## Componentes conexos (busca em largura).
+func calcular() -> void:
+	for id in nos:
+		nos[id].rede = -1
+	var n := 0
+	for id in nos:
+		if nos[id].rede >= 0:
+			continue
+		var fila: Array[int] = [id]
+		nos[id].rede = n
+		while not fila.is_empty():
+			var x: int = fila.pop_back()
+			for y in _arestas[x]:
+				if nos[y].rede < 0:
+					nos[y].rede = n
+					fila.append(y)
+		n += 1
 
 
-func _raiz(pai: PackedInt32Array, i: int) -> int:
-	while pai[i] != i:
-		pai[i] = pai[pai[i]]
-		i = pai[i]
-	return i
+func satisfacao(id: int) -> float:
+	if not nos.has(id):
+		return 0.0
+	return float(satisfacao_por_rede.get(nos[id].rede, 0.0))
 
 
-func _ligar(m: Dictionary) -> void:
-	m.rede = -1
-	for i in postes.size():
-		var d: Vector2 = ((m.pos as Vector2) - (postes[i].pos as Vector2)).abs()
-		var rc: float = postes[i].raio_cobertura
-		if d.x <= rc and d.y <= rc:
-			m.rede = _rede_do_poste[i]
-			return
+## Ligado a algum gerador (mesmo que sem combustível)?
+func tem_fonte(id: int) -> bool:
+	if not nos.has(id):
+		return false
+	var r: int = nos[id].rede
+	for x in nos:
+		if nos[x].rede == r and nos[x].kw < 0.0:
+			return true
+	return false
 
 
-## dt em s. Atualiza satisfação de cada rede e o `energia` dos objetos ligados.
+## dt em s. Atualiza a satisfação de cada rede e gasta o combustível dos geradores na medida do uso.
 func tick(dt: float) -> void:
 	var geracao := {}
 	var demanda := {}
-	for m in membros:
-		if m.rede < 0:
-			continue
+	for id in nos:
+		var m: Dictionary = nos[id]
 		if m.kw < 0.0:
 			var disponivel: float = m.combustivel_mj * 1000.0 / dt if dt > 0 else 0.0   # kW que o estoque aguenta neste passo
 			geracao[m.rede] = float(geracao.get(m.rede, 0.0)) + minf(-m.kw, disponivel)
-		else:
+		elif m.kw > 0.0:
 			demanda[m.rede] = float(demanda.get(m.rede, 0.0)) + m.kw
 	satisfacao_por_rede.clear()
 	for r in demanda:
 		satisfacao_por_rede[r] = clampf(float(geracao.get(r, 0.0)) / demanda[r], 0.0, 1.0) if demanda[r] > 0 else 1.0
-	# geradores gastam só o que a rede usou
-	for m in membros:
-		if m.rede < 0:
-			if m.obj != null and m.kw > 0: m.obj.set("energia", 0.0)
+	for id in nos:
+		var m: Dictionary = nos[id]
+		if m.kw >= 0.0:
 			continue
-		if m.kw < 0.0:
-			var usado: float = float(demanda.get(m.rede, 0.0)) * float(satisfacao_por_rede.get(m.rede, 0.0))
-			var ger_total: float = maxf(float(geracao.get(m.rede, 0.0)), 1e-9)
-			var minha: float = minf(-m.kw, m.combustivel_mj * 1000.0 / dt)
-			m.combustivel_mj = maxf(0.0, m.combustivel_mj - usado * (minha / ger_total) * dt / 1000.0)
-		elif m.obj != null:
-			m.obj.set("energia", float(satisfacao_por_rede.get(m.rede, 0.0)))
+		var usado: float = float(demanda.get(m.rede, 0.0)) * float(satisfacao_por_rede.get(m.rede, 0.0))
+		var ger_total: float = maxf(float(geracao.get(m.rede, 0.0)), 1e-9)
+		var minha: float = minf(-m.kw, m.combustivel_mj * 1000.0 / dt)
+		m.combustivel_mj = maxf(0.0, m.combustivel_mj - usado * (minha / ger_total) * dt / 1000.0)

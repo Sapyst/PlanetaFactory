@@ -187,6 +187,19 @@ def poste_energia():
     p.cil((0, 0, 2.20), 0.07, 0.20, 'P_Cristal', lados=6, r2=0.0)
     return m
 
+def torre_sem_fio():
+    m = Modelo('torre_sem_fio', EN, 1, 1, descricao='Torre de energia sem fio: liga postes/torres e máquinas a distância, sem cabo.')
+    p = m.parte()
+    v = p.caixa(-0.40, 0.40, -0.40, 0.40, 0.0, 0.14, 'P_Concreto'); p.chanfrar(v, 0.03)
+    p.cil((0, 0, 0.55), 0.26, 0.82, 'P_Escuro', lados=8, r2=0.14)
+    p.cil((0, 0, 1.55), 0.08, 1.20, 'P_Metal', lados=6)
+    for z in (1.15, 1.40, 1.65, 1.90):                       # bobina
+        p.cil((0, 0, z), 0.20, 0.06, 'P_Cobre', lados=10)
+    p.cil((0, 0, 2.25), 0.30, 0.10, 'P_Faixa', lados=10)
+    cr = m.parte('cristal', pai='corpo', pivo=(0, 0, 2.30))   # pulsa (Animador)
+    cr.cil((0, 0, 2.62), 0.22, 0.55, 'P_Cristal', lados=6, r2=0.0)
+    return m
+
 def tanque():
     m = Modelo('tanque', EN, 2, 2, descricao='Tanque de fluido. Canos nos 4 lados (tile da esquerda de cada lado).')
     p = m.parte(); placa(p, 2, 2)
@@ -228,7 +241,7 @@ def muro_lado():
     return m
 
 TODOS = [nucleo, extrator_cristal, broca_minerio, fornalha, montadora, refinador, laboratorio,
-         gerador, poste_energia, tanque, torre_defesa, muro_centro, muro_lado]
+         gerador, poste_energia, torre_sem_fio, tanque, torre_defesa, muro_centro, muro_lado]
 
 if __name__ == '__main__':
     rodar(TODOS, os.path.join(lib_pf.RAIZ, 'maquinas', '_relatorio_maquinas.json'))

@@ -327,6 +327,8 @@ func _colocar(it: Dictionary, rel: Dictionary) -> bool:
 	if id < 0:
 		return false
 	rel.colocados.append(id)
+	if Fiacao.papel(it.nome) != "":
+		Fiacao.ligar_novo(mapa, id)            # fios automáticos
 	for p in it.get("pilares", []):
 		var pid := mapa.reservar_pilar(p[0], p[1])
 		if pid >= 0:
@@ -347,13 +349,14 @@ func _remover(id: int, rel: Dictionary) -> void:
 			rel.removidos.append(_registro(pid))
 			rel.colocados.erase(pid)
 			mapa.remover(pid)
+	Fiacao.desligar(mapa, id)                    # tira os fios; órfãos procuram outro poste
 	mapa.remover(id)
 
 
 func _registro(id: int) -> Dictionary:
 	var e: Dictionary = mapa.estruturas[id]
 	var extras := {}
-	for k in ["nivel", "desce", "pilares"]:
+	for k in ["nivel", "desce", "pilares", "fontes"]:
 		if e.has(k):
 			extras[k] = e[k]
 	return {"id": id, "nome": e.nome, "minimo": e.minimo, "rot": e.rot, "extras": extras}

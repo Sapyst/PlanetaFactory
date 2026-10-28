@@ -1,0 +1,46 @@
+{
+ "nome": "torre_sem_fio",
+ "categoria": "energia",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Torre de energia sem fio: liga postes/torres e máquinas a distância, sem cabo.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "cristal",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.0,
+    2.3
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 250,
+ "dims": [
+  0.8,
+  0.8,
+  2.895
+ ],
+ "materiais": [
+  "P_Cobre",
+  "P_Concreto",
+  "P_Cristal",
+  "P_Escuro",
+  "P_Faixa",
+  "P_Metal"
+ ]
+}
