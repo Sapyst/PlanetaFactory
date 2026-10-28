@@ -7,7 +7,9 @@ const COMPRIMENTO := 60
 
 
 func test_fabrica_grande() -> void:
-	var m := MapaOcupacao.new(GeradorMundo.new(1337))
+	var g := GeradorMundo.new(1337)
+	g.relevo_ativo = false                  # a fábrica de teste é maior que a área plana do início
+	var m := MapaOcupacao.new(g)
 	var c := Construtor.new(m)
 	for x in range(-10, LINHAS * 2 + 10):
 		for y in range(-12, COMPRIMENTO + 12):

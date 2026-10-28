@@ -195,9 +195,14 @@ func _plano_esteira(a: Vector2i, b: Vector2i, rot: int) -> Array[Dictionary]:
 	if d_fim >= 0:
 		dirs[-1] = d_fim
 	var out: Array[Dictionary] = []
+	var degrau := false
 	for i in cam.size():
 		var p := _peca_esteira(cam, dirs, i, n, d_ini, d_fim >= 0)
-		out.append(_item_trocavel(p.nome, cam[i], p.rot, n))
+		var it := _item_trocavel(p.nome, cam[i], p.rot, n)
+		degrau = degrau or (i > 0 and mapa.gerador.nivel(cam[i]) != mapa.gerador.nivel(cam[i - 1]))
+		if degrau and it.motivo == "":
+			it.motivo = "desnivel"                       # depois do barranco o traço não continua
+		out.append(it)
 	if n > 0:
 		_planejar_pilares(out, cam, dirs)
 	out.append_array(extra)
@@ -215,8 +220,9 @@ static func _curva(d_in: int, d_out: int) -> Dictionary:
 func rota(a: Vector2i, b: Vector2i) -> Array[Vector2i]:
 	var l := caminho_l(a, b)
 	var ok := true
-	for t in l:
-		if t != a and t != b and not _livre_rota(t, true):
+	for i in l.size():
+		var t := l[i]
+		if (t != a and t != b and not _livre_rota(t, true)) or (i > 0 and mapa.gerador.nivel(t) != mapa.gerador.nivel(l[i - 1])):
 			ok = false
 			break
 	if ok:
@@ -269,6 +275,8 @@ func _a_estrela(a: Vector2i, b: Vector2i, linha: Array[Vector2i]) -> Array[Vecto
 			var v: Vector2i = t + Grade.DIRECOES[d]
 			if v.x < lo.x or v.y < lo.y or v.x > hi.x or v.y > hi.y:
 				continue
+			if mapa.gerador.nivel(v) != mapa.gerador.nivel(t):
+				continue                                  # barranco: esteira não sobe nem desce sozinha
 			if v != b:
 				if not livre.has(v):
 					livre[v] = _livre_rota(v, false)

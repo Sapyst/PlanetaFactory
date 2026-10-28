@@ -4,6 +4,9 @@ class_name Grade
 ## Cantos (vértices da grade) usam a coordenada inteira do ponto: o canto (i, j) é o sudoeste do tile (i, j).
 
 const TAM_CHUNK := 32
+const ALT_NIVEL := 1.0       ## metros por nível de relevo (= 2 níveis de esteira elevada)
+## Relevo do mundo atual (o mundo põe aqui). Nulo = mundo plano (testes de lógica pura).
+static var gerador: GeradorMundo = null
 ## Lados: 0 = N, 1 = L (leste), 2 = S, 3 = O. Rotação r = quartos de volta no sentido anti-horário (como no Blender).
 const DIRECOES: Array[Vector2i] = [Vector2i(0, 1), Vector2i(1, 0), Vector2i(0, -1), Vector2i(-1, 0)]
 const LADOS := {"N": 0, "L": 1, "S": 2, "O": 3}
@@ -17,12 +20,26 @@ static func local_de(tile: Vector2i) -> Vector2i:
 	return Vector2i(posmod(tile.x, TAM_CHUNK), posmod(tile.y, TAM_CHUNK))
 
 
+## Nível do relevo no tile (0 = o do início).
+static func nivel_chao(tile: Vector2i) -> int:
+	return 0 if gerador == null else gerador.nivel(tile)
+
+
+static func altura_chao(tile: Vector2i) -> float:
+	return nivel_chao(tile) * ALT_NIVEL
+
+
+static func altura_em(p: Vector2) -> float:
+	return altura_chao(Vector2i(floori(p.x), floori(p.y)))
+
+
+## Posições no mundo já assentadas no relevo: `altura` é acima do chão daquele tile.
 static func centro_mundo(tile: Vector2i, altura := 0.0) -> Vector3:
-	return Vector3(tile.x + 0.5, altura, -(tile.y + 0.5))
+	return Vector3(tile.x + 0.5, altura + altura_chao(tile), -(tile.y + 0.5))
 
 
 static func ponto_mundo(p: Vector2, altura := 0.0) -> Vector3:
-	return Vector3(p.x, altura, -p.y)
+	return Vector3(p.x, altura + altura_em(p), -p.y)
 
 
 static func tile_de_mundo(pos: Vector3) -> Vector2i:

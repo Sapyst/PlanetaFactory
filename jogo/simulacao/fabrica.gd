@@ -97,7 +97,7 @@ func _montar_esteiras() -> void:
 			return Vector3i(0, 0, -1)
 		var t: Vector2i = no.tile + Grade.DIRECOES[no.sai]
 		var n := Vector3i(t.x, t.y, no.n_out)
-		if cinta.has(n) and cinta[n].entra == no.sai:
+		if cinta.has(n) and cinta[n].entra == no.sai and mapa.gerador.nivel(t) == mapa.gerador.nivel(no.tile):
 			return n
 		return Vector3i(0, 0, -1)
 	var tem_antes := {}

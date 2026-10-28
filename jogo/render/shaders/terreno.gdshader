@@ -18,18 +18,21 @@ uniform float camada_piso = 9.0;
 uniform float camada_jazida = 7.0;  // zona de minério nunca vira piso
 uniform float primeira_agua = 8.0;
 uniform float escala = 0.25;
+uniform float camada_rocha = 3.0;   // barranco (encosta íngreme) mostra pedra
 #include "res://render/shaders/clima.gdshaderinc"
 
-varying flat float camada;
-varying flat vec3 fluxo;           // xy = direção da correnteza (grade), z = 1 se rio
+varying vec3 fluxo;                // xy = direção da correnteza (grade), z = 1 se rio
 varying vec3 mundo;
+varying vec3 normal_mundo;
+varying float oclusao;            // pé de barranco (UV.x da malha)
 
 void vertex() {
-	camada = floor(COLOR.r * 255.0 + 0.5);
 	fluxo = vec3(COLOR.g * 2.0 - 1.0, COLOR.b * 2.0 - 1.0, COLOR.a);
 	mundo = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-	// onda só onde a malha é funda (depende só da posição: cantos compartilhados mexem igual, sem rachar)
-	VERTEX.y += sin(TIME * 0.9 + mundo.x * 0.7 + mundo.z * 0.5) * 0.02 * clamp(-VERTEX.y / 0.12, 0.0, 1.0);
+	normal_mundo = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
+	oclusao = UV.x;
+	// onda só onde há água (COLOR.r = fração de água no vértice; cantos compartilhados mexem igual)
+	VERTEX.y += sin(TIME * 0.9 + mundo.x * 0.7 + mundo.z * 0.5) * 0.02 * COLOR.r;
 }
 
 float fabrica_em(vec2 grade) {
@@ -76,6 +79,7 @@ float terra_perto(vec2 g) {
 
 void fragment() {
 	vec2 grade = vec2(mundo.x, -mundo.z);
+	float camada = camada_em(grade);
 	vec2 uv = mundo.xz * escala;
 	float d = texture(detalhe, mundo.xz * 0.031).r;
 	vec2 w1 = vec2(texture(detalhe, grade * 0.06).r, texture(detalhe, grade * 0.06 + vec2(0.37, 0.71)).r) - 0.5;
@@ -122,6 +126,14 @@ void fragment() {
 		// espuma rala bem na linha da margem
 		c_agua = mix(c_agua, vec3(0.62, 0.66, 0.66), smoothstep(0.62, 0.5, wf) * 0.35 * smoothstep(0.4, 0.7, onda));
 	}
+	// barranco: onde a encosta é íngreme aparece a pedra (com faixas horizontais de estrato)
+	float ingreme = 1.0 - smoothstep(0.55, 0.85, normal_mundo.y);
+	if (ingreme > 0.0) {
+		vec3 rocha = texture(texturas, vec3(vec2(mundo.x + mundo.z, mundo.y * 2.0) * 0.3, camada_rocha)).rgb;
+		rocha *= 0.78 + 0.22 * sin(mundo.y * 9.0 + d * 3.0);
+		c_terra = mix(c_terra, rocha * 0.85, ingreme);
+	}
+	c_terra *= 1.0 - 0.45 * oclusao;
 	vec3 c = mix(c_terra, c_agua, agua);
 	c *= 0.88 + 0.24 * d;
 	float poca = 0.0;

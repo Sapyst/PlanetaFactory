@@ -78,12 +78,11 @@ func tick(dt: float, nova_pos: Vector3, novo_rumo: float) -> void:
 		var s := f * f * (3.0 - 2.0 * f)          # suave para pousar sem tranco
 		for i in TRIPODES[_no_ar]:
 			var p := _ini[i].lerp(_alvo[i], s)
-			p.y = sin(f * PI) * ALTURA_PASSO
+			p.y = lerpf(_ini[i].y, _alvo[i].y, s) + sin(f * PI) * ALTURA_PASSO
 			pes[i] = p
 		if _t_passo >= 1.0:
 			for i in TRIPODES[_no_ar]:
 				pes[i] = _alvo[i]
-				pes[i].y = 0.0
 				plantado[i] = true
 			_no_ar = -1
 	if _no_ar < 0:
@@ -120,7 +119,7 @@ func _comecar_passo(tri: int) -> void:
 		plantado[i] = false
 		_ini[i] = pes[i]
 		_alvo[i] = casa(i) + velocidade * DURACAO_PASSO * 1.2   # pousa um pouco à frente da casa
-		_alvo[i].y = 0.0
+		_alvo[i].y = Grade.altura_em(Vector2(_alvo[i].x, -_alvo[i].z))      # pé no chão do relevo
 
 
 func pes_no_chao() -> int:

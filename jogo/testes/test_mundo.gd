@@ -88,3 +88,33 @@ func test_chunk_rapido() -> void:
 	var ms := (Time.get_ticks_usec() - t0) / 4000.0
 	print("      gerar_chunk: %.1f ms" % ms)
 	verificar(ms < 400.0, "chunk gerado em menos de 400 ms (veio %.1f)" % ms)
+
+
+func test_relevo() -> void:
+	var g := GeradorMundo.new(1337)
+	for x in range(-35, 36, 5):
+		for y in range(-35, 36, 5):
+			igual(g.nivel(Vector2i(x, y)), 0, "início plano (%d, %d)" % [x, y])
+	var vistos := {}
+	var saltos := 0
+	for x in range(-300, 300, 3):
+		for y in range(-300, 300, 3):
+			var t := Vector2i(x, y)
+			var nv := g.nivel(t)
+			vistos[nv] = true
+			verificar(nv >= -3 and nv <= 3, "nível dentro da faixa")
+			if absi(g.nivel(t + Vector2i(1, 0)) - nv) > 1:
+				saltos += 1
+	verificar(vistos.size() >= 4, "relevo com vários níveis (%s)" % [vistos.keys()])
+	verificar(saltos < 40, "barrancos de no máximo 1 nível na maior parte (%d saltos de 2+)" % saltos)
+	igual(g.nivel(Vector2i(120, -77)), g.nivel_bruto(Vector2i(120, -77)), "cache por chunk = cálculo direto")
+	var m := MapaOcupacao.new(g)
+	# acha um barranco e confere que máquina 2×2 em cima dele é recusada
+	for x in range(60, 300):
+		var t := Vector2i(x, 0)
+		if g.nivel(t) != g.nivel(t + Vector2i(1, 0)) and not g.eh_agua(g.terreno(t)) and not g.eh_agua(g.terreno(t + Vector2i(1, 0))):
+			for y in [0, -1]:
+				m.limpar_obstaculo(t + Vector2i(0, y))
+				m.limpar_obstaculo(t + Vector2i(1, y))
+			igual(m.motivo_bloqueio("fornalha", t + Vector2i(0, -1), 0), "desnivel", "fornalha sobre barranco")
+			break

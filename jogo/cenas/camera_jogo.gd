@@ -100,11 +100,22 @@ func girar(d: float) -> void:
 	posicionar()
 
 
-## Ponto do chão (y = 0) sob a posição de tela; Vector3.INF se o raio não bate no chão.
+## Ponto do chão sob a posição de tela (no relevo: acerta o plano do nível do tile em poucas voltas);
+## Vector3.INF se o raio não bate no chão.
 func no_chao(tela: Vector2) -> Vector3:
 	var o := project_ray_origin(tela)
 	var n := project_ray_normal(tela)
 	if absf(n.y) < 1e-4:
 		return Vector3.INF
-	var t := -o.y / n.y
-	return o + n * t if t > 0.0 else Vector3.INF
+	var h := 0.0
+	var p := Vector3.INF
+	for i in 4:
+		var t := (h - o.y) / n.y
+		if t <= 0.0:
+			return Vector3.INF
+		p = o + n * t
+		var h2 := Grade.altura_em(Vector2(p.x, -p.z))
+		if is_equal_approx(h2, h):
+			break
+		h = h2
+	return p

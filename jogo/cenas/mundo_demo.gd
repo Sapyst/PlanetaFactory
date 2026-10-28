@@ -80,6 +80,7 @@ func _ready() -> void:
 	elif modo == "novo":
 		semente = randi() % 1000000
 	gerador = GeradorMundo.new(semente)
+	Grade.gerador = gerador                  # tudo que se desenha passa a assentar no relevo
 	mapa = MapaOcupacao.new(gerador)
 	DesenhoChunk.preparar(gerador)
 	DesenhoChunk.aquecer()

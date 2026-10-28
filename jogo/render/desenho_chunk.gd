@@ -1,6 +1,6 @@
 class_name DesenhoChunk
 extends Node3D
-## Desenha um chunk: chão (1 malha, 1 quad por tile) + obstáculos, jazidas e enfeites em MultiMesh
+## Desenha um chunk: chão (1 malha com relevo) + obstáculos, jazidas e enfeites em MultiMesh
 ## (uma chamada de desenho por tipo de modelo por chunk, não importa quantos).
 
 const CAMADAS_AGUA := ["jazida", "piso_fabrica", "praia", "agua_rasa", "agua_funda"]   ## agua_* sempre por último (shader)
@@ -35,6 +35,7 @@ static func preparar(gerador: GeradorMundo) -> void:
 	_material_chao.set_shader_parameter("primeira_agua", float(_camadas.find("agua_rasa")))
 	_material_chao.set_shader_parameter("camada_piso", float(_camadas.find("piso_fabrica")))
 	_material_chao.set_shader_parameter("camada_jazida", float(_camadas.find("jazida")))
+	_material_chao.set_shader_parameter("camada_rocha", float(_camadas.find("planalto_rochoso")))
 
 
 static func malha(nome: String, vento := 0.0, boiar := 0.0) -> Mesh:
@@ -67,6 +68,13 @@ static func preparar_dados(k: Vector2i, gerador: GeradorMundo) -> Dictionary:
 		_add(d.grupos, j.tipo, Transform3D(Basis(Vector3.UP, r).scaled(Vector3(esc, 1.0, esc)), Grade.centro_mundo(t) + off))
 		_add(d.tiles, j.tipo, t)
 	for dc in c.decos:
+		var tt := Vector2i(dc.pos.floor())
+		var nv0 := gerador.nivel(tt)
+		var barranco := false
+		for dd in Grade.DIRECOES:
+			barranco = barranco or gerador.nivel(tt + dd) != nv0
+		if barranco:
+			continue                                   # enfeite não fica pendurado na encosta
 		_add(d.grupos, dc.nome, Transform3D(Basis(Vector3.UP, dc.rot), Grade.ponto_mundo(dc.pos, 0.0 if dc.nome != "vitoria_regia" else -0.12)))
 		_add(d.tiles, dc.nome, Vector2i(dc.pos.floor()))
 	# já no formato do MultiMesh (12 floats por instância): a linha principal só entrega o buffer
@@ -251,9 +259,15 @@ static func camada_de(t: Vector2i, gerador: GeradorMundo) -> int:
 	return _camadas.find("agua_rasa")
 
 
-## Chão: 1 quad por tile (camada em COLOR.r; correnteza do rio em COLOR.gb/a) e um mapinha 34×34 das camadas
-## (chunk + 1 tile de margem) que o shader lê com a posição deformada por ruído — a troca de bioma deixa de ser
-## degrau de tile e vira borda orgânica, sem costura entre chunks.
+const SUB := 3              ## vértices por tile no chão (o relevo precisa de meio tile para a encosta)
+
+
+## Chão do chunk: grade de (32·SUB+1)² vértices compartilhados (malha indexada). Altura de cada vértice:
+##  - o relevo contínuo do gerador em patamares (GeradorMundo.patamar): plano no meio do patamar, encosta onde o
+##    ruído cruza meio nível — acompanha a curva do terreno, nunca a grade (a grade 1×1 só decide em que nível
+##    cada construção fica; no patamar o desenho bate com esse nível);
+##  - água afunda 0,12 m conforme a fração de água em volta (margem inclinada, sem rachar).
+## COLOR = (fração de água, correnteza x, correnteza y, 1 se rio). Normais pelas diferenças (luz nas encostas).
 static func _chao_dados(c: ChunkDados, gerador: GeradorMundo) -> Dictionary:
 	var n := Grade.TAM_CHUNK
 	var base := c.coord * n
@@ -267,62 +281,91 @@ static func _chao_dados(c: ChunkDados, gerador: GeradorMundo) -> Dictionary:
 			else:
 				cam = camada_de(base + Vector2i(i - 1, j - 1), gerador)
 			img.set_pixel(i, j, Color(cam / 255.0, 0, 0))
-	# água dos tiles do chunk + 1 de margem: a altura de cada CANTO sai dos 4 tiles em volta (todos água = fundo,
-	# misto = barranco inclinado) — os quads se emendam sem degrau e a margem desce suave.
-	var molhado := PackedByteArray()
-	molhado.resize((n + 2) * (n + 2))
-	for j in n + 2:
-		for i in n + 2:
-			var tt := base + Vector2i(i - 1, j - 1)
-			var tr: int = c.terreno[(j - 1) * n + (i - 1)] if i >= 1 and j >= 1 and i <= n and j <= n else gerador.terreno(tt)
-			molhado[j * (n + 2) + i] = 1 if gerador.eh_agua(tr) else 0
-	var alturas := PackedFloat32Array()
-	alturas.resize((n + 1) * (n + 1))
-	for j in n + 1:
-		for i in n + 1:
-			var q := molhado[j * (n + 2) + i] + molhado[j * (n + 2) + i + 1] + molhado[(j + 1) * (n + 2) + i] + molhado[(j + 1) * (n + 2) + i + 1]
-			alturas[j * (n + 1) + i] = -0.12 * pow(q / 4.0, 1.5)
-	var verts := PackedVector3Array()
-	var cores := PackedColorArray()
-	verts.resize(n * n * 6)
-	cores.resize(n * n * 6)
-	var w := 0
-	for j in n:
-		for i in n:
-			var k := j * n + i
-			var ter := c.terreno[k]
-			var t := base + Vector2i(i, j)
-			var camada := _camada_local(c, k, t)
-			var fluxo := Vector2.ZERO
+	# níveis e água dos tiles do chunk + 3 de margem (as leituras deslocadas passam da borda)
+	var mg := 3
+	var lado := n + 2 * mg
+	var nv := PackedInt32Array()
+	nv.resize(lado * lado)
+	var ag := PackedFloat32Array()
+	ag.resize(lado * lado)
+	var rio := {}
+	for j in lado:
+		for i in lado:
+			var t := base + Vector2i(i - mg, j - mg)
+			nv[j * lado + i] = gerador.nivel(t)
+			var dentro := i >= mg and j >= mg and i < n + mg and j < n + mg
+			var ter: int = c.terreno[(j - mg) * n + (i - mg)] if dentro else gerador.terreno(t)
+			ag[j * lado + i] = 1.0 if gerador.eh_agua(ter) else 0.0
 			if ter == GeradorMundo.Terreno.RIO:
-				fluxo = gerador.direcao_rio(t)
-			var cor := Color(camada / 255.0, 0.5 + 0.5 * fluxo.x, 0.5 + 0.5 * fluxo.y, 1.0 if ter == GeradorMundo.Terreno.RIO else 0.0)
-			var x := float(t.x)
-			var y := float(t.y)
-			var h0 := alturas[j * (n + 1) + i]
-			var h1 := alturas[j * (n + 1) + i + 1]
-			var h2 := alturas[(j + 1) * (n + 1) + i + 1]
-			var h3 := alturas[(j + 1) * (n + 1) + i]
-			var v := [Vector3(x, h0, -y), Vector3(x + 1, h1, -y), Vector3(x + 1, h2, -y - 1), Vector3(x, h3, -y - 1)]
-			for idx in [0, 2, 1, 0, 3, 2]:
-				verts[w] = v[idx]
-				cores[w] = cor
-				w += 1
+				rio[t] = true
+	var v := n * SUB + 1
+	var alt := PackedFloat32Array()            # (v + 2)²: uma volta a mais para as normais
+	alt.resize((v + 2) * (v + 2))
+	var agua_v := PackedFloat32Array()
+	agua_v.resize((v + 2) * (v + 2))
+	for vj in v + 2:
+		for vi in v + 2:
+			var g := Vector2(base) + Vector2(vi - 1, vj - 1) / float(SUB)
+			# relevo contínuo no ponto (o tile (i, j) usa o valor do seu canto, por isso −0,5): encosta em curva
+			var h := GeradorMundo.patamar(gerador.relevo_em(g - Vector2(0.5, 0.5)))
+			var q := g - Vector2(0.5, 0.5) - Vector2(base) + Vector2(mg, mg)
+			var i0 := clampi(floori(q.x), 0, lado - 2)
+			var j0 := clampi(floori(q.y), 0, lado - 2)
+			var f := Vector2(clampf(q.x - i0, 0.0, 1.0), clampf(q.y - j0, 0.0, 1.0))
+			f = f * f * (Vector2(3, 3) - 2.0 * f)
+			var a4 := [ag[j0 * lado + i0], ag[j0 * lado + i0 + 1], ag[(j0 + 1) * lado + i0], ag[(j0 + 1) * lado + i0 + 1]]
+			var wa := lerpf(lerpf(a4[0], a4[1], f.x), lerpf(a4[2], a4[3], f.x), f.y)
+			agua_v[vj * (v + 2) + vi] = wa
+			alt[vj * (v + 2) + vi] = h * Grade.ALT_NIVEL - 0.12 * pow(wa, 1.5)
+	var verts := PackedVector3Array()
 	var normais := PackedVector3Array()
-	normais.resize(verts.size())
-	normais.fill(Vector3.UP)
-	return {"verts": verts, "cores": cores, "normais": normais, "img": img, "origem": Vector2(base - Vector2i.ONE)}
+	var cores := PackedColorArray()
+	var oclusao := PackedVector2Array()
+	oclusao.resize(v * v)
+	verts.resize(v * v)
+	normais.resize(v * v)
+	cores.resize(v * v)
+	var passo := 1.0 / SUB
+	for vj in v:
+		for vi in v:
+			var k := (vj + 1) * (v + 2) + (vi + 1)
+			var g := Vector2(base) + Vector2(vi, vj) * passo
+			verts[vj * v + vi] = Vector3(g.x, alt[k], -g.y)
+			var dx := (alt[k + 1] - alt[k - 1]) / (2.0 * passo)
+			var dy := (alt[k + (v + 2)] - alt[k - (v + 2)]) / (2.0 * passo)
+			normais[vj * v + vi] = Vector3(-dx, 1.0, dy).normalized()
+			# pé de barranco escurece: quanto o terreno em volta (até ~1 tile) é mais alto que aqui
+			var oc := 0.0
+			for o in [Vector2i(2, 0), Vector2i(-2, 0), Vector2i(0, 2), Vector2i(0, -2), Vector2i(1, 1), Vector2i(-1, 1), Vector2i(1, -1), Vector2i(-1, -1)]:
+				var xi := clampi(vi + 1 + o.x, 0, v + 1)
+				var yj := clampi(vj + 1 + o.y, 0, v + 1)
+				oc += maxf(0.0, alt[yj * (v + 2) + xi] - alt[k])
+			oclusao[vj * v + vi] = Vector2(clampf(oc * 0.22, 0.0, 1.0), 0.0)
+			var t := Vector2i(floori(g.x - 0.001 if vi == v - 1 else g.x), floori(g.y - 0.001 if vj == v - 1 else g.y))
+			var fl := gerador.direcao_rio(t) if rio.has(t) else Vector2.ZERO
+			cores[vj * v + vi] = Color(agua_v[k], 0.5 + 0.5 * fl.x, 0.5 + 0.5 * fl.y, 1.0 if rio.has(t) else 0.0)
+	var idx := PackedInt32Array()
+	idx.resize((v - 1) * (v - 1) * 6)
+	var w := 0
+	for vj in v - 1:
+		for vi in v - 1:
+			var a := vj * v + vi
+			for o in [a, a + v + 1, a + 1, a, a + v, a + v + 1]:
+				idx[w] = o
+				w += 1
+	return {"verts": verts, "cores": cores, "normais": normais, "uv": oclusao, "indices": idx, "img": img, "origem": Vector2(base - Vector2i.ONE)}
 
 
-## Chão: 1 quad por tile (camada em COLOR.r; correnteza do rio em COLOR.gb/a) e um mapinha 34×34 das camadas
-## (chunk + 1 tile de margem) que o shader lê com a posição deformada por ruído — a troca de bioma deixa de ser
-## degrau de tile e vira borda orgânica, sem costura entre chunks.
+## Chão: malha indexada com relevo + um mapinha 34×34 das camadas (chunk + 1 tile de margem) que o shader lê com a
+## posição deformada por ruído — troca de bioma e margem de água viram borda orgânica, sem costura entre chunks.
 func _montar_chao(d: Dictionary) -> void:
 	var arr := []
 	arr.resize(Mesh.ARRAY_MAX)
 	arr[Mesh.ARRAY_VERTEX] = d.verts
 	arr[Mesh.ARRAY_NORMAL] = d.normais
 	arr[Mesh.ARRAY_COLOR] = d.cores
+	arr[Mesh.ARRAY_INDEX] = d.indices
+	arr[Mesh.ARRAY_TEX_UV] = d.uv
 	var am := ArrayMesh.new()
 	am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
 	var mi := MeshInstance3D.new()

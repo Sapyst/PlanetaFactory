@@ -64,7 +64,7 @@ func _desenhar() -> void:
 					tipos.append(item)
 				tipo.append(indice[item])
 				pos.append(p.x)
-				pos.append(0.16 + lerpf(nv.x, nv.y, f) * 0.5)
+				pos.append(0.16 + lerpf(nv.x, nv.y, f) * 0.5 + Grade.altura_chao(t))
 				pos.append(-p.y)
 		for id in fabrica.bracos:
 			var b: Braco = fabrica.bracos[id]
@@ -80,7 +80,7 @@ func _desenhar() -> void:
 				tipos.append(b.segurando)
 			tipo.append(indice[b.segurando])
 			pos.append(p.x)
-			pos.append(0.55 + 0.25 * sin(a * PI))
+			pos.append(0.55 + 0.25 * sin(a * PI) + Grade.altura_chao(e.minimo))
 			pos.append(-p.y)
 	# 2ª passada: um buffer por tipo
 	for item in _mm:

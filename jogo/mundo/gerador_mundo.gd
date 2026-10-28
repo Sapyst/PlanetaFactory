@@ -21,6 +21,10 @@ var _distorcao := FastNoiseLite.new()
 var _rio := FastNoiseLite.new()
 var _lago := FastNoiseLite.new()
 var _lagoa := FastNoiseLite.new()
+var _relevo := FastNoiseLite.new()
+var relevo_ativo := true            ## falso = mundo todo plano (testes de desempenho com fábricas enormes)
+var _niveis := {}                 ## chunk → PackedByteArray (nível + 8)
+var _trava := Mutex.new()
 var _biomas: Dictionary
 var _nomes_biomas: Array[String] = []
 var distribuicao: Distribuicao
@@ -40,6 +44,7 @@ func _init(p_semente := 1337, biomas: Dictionary = {}) -> void:
 	_config(_rio, 5, 0.0045, 2)
 	_config(_lago, 6, 0.018, 2)
 	_config(_lagoa, 7, 0.03, 2)
+	_config(_relevo, 8, 0.0085, 3)
 	distribuicao = Distribuicao.new(self)
 
 
@@ -53,8 +58,12 @@ func _config(n: FastNoiseLite, salt: int, freq: float, oitavas: int) -> void:
 
 ## Elevação "continental" −1..1 com o spawn garantido em terra.
 func elevacao(tile: Vector2i) -> float:
-	var e := _continente.get_noise_2d(tile.x, tile.y)
-	var d2 := float(tile.x * tile.x + tile.y * tile.y)
+	return elevacao_em(Vector2(tile))
+
+
+func elevacao_em(p: Vector2) -> float:
+	var e := _continente.get_noise_2d(p.x, p.y)
+	var d2 := p.length_squared()
 	# dois sinos somados: um forte e estreito (spawn sempre em terra) e um largo (continente em volta)
 	return e + 0.9 * exp(-d2 / (2.0 * 60.0 * 60.0)) + 0.3 * exp(-d2 / (2.0 * RAIO_SPAWN_TERRA * RAIO_SPAWN_TERRA * 2.8))
 
@@ -92,6 +101,56 @@ func direcao_rio(tile: Vector2i) -> Vector2:
 
 func eh_agua(t: int) -> bool:
 	return t in [Terreno.RIO, Terreno.LAGO, Terreno.LAGOA, Terreno.MAR, Terreno.OCEANO]
+
+
+# ------------------------------------------------------------------ relevo
+## Nível do terreno (−3..3; 1 nível = Grade.ALT_NIVEL m). Ruído de relevo + a elevação continental, quantizado em
+## terraços; plano em volta do início (some suave entre 42 e 95 tiles). Guardado por chunk (seguro entre threads).
+func nivel(tile: Vector2i) -> int:
+	var k := Grade.chunk_de(tile)
+	_trava.lock()
+	var arr: PackedByteArray = _niveis.get(k, PackedByteArray())
+	_trava.unlock()
+	if arr.is_empty():
+		arr = PackedByteArray()
+		arr.resize(Grade.TAM_CHUNK * Grade.TAM_CHUNK)
+		var base := k * Grade.TAM_CHUNK
+		for j in Grade.TAM_CHUNK:
+			for i in Grade.TAM_CHUNK:
+				arr[j * Grade.TAM_CHUNK + i] = nivel_bruto(base + Vector2i(i, j)) + 8
+		_trava.lock()
+		if _niveis.size() > 6000:
+			_niveis.clear()
+		_niveis[k] = arr
+		_trava.unlock()
+	var l := Grade.local_de(tile)
+	return arr[l.y * Grade.TAM_CHUNK + l.x] - 8
+
+
+func nivel_bruto(tile: Vector2i) -> int:
+	return clampi(roundi(relevo_em(Vector2(tile))), -3, 3)
+
+
+## Relevo contínuo (em níveis, sem arredondar) num ponto qualquer: o nível do tile é este valor arredondado no
+## canto do tile; o desenho do chão usa o valor em cada ponto — a encosta segue a curva do ruído, não a grade.
+func relevo_em(p: Vector2) -> float:
+	if not relevo_ativo:
+		return 0.0
+	var r := _relevo.get_noise_2d(p.x, p.y) * 1.5 + (elevacao_em(p) - 0.25) * 0.9
+	return clampf(r * smoothstep(42.0, 95.0, p.length()) * 2.4, -3.49, 3.49)
+
+
+## Tile no meio de uma encosta (o chão desenhado ali não bate com o nível do tile): não aceita construção.
+func em_encosta(tile: Vector2i) -> bool:
+	if not relevo_ativo:
+		return false
+	return absf(patamar(relevo_em(Vector2(tile))) - float(nivel(tile))) > 0.12
+
+
+## Altura desenhada (em níveis) a partir do relevo contínuo: patamar plano e encosta curta onde cruza um meio nível.
+static func patamar(x: float) -> float:
+	var k := floorf(x)
+	return k + smoothstep(0.41, 0.59, x - k)
 
 
 ## (temperatura, umidade) em 0..1, com distorção para bordas de bioma orgânicas.
