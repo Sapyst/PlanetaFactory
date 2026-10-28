@@ -267,6 +267,21 @@ static func _chao_dados(c: ChunkDados, gerador: GeradorMundo) -> Dictionary:
 			else:
 				cam = camada_de(base + Vector2i(i - 1, j - 1), gerador)
 			img.set_pixel(i, j, Color(cam / 255.0, 0, 0))
+	# água dos tiles do chunk + 1 de margem: a altura de cada CANTO sai dos 4 tiles em volta (todos água = fundo,
+	# misto = barranco inclinado) — os quads se emendam sem degrau e a margem desce suave.
+	var molhado := PackedByteArray()
+	molhado.resize((n + 2) * (n + 2))
+	for j in n + 2:
+		for i in n + 2:
+			var tt := base + Vector2i(i - 1, j - 1)
+			var tr: int = c.terreno[(j - 1) * n + (i - 1)] if i >= 1 and j >= 1 and i <= n and j <= n else gerador.terreno(tt)
+			molhado[j * (n + 2) + i] = 1 if gerador.eh_agua(tr) else 0
+	var alturas := PackedFloat32Array()
+	alturas.resize((n + 1) * (n + 1))
+	for j in n + 1:
+		for i in n + 1:
+			var q := molhado[j * (n + 2) + i] + molhado[j * (n + 2) + i + 1] + molhado[(j + 1) * (n + 2) + i] + molhado[(j + 1) * (n + 2) + i + 1]
+			alturas[j * (n + 1) + i] = -0.12 * pow(q / 4.0, 1.5)
 	var verts := PackedVector3Array()
 	var cores := PackedColorArray()
 	verts.resize(n * n * 6)
@@ -278,14 +293,17 @@ static func _chao_dados(c: ChunkDados, gerador: GeradorMundo) -> Dictionary:
 			var ter := c.terreno[k]
 			var t := base + Vector2i(i, j)
 			var camada := _camada_local(c, k, t)
-			var h := -0.12 if gerador.eh_agua(ter) else 0.0
 			var fluxo := Vector2.ZERO
 			if ter == GeradorMundo.Terreno.RIO:
 				fluxo = gerador.direcao_rio(t)
 			var cor := Color(camada / 255.0, 0.5 + 0.5 * fluxo.x, 0.5 + 0.5 * fluxo.y, 1.0 if ter == GeradorMundo.Terreno.RIO else 0.0)
 			var x := float(t.x)
 			var y := float(t.y)
-			var v := [Vector3(x, h, -y), Vector3(x + 1, h, -y), Vector3(x + 1, h, -y - 1), Vector3(x, h, -y - 1)]
+			var h0 := alturas[j * (n + 1) + i]
+			var h1 := alturas[j * (n + 1) + i + 1]
+			var h2 := alturas[(j + 1) * (n + 1) + i + 1]
+			var h3 := alturas[(j + 1) * (n + 1) + i]
+			var v := [Vector3(x, h0, -y), Vector3(x + 1, h1, -y), Vector3(x + 1, h2, -y - 1), Vector3(x, h3, -y - 1)]
 			for idx in [0, 2, 1, 0, 3, 2]:
 				verts[w] = v[idx]
 				cores[w] = cor

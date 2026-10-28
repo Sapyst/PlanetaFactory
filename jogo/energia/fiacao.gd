@@ -193,14 +193,15 @@ static func completar(mapa: MapaOcupacao) -> void:
 		ligar_novo(mapa, id)
 
 
-## Onde o fio prende: no topo do poste; na máquina, na borda virada para o poste, a meia altura.
+## Onde o fio prende: no topo do poste; na máquina, no lado virado para o poste, a meia altura — dentro da metade
+## central da área (o corpo do modelo é menor que a área; preso na borda o fio ficava solto no ar).
 static func ponto_fio(e: Dictionary, para: Vector2) -> Vector3:
 	var dims: Array = Registro.modelos.get(e.nome, {}).get("dims", [1, 1, 1])
 	if papel(e.nome) == "poste":
 		return Grade.ponto_mundo(centro(e), float(dims[2]) - 0.12)
-	var a := Vector2(e.minimo)
-	var r := Rect2(a, Vector2(Grade.area_girada(e.area, e.rot)))
-	var q := Vector2(clampf(para.x, r.position.x + 0.15, r.end.x - 0.15), clampf(para.y, r.position.y + 0.15, r.end.y - 0.15))
+	var c := centro(e)
+	var meia := Vector2(Grade.area_girada(e.area, e.rot)) * 0.25
+	var q := Vector2(clampf(para.x, c.x - meia.x, c.x + meia.x), clampf(para.y, c.y - meia.y, c.y + meia.y))
 	return Grade.ponto_mundo(q, minf(float(dims[2]) * 0.7, 1.4))
 
 

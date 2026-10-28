@@ -29,6 +29,7 @@ func _ready() -> void:
 		"panorama": _roteiro_panorama()
 		"fios": _roteiro_fios()
 		"rota": _roteiro_rota()
+		"mostruario": _roteiro_mostruario()
 		"recursos":
 			em(4, func(): cena.controle.alternar_recursos())
 			em(6, func(): mover(tela(Vector2i(-15, -9))))
@@ -39,6 +40,8 @@ func _ready() -> void:
 
 func _process(_d: float) -> void:
 	_quadro += 1
+	if _voo_ini > 0 and _quadro >= _voo_ini:
+		_voar((_quadro - _voo_ini) / 30.0)
 	for p in _passos:
 		if p[0] == _quadro:
 			p[1].call()
@@ -158,6 +161,136 @@ func _roteiro_pc() -> void:
 	em(133, func(): botao_mouse(tela(Vector2i(-2, 1)), false))
 	em(135, func(): tecla(KEY_ESCAPE))
 	# quadro ~140: muro em L, panos ligando os pilares
+
+
+# ------------------------------------------------------------------ mostruário (prints e GIF de apresentação)
+## Fábrica lotada a oeste do início (brocas nas jazidas, barramento de esteiras, elevada cruzando, blocos de
+## máquinas, energia, muralha com torres), sem interface, tudo animado. `-- roteiro mostruario voo` faz o voo
+## de câmera (18 s a partir do quadro 60); sem "voo" a câmera fica onde o argumento `camera` mandar (prints).
+const VOO := [  # [segundo, x, z, distância, ângulo]
+	[0.0, -2.0, -4.0, 72.0, 0.55], [3.0, -14.0, -8.0, 34.0, 0.85], [6.0, -25.0, -2.0, 15.0, 1.25],
+	[9.0, -30.0, -19.0, 21.0, 1.8], [12.0, -29.0, 18.0, 25.0, 2.5], [15.0, -12.0, 8.0, 40.0, 3.0],
+	[18.0, 6.0, 0.0, 62.0, 3.35]]
+var _voo_ini := 0
+
+
+func _roteiro_mostruario() -> void:
+	Sessao.config.fps = false
+	cena.animar_tudo = true
+	cena._efeitos.mostrar_icones = false
+	em(2, func():
+		cena.controle.barra.visible = false
+		_montar_mostruario())
+	em(14, func(): _encher_esteiras())
+	var args := OS.get_cmdline_user_args()
+	if args.has("visao"):
+		em(20, func(): cena.controle.alternar_recursos())
+	if args.has("setas"):
+		em(20, func():
+			cena.controle.escolher("esteira")
+			mover(Vector2(-50, -50)))
+	if args.has("voo"):
+		_voo_ini = 60
+		em(60 + int(VOO[-1][0] * 30.0) + 2, func(): get_tree().quit())
+
+
+func _voar(t: float) -> void:
+	var i := 0
+	while i < VOO.size() - 2 and t > VOO[i + 1][0]:
+		i += 1
+	var k: Array = [VOO[maxi(i - 1, 0)], VOO[i], VOO[i + 1], VOO[mini(i + 2, VOO.size() - 1)]]
+	var u := clampf((t - k[1][0]) / (k[2][0] - k[1][0]), 0.0, 1.0)
+	u = u * u * (3.0 - 2.0 * u) * 0.35 + u * 0.65                # leve suavização sem parar nos pontos
+	var v := []
+	for c in range(1, 5):
+		var a: float = k[0][c]
+		var b: float = k[1][c]
+		var cc: float = k[2][c]
+		var d: float = k[3][c]
+		if c == 3:
+			a = log(a); b = log(b); cc = log(cc); d = log(d)
+		var r := 0.5 * (2.0 * b + (cc - a) * u + (2.0 * a - 5.0 * b + 4.0 * cc - d) * u * u + (3.0 * b - a - 3.0 * cc + d) * u * u * u)
+		v.append(exp(r) if c == 3 else r)
+	var cam: CameraJogo = cena.camera
+	cam.alvo = Vector3(v[0], 0, v[1])
+	cam.distancia = v[2]
+	cam.angulo = v[3]
+	cam.posicionar()
+
+
+func _montar_mostruario() -> void:
+	var con: Construtor = cena.construtor
+	var p := func(plano: Array[Dictionary]) -> void: cena.sincronizar(con.executar(plano))
+	for x in range(-42, -8):
+		for y in range(-30, 30):
+			cena.mapa.limpar_obstaculo(Vector2i(x, y))
+	# brocas nas jazidas de ferro (-13, 9) e carvão (-15, -9); cada uma solta um ramal do barramento para oeste
+	var saidas: Array[Vector2i] = []
+	for base in [Vector2i(-13, 9), Vector2i(-15, -9)]:
+		for o in [Vector2i(-2, -2), Vector2i(1, -2), Vector2i(-2, 1), Vector2i(1, 1)]:
+			var plano := con.plano_peca("broca_minerio", base + o, 3)
+			if plano[0].motivo != "":
+				continue
+			var rel := con.executar(plano)
+			cena.sincronizar(rel)
+			for id in rel.colocados:
+				var e: Dictionary = cena.mapa.estruturas[id]
+				var porta := Grade.porta_no_mundo(Registro.estruturas["broca_minerio"].portas[0], e.minimo, Registro.area("broca_minerio"), e.rot)
+				saidas.append(porta.tile_fora)
+	var linha := 0
+	for t in saidas:
+		var y := -6 + linha * 2
+		p.call(con.plano_linha("esteira", t, Vector2i(-33, y), 0))
+		linha += 1
+	# esteira elevada atravessando o barramento (norte–sul em x = −26)
+	p.call(con.plano_linha("esteira", Vector2i(-26, -16), Vector2i(-26, -14), 0))
+	p.call(con.plano_peca("esteira_rampa", Vector2i(-26, -13), Construtor.rot_do_fluxo(0)))
+	con.nivel = 1
+	p.call(con.plano_linha("esteira", Vector2i(-26, -12), Vector2i(-26, 14), 0))
+	p.call(con.plano_peca("rampa_desce", Vector2i(-26, 15), Construtor.rot_do_fluxo(0)))
+	con.nivel = 0
+	p.call(con.plano_linha("esteira", Vector2i(-26, 16), Vector2i(-26, 18), 0))
+	# blocos de máquinas: norte (montadoras e fornalhas) e sul (refinadores e laboratórios), com braço e baú
+	for x in range(-35, -12, 5):
+		p.call(con.plano_peca("montadora", Vector2i(x, 22), 0))
+		p.call(con.plano_peca("fornalha", Vector2i(x, 17), 0))
+		p.call(con.plano_peca("braco", Vector2i(x, 19), 0))
+		p.call(con.plano_peca("bau", Vector2i(x + 1, 19), 0))
+		p.call(con.plano_peca("refinador", Vector2i(x, -20), 0))
+		p.call(con.plano_peca("laboratorio", Vector2i(x, -25), 0))
+		p.call(con.plano_peca("braco", Vector2i(x, -17), 2))
+		p.call(con.plano_peca("bau", Vector2i(x + 1, -17), 0))
+	# energia: geradores e postes (fios automáticos)
+	for g in [Vector2i(-35, 13), Vector2i(-31, 13), Vector2i(-35, -12), Vector2i(-31, -12)]:
+		p.call(con.plano_peca("gerador", g, 0))
+	# miolo do barramento: tanques ligados por canos
+	for t in [Vector2i(-21, 0), Vector2i(-17, 0), Vector2i(-21, 4), Vector2i(-17, 4)]:
+		p.call(con.plano_peca("tanque", t, 0))
+	p.call(con.plano_linha("cano", Vector2i(-23, -2), Vector2i(-23, 7), 0))
+	p.call(con.plano_linha("cano", Vector2i(-22, 7), Vector2i(-15, 7), 0))
+	for x in range(-35, -10, 6):
+		for y in [-22, -14, 10, 20]:
+			p.call(con.plano_peca("poste_energia", Vector2i(x, y), 0))
+	# muralha com torres nos cantos
+	p.call(con.plano_linha("muro_centro", Vector2i(-38, -29), Vector2i(-10, -29), 0))
+	p.call(con.plano_linha("muro_centro", Vector2i(-38, 28), Vector2i(-10, 28), 0))
+	p.call(con.plano_linha("muro_centro", Vector2i(-38, -28), Vector2i(-38, 27), 0))
+	for t in [Vector2i(-35, -26), Vector2i(-35, 25), Vector2i(-12, -26), Vector2i(-12, 25)]:
+		p.call(con.plano_peca("torre_defesa", t, 0))
+	con._historico.clear()
+
+
+## Itens já correndo no barramento e na elevada (o vídeo começa com a fábrica em movimento).
+func _encher_esteiras() -> void:
+	var itens := ["minerio_ferro", "carvao", "minerio_cobre", "pedra"]
+	for c in cena.fabrica.caminhos:
+		var e: EsteiraCaminho = c.esteira
+		var pos := 0.3
+		var k := 0
+		while pos < e.util() - 0.6:
+			e.inserir_em(itens[k % itens.size()], pos)
+			pos += 0.85
+			k += 1
 
 
 ## Traço inteligente: fornalha no caminho → o fantasma contorna (foto ~30); põe; um traço novo começando ao lado

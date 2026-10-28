@@ -4,6 +4,24 @@ Jogo de automação/fábrica para PC e celular: plano infinito procedural em gra
 braços mecânicos, logística de transporte e inimigos. Tema: planeta vivo — a fábrica drena o planeta e o
 "sistema imunológico" dele reage.
 
+![Voo sobre uma fábrica](docs/midia/voo.gif)
+
+**Baixar para Android:** [última versão](https://github.com/Sapyst/PlanetaFactory/releases/latest) ·
+**Vídeo do voo completo (18 s, MP4):** na página da [versão 0.3.3](https://github.com/Sapyst/PlanetaFactory/releases/tag/v0.3.3)
+
+## Galeria
+
+| | |
+|---|---|
+| ![Visão geral da fábrica](docs/midia/geral.jpg) | ![De perto: esteiras, geradores e fornalhas](docs/midia/perto.jpg) |
+| Fábrica murada: brocas nas jazidas, barramento de esteiras, elevada cruzando, blocos de máquinas | De perto: itens correndo nas esteiras, geradores ligados por fios automáticos |
+| ![Chuva](docs/midia/chuva.jpg) | ![Neblina](docs/midia/neblina.jpg) |
+| Chuva: chão molhado e poças; a chuva ajuda a limpar a poluição | Neblina de chão com corpo: as máquinas saem de dentro dela |
+| ![Visão de recursos](docs/midia/visao.jpg) | ![Setas do modo construção](docs/midia/setas.jpg) |
+| Visão de recursos (tecla V): cada jazida com nome, quantidade e máquina | Modo construção: setas mostram o sentido de cada esteira (cor por nível) |
+| ![Céu nublado](docs/midia/nublado.jpg) | ![Rio com margem natural](docs/midia/rio.jpg) |
+| Nuvens altas: luz parcial e passagens diretas de sol | O mundo é natural (margens redondas); só as construções seguem a grade 1×1 |
+
 ## Pastas
 - `jogo/` — projeto Godot 4.7 (código, dados, testes). Ver `jogo/README.md`.
 - `arte/` — modelos 3D, texturas e o verificador. Ver `arte/FICHA_DE_ESTILO.md` e `arte/CATALOGO.md`.
@@ -16,10 +34,12 @@ braços mecânicos, logística de transporte e inimigos. Tema: planeta vivo — 
 2. `jogo/ferramentas/testar.sh` — importa e roda todos os testes do jogo sem janela.
 3. `godot --path jogo --write-movie /tmp/q.png --fixed-fps 30 --quit-after 70 -- camera X Z DIST` — foto real.
 4. `python3 jogo/ferramentas/gerar_sons.py` — sintetiza os sons; `python3 jogo/ferramentas/gerar_nuvens.py` — mapa das nuvens.
-5. `godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.3.2.apk` — APK.
+5. `godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.3.3.apk` — APK.
 6. `... -- camera -3 2 11 roteiro construir` (ou `roteiro toque`) — teste visual da construção com cliques/toques injetados.
-7. `python3 jogo/ferramentas/gerar_doc_recursos.py` — atualiza `docs/RECURSOS.md`.
-8. `... -- camera 8 -1 44 clima chuva` — foto com clima forçado (limpo, nublado, neblina, chuva, tempestade).
+7. `godot --path jogo --write-movie /tmp/v/q.png --fixed-fps 30 -- roteiro mostruario voo` — regrava o voo do mostruário
+   (sem `voo` e com `camera X Z DIST` tira prints; `visao`/`setas` ligam a visão de recursos/as setas).
+8. `python3 jogo/ferramentas/gerar_doc_recursos.py` — atualiza `docs/RECURSOS.md`.
+9. `... -- camera 8 -1 44 clima chuva` — foto com clima forçado (limpo, nublado, neblina, chuva, tempestade).
 
 ## Visual e clima
 - Estruturas e assets naturais com textura assada (`arte/blender_scripts/texturizar.py`): paleta real (albedo PBR),

@@ -32,6 +32,7 @@ var _desenho_trens: DesenhoTrens
 var _desenho_poluicao: DesenhoPoluicao
 var _visao: VisaoRecursos
 var _fluxo: DesenhoFluxo
+var animar_tudo := false             ## mostruário (vídeos): toda máquina e braço mexendo
 var _rotulos: Dictionary = {}       ## id da estação → Label3D
 var _t_hud := 0.0
 var _sel := {}                       ## selecionado: {trem: id} ou {estrutura: id}
@@ -676,11 +677,11 @@ func _animar_estruturas() -> void:
 	for id in fabrica.maquinas:
 		var a := _animador(id)
 		if a != null:
-			a.ativo = fabrica.maquinas[id].estado == Maquina.Estado.TRABALHANDO
+			a.ativo = animar_tudo or fabrica.maquinas[id].estado == Maquina.Estado.TRABALHANDO
 	for id in fabrica.bracos:
 		var a := _animador(id)
 		if a != null:
-			a.fase_braco = fabrica.bracos[id].fase()
+			a.fase_braco = fposmod(_tempo * 0.45 + id * 0.137, 1.0) if animar_tudo else fabrica.bracos[id].fase()
 
 
 func _animador(id: int) -> Animador:

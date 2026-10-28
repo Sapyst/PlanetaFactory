@@ -3,6 +3,9 @@
 // Bordas orgânicas: em terra, a camada é lida do mapa 34×34 do chunk numa posição deformada por ruído, e duas
 // leituras com deformações diferentes se misturam — a troca de bioma vira uma faixa irregular e suave, não degrau.
 // Água: camadas ≥ 'primeira_agua' ondulam e brilham; rio corre na direção da correnteza (COLOR.gb).
+// Margens naturais: a grade 1×1 é só das construções — água × terra é decidido por pixel num campo suave
+// (interpolação entre os centros dos tiles + ruído), então lagos e rios têm borda arredondada e irregular, com uma
+// faixa de terra molhada na beira; raso × fundo também passa suave.
 shader_type spatial;
 render_mode cull_back, diffuse_lambert;
 
@@ -25,9 +28,8 @@ void vertex() {
 	camada = floor(COLOR.r * 255.0 + 0.5);
 	fluxo = vec3(COLOR.g * 2.0 - 1.0, COLOR.b * 2.0 - 1.0, COLOR.a);
 	mundo = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-	if (camada >= primeira_agua) {
-		VERTEX.y += sin(TIME * 0.9 + mundo.x * 0.7 + mundo.z * 0.5) * 0.02;
-	}
+	// onda só onde a malha é funda (depende só da posição: cantos compartilhados mexem igual, sem rachar)
+	VERTEX.y += sin(TIME * 0.9 + mundo.x * 0.7 + mundo.z * 0.5) * 0.02 * clamp(-VERTEX.y / 0.12, 0.0, 1.0);
 }
 
 float fabrica_em(vec2 grade) {
@@ -40,26 +42,61 @@ float camada_em(vec2 grade) {
 	return floor(texelFetch(mapa_camadas, px, 0).r * 255.0 + 0.5);
 }
 
+// 1 = água no tile da posição g.
+float agua_em(vec2 g) {
+	return camada_em(g) >= primeira_agua ? 1.0 : 0.0;
+}
+
+float fundo_em(vec2 g) {
+	return camada_em(g) > primeira_agua + 0.5 ? 1.0 : 0.0;
+}
+
+// Campo contínuo: interpola os 4 centros de tile em volta (suavizado) — a borda 0,5 vira curva, não degrau.
+float campo(vec2 g, bool fundo) {
+	vec2 p = g - 0.5;
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	vec4 v = fundo
+		? vec4(fundo_em(i + vec2(0.5)), fundo_em(i + vec2(1.5, 0.5)), fundo_em(i + vec2(0.5, 1.5)), fundo_em(i + vec2(1.5)))
+		: vec4(agua_em(i + vec2(0.5)), agua_em(i + vec2(1.5, 0.5)), agua_em(i + vec2(0.5, 1.5)), agua_em(i + vec2(1.5)));
+	return mix(mix(v.x, v.y, f.x), mix(v.z, v.w, f.x), f.y);
+}
+
+// Camada de terra mais perto (para a parte seca de um tile de água); sem nenhuma, praia.
+float terra_perto(vec2 g) {
+	for (int k = 0; k < 8; k++) {
+		vec2 o = vec2(float(k % 3) - 1.0, float(k / 3) - 1.0);
+		if (k == 4) { o = vec2(1.0, 1.0); }
+		float c = camada_em(g + o);
+		if (c < primeira_agua) { return c; }
+	}
+	return primeira_agua - 1.0;
+}
+
 void fragment() {
 	vec2 grade = vec2(mundo.x, -mundo.z);
 	vec2 uv = mundo.xz * escala;
 	float d = texture(detalhe, mundo.xz * 0.031).r;
-	vec3 c;
-	if (camada >= primeira_agua) {
-		vec2 corre = fluxo.z > 0.5 ? vec2(fluxo.x, -fluxo.y) * 0.35 : vec2(0.02, 0.013);
-		uv += corre * TIME;
-		c = texture(texturas, vec3(uv, camada)).rgb;
-	} else {
+	vec2 w1 = vec2(texture(detalhe, grade * 0.06).r, texture(detalhe, grade * 0.06 + vec2(0.37, 0.71)).r) - 0.5;
+	vec2 w2 = vec2(texture(detalhe, grade * 0.17 + vec2(0.53, 0.19)).r, texture(detalhe, grade * 0.17 + vec2(0.11, 0.83)).r) - 0.5;
+	// quanto deste pixel é água (borda suave, antisserrilhada)
+	float wf = campo(grade + w1 * 0.9 + w2 * 0.4, false);
+	float aa = max(fwidth(wf), 0.02);
+	float agua = smoothstep(0.5 - aa, 0.5 + aa, wf);
+	float beira = smoothstep(0.12, 0.5, wf) * (1.0 - agua);        // terra molhada na margem
+	vec3 c_terra = vec3(0.0);
+	float a = camada;
+	if (agua < 1.0) {
 		// duas leituras deformadas (ruído) do mapa de camadas; água vizinha não invade a terra
-		vec2 w1 = vec2(texture(detalhe, grade * 0.06).r, texture(detalhe, grade * 0.06 + vec2(0.37, 0.71)).r) - 0.5;
-		vec2 w2 = vec2(texture(detalhe, grade * 0.17 + vec2(0.53, 0.19)).r, texture(detalhe, grade * 0.17 + vec2(0.11, 0.83)).r) - 0.5;
-		float a = camada_em(grade + w1 * 2.6 + w2 * 0.6);
+		float base = camada >= primeira_agua ? terra_perto(grade) : camada;
+		a = camada_em(grade + w1 * 2.6 + w2 * 0.6);
 		float b = camada_em(grade + w2 * 1.6);
-		if (a >= primeira_agua) { a = camada; }
-		if (b >= primeira_agua) { b = camada; }
+		if (a >= primeira_agua) { a = base; }
+		if (b >= primeira_agua) { b = base; }
 		vec3 ca = texture(texturas, vec3(uv, a)).rgb;
 		vec3 cb = texture(texturas, vec3(uv, b)).rgb;
-		c = mix(ca, cb, 0.45);
+		c_terra = mix(ca, cb, 0.45);
 		// piso de fábrica: o mapa já vem espalhado 2 tiles em volta das construções (forte perto, fraco longe);
 		// 4 leituras deformadas dão a borda irregular e suave. Jazida nunca vira piso.
 		float f = fabrica_em(grade + w1 * 1.3) + fabrica_em(grade + w2 * 1.0)
@@ -68,29 +105,36 @@ void fragment() {
 		if (camada == camada_jazida || a == camada_jazida) { f = 0.0; }   // recurso fica à vista
 		if (f > 0.0) {
 			vec3 piso = texture(texturas, vec3(grade * vec2(0.25, -0.25), camada_piso)).rgb;
-			c = mix(c, piso, f);
+			c_terra = mix(c_terra, piso, f);
 		}
+		c_terra *= 1.0 - 0.35 * beira;
 	}
+	vec3 c_agua = vec3(0.0);
+	float onda = 0.0;
+	if (agua > 0.0) {
+		vec2 corre = fluxo.z > 0.5 ? vec2(fluxo.x, -fluxo.y) * 0.35 : vec2(0.02, 0.013);
+		vec2 uva = uv + corre * TIME;
+		float fundo = smoothstep(0.3, 0.7, campo(grade + w2 * 0.8, true));
+		c_agua = mix(texture(texturas, vec3(uva, primeira_agua)).rgb, texture(texturas, vec3(uva, primeira_agua + 1.0)).rgb, fundo);
+		vec2 corre_onda = fluxo.z > 0.5 ? vec2(fluxo.x, -fluxo.y) * 0.12 : vec2(0.05, 0.0);
+		onda = texture(detalhe, mundo.xz * 0.12 + corre_onda * TIME).r;
+		c_agua *= 0.9 + 0.25 * onda;
+		// espuma rala bem na linha da margem
+		c_agua = mix(c_agua, vec3(0.62, 0.66, 0.66), smoothstep(0.62, 0.5, wf) * 0.35 * smoothstep(0.4, 0.7, onda));
+	}
+	vec3 c = mix(c_terra, c_agua, agua);
 	c *= 0.88 + 0.24 * d;
 	float poca = 0.0;
-	if (camada < primeira_agua && molhado > 0.0) {
+	if (agua < 1.0 && molhado > 0.0) {
 		// chão molhado escurece; nas partes baixas do ruído junta poça (lisa, reflete o céu)
-		poca = smoothstep(0.62, 0.70, 1.0 - d) * smoothstep(0.35, 1.0, molhado);
-		c *= 1.0 - 0.30 * molhado - 0.15 * poca;
+		poca = smoothstep(0.62, 0.70, 1.0 - d) * smoothstep(0.35, 1.0, molhado) * (1.0 - agua);
+		c *= 1.0 - (0.30 * molhado + 0.15 * poca) * (1.0 - agua);
 	}
 	c *= 1.0 - 0.6 * sombra_nuvem(mundo);
 	if (visao_recursos > 0.0) {
-		c = apagar_visao(c, camada == camada_jazida ? 0.0 : 0.85);
+		c = apagar_visao(c, (camada == camada_jazida && agua < 0.5) ? 0.0 : 0.85);
 	}
 	ALBEDO = c;
-	if (camada >= primeira_agua) {
-		ROUGHNESS = 0.08;
-		SPECULAR = 0.8;
-		vec2 corre_onda = fluxo.z > 0.5 ? vec2(fluxo.x, -fluxo.y) * 0.12 : vec2(0.05, 0.0);
-		float onda = texture(detalhe, mundo.xz * 0.12 + corre_onda * TIME).r;
-		ALBEDO = c * (0.9 + 0.25 * onda);
-	} else {
-		ROUGHNESS = mix(mix(0.92, 0.55, molhado), 0.06, poca);
-		SPECULAR = 0.5 + 0.4 * poca;
-	}
+	ROUGHNESS = mix(mix(mix(0.92, 0.55, molhado), 0.06, poca), 0.08, agua);
+	SPECULAR = mix(0.5 + 0.4 * poca, 0.8, agua);
 }

@@ -96,9 +96,11 @@ func eh_agua(t: int) -> bool:
 
 ## (temperatura, umidade) em 0..1, com distorção para bordas de bioma orgânicas.
 func clima(tile: Vector2i) -> Vector2:
-	var w := _distorcao.get_noise_2d(tile.x, tile.y) * 18.0
-	var t := _temperatura.get_noise_2d(tile.x + w, tile.y - w) * 0.5 + 0.5
-	var u := _umidade.get_noise_2d(tile.x - w, tile.y + w) * 0.5 + 0.5
+	# deslocamento em x e y independentes (com o mesmo valor nos dois eixos a borda saía em retas a 45°)
+	var wx := _distorcao.get_noise_2d(tile.x, tile.y) * 18.0
+	var wy := _distorcao.get_noise_2d(tile.x + 913.0, tile.y - 577.0) * 18.0
+	var t := _temperatura.get_noise_2d(tile.x + wx, tile.y + wy) * 0.5 + 0.5
+	var u := _umidade.get_noise_2d(tile.x - wy, tile.y + wx) * 0.5 + 0.5
 	return Vector2(clampf(t * 1.25 - 0.12, 0, 1), clampf(u * 1.25 - 0.12, 0, 1))
 
 

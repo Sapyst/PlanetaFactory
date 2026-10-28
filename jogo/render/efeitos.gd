@@ -11,6 +11,7 @@ const DIST_ICONES := 60.0
 const VIDA_MARCA := 90.0
 
 var fabrica: Fabrica
+var mostrar_icones := true          ## mostruário (vídeos) desliga
 var mapa: MapaOcupacao
 var _fumaca: Dictionary = {}       ## id → CPUParticles3D
 var _icones: Dictionary = {}       ## id → Sprite3D
@@ -121,7 +122,7 @@ func _criar_fumaca(id: int) -> CPUParticles3D:
 
 func _atualizar_icones() -> void:
 	var cam := get_viewport().get_camera_3d() as CameraJogo
-	var perto := cam == null or cam.distancia < DIST_ICONES
+	var perto := (cam == null or cam.distancia < DIST_ICONES) and mostrar_icones
 	var pisca := 0.65 + 0.35 * sin(Time.get_ticks_msec() * 0.004)
 	for id in fabrica.maquinas:
 		var m: Maquina = fabrica.maquinas[id]
