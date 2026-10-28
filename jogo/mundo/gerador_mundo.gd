@@ -22,7 +22,9 @@ var _rio := FastNoiseLite.new()
 var _lago := FastNoiseLite.new()
 var _lagoa := FastNoiseLite.new()
 var _relevo := FastNoiseLite.new()
-var relevo_ativo := true            ## falso = mundo todo plano (testes de desempenho com fábricas enormes)
+var relevo_ativo := true
+var hidro: Hidrologia
+const NIVEL_MAR := -2                ## superfície do mar (em níveis de relevo)            ## falso = mundo todo plano (testes de desempenho com fábricas enormes)
 var _niveis := {}                 ## chunk → PackedByteArray (nível + 8)
 var _trava := Mutex.new()
 var _biomas: Dictionary
@@ -46,6 +48,7 @@ func _init(p_semente := 1337, biomas: Dictionary = {}) -> void:
 	_config(_lagoa, 7, 0.03, 2)
 	_config(_relevo, 8, 0.0085, 3)
 	distribuicao = Distribuicao.new(self)
+	hidro = Hidrologia.new(self)
 
 
 func _config(n: FastNoiseLite, salt: int, freq: float, oitavas: int) -> void:
@@ -68,35 +71,26 @@ func elevacao_em(p: Vector2) -> float:
 	return e + 0.9 * exp(-d2 / (2.0 * 60.0 * 60.0)) + 0.3 * exp(-d2 / (2.0 * RAIO_SPAWN_TERRA * RAIO_SPAWN_TERRA * 2.8))
 
 
-func terreno(tile: Vector2i) -> int:
+## Mar e oceano pela elevação continental; baixada da costa abaixo do nível do mar é invadida pelo mar; rios e
+## lagos vêm da hidrologia (nascente → relevo → mar ou depressão; ver Hidrologia).
+func _terreno_bruto(tile: Vector2i) -> int:
 	var e := elevacao(tile)
 	if e < -0.32: return Terreno.OCEANO
 	if e < -0.18: return Terreno.MAR
+	if e < 0.0 and relevo_ativo and nivel_bruto(tile) <= NIVEL_MAR: return Terreno.MAR
 	if e < -0.14: return Terreno.PRAIA
-	var perto_spawn := maxi(absi(tile.x), absi(tile.y)) < 40   # spawn seco (quadrado): jazidas iniciais nunca caem em rio/lago
-	if not perto_spawn:
-		var r := absf(_rio.get_noise_2d(tile.x, tile.y))
-		var largura := 0.012 + 0.010 * clampf(1.0 - e, 0.0, 1.0)   # rios alargam perto do mar
-		if r < largura: return Terreno.RIO
-		if _lago.get_noise_2d(tile.x, tile.y) < -0.55 and e > -0.05: return Terreno.LAGO
-		if _lagoa.get_noise_2d(tile.x, tile.y) < -0.58: return Terreno.LAGOA
+	if relevo_ativo:
+		var a := hidro.agua_em(tile)
+		if not a.is_empty():
+			return a.tipo
 	return Terreno.TERRA
 
 
-## Direção da correnteza num tile de rio: ao longo do rio (perpendicular ao gradiente do ruído do rio),
-## virada para o lado mais baixo (o rio desce para o mar).
+## Direção da correnteza num tile de rio (rio abaixo); zero fora de rio.
 func direcao_rio(tile: Vector2i) -> Vector2:
-	var gx := _rio.get_noise_2d(tile.x + 1, tile.y) - _rio.get_noise_2d(tile.x - 1, tile.y)
-	var gy := _rio.get_noise_2d(tile.x, tile.y + 1) - _rio.get_noise_2d(tile.x, tile.y - 1)
-	var tan := Vector2(-gy, gx)
-	if tan.length() < 1e-6:
+	if not relevo_ativo:
 		return Vector2.ZERO
-	tan = tan.normalized()
-	var ex := elevacao(tile + Vector2i(1, 0)) - elevacao(tile - Vector2i(1, 0))
-	var ey := elevacao(tile + Vector2i(0, 1)) - elevacao(tile - Vector2i(0, 1))
-	if tan.dot(Vector2(ex, ey)) > 0.0:
-		tan = -tan
-	return tan
+	return hidro.agua_em(tile).get("fluxo", Vector2.ZERO)
 
 
 func eh_agua(t: int) -> bool:
@@ -104,9 +98,23 @@ func eh_agua(t: int) -> bool:
 
 
 # ------------------------------------------------------------------ relevo
-## Nível do terreno (−3..3; 1 nível = Grade.ALT_NIVEL m). Ruído de relevo + a elevação continental, quantizado em
+## Nível do terreno (−3..3; 1 nível = Grade.ALT_NIVEL m).
+## Cache por chunk: 1 byte por tile = nível + 8 (bits 0–3) | encosta (bit 4) | terreno (bits 5–7). Ruído de relevo + a elevação continental, quantizado em
 ## terraços; plano em volta do início (some suave entre 42 e 95 tiles). Guardado por chunk (seguro entre threads).
 func nivel(tile: Vector2i) -> int:
+	return (_info(tile) & 15) - 8
+
+
+func terreno(tile: Vector2i) -> int:
+	return _info(tile) >> 5
+
+
+## Tile no meio de uma encosta (o chão desenhado ali não bate com o nível do tile): não aceita construção.
+func em_encosta(tile: Vector2i) -> bool:
+	return (_info(tile) & 16) != 0
+
+
+func _info(tile: Vector2i) -> int:
 	var k := Grade.chunk_de(tile)
 	_trava.lock()
 	var arr: PackedByteArray = _niveis.get(k, PackedByteArray())
@@ -117,14 +125,31 @@ func nivel(tile: Vector2i) -> int:
 		var base := k * Grade.TAM_CHUNK
 		for j in Grade.TAM_CHUNK:
 			for i in Grade.TAM_CHUNK:
-				arr[j * Grade.TAM_CHUNK + i] = nivel_bruto(base + Vector2i(i, j)) + 8
+				var t := base + Vector2i(i, j)
+				var ter := _terreno_bruto(t)
+				var nv := _nivel_final(t, ter)
+				var enc := relevo_ativo and not eh_agua(ter) and (absf(patamar(relevo_em(Vector2(t))) - float(nv)) > 0.12 or elevacao(t) < -0.10)
+				# (praia desce em rampa até o mar: não é chão plano)
+				arr[j * Grade.TAM_CHUNK + i] = (nv + 8) | (16 if enc else 0) | (ter << 5)
 		_trava.lock()
 		if _niveis.size() > 6000:
 			_niveis.clear()
 		_niveis[k] = arr
 		_trava.unlock()
 	var l := Grade.local_de(tile)
-	return arr[l.y * Grade.TAM_CHUNK + l.x] - 8
+	return arr[l.y * Grade.TAM_CHUNK + l.x]
+
+
+## Nível com a água: mar no nível do mar, rio/lago no nível do leito; terra = relevo.
+func _nivel_final(tile: Vector2i, t: int) -> int:
+	if not relevo_ativo:
+		return 0
+	if t == Terreno.MAR or t == Terreno.OCEANO:
+		return NIVEL_MAR
+	var a := hidro.agua_em(tile)
+	if not a.is_empty():
+		return int(a.nivel)
+	return nivel_bruto(tile)
 
 
 func nivel_bruto(tile: Vector2i) -> int:
@@ -138,13 +163,6 @@ func relevo_em(p: Vector2) -> float:
 		return 0.0
 	var r := _relevo.get_noise_2d(p.x, p.y) * 1.5 + (elevacao_em(p) - 0.25) * 0.9
 	return clampf(r * smoothstep(42.0, 95.0, p.length()) * 2.4, -3.49, 3.49)
-
-
-## Tile no meio de uma encosta (o chão desenhado ali não bate com o nível do tile): não aceita construção.
-func em_encosta(tile: Vector2i) -> bool:
-	if not relevo_ativo:
-		return false
-	return absf(patamar(relevo_em(Vector2(tile))) - float(nivel(tile))) > 0.12
 
 
 ## Altura desenhada (em níveis) a partir do relevo contínuo: patamar plano e encosta curta onde cruza um meio nível.

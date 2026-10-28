@@ -4,6 +4,7 @@ extends Node3D
 ## (uma chamada de desenho por tipo de modelo por chunk, não importa quantos).
 
 const CAMADAS_AGUA := ["jazida", "piso_fabrica", "praia", "agua_rasa", "agua_funda"]   ## agua_* sempre por último (shader)
+const CAMADA_MAR := 250    ## mar/oceano no mapa de camadas: o desenho do mar vem do campo contínuo (UV2), não do tile
 
 static var _texturas: Texture2DArray
 static var _material_chao: ShaderMaterial
@@ -251,7 +252,7 @@ static func _add(grupos: Dictionary, nome: String, t: Variant) -> void:
 static func camada_de(t: Vector2i, gerador: GeradorMundo) -> int:
 	match gerador.terreno(t):
 		GeradorMundo.Terreno.PRAIA: return _camadas.find("praia")
-		GeradorMundo.Terreno.OCEANO: return _camadas.find("agua_funda")
+		GeradorMundo.Terreno.OCEANO, GeradorMundo.Terreno.MAR: return CAMADA_MAR
 		GeradorMundo.Terreno.TERRA:
 			if not gerador.distribuicao.jazida(t).is_empty():
 				return _camadas.find("jazida")
@@ -295,7 +296,8 @@ static func _chao_dados(c: ChunkDados, gerador: GeradorMundo) -> Dictionary:
 			nv[j * lado + i] = gerador.nivel(t)
 			var dentro := i >= mg and j >= mg and i < n + mg and j < n + mg
 			var ter: int = c.terreno[(j - mg) * n + (i - mg)] if dentro else gerador.terreno(t)
-			ag[j * lado + i] = 1.0 if gerador.eh_agua(ter) else 0.0
+			# rio e lago pelo tile; mar pelo campo contínuo (costa natural, praia em rampa)
+			ag[j * lado + i] = 1.0 if gerador.eh_agua(ter) and ter != GeradorMundo.Terreno.MAR and ter != GeradorMundo.Terreno.OCEANO else 0.0
 			if ter == GeradorMundo.Terreno.RIO:
 				rio[t] = true
 	var v := n * SUB + 1
@@ -303,6 +305,8 @@ static func _chao_dados(c: ChunkDados, gerador: GeradorMundo) -> Dictionary:
 	alt.resize((v + 2) * (v + 2))
 	var agua_v := PackedFloat32Array()
 	agua_v.resize((v + 2) * (v + 2))
+	var mar_v := PackedVector2Array()           # (fração de mar, fração de fundo) por vértice
+	mar_v.resize((v + 2) * (v + 2))
 	for vj in v + 2:
 		for vi in v + 2:
 			var g := Vector2(base) + Vector2(vi - 1, vj - 1) / float(SUB)
@@ -316,12 +320,38 @@ static func _chao_dados(c: ChunkDados, gerador: GeradorMundo) -> Dictionary:
 			var a4 := [ag[j0 * lado + i0], ag[j0 * lado + i0 + 1], ag[(j0 + 1) * lado + i0], ag[(j0 + 1) * lado + i0 + 1]]
 			var wa := lerpf(lerpf(a4[0], a4[1], f.x), lerpf(a4[2], a4[3], f.x), f.y)
 			agua_v[vj * (v + 2) + vi] = wa
+			if wa > 0.0:
+				# superfície da água = nível dos tiles de água em volta (mar, leito do rio, fundo do lago)
+				var pw := [(1.0 - f.x) * (1.0 - f.y), f.x * (1.0 - f.y), (1.0 - f.x) * f.y, f.x * f.y]
+				var ids := [j0 * lado + i0, j0 * lado + i0 + 1, (j0 + 1) * lado + i0, (j0 + 1) * lado + i0 + 1]
+				var sw := 0.0
+				var sl := 0.0
+				for m in 4:
+					sw += pw[m] * a4[m]
+					sl += pw[m] * a4[m] * nv[ids[m]]
+				if sw > 0.0:
+					h = lerpf(h, sl / sw, smoothstep(0.0, 0.6, wa))
+			# mar: costa pela elevação contínua (e baixada abaixo do nível do mar ligada à costa); a praia desce em
+			# rampa até o nível do mar
+			var e := gerador.elevacao_em(g - Vector2(0.5, 0.5))
+			var baixada := 0.0
+			if e < 0.02 and gerador.relevo_ativo:
+				baixada = smoothstep(-1.42, -1.58, gerador.relevo_em(g - Vector2(0.5, 0.5))) * smoothstep(0.02, -0.02, e)
+			var mar := maxf(smoothstep(-0.165, -0.195, e), baixada)
+			var rampa := maxf(smoothstep(-0.10, -0.18, e), baixada)
+			if rampa > 0.0 and gerador.relevo_ativo:
+				h = lerpf(h, float(GeradorMundo.NIVEL_MAR), rampa)
+			mar_v[vj * (v + 2) + vi] = Vector2(mar, smoothstep(-0.27, -0.36, e))
+			wa = maxf(wa, mar)
+			agua_v[vj * (v + 2) + vi] = wa
 			alt[vj * (v + 2) + vi] = h * Grade.ALT_NIVEL - 0.12 * pow(wa, 1.5)
 	var verts := PackedVector3Array()
 	var normais := PackedVector3Array()
 	var cores := PackedColorArray()
 	var oclusao := PackedVector2Array()
 	oclusao.resize(v * v)
+	var mar_out := PackedVector2Array()
+	mar_out.resize(v * v)
 	verts.resize(v * v)
 	normais.resize(v * v)
 	cores.resize(v * v)
@@ -341,6 +371,7 @@ static func _chao_dados(c: ChunkDados, gerador: GeradorMundo) -> Dictionary:
 				var yj := clampi(vj + 1 + o.y, 0, v + 1)
 				oc += maxf(0.0, alt[yj * (v + 2) + xi] - alt[k])
 			oclusao[vj * v + vi] = Vector2(clampf(oc * 0.22, 0.0, 1.0), 0.0)
+			mar_out[vj * v + vi] = mar_v[k]
 			var t := Vector2i(floori(g.x - 0.001 if vi == v - 1 else g.x), floori(g.y - 0.001 if vj == v - 1 else g.y))
 			var fl := gerador.direcao_rio(t) if rio.has(t) else Vector2.ZERO
 			cores[vj * v + vi] = Color(agua_v[k], 0.5 + 0.5 * fl.x, 0.5 + 0.5 * fl.y, 1.0 if rio.has(t) else 0.0)
@@ -353,7 +384,7 @@ static func _chao_dados(c: ChunkDados, gerador: GeradorMundo) -> Dictionary:
 			for o in [a, a + v + 1, a + 1, a, a + v, a + v + 1]:
 				idx[w] = o
 				w += 1
-	return {"verts": verts, "cores": cores, "normais": normais, "uv": oclusao, "indices": idx, "img": img, "origem": Vector2(base - Vector2i.ONE)}
+	return {"verts": verts, "cores": cores, "normais": normais, "uv": oclusao, "uv2": mar_out, "indices": idx, "img": img, "origem": Vector2(base - Vector2i.ONE)}
 
 
 ## Chão: malha indexada com relevo + um mapinha 34×34 das camadas (chunk + 1 tile de margem) que o shader lê com a
@@ -366,6 +397,7 @@ func _montar_chao(d: Dictionary) -> void:
 	arr[Mesh.ARRAY_COLOR] = d.cores
 	arr[Mesh.ARRAY_INDEX] = d.indices
 	arr[Mesh.ARRAY_TEX_UV] = d.uv
+	arr[Mesh.ARRAY_TEX_UV2] = d.uv2
 	var am := ArrayMesh.new()
 	am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
 	var mi := MeshInstance3D.new()
@@ -381,6 +413,6 @@ func _montar_chao(d: Dictionary) -> void:
 static func _camada_local(c: ChunkDados, k: int, t: Vector2i) -> int:
 	match c.terreno[k]:
 		GeradorMundo.Terreno.PRAIA: return _camadas.find("praia")
-		GeradorMundo.Terreno.OCEANO: return _camadas.find("agua_funda")
+		GeradorMundo.Terreno.OCEANO, GeradorMundo.Terreno.MAR: return CAMADA_MAR
 		GeradorMundo.Terreno.TERRA: return _camadas.find("jazida") if c.jazidas.has(t) else c.bioma[k]
 	return _camadas.find("agua_rasa")

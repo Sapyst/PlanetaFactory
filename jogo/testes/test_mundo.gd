@@ -103,8 +103,9 @@ func test_relevo() -> void:
 			var nv := g.nivel(t)
 			vistos[nv] = true
 			verificar(nv >= -3 and nv <= 3, "nível dentro da faixa")
-			if absi(g.nivel(t + Vector2i(1, 0)) - nv) > 1:
-				saltos += 1
+			var t2 := t + Vector2i(1, 0)
+			if absi(g.nivel(t2) - nv) > 1 and not g.eh_agua(g.terreno(t)) and not g.eh_agua(g.terreno(t2)):
+				saltos += 1                       # (rio cava o leito; mar fica no nível do mar)
 	verificar(vistos.size() >= 4, "relevo com vários níveis (%s)" % [vistos.keys()])
 	verificar(saltos < 40, "barrancos de no máximo 1 nível na maior parte (%d saltos de 2+)" % saltos)
 	igual(g.nivel(Vector2i(120, -77)), g.nivel_bruto(Vector2i(120, -77)), "cache por chunk = cálculo direto")
@@ -118,3 +119,33 @@ func test_relevo() -> void:
 				m.limpar_obstaculo(t + Vector2i(1, y))
 			igual(m.motivo_bloqueio("fornalha", t + Vector2i(0, -1), 0), "desnivel", "fornalha sobre barranco")
 			break
+
+
+func test_hidrologia() -> void:
+	var gg := GeradorMundo.new(1337)
+	var rios := 0
+	var lagos := 0
+	var sobe := 0
+	for x in range(-700, 700, 2):
+		for y in range(-700, 700, 2):
+			var t := Vector2i(x, y)
+			var a := gg.hidro.agua_em(t)
+			if a.is_empty():
+				continue
+			if a.tipo == GeradorMundo.Terreno.RIO:
+				rios += 1
+				# rio nunca sobe: o tile rio abaixo tem nível ≤ este
+				var f: Vector2 = a.fluxo
+				var prox := Vector2i((Vector2(t) + Vector2(0.5, 0.5) + f * 1.5).floor())
+				var b := gg.hidro.agua_em(prox)
+				if not b.is_empty() and b.tipo == GeradorMundo.Terreno.RIO and int(b.nivel) > int(a.nivel):
+					sobe += 1
+			else:
+				lagos += 1
+				verificar(int(a.nivel) == gg.nivel_bruto(t) or gg.nivel_bruto(t) < int(a.nivel), "lago não sobe a borda")
+	verificar(rios > 200, "há rios (%d amostras)" % rios)
+	verificar(lagos > 50, "há lagos (%d amostras)" % lagos)
+	verificar(sobe < rios / 50, "rio quase nunca sobe (%d de %d)" % [sobe, rios])
+	for x in range(-40, 41, 4):
+		for y in range(-40, 41, 4):
+			verificar(gg.hidro.agua_em(Vector2i(x, y)).is_empty(), "início seco")

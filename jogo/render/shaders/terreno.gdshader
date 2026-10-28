@@ -25,12 +25,14 @@ varying vec3 fluxo;                // xy = direção da correnteza (grade), z = 
 varying vec3 mundo;
 varying vec3 normal_mundo;
 varying float oclusao;            // pé de barranco (UV.x da malha)
+varying vec2 mar_v;               // (fração de mar, fração de fundo) do campo contínuo (UV2)
 
 void vertex() {
 	fluxo = vec3(COLOR.g * 2.0 - 1.0, COLOR.b * 2.0 - 1.0, COLOR.a);
 	mundo = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	normal_mundo = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 	oclusao = UV.x;
+	mar_v = UV2;
 	// onda só onde há água (COLOR.r = fração de água no vértice; cantos compartilhados mexem igual)
 	VERTEX.y += sin(TIME * 0.9 + mundo.x * 0.7 + mundo.z * 0.5) * 0.02 * COLOR.r;
 }
@@ -47,7 +49,8 @@ float camada_em(vec2 grade) {
 
 // 1 = água no tile da posição g.
 float agua_em(vec2 g) {
-	return camada_em(g) >= primeira_agua ? 1.0 : 0.0;
+	float c = camada_em(g);
+	return (c >= primeira_agua && c < 200.0) ? 1.0 : 0.0;        // rio e lago (o mar vem do campo contínuo)
 }
 
 float fundo_em(vec2 g) {
@@ -85,7 +88,7 @@ void fragment() {
 	vec2 w1 = vec2(texture(detalhe, grade * 0.06).r, texture(detalhe, grade * 0.06 + vec2(0.37, 0.71)).r) - 0.5;
 	vec2 w2 = vec2(texture(detalhe, grade * 0.17 + vec2(0.53, 0.19)).r, texture(detalhe, grade * 0.17 + vec2(0.11, 0.83)).r) - 0.5;
 	// quanto deste pixel é água (borda suave, antisserrilhada)
-	float wf = campo(grade + w1 * 0.9 + w2 * 0.4, false);
+	float wf = max(campo(grade + w1 * 0.9 + w2 * 0.4, false), mar_v.x + (d - 0.5) * 0.12);
 	float aa = max(fwidth(wf), 0.02);
 	float agua = smoothstep(0.5 - aa, 0.5 + aa, wf);
 	float beira = smoothstep(0.12, 0.5, wf) * (1.0 - agua);        // terra molhada na margem
@@ -118,7 +121,7 @@ void fragment() {
 	if (agua > 0.0) {
 		vec2 corre = fluxo.z > 0.5 ? vec2(fluxo.x, -fluxo.y) * 0.35 : vec2(0.02, 0.013);
 		vec2 uva = uv + corre * TIME;
-		float fundo = smoothstep(0.3, 0.7, campo(grade + w2 * 0.8, true));
+		float fundo = smoothstep(0.2, 0.8, mar_v.y + (d - 0.5) * 0.2);
 		c_agua = mix(texture(texturas, vec3(uva, primeira_agua)).rgb, texture(texturas, vec3(uva, primeira_agua + 1.0)).rgb, fundo);
 		vec2 corre_onda = fluxo.z > 0.5 ? vec2(fluxo.x, -fluxo.y) * 0.12 : vec2(0.05, 0.0);
 		onda = texture(detalhe, mundo.xz * 0.12 + corre_onda * TIME).r;

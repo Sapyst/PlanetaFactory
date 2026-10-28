@@ -299,6 +299,9 @@ func test_rota_rapida() -> void:
 	var c := _c()
 	for x in range(-10, 11, 2):
 		c.executar(c.plano_peca("bau", Vector2i(x, 0), 0))
+	for x in range(-40, 41, 8):                # chunks e regiões de água/relevo já calculados (custo de uma vez)
+		for y in range(-40, 41, 8):
+			c.mapa.gerador.nivel(Vector2i(x, y))
 	var t0 := Time.get_ticks_usec()
 	var p := c.plano_linha("esteira", Vector2i(-12, -4), Vector2i(12, 4), 0)
 	var ms := (Time.get_ticks_usec() - t0) / 1000.0
