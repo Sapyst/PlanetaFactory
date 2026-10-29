@@ -141,6 +141,67 @@
   ],
   "modelo": "res://assets/modelos/defesa/torre_defesa.glb"
  },
+ "acumulador": {
+  "nome": "acumulador",
+  "categoria": "energia",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "acumulador: quatro células octogonais com faixa de carga e núcleo de cristal que pulsa no meio; guarda a sobra de energia da rede e devolve quando falta.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "cristal",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.04,
+     1.5
+    ]
+   }
+  ],
+  "portas": [],
+  "terminais": [
+   [
+    -0.85,
+    -0.85,
+    0.372
+   ],
+   [
+    -0.85,
+    0.85,
+    0.372
+   ],
+   [
+    0.85,
+    -0.85,
+    0.372
+   ],
+   [
+    0.85,
+    0.85,
+    0.372
+   ]
+  ],
+  "tris": 1278,
+  "dims": [
+   1.9,
+   1.9,
+   1.69
+  ],
+  "modelo": "res://assets/modelos/energia/acumulador.glb"
+ },
  "gerador": {
   "nome": "gerador",
   "categoria": "energia",
@@ -230,6 +291,58 @@
    1.84
   ],
   "modelo": "res://assets/modelos/energia/gerador.glb"
+ },
+ "painel_solar": {
+  "nome": "painel_solar",
+  "categoria": "energia",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "painel solar: duas placas de células inclinadas para o sul sobre cavaletes, moldura de aço; gera energia com sol (menos com nuvem e chuva), sem combustível.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "terminais": [
+   [
+    -0.85,
+    -0.85,
+    0.372
+   ],
+   [
+    -0.85,
+    0.85,
+    0.372
+   ],
+   [
+    0.85,
+    -0.85,
+    0.372
+   ],
+   [
+    0.85,
+    0.85,
+    0.372
+   ]
+  ],
+  "tris": 580,
+  "dims": [
+   1.9,
+   1.9,
+   1.076
+  ],
+  "modelo": "res://assets/modelos/energia/painel_solar.glb"
  },
  "poste_energia": {
   "nome": "poste_energia",
@@ -390,6 +503,67 @@
    2.895
   ],
   "modelo": "res://assets/modelos/energia/torre_sem_fio.glb"
+ },
+ "turbina_eolica": {
+  "nome": "turbina_eolica",
+  "categoria": "energia",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "turbina eólica: torre octogonal afilada, nacele e hélice de 3 pás virada para o sul (gira com o vento); gera energia sem combustível.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "helice",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     -0.36,
+     2.72
+    ]
+   }
+  ],
+  "portas": [],
+  "terminais": [
+   [
+    -0.85,
+    -0.85,
+    0.372
+   ],
+   [
+    -0.85,
+    0.85,
+    0.372
+   ],
+   [
+    0.85,
+    -0.85,
+    0.372
+   ],
+   [
+    0.85,
+    0.85,
+    0.372
+   ]
+  ],
+  "tris": 624,
+  "dims": [
+   1.9,
+   1.9,
+   3.64
+  ],
+  "modelo": "res://assets/modelos/energia/turbina_eolica.glb"
  },
  "aranha_corpo": {
   "nome": "aranha_corpo",
@@ -1380,6 +1554,36 @@
    0.62
   ],
   "modelo": "res://assets/modelos/logistica/armazenagem/bau.glb"
+ },
+ "bau_grande": {
+  "nome": "bau_grande",
+  "categoria": "logistica/armazenagem",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Baú grande 2×2 (4× o baú). Braços colocam e tiram por qualquer lado.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 84,
+  "dims": [
+   1.82,
+   1.755,
+   0.94
+  ],
+  "modelo": "res://assets/modelos/logistica/armazenagem/bau_grande.glb"
  },
  "braco": {
   "nome": "braco",

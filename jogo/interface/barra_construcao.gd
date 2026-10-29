@@ -449,8 +449,8 @@ func _mostrar_categoria(i: int) -> void:
 		var partes: Array[String] = []
 		for it in custo:
 			partes.append("%d %s" % [custo[it], Registro.itens.get(it, {}).get("nome", it).to_lower()])
-		var kw := float(Registro.estruturas.get(nome, {}).get("energia_kw", 0.0))
-		var extra := (" · ⚡%d kW" % kw) if kw > 0.0 else ""
+		var f := ficha(nome)
+		var extra := (" · " + f) if f != "" else ""
 		var bloqueada: bool = liberado.is_valid() and not liberado.call(nome)
 		b.text = "%s%s\n%s\n%s%s" % [rotulo(nome), "" if toque else "  (%d)" % (k + 1), expl.get(nome, ""),
 				"🔒 pesquisar" if bloqueada else ", ".join(partes), "" if bloqueada else extra]
@@ -463,6 +463,26 @@ func _mostrar_categoria(i: int) -> void:
 		_botoes_peca[nome] = b
 	if _botoes_ferr.has("remover"):
 		marcar(_selecionada, _removendo)
+
+
+## Dados técnicos curtos da peça: consumo/geração de energia, armazenamento e integridade.
+static func ficha(nome: String) -> String:
+	var r: Dictionary = Registro.estruturas.get(nome, Registro.estruturas.get(nome + "_reta", {}))
+	var p: Array[String] = []
+	var kw := float(r.get("energia_kw", 0.0))
+	if kw > 0.0:
+		p.append("⚡ usa %d kW" % kw)
+	elif kw < 0.0:
+		p.append("⚡ gera %d kW" % -kw)
+	if r.has("acumula_mj"):
+		p.append("guarda %d MJ" % r.acumula_mj)
+	if r.has("capacidade_itens"):
+		p.append("%d itens" % r.capacidade_itens)
+	if r.has("capacidade") and int(r.capacidade) > 100:
+		p.append("%d de fluido" % r.capacidade)
+	if r.has("vida"):
+		p.append("♥ %d" % r.vida)
+	return " · ".join(p)
 
 
 func _icone(modelo: String) -> Texture2D:

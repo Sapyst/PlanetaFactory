@@ -1,0 +1,35 @@
+{
+ "nome": "bau_grande",
+ "categoria": "logistica/armazenagem",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Baú grande 2×2 (4× o baú). Braços colocam e tiram por qualquer lado.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 84,
+ "dims": [
+  1.82,
+  1.755,
+  0.94
+ ],
+ "materiais": [
+  "P_Cobre",
+  "P_Escuro",
+  "P_Faixa",
+  "P_Metal"
+ ]
+}

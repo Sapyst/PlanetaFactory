@@ -1,0 +1,67 @@
+{
+ "nome": "acumulador",
+ "categoria": "energia",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "acumulador: quatro células octogonais com faixa de carga e núcleo de cristal que pulsa no meio; guarda a sobra de energia da rede e devolve quando falta.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "cristal",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.04,
+    1.5
+   ]
+  }
+ ],
+ "portas": [],
+ "terminais": [
+  [
+   -0.85,
+   -0.85,
+   0.372
+  ],
+  [
+   -0.85,
+   0.85,
+   0.372
+  ],
+  [
+   0.85,
+   -0.85,
+   0.372
+  ],
+  [
+   0.85,
+   0.85,
+   0.372
+  ]
+ ],
+ "tris": 1278,
+ "dims": [
+  1.9,
+  1.9,
+  1.69
+ ],
+ "materiais": [
+  "P_Aco",
+  "P_Cobre",
+  "P_Concreto",
+  "P_Cristal",
+  "P_Escuro"
+ ]
+}

@@ -9,6 +9,7 @@ extends Node
 ##   _antena   gira (laboratório)           _cabecote sobe/desce (bomba)
 ##   _giro/_braco1/_braco2/_garra           braço mecânico (pega atrás, solta na frente)
 ##   _giro/_canhao                          torre (mira `alvo`)
+##   _helice   gira no eixo norte–sul (turbina eólica; `ritmo` = vento)
 
 @export var ativo := true
 @export var ritmo := 1.0
@@ -55,6 +56,9 @@ func _process(delta: float) -> void:
 		_gira("rotor", t * 2.5)
 	if tem("antena"):
 		_gira("antena", t * 0.8)
+	if tem("helice"):
+		var b: Transform3D = _base["helice"]
+		(_partes["helice"] as Node3D).transform = Transform3D(Basis(Vector3(0, 0, 1), t * 3.0) * b.basis, b.origin)
 	if tem("cabecote"):
 		_desloca("cabecote", Vector3(0, absf(sin(t * 4.0)) * 0.10 if ativo else 0.0, 0))
 	if tem("braco") and not tem("braco1"):

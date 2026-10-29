@@ -1,0 +1,68 @@
+{
+ "nome": "turbina_eolica",
+ "categoria": "energia",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "turbina eólica: torre octogonal afilada, nacele e hélice de 3 pás virada para o sul (gira com o vento); gera energia sem combustível.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "helice",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    -0.36,
+    2.72
+   ]
+  }
+ ],
+ "portas": [],
+ "terminais": [
+  [
+   -0.85,
+   -0.85,
+   0.372
+  ],
+  [
+   -0.85,
+   0.85,
+   0.372
+  ],
+  [
+   0.85,
+   -0.85,
+   0.372
+  ],
+  [
+   0.85,
+   0.85,
+   0.372
+  ]
+ ],
+ "tris": 624,
+ "dims": [
+  1.9,
+  1.9,
+  3.64
+ ],
+ "materiais": [
+  "P_Aco",
+  "P_Cobre",
+  "P_Concreto",
+  "P_Cristal",
+  "P_Escuro",
+  "P_Metal"
+ ]
+}

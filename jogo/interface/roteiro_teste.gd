@@ -39,6 +39,7 @@ func _ready() -> void:
 		"enxurrada": _roteiro_enxurrada()
 		"canal": _roteiro_canal()
 		"limpeza": _roteiro_limpeza()
+		"energia": _roteiro_energia()
 		"filtro": _roteiro_filtro()
 		"interface": _roteiro_interface()
 		"grama": _roteiro_grama()
@@ -843,6 +844,79 @@ func _roteiro_painel() -> void:
 				clicar(_tela_mundo(Grade.centro_da_area(e.minimo, e.area, e.rot))))
 	em(46, func(): clicar(_botao_detalhe(2)))
 	# quadro ~60: painel da fornalha com a receita escolhida
+
+
+## Variações de energia: painel solar, turbina eólica, acumulador, baú grande e montadora em turbo (avariada).
+## Quadro ~40: painel do acumulador; ~100: painel da montadora (integridade, reparo, liga/desliga, modos).
+var _ids := {}
+var _ids_o := Vector2i.ZERO
+
+
+func _roteiro_energia() -> void:
+	em(2, func():
+		Sessao.config.fps = false
+		var g := Grade.gerador
+		var o := Vector2i(9999, 0)
+		for r in range(14, 80, 2):
+			for k in 32:
+				var c := Vector2i((Vector2.from_angle(k * TAU / 32.0) * r).round())
+				if o.x != 9999:
+					continue
+				var ok := true
+				for i in 10:
+					for j in 9:
+						var t := c + Vector2i(i, j)
+						if g.terreno(t) != GeradorMundo.Terreno.TERRA or g.nivel(t) != g.nivel(c) or g.em_encosta(t) or cena.mapa.tiles.has(t):
+							ok = false
+				if ok:
+					o = c
+		print("ENERGIA em ", o)
+		_ids_o = o
+		var con: Construtor = cena.construtor
+		for i in range(-1, 11):
+			for j in range(-1, 10):
+				cena.mapa.limpar_obstaculo(o + Vector2i(i, j))
+		var p := func(nome: String, d: Vector2i) -> void:
+			cena.sincronizar(con.executar(con.plano_peca(nome, o + d, 0)))
+			_ids[nome] = cena.mapa.tiles.get(o + d, -1)
+		p.call("painel_solar", Vector2i(0, 0))
+		p.call("turbina_eolica", Vector2i(0, 3))
+		p.call("acumulador", Vector2i(3, 0))
+		p.call("poste_energia", Vector2i(4, 3))
+		p.call("montadora", Vector2i(6, 0))
+		p.call("bau_grande", Vector2i(3, 5))
+		cena.clima.forcar("limpo", true)
+		cena.camera.alvo = Grade.centro_mundo(o + Vector2i(4, 3))
+		cena.camera.distancia = 12.0
+		cena.camera.posicionar())
+	em(6, func():
+		var f: Fabrica = cena.fabrica
+		var mq: int = _ids.montadora
+		cena.mapa.estruturas[mq]["modo"] = "turbo"
+		cena.colonia.vida[mq] = 140.0
+		f.reconstruir()
+		f.escolher_receita(mq, "engrenagem")
+		f.maquinas[mq].entradas = {"placa_ferro": 4}
+		f.maquinas[mq].acordar()
+		f.baus[_ids.bau_grande].merge({"placa_ferro": 900, "engrenagem": 240})
+		f.acumulado[_ids.acumulador] = 31.0
+		f._membros[_ids.acumulador].acum_mj = 31.0)
+	em(20, func(): _clicar_id(_ids.acumulador))
+	em(70, func(): _clicar_id(_ids.montadora))
+	em(122, func(): cena.selecionar(Vector2.INF))
+	em(130, func(): clicar(botao("cat:5")))
+	# quadro ~160: peças de Energia com a ficha (gera/usa kW, MJ, itens, integridade)
+	em(170, func():
+		cena.controle.barra.fechar_pecas()
+		cena.camera.alvo = Grade.centro_mundo(_ids_o + Vector2i(1, 4))
+		cena.camera.distancia = 8.0
+		cena.camera.posicionar())
+	# quadros 180+: turbina girando de perto
+
+
+func _clicar_id(id: int) -> void:
+	var e: Dictionary = cena.mapa.estruturas[id]
+	clicar(_tela_mundo(Grade.centro_da_area(e.minimo, e.area, e.rot)))
 
 
 ## Resumo do estado que tem que sobreviver a salvar + carregar.

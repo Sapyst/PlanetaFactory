@@ -20,6 +20,8 @@ const ESTOQUE_FOGO_MJ := 8.0     ## aceita combustível até ter isso guardado
 const ESTOQUE_GERADOR_MJ := 40.0
 const TIROS_POR_MUNICAO := 10
 const BAU_MAX := 1600
+## Modo de trabalho (opção interna de máquina elétrica): [velocidade, energia, poluição].
+const MODOS := {"eco": [0.5, 0.4, 0.6], "normal": [1.0, 1.0, 1.0], "turbo": [1.5, 2.0, 1.6]}
 
 var mapa: MapaOcupacao
 var rede := RedeEnergia.new()
@@ -45,6 +47,9 @@ var _no_tile: Dictionary = {}          ## tile → [caminho, índice do tile no 
 var _no_nivel: Dictionary = {}         ## Vector3i(x, y, nível de entrada) → [caminho, índice]
 var _saidas_portas: Array[Dictionary] = []   ## {origem: Object, tile: Vector2i}
 var _membros: Dictionary = {}          ## id → membro da rede (dict)
+var acumulado: Dictionary = {}         ## id do acumulador → MJ guardados
+var sol := 1.0                         ## 0..1: quanto os painéis solares rendem agora (o mundo passa do clima)
+var vento := 0.5                       ## 0..1: idem para as turbinas eólicas
 var juncoes: Array[Dictionary] = []    ## itens que acabaram de entrar pela lateral: {caminho, pos, lado, passo} (desenho desliza)
 
 const EXTRA_JUNCAO := 0.375            ## m além da borda na rampa de junção (o item para a 0,25 m do eixo da vizinha)
@@ -68,7 +73,7 @@ func reconstruir() -> void:
 	var vivos := {}
 	for id in mapa.estruturas:
 		vivos[id] = true
-	for d in [maquinas, bracos, baus, combustivel, laboratorios, distribuidores]:
+	for d in [maquinas, bracos, baus, combustivel, laboratorios, distribuidores, acumulado]:
 		for id in d.keys():
 			if not vivos.has(id):
 				d.erase(id)
@@ -205,11 +210,12 @@ func _montar_maquinas() -> void:
 					m.definir_receita("coletar_lixo", Registro.receitas["coletar_lixo"])
 				"viveiro":
 					m.definir_receita("plantar_muda", Registro.receitas["plantar_muda"])
+		maquinas[id].velocidade = float(r.get("velocidade", 1.0)) * float(modo(id)[0])
 		if r.get("combustivel", false) and not combustivel.has(id):
 			combustivel[id] = 0.0
 	for id in mapa.estruturas:
 		var e: Dictionary = mapa.estruturas[id]
-		if e.nome == "bau" and not baus.has(id):
+		if Registro.estruturas.get(e.nome, {}).get("grupo", "") == "armazem" and not baus.has(id):
 			baus[id] = {}
 		if e.nome == "gerador" and not combustivel.has(id):
 			combustivel[id] = 0.0
@@ -217,6 +223,38 @@ func _montar_maquinas() -> void:
 			laboratorios[id] = {"pacotes": 0, "t": 0.0, "energia": 0.0}
 		if (e.nome == "divisor" or e.nome == "juncao") and not distribuidores.has(id):
 			distribuidores[id] = {"buffer": [], "vez": 0}
+		if Registro.estruturas.get(e.nome, {}).has("acumula_mj") and not acumulado.has(id):
+			acumulado[id] = 0.0
+
+
+## Opções internas guardadas na própria estrutura do mapa (vão junto no salvamento).
+func modo(id: int) -> Array:
+	return MODOS.get(mapa.estruturas[id].get("modo", "normal"), MODOS.normal) if mapa.estruturas.has(id) else MODOS.normal
+
+
+func ligada(id: int) -> bool:
+	return mapa.estruturas.has(id) and not mapa.estruturas[id].get("desligada", false)
+
+
+## Quantos itens cabem no baú (capacidade do modelo × limite escolhido pelo jogador).
+func capacidade_bau(id: int) -> int:
+	var e: Dictionary = mapa.estruturas[id]
+	return int(float(Registro.estruturas.get(e.nome, {}).get("capacidade_itens", BAU_MAX)) * float(e.get("limite", 1.0)))
+
+
+## Consumo (+) ou geração máxima (−) de agora, em kW, já com modo e liga/desliga.
+func kw_de(id: int) -> float:
+	var e: Dictionary = mapa.estruturas[id]
+	var regra: Dictionary = Registro.estruturas.get(e.nome, {})
+	var kw := float(regra.get("energia_kw", 0.0))
+	if not ligada(id):
+		return 0.0
+	if kw > 0.0:
+		kw *= float(modo(id)[1])
+	match regra.get("renovavel", ""):
+		"sol": kw *= sol
+		"vento": kw *= vento
+	return kw
 
 
 ## Broca: a jazida que mais aparece debaixo dela.
@@ -245,11 +283,15 @@ func _montar_energia() -> void:
 		if papel == "":
 			continue
 		var regra: Dictionary = Registro.estruturas.get(e.nome, {})
-		var kw := float(regra.get("energia_kw", 0.0))
 		var mj := float(combustivel.get(id, 0.0)) if papel == "fonte" else 0.0
-		if regra.get("inesgotavel", false):
-			mj = 1.0e12                      # núcleo: fonte própria (pouca potência, não acaba)
-		_membros[id] = rede.adicionar(id, kw, mj)
+		# núcleo (fonte própria, pouca potência) e renováveis não gastam nada
+		var livre: bool = regra.get("inesgotavel", false) or regra.has("renovavel")
+		_membros[id] = rede.adicionar(id, kw_de(id), 1.0e12 if livre else mj, livre)
+		if regra.has("acumula_mj"):
+			var a: Dictionary = _membros[id]
+			a.acum_cap = float(regra.acumula_mj)
+			a.acum_kw = float(regra.acumula_kw) if ligada(id) else 0.0
+			a.acum_mj = float(acumulado.get(id, 0.0))
 	for id in _membros:
 		for o in mapa.estruturas[id].get("fios", []):
 			if o > id:
@@ -378,7 +420,7 @@ func origem_em(t: Vector2i) -> Object:
 	if maquinas.has(id):
 		return _NaMaquina.new(self, id)
 	if baus.has(id):
-		return _NoBau.new(baus[id])
+		return _NoBau.new(baus[id], capacidade_bau(id))
 	if estoques.has(id):
 		return _NaEstacao.new(estoques[id])
 	return null
@@ -395,7 +437,7 @@ func destino_em(t: Vector2i) -> Object:
 	if maquinas.has(id):
 		return _NaMaquina.new(self, id)
 	if baus.has(id):
-		return _NoBau.new(baus[id])
+		return _NoBau.new(baus[id], capacidade_bau(id))
 	if estoques.has(id):
 		return _NaEstacao.new(estoques[id])
 	if nome == "torre_defesa":
@@ -422,18 +464,25 @@ func tick(dt: float) -> void:
 		juncoes.pop_front()
 	emissao.clear()
 	for id in _membros:
-		if _membros[id].kw < 0.0:
-			_membros[id].combustivel_mj = combustivel.get(id, 0.0)
+		var mb: Dictionary = _membros[id]
+		if mb.livre:
+			mb.kw = kw_de(id)                   # renovável: rende conforme o sol/vento de agora
+		elif mb.kw < 0.0:
+			mb.combustivel_mj = combustivel.get(id, 0.0)
 	rede.tick(dt)
 	for id in _membros:
 		var m: Dictionary = _membros[id]
+		if m.acum_cap > 0.0:
+			acumulado[id] = m.acum_mj
+		if m.livre or m.acum_cap > 0.0:
+			continue
 		if m.kw < 0.0:
 			var antes: float = combustivel.get(id, 0.0)
 			combustivel[id] = m.combustivel_mj
 			if m.combustivel_mj < antes:
 				_emitir(id, (antes - m.combustivel_mj) / (-m.kw / 1000.0))   # segundos equivalentes a plena carga
 		else:
-			var en: float = rede.satisfacao_por_rede.get(m.rede, 0.0) if m.rede >= 0 else 0.0
+			var en: float = rede.satisfacao_por_rede.get(m.rede, 0.0) if m.rede >= 0 and ligada(id) else 0.0
 			var o: Object = maquinas.get(id, bracos.get(id))
 			if o != null:
 				o.set("energia", en)
@@ -442,7 +491,7 @@ func tick(dt: float) -> void:
 	for id in maquinas:
 		var m: Maquina = maquinas[id]
 		if combustivel.has(id):
-			m.energia = 1.0 if combustivel[id] > 0.0 else 0.0
+			m.energia = 1.0 if combustivel[id] > 0.0 and ligada(id) else 0.0
 		m.tick(dt)
 		if m.estado == Maquina.Estado.TRABALHANDO:
 			_emitir(id, dt * m.energia)
@@ -500,7 +549,7 @@ func _emitir(id: int, segundos: float) -> void:
 	var nome: String = mapa.estruturas[id].nome
 	var p := float(Registro.estruturas.get(nome, {}).get("poluicao", 0.0))
 	if p > 0.0:
-		emissao[id] = float(emissao.get(id, 0.0)) + p / 60.0 * segundos
+		emissao[id] = float(emissao.get(id, 0.0)) + p / 60.0 * segundos * float(modo(id)[2])
 
 
 ## Ponto do mundo (plano da grade) de um item na esteira: `pos` = distância da saída do caminho.
@@ -657,7 +706,7 @@ func estado() -> Dictionary:
 	for id in bracos:
 		var b: Braco = bracos[id]
 		br[id] = {"segurando": b.segurando, "estado": b.estado, "t": b.t}
-	return {"maquinas": maq, "bracos": br, "baus": baus, "combustivel": combustivel, "laboratorios": laboratorios,
+	return {"maquinas": maq, "bracos": br, "baus": baus, "combustivel": combustivel, "laboratorios": laboratorios, "acumulado": acumulado,
 			"distribuidores": distribuidores, "fluidos": _guardar_fluidos(), "itens": _guardar_itens()}
 
 
@@ -689,6 +738,11 @@ func restaurar(d: Dictionary) -> void:
 			baus[id].merge(d.baus[id], true)
 	for id in d.get("combustivel", {}):
 		combustivel[id] = d.combustivel[id]
+	for id in d.get("acumulado", {}):
+		if acumulado.has(id):
+			acumulado[id] = d.acumulado[id]
+			if _membros.has(id):
+				_membros[id].acum_mj = d.acumulado[id]
 	for id in d.get("distribuidores", {}):
 		if distribuidores.has(id):
 			distribuidores[id].merge(d.distribuidores[id], true)
@@ -795,12 +849,15 @@ class _NaMaquina:
 
 class _NoBau:
 	var b: Dictionary
-	func _init(p_b: Dictionary) -> void: b = p_b
+	var cap: int
+	func _init(p_b: Dictionary, p_cap: int) -> void:
+		b = p_b
+		cap = p_cap
 	func _total() -> int:
 		var n := 0
 		for k in b: n += int(b[k])
 		return n
-	func aceita(_i: String) -> bool: return _total() < Fabrica.BAU_MAX
+	func aceita(_i: String) -> bool: return _total() < cap
 	func receber(i: String) -> bool:
 		if not aceita(i): return false
 		b[i] = int(b.get(i, 0)) + 1

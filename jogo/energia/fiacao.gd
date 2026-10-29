@@ -11,12 +11,12 @@ class_name Fiacao
 const MAX_POSTES := 5
 
 
-## Papel elétrico: "poste" (poste/torre: liga coisas), "fonte" (gerador), "consumo" (precisa de energia) ou "".
+## Papel elétrico: "poste" (poste/torre: liga coisas), "fonte" (gerador, solar, eólica, acumulador), "consumo" (precisa de energia) ou "".
 static func papel(nome: String) -> String:
 	var r: Dictionary = Registro.estruturas.get(nome, {})
 	if r.get("grupo", "") == "poste":
 		return "poste"
-	if nome == "gerador":
+	if r.get("grupo", "") in ["gerador", "acumulador"]:
 		return "fonte"
 	if float(r.get("energia_kw", 0.0)) > 0.0:
 		return "consumo"

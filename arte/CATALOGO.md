@@ -1,6 +1,6 @@
 # Catálogo de modelos
 
-110 modelos. Gerado por `blender_scripts/catalogo.py` — não editar à mão.
+114 modelos. Gerado por `blender_scripts/catalogo.py` — não editar à mão.
 
 Portas: `ITEM`/`FLUIDO`/`TRILHO`, `ENT`/`SAI`, lado (S/N/L/O) e índice do tile na borda. Ficam no .glb como nós `PORTA_*`.
 Partes: peças móveis exportadas separadas (o jogo anima pelo nome — ver jogo/render/animacao/animador.gd).
@@ -78,6 +78,7 @@ Texturas de chão em `texturas/` (loop sem emenda; relatório em `texturas/_emen
 | Modelo | Área | Tri | Dimensões (m) | Portas | Descrição |
 |---|---|---|---|---|---|
 | `bau` | 1×1 | 60 | 0,84 × 0,78 × 0,62 | — | Baú 1×1. Braços colocam e tiram por qualquer lado. |
+| `bau_grande` | 2×2 | 84 | 1,82 × 1,75 × 0,94 | — | Baú grande 2×2 (4× o baú). Braços colocam e tiram por qualquer lado. |
 
 ## Canos e bomba
 
@@ -109,10 +110,13 @@ Texturas de chão em `texturas/` (loop sem emenda; relatório em `texturas/_emen
 
 | Modelo | Área | Tri | Dimensões (m) | Portas | Descrição |
 |---|---|---|---|---|---|
+| `acumulador` | 2×2 | 1278 | 1,90 × 1,90 × 1,69 | — · partes: cristal | acumulador: quatro células octogonais com faixa de carga e núcleo de cristal que pulsa no meio; guarda a sobra de energia da rede e devolve quando falta. |
 | `gerador` | 2×2 | 1188 | 1,90 × 1,95 × 1,84 | ITEM_ENT_S1 · partes: antena, pistao0, pistao1 | gerador: câmara de reação vertical com anéis de contenção e núcleo luminoso; combustível entra pelo sul. Energia vai por postes. |
+| `painel_solar` | 2×2 | 580 | 1,90 × 1,90 × 1,08 | — | painel solar: duas placas de células inclinadas para o sul sobre cavaletes, moldura de aço; gera energia com sol (menos com nuvem e chuva), sem combustível. |
 | `poste_energia` | 1×1 | 94 | 0,70 × 0,40 × 2,30 | — | Poste de energia: liga máquinas num raio. Ocupa só o centro do tile. |
 | `tanque` | 2×2 | 322 | 2,00 × 2,00 × 1,70 | FLUIDO_SAI_S0, FLUIDO_SAI_N0, FLUIDO_SAI_L0, FLUIDO_SAI_O0 | Tanque de fluido. Canos nos 4 lados (tile da esquerda de cada lado). |
 | `torre_sem_fio` | 1×1 | 250 | 0,80 × 0,80 × 2,90 | — · partes: cristal | Torre de energia sem fio: liga postes/torres e máquinas a distância, sem cabo. |
+| `turbina_eolica` | 2×2 | 624 | 1,90 × 1,90 × 3,64 | — · partes: helice | turbina eólica: torre octogonal afilada, nacele e hélice de 3 pás virada para o sul (gira com o vento); gera energia sem combustível. |
 
 ## Defesa
 

@@ -157,6 +157,30 @@ func _comecar_novo() -> void:
 	camera.posicionar()
 
 
+## Reparo: 1 placa de ferro a cada 25 pontos de integridade que faltam (vazio = inteira).
+func custo_reparo(id: int) -> Dictionary:
+	if not colonia.vida.has(id) or not mapa.estruturas.has(id):
+		return {}
+	var falta: float = float(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("vida", 0)) - colonia.vida[id]
+	return {"placa_ferro": int(ceil(falta / 25.0))} if falta > 0.0 else {}
+
+
+func reparar(id: int) -> bool:
+	var custo := custo_reparo(id)
+	if custo.is_empty():
+		return false
+	if construtor.cobrar:
+		for k in custo:
+			if int(inventario.get(k, 0)) < int(custo[k]):
+				controle._avisar("Faltam itens no núcleo para reparar")
+				return false
+		for k in custo:
+			inventario[k] = int(inventario[k]) - int(custo[k])
+	colonia.vida.erase(id)
+	Som.tocar("construir")
+	return true
+
+
 ## Dano do ambiente (fogo, tufão) na mesma vida que as aranhas usam; zerou, cai.
 func _danificar(id: int, pontos: float) -> void:
 	if not mapa.estruturas.has(id):
@@ -796,11 +820,13 @@ func _fontes_calor() -> Array:
 
 ## Animação segue a simulação: máquina mexe só trabalhando; braço pela fase do ciclo.
 var _versao_bracos := -1
+var _turbinas: Array = []
 
 
 func _animar_estruturas() -> void:
 	if _versao_bracos != mapa.versao:              # vizinho mudou: refaz onde cada braço pega/solta
 		_versao_bracos = mapa.versao
+		_turbinas = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).get("renovavel", "") == "vento")
 		for id in fabrica.bracos:
 			var ab := _animador(id)
 			if ab != null and mapa.estruturas.has(id):
@@ -809,6 +835,16 @@ func _animar_estruturas() -> void:
 		var a := _animador(id)
 		if a != null:
 			a.ativo = animar_tudo or fabrica.maquinas[id].estado == Maquina.Estado.TRABALHANDO
+	for id in fabrica.acumulado:
+		var a := _animador(id)
+		if a != null:
+			a.ativo = animar_tudo or fabrica.ligada(id)
+	for id in _turbinas:
+		if mapa.estruturas.has(id):
+			var a := _animador(id)
+			if a != null:
+				a.ativo = animar_tudo or fabrica.ligada(id)
+				a.ritmo = 0.3 + fabrica.vento
 	for id in fabrica.bracos:
 		var a := _animador(id)
 		if a != null:
@@ -827,6 +863,9 @@ func _animador(id: int) -> Animador:
 
 ## Poluição, aranhas e trens (rodam mesmo se a mini-fábrica parar).
 func _tick_mundo(dt: float) -> void:
+	# renováveis: sol (luz, menos nuvem e chuva) e vento do clima de agora
+	fabrica.sol = clampf(float(clima.valores.luz) * (1.0 - 0.5 * float(clima.valores.nuvens)) * (1.0 - 0.6 * float(clima.valores.chuva)), 0.0, 1.0)
+	fabrica.vento = clampf(0.15 + 0.85 * float(clima.valores.vento), 0.0, 1.0)
 	if _fabrica_suja:
 		fabrica.reconstruir()
 		_fabrica_suja = false
@@ -978,9 +1017,15 @@ func _detalhe() -> void:
 	var titulo: String = controle.barra.rotulo(e.nome)
 	var linhas: Array[String] = []
 	var botoes := []
-	var vida_max: float = Registro.estruturas.get(e.nome, {}).get("vida", 0)
-	if colonia.vida.has(id):
-		linhas.append("Vida: %d de %d" % [colonia.vida[id], vida_max])
+	var opcoes := []                     ## opções internas (reparar, ligar, modo) vêm antes das receitas
+	var regra: Dictionary = Registro.estruturas.get(e.nome, {})
+	var vida_max: float = regra.get("vida", 0)
+	if vida_max > 0.0:
+		var v: float = colonia.vida.get(id, vida_max)
+		linhas.append("Integridade: %d de %d (%d%%)%s" % [ceilf(v), vida_max, v / vida_max * 100.0, "" if v < vida_max else " — inteira"])
+		var custo := custo_reparo(id)
+		if not custo.is_empty() and e.nome != "ninho_aranha":
+			opcoes.append({"texto": "Reparar (%s)" % _lista_itens(custo), "acao": func(): reparar(id); _detalhe()})
 	if fabrica.maquinas.has(id):
 		var m: Maquina = fabrica.maquinas[id]
 		linhas.append("Estado: %s" % NOMES_ESTADO[m.estado])
@@ -1033,7 +1078,14 @@ func _detalhe() -> void:
 	elif fabrica.laboratorios.has(id):
 		linhas.append("Pacotes de pesquisa: %d de 10\nEnergia: %d%%" % [fabrica.laboratorios[id].pacotes, fabrica.laboratorios[id].energia * 100])
 	elif fabrica.baus.has(id):
+		var n := 0
+		for k in fabrica.baus[id]:
+			n += int(fabrica.baus[id][k])
+		linhas.append("Armazenamento: %d de %d itens (máximo do baú: %d)" % [n, fabrica.capacidade_bau(id), regra.get("capacidade_itens", Fabrica.BAU_MAX)])
 		linhas.append("Conteúdo: %s" % _lista_itens(fabrica.baus[id]))
+		for lim in [0.25, 0.5, 1.0]:
+			botoes.append({"texto": "Limite: %d%% (%d itens)" % [lim * 100, int(regra.get("capacidade_itens", Fabrica.BAU_MAX) * lim)],
+					"ligado": is_equal_approx(float(e.get("limite", 1.0)), lim), "acao": func(): e["limite"] = lim; _detalhe()})
 	elif colonia.ninhos.has(id):
 		var fu: float = colonia.ninhos[id].get("furia", 0.0)
 		linhas.append("Aranhas: %d" % colonia.aranhas_do_ninho(id).size())
@@ -1076,9 +1128,34 @@ func _detalhe() -> void:
 			linhas.append("Fios: %d · alcance %d m até outro poste, %d m até máquinas%s" % [e.get("fios", []).size(), r.raio_fio, r.raio_ligacao,
 					" (sem fio)" if Fiacao.eh_sem_fio(e.nome) else ""])
 			linhas.append("Na rede: %s" % ("gerador ligado" if fabrica.rede.tem_fonte(id) else "nenhum gerador"))
+		"fonte":
+			if regra.has("acumula_mj"):
+				linhas.append("Guardado: %.1f de %.0f MJ · carrega/descarrega até %d kW" % [fabrica.acumulado.get(id, 0.0), regra.acumula_mj, regra.acumula_kw])
+			else:
+				var agora: float = -fabrica.kw_de(id)
+				var nota: String = {"sol": " (sol agora: %d%%)" % (fabrica.sol * 100), "vento": " (vento agora: %d%%)" % (fabrica.vento * 100)}.get(regra.get("renovavel", ""), "")
+				linhas.append("Geração: até %d kW agora, máximo %d kW%s" % [agora, -float(regra.get("energia_kw", 0.0)), nota])
+	# ficha da rede elétrica em que está ligada
+	var est := fabrica.rede.estat_de(id)
+	if not est.is_empty() and Fiacao.papel(e.nome) != "":
+		var t := "Rede: gera %d kW (pode %d) · consome %d de %d kW" % [est.gera, est.gera_max, est.consumo, est.demanda]
+		if est.acum_cap > 0.0:
+			t += " · acumulado %.0f de %.0f MJ (%s)" % [est.acum, est.acum_cap, "carregando" if est.carga > 0.5 else ("descarregando" if est.carga < -0.5 else "parado")]
+		linhas.append(t)
+	# opções internas: ligar/desligar (tudo que usa ou gera energia, e máquinas) e modo de trabalho (máquinas elétricas)
+	if Fiacao.papel(e.nome) in ["consumo", "fonte"] or fabrica.maquinas.has(id):
+		var liga: bool = not e.get("desligada", false)
+		opcoes.append({"texto": "Ligada" if liga else "Desligada (toque para ligar)", "ligado": liga,
+				"acao": func(): e["desligada"] = liga; _fabrica_suja = true; _detalhe()})
+	if fabrica.maquinas.has(id) and float(regra.get("energia_kw", 0.0)) > 0.0:
+		var kw := float(regra.energia_kw)
+		for mo in [["eco", "Econômico"], ["normal", "Normal"], ["turbo", "Turbo"]]:
+			var k: Array = Fabrica.MODOS[mo[0]]
+			opcoes.append({"texto": "%s: %d%% velocidade · %d kW · %d%% poluição" % [mo[1], k[0] * 100, kw * k[1], k[2] * 100],
+					"ligado": e.get("modo", "normal") == mo[0], "acao": func(): e["modo"] = mo[0]; _fabrica_suja = true; _detalhe()})
 	if linhas.is_empty():
 		linhas.append(Registro.modelos.get(e.nome, {}).get("descricao", ""))
-	barra.detalhe(titulo, "\n".join(linhas), botoes)
+	barra.detalhe(titulo, "\n".join(linhas), opcoes + botoes)
 
 
 func _detalhe_pesquisa() -> void:

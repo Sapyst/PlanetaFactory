@@ -1,0 +1,58 @@
+{
+ "nome": "painel_solar",
+ "categoria": "energia",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "painel solar: duas placas de células inclinadas para o sul sobre cavaletes, moldura de aço; gera energia com sol (menos com nuvem e chuva), sem combustível.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "terminais": [
+  [
+   -0.85,
+   -0.85,
+   0.372
+  ],
+  [
+   -0.85,
+   0.85,
+   0.372
+  ],
+  [
+   0.85,
+   -0.85,
+   0.372
+  ],
+  [
+   0.85,
+   0.85,
+   0.372
+  ]
+ ],
+ "tris": 580,
+ "dims": [
+  1.9,
+  1.9,
+  1.076
+ ],
+ "materiais": [
+  "P_Aco",
+  "P_Cobre",
+  "P_Cristal",
+  "P_Escuro",
+  "P_Vidro"
+ ]
+}

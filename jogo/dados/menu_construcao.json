@@ -19,7 +19,8 @@
     "braco",
     "braco_rapido",
     "braco_longo",
-    "bau"
+    "bau",
+    "bau_grande"
    ]
   },
   {
@@ -56,6 +57,9 @@
    "nome": "Energia",
    "pecas": [
     "gerador",
+    "painel_solar",
+    "turbina_eolica",
+    "acumulador",
     "poste_energia",
     "torre_sem_fio"
    ]
@@ -97,6 +101,7 @@
   "braco_rapido": "Braço rápido",
   "braco_longo": "Braço longo",
   "bau": "Baú",
+  "bau_grande": "Baú grande",
   "cano": "Cano",
   "cano_t": "Cano em T",
   "cano_cruz": "Cano em cruz",
@@ -113,6 +118,9 @@
   "filtro_agua": "Filtro de água",
   "viveiro": "Viveiro",
   "gerador": "Gerador",
+  "painel_solar": "Painel solar",
+  "turbina_eolica": "Turbina eólica",
+  "acumulador": "Acumulador",
   "poste_energia": "Poste",
   "torre_sem_fio": "Torre sem fio",
   "torre_defesa": "Torre",
@@ -168,6 +176,7 @@
   "braco_rapido": "Braço 2× mais rápido (gasta mais energia).",
   "braco_longo": "Braço que alcança 2 tiles.",
   "bau": "Guarda itens; braços põem e tiram.",
+  "bau_grande": "Baú 2×2: guarda 4× mais.",
   "cano": "Leva fluidos. Arraste.",
   "cano_t": "Divide o cano em 3.",
   "cano_cruz": "Cruza canos em 4.",
@@ -184,6 +193,9 @@
   "filtro_agua": "Encostado na água: limpa a água suja em volta (raio 7).",
   "viveiro": "Com seiva pelo cano, planta mudas em volta (raio 8) que viram árvores e limpam o ar e o chão.",
   "gerador": "Queima carvão e gera energia.",
+  "painel_solar": "Energia do sol, sem combustível (rende menos nublado e com chuva).",
+  "turbina_eolica": "Energia do vento, sem combustível (rende mais com vento forte).",
+  "acumulador": "Guarda a sobra de energia da rede e devolve quando falta.",
   "poste_energia": "Leva energia por cabo.",
   "torre_sem_fio": "Leva energia sem cabo, longe.",
   "torre_defesa": "Atira nas aranhas (munição por braço).",

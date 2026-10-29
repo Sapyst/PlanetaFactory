@@ -160,9 +160,10 @@ func _limpeza(fabrica: Fabrica) -> void:
 			continue
 		var l: Dictionary = r.limpa
 		var raio := float(l.raio)
-		_limpar(c, raio, SUJ, float(l.get("sujeira", 0.0)) * m.energia)
-		_limpar(c, raio, OLEO, float(l.get("oleo", 0.0)) * m.energia)
-		_limpar(c, raio, AGUA, float(l.get("agua", 0.0)) * m.energia)
+		var forca: float = m.energia * float(fabrica.modo(id)[0])      # modo eco/turbo limpa menos/mais
+		_limpar(c, raio, SUJ, float(l.get("sujeira", 0.0)) * forca)
+		_limpar(c, raio, OLEO, float(l.get("oleo", 0.0)) * forca)
+		_limpar(c, raio, AGUA, float(l.get("agua", 0.0)) * forca)
 
 
 ## Contaminação da poça de uma bomba (0..1): água suja perto (pesa menos com a distância), óleo e sujeira debaixo dela.
@@ -194,7 +195,7 @@ func _bombas(fabrica: Fabrica) -> void:
 		if c < float(b.get("minimo", 0.05)):
 			c = 0.0
 		contaminacao[id] = c
-		m.velocidade = float(Registro.estruturas.bomba.get("velocidade", 1.0)) * (1.0 - float(b.get("perda_producao", 0.75)) * c)
+		m.velocidade = float(Registro.estruturas.bomba.get("velocidade", 1.0)) * float(fabrica.modo(id)[0]) * (1.0 - float(b.get("perda_producao", 0.75)) * c)
 		if c > 0.0 and m.estado == Maquina.Estado.TRABALHANDO and dano.is_valid():
 			dano.call(id, float(b.get("desgaste", 0.5)) * c)
 	for id in contaminacao.keys():
