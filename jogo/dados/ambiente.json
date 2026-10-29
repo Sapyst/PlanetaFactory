@@ -4,6 +4,8 @@
  "sujeira_raio": 3.5,
  "sujeira_some": 4e-05,
  "chuva_lava": 0.0002,
+ "encardido": {"_nota": "estruturas sujam com o tempo (0 limpa .. 1 imunda): parada leva cheio_s para encardir; trabalhando, cada ponto de emissão soma por_emissao; chão sujo embaixo soma do_chao·sujeira; chuva forte (1) lava em chuva_limpa_s.",
+               "cheio_s": 1800, "por_emissao": 0.0006, "do_chao": 0.0008, "chuva_limpa_s": 150},
  "oleo_chance": {
   "broca_minerio": 0.0012,
   "gerador": 0.0018,

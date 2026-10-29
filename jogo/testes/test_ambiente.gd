@@ -164,3 +164,36 @@ func test_enxurrada_leva_lixo_para_a_agua() -> void:
 	for i in 60:
 		a2.tick(1.0, b2[2], null)
 	verificar(a2.valor(perto, AmbienteVivo.SUJ) > 0.75, "seco: a sujeira fica no lugar")
+
+
+## Estruturas encardem com o tempo (mais rápido trabalhando), a chuva lava e o ciclo recomeça; vai no save.
+func test_encardido_cresce_e_chuva_lava() -> void:
+	var b := _base()
+	var m: MapaOcupacao = b[1]
+	var f: Fabrica = b[2]
+	var a: AmbienteVivo = b[3]
+	var parada := m.colocar("bau", Vector2i(-6, 2), 0)
+	var forno := m.colocar("fornalha", Vector2i(2, 2), 0)
+	verificar(parada >= 0 and forno >= 0, "colocou as duas")
+	for i in 600:
+		f.emissao = {forno: 4.0 / 60.0}
+		a.tick(1.0, f, null)
+	var g_parada: float = a.encardido.get(parada, 0.0)
+	var g_forno: float = a.encardido.get(forno, 0.0)
+	perto(g_parada, 600.0 / float(Registro.ambiente.encardido.cheio_s), 0.02, "parada: só o tempo (%.3f)" % g_parada)
+	verificar(g_forno > g_parada, "trabalhando encarde mais (%.3f > %.3f)" % [g_forno, g_parada])
+	for i in 3000:
+		a.tick(1.0, f, null)
+	perto(a.encardido[parada], 1.0, 1e-6, "com o tempo fica imunda")
+	var c := Clima.new(5)
+	c.forcar("chuva", true)
+	for i in 400:
+		a.tick(1.0, f, c)
+	verificar(a.encardido[parada] < 0.2, "a chuva lavou (%.3f)" % a.encardido[parada])
+	var e := a.estado()
+	var a2 := AmbienteVivo.new(b[0], m, 3)
+	a2.restaurar(e)
+	perto(a2.encardido[parada], a.encardido[parada], 1e-6, "vai no save")
+	m.remover(parada)
+	a.tick(1.0, f, null)
+	verificar(not a.encardido.has(parada), "estrutura removida sai da lista")

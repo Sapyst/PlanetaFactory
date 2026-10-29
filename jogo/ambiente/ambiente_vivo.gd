@@ -42,6 +42,7 @@ var poluicao: Poluicao               ## (opcional) as árvores plantadas absorve
 var _plantou: Dictionary = {}        ## id do viveiro → ciclos já transformados em muda
 var _versao_mapa := -1
 var queima_arvore: Dictionary = {}   ## tile → segundos que a árvore já queimou (fogo longo derruba)
+var encardido: Dictionary = {}       ## id da estrutura → 0 limpa .. 1 imunda (tempo e trabalho sujam, chuva lava)
 var _estacao_ant := -1
 
 
@@ -130,6 +131,28 @@ func _passo(fabrica: Fabrica, clima: Clima) -> void:
 	if tufao:
 		_tufao(vento)
 	_decair(chuva)
+	_encardir(fabrica, chuva)
+
+
+## Estruturas encardem com o tempo (mais rápido trabalhando e em chão sujo); a chuva lava e o ciclo recomeça.
+func _encardir(fabrica: Fabrica, chuva: float) -> void:
+	var p: Dictionary = _d.get("encardido", {})
+	if p.is_empty():
+		return
+	var tempo := 1.0 / float(p.cheio_s)
+	var lava := chuva / float(p.chuva_limpa_s)
+	for id in mapa.estruturas:
+		var e: Dictionary = mapa.estruturas[id]
+		if e.get("grupo", "") == "inimigo" or Registro.estruturas.get(e.nome, {}).get("grupo", "") == "inimigo":
+			continue
+		var v: float = encardido.get(id, 0.0)
+		v += tempo + float(fabrica.emissao.get(id, 0.0)) * float(p.por_emissao)
+		v += valor(Vector2i(Grade.centro_da_area(e.minimo, e.area, e.rot).floor()), SUJ) * float(p.do_chao)
+		encardido[id] = clampf(v - lava, 0.0, 1.0)
+	if encardido.size() > mapa.estruturas.size():
+		for id in encardido.keys():
+			if not mapa.estruturas.has(id):
+				encardido.erase(id)
 
 
 # ------------------------------------------------------------------ consequências e limpeza
@@ -602,7 +625,8 @@ func imagem(k: Vector2i) -> Image:
 
 
 func estado() -> Dictionary:
-	return {"dados": dados, "fogo": fogo, "rng": _rng.state, "plantas": plantas, "plantou": _plantou, "queima_arvore": queima_arvore}
+	return {"dados": dados, "fogo": fogo, "rng": _rng.state, "plantas": plantas, "plantou": _plantou, "queima_arvore": queima_arvore,
+			"encardido": encardido}
 
 
 func restaurar(d: Dictionary) -> void:
@@ -611,6 +635,7 @@ func restaurar(d: Dictionary) -> void:
 	plantas = d.get("plantas", {})
 	_plantou = d.get("plantou", {})
 	queima_arvore = d.get("queima_arvore", {})
+	encardido = d.get("encardido", {})
 	versao_plantas += 1
 	_rng.state = d.get("rng", _rng.state)
 	for k in dados:

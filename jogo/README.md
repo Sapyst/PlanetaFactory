@@ -115,6 +115,10 @@ vista. Contador de FPS embutido (ligado por padrão na fase de testes; Configura
   era (chapa com listras no título), colunas por pré-requisito dentro da era, linhas ligando (verde = feito). Nós são
   placas `Tema.botao_cor_estilo`; tipo no nó (■ estrutura, ⚗ receita, ▲ melhoria, ∞ infinita, ★ objetivo). Só as
   pesquisas de `progressao.json` se pesquisam; o resto é "em breve". Zoom: pinça, Ctrl + roda, gesto do trackpad, − e +.
+- Encardido: cada estrutura suja com o tempo (`AmbienteVivo.encardido`, 0..1; parada leva `encardido.cheio_s`,
+  trabalhando e em chão sujo vai mais rápido) e a chuva lava (`chuva_limpa_s`), recomeçando o ciclo; vai no save. O
+  valor vai no canal R do `fogo_mapa` e o `material_pf` cobre a estrutura de lama marrom (pé, frestas, escorridos) e
+  pó claro (em cima), mais fosca. `-- roteiro encardido` fotografa limpa, meio suja e imunda.
 - Melhorias: `bonus` na pesquisa (`progressao.json`), somado por `Pesquisa.bonus(chave)`; hoje lidos:
   `dano_torre_energia` e `dano_bala` (Colonia, tiro da torre) e `velocidade_pesquisa` (laboratório). `test_arvore`
   confere que toda chave de bônus tem quem a leia e que a árvore bate com as pesquisas jogáveis.

@@ -168,6 +168,13 @@ func _ready() -> void:
 				var t: TelaPesquisa = cena._tela_pesquisa
 				t._rolagem.scroll_horizontal = 0
 				t._rolagem.scroll_vertical = 0)
+		"encardido":                                   # estruturas limpas (q~30), meio sujas (q~60) e imundas (q~90)
+			for i in 3:
+				var g: float = [0.0, 0.5, 1.0][i]
+				em(10 + i * 30, func():
+					Sessao.config.fps = false
+					for id in cena.mapa.estruturas:
+						cena.ambiente.encardido[id] = g)
 		"dedo":                                        # celular: rolar lista com o dedo, arrastar mapa, pinça
 			_roteiro_dedo()
 		"faiscas":                                     # acumulador carregado de perto (use com -- hora 0.0)

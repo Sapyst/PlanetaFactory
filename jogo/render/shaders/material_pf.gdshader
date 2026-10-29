@@ -11,6 +11,9 @@
 //             tempo (sorte por instância + onda pelo mapa); copa some com o fogo antes do tronco
 //   carbonizada : árvore queimada (de pé ou caída): tudo carvão, sem folha
 //   por_trabalho : cristal das construções — brilho fraco que acende com `trabalho` (por objeto: o Animador manda)
+// Encardido (estruturas texturizadas): canal R do fogo_mapa = quanto a estrutura daquele tile já sujou (0 limpa .. 1
+// imunda; AmbienteVivo.encardido: cresce com o tempo e com o trabalho, a chuva lava). Começa pelo pé e pelas frestas,
+// escorre pelas laterais e assenta pó em cima; quanto mais encardida, mais cobre e mais escurece e fica fosca.
 shader_type spatial;
 render_mode cull_back, diffuse_lambert, specular_schlick_ggx;
 
@@ -63,6 +66,21 @@ void vertex() {
 	v_mundo = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
 
+// Ruído de valor 3D (suave) para as manchas de encardido.
+float ruido3(vec3 p) {
+	vec3 i = floor(p);
+	vec3 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	float n = 0.0;
+	for (int k = 0; k < 8; k++) {
+		vec3 o = vec3(float(k & 1), float((k >> 1) & 1), float((k >> 2) & 1));
+		float h = fract(sin(dot(i + o, vec3(12.9898, 78.233, 37.719))) * 43758.5453);
+		vec3 w = mix(1.0 - f, f, o);
+		n += h * w.x * w.y * w.z;
+	}
+	return n;
+}
+
 // Folhagem pela estação: x = quanto amarelou/secou, y = quanto caiu, z = broto (verde-claro da primavera).
 vec3 folhagem(int perfil, float e, float sorte, vec3 p) {
 	int est = int(floor(mod(e, 4.0)));
@@ -90,6 +108,22 @@ void fragment() {
 		// o glTF vira o V do UV (cresce da saída para a entrada): somar o tempo leva as ranhuras rumo à saída
 		float r = fract((v_dist + TIME * rolagem) * 4.0);
 		base *= mix(1.0, 1.9, step(0.82, r));
+	}
+	float sujo = 0.0;
+	if (tem_textura && vento <= 0.0) {
+		float grude = texture(fogo_mapa, (vec2(v_mundo.x, -v_mundo.z) - fogo_origem) / 96.0).r;
+		if (grude > 0.003) {
+			vec3 nm = (INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz;
+			float cima = smoothstep(0.45, 0.9, nm.y);                                     // pó assentado
+			float escorre = ruido3(vec3(v_mundo.x * 9.0, v_mundo.y * 0.9, v_mundo.z * 9.0)); // riscos verticais
+			float pe = 1.0 - smoothstep(0.0, 0.7, v_alt);                                  // respingo de lama no pé
+			float mancha = ruido3(v_mundo * 2.3) * 0.6 + ruido3(v_mundo * 7.0) * 0.4;
+			float onde = clamp(0.3 * cima + 0.45 * escorre + 0.55 * pe + 0.5 * mancha - 0.25, 0.0, 1.0);
+			sujo = smoothstep(1.0 - grude, 1.15 - grude, onde) * (0.35 + 0.65 * grude);
+			vec3 lama = vec3(0.13, 0.085, 0.05) * (0.7 + 0.6 * mancha);                     // marrom de lama e graxa
+			vec3 po = vec3(0.30, 0.24, 0.17) * (0.8 + 0.4 * mancha);                         // pó claro assentado
+			base = mix(base, mix(lama, po, cima * (1.0 - pe)), sujo * 0.82);
+		}
 	}
 	// molhado: superfícies de cima escurecem e brilham (água parada); sombra de nuvem tira o sol
 	float m = molhado * smoothstep(0.3, 0.9, (INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).y);
@@ -133,7 +167,7 @@ void fragment() {
 	}
 	float vd = visao_dentro(v_mundo);
 	ALBEDO = aplicar_visao(base, v_mundo);         // fora do oval de visão: névoa escura (ambiente/visao.gd)
-	ROUGHNESS = mix(1.0, mix(aspereza, 0.45, m * 0.8), vd);   // sem espelho: faceta molhada não pode estourar de branco
+	ROUGHNESS = mix(1.0, mix(mix(aspereza, 0.95, sujo * 0.7), 0.45, m * 0.8), vd);   // encardido é fosco   // sem espelho: faceta molhada não pode estourar de branco
 	METALLIC = metal * vd;
 	SPECULAR = 0.5 * mix(0.05, 1.0, vd);
 	float e = forca_emissao;

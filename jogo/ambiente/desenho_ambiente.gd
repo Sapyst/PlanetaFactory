@@ -159,8 +159,8 @@ func _process(delta: float) -> void:
 			Som.tocar("fogo", Vector3.INF, -10.0)
 
 
-## Mapa global (96×96 tiles em volta da câmera) para a vegetação queimar: B = queimando agora, A = queimado.
-## Só os tiles com fogo/queimado (o resto fica transparente) — barato.
+## Mapa global (96×96 tiles em volta da câmera): B = queimando agora, A = queimado (vegetação); R = encardido da
+## estrutura que ocupa o tile (material_pf). Só os tiles com algo (o resto fica transparente) — barato.
 func _mapa_vegetacao() -> void:
 	if _img_fogo == null:
 		_img_fogo = Image.create(LADO_FOGO, LADO_FOGO, false, Image.FORMAT_RGBA8)
@@ -180,11 +180,24 @@ func _mapa_vegetacao() -> void:
 			var t := base + Vector2i(i % AmbienteVivo.T, i / AmbienteVivo.T) - c
 			if t.x >= 0 and t.y >= 0 and t.x < LADO_FOGO and t.y < LADO_FOGO:
 				_img_fogo.set_pixel(t.x, t.y, Color(0, 0, 0, q))
+	for id in ambiente.encardido:                                  # encardido das estruturas, tile a tile
+		var g: float = ambiente.encardido[id]
+		if g <= 0.004 or not ambiente.mapa.estruturas.has(id):
+			continue
+		var e: Dictionary = ambiente.mapa.estruturas[id]
+		var m: Vector2i = e.minimo - c
+		if m.x < -4 or m.y < -4 or m.x > LADO_FOGO or m.y > LADO_FOGO:
+			continue                                               # longe da câmera
+		for t in Grade.tiles_da_area(e.minimo, e.area, e.rot):
+			var l: Vector2i = t - c
+			if l.x >= 0 and l.y >= 0 and l.x < LADO_FOGO and l.y < LADO_FOGO:
+				var px := _img_fogo.get_pixel(l.x, l.y)
+				_img_fogo.set_pixel(l.x, l.y, Color(g, px.g, px.b, px.a))
 	for t in ambiente.fogo:
 		var l: Vector2i = t - c
 		if l.x >= 0 and l.y >= 0 and l.x < LADO_FOGO and l.y < LADO_FOGO:
 			var px := _img_fogo.get_pixel(l.x, l.y)
-			_img_fogo.set_pixel(l.x, l.y, Color(0, 0, clampf(float(ambiente.fogo[t]) / 4.5 / ambiente._madeira(t), 0.0, 1.0), px.a))
+			_img_fogo.set_pixel(l.x, l.y, Color(px.r, 0, clampf(float(ambiente.fogo[t]) / 4.5 / ambiente._madeira(t), 0.0, 1.0), px.a))
 	_tex_fogo.update(_img_fogo)
 	RenderingServer.global_shader_parameter_set("fogo_origem", Vector2(c))
 
