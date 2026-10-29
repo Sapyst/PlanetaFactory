@@ -365,8 +365,9 @@ func fechar_detalhe() -> void:
 	_det_assinatura = ""
 
 
-func ligar_recursos(sim: bool) -> void:
+func ligar_recursos(sim: bool, camada := "recursos") -> void:
 	_destacar(_botoes_ferr["recursos"], sim, Color(0.35, 0.85, 0.8))
+	_botoes_ferr["recursos"].text = "◈ Vento" if sim and camada == "vento" else "◈ Recursos"
 
 
 func ligar_poluicao(sim: bool) -> void:

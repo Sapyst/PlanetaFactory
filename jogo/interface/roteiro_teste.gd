@@ -40,6 +40,37 @@ func _ready() -> void:
 		"canal": _roteiro_canal()
 		"limpeza": _roteiro_limpeza()
 		"energia": _roteiro_energia()
+		"vento":                                       # rajadas passando na grama, depois a camada de vento da visão
+			em(2, func():
+				Sessao.config.fps = false
+				_sem_ninhos(Vector2i(-14, -14))
+				cena.clima.forcar("nublado", true)
+				var cam: CameraJogo = cena.camera
+				cam.alvo = Grade.ponto_mundo(Vector2(-14.0, -14.0))
+				cam.distancia = 13.0
+				cam.posicionar())
+			for q in [10]:
+				em(q, func():
+					cena.clima.rajada = {}
+					cena.clima.prox_rajada = 0.0)
+			em(250, func():
+				cena.clima.vento_medio = cena.clima.direcao_vento * 0.6
+				var cam: CameraJogo = cena.camera
+				cam.alvo = Vector3.ZERO
+				cam.distancia = 70.0
+				cam.posicionar()
+				cena.controle.alternar_recursos()
+				cena.controle.alternar_recursos())
+			em(262, func(): mover(tela(Vector2i(4, 6))))
+		"turbina":                                     # painel da turbina (vento do lugar, corte, bandeira)
+			_roteiro_energia()
+			em(185, func():
+				cena.clima.forcar("tempestade", true)
+				_clicar_id(_ids.turbina_eolica)
+				var cam: CameraJogo = cena.camera
+				cam.alvo = Grade.ponto_mundo(Vector2(_ids_o) + Vector2(1.0, 4.0), 2.0)
+				cam.distancia = 11.0
+				cam.posicionar())
 		"faiscas":                                     # acumulador carregado de perto (use com -- hora 0.0)
 			_roteiro_energia()
 			em(180, func():                            # depois do roteiro de energia mexer na câmera

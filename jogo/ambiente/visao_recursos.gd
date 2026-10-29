@@ -3,7 +3,9 @@ extends Node3D
 ## Visão de recursos (tecla V / botão "Recursos"): o mapa perde a cor e o que importa para planejar aparece por cima.
 ##  - jazidas: cada tile pintado com a cor do recurso + nome, quanto tem e qual máquina extrai (dados/recursos.json);
 ##  - zonas: nome de cada bioma e de cada água no meio da mancha (grade grossa + agrupamento por vizinhança);
-##  - ficha do tile sob o mouse/dedo: zona, jazida, elemento natural (e o que rende ao limpar) ou construção.
+##  - ficha do tile sob o mouse/dedo: zona, jazida, elemento natural (e o que rende ao limpar) ou construção;
+##  - camada **vento** (V de novo): mapa de calor do vento médio de cada lugar (média medida × fator do lugar,
+##    VentoLocal) e setas no chão na direção média; a ficha mostra o vento médio do tile.
 ## Só lê o gerador e o mapa; refaz o que está na vista quando a câmera anda ou muda de zoom.
 
 const FADE := 5.0
@@ -13,6 +15,10 @@ var gerador: GeradorMundo
 var mapa: MapaOcupacao
 var camera: CameraJogo
 var ligada := false
+var camada := "recursos"              ## "recursos" ou "vento"
+var clima: Clima
+var vento_local: VentoLocal
+var _setas: MultiMeshInstance3D
 var areas_interface: Callable          ## → Array[Rect2] da interface (rótulo não fica embaixo)
 
 var _forca := 0.0
@@ -44,6 +50,12 @@ func _ready() -> void:
 	_tiles.multimesh.mesh = q
 	_tiles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_tiles)
+	_setas = MultiMeshInstance3D.new()                 # setas deitadas no chão (direção média do vento)
+	_setas.multimesh = MultiMesh.new()
+	_setas.multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	_setas.multimesh.mesh = _malha_seta(m)
+	_setas.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(_setas)
 	# marca do tile sob o cursor: moldura branca
 	var mq := PlaneMesh.new()
 	mq.size = Vector2.ONE
@@ -61,10 +73,16 @@ func _ready() -> void:
 	visible = false
 
 
+## Desligada → recursos → vento (se houver clima) → desligada.
 func alternar() -> bool:
-	ligada = not ligada
-	if ligada:
-		_feito_em = Vector3.INF
+	if not ligada:
+		ligada = true
+		camada = "recursos"
+	elif camada == "recursos" and clima != null and vento_local != null:
+		camada = "vento"
+	else:
+		ligada = false
+	_feito_em = Vector3.INF
 	return ligada
 
 
@@ -85,6 +103,7 @@ func _process(delta: float) -> void:
 	for r in _rotulos:
 		r.transparency = 1.0 - _forca
 	(_tiles.multimesh.mesh.surface_get_material(0) as StandardMaterial3D).albedo_color.a = _forca
+	(_setas.multimesh.mesh.surface_get_material(0) as StandardMaterial3D).albedo_color.a = _forca
 	_atualizar_ficha()
 
 
@@ -98,6 +117,10 @@ func _vista() -> Rect2i:
 
 func _montar() -> void:
 	var v := _vista()
+	_setas.visible = camada == "vento"
+	if camada == "vento":
+		_montar_vento(v)
+		return
 	var rotulos: Array[Dictionary] = []
 	# jazidas: manchas das células que tocam a vista (e as fixas do spawn)
 	var cel := Distribuicao.CEL_JAZIDA
@@ -128,6 +151,76 @@ func _montar() -> void:
 		mm.set_instance_color(i, cores[i])
 	rotulos.append_array(_rotulos_zonas(v))
 	_desenhar_rotulos(rotulos)
+
+
+## Vento médio de um tile: média medida (força) × fator do lugar com o vento vindo da direção média.
+func vento_medio_em(t: Vector2i) -> float:
+	return clima.vento_medio.length() * vento_local.fator(t, clima.vento_medio)
+
+
+## Calor do vento: azul (calmo) → verde → amarelo → vermelho (ventania), em blocos (maiores com zoom longe).
+static func cor_vento(v: float) -> Color:
+	var paradas := [[0.0, Color(0.15, 0.3, 0.75)], [0.3, Color(0.2, 0.65, 0.7)], [0.55, Color(0.35, 0.8, 0.3)],
+			[0.8, Color(0.95, 0.85, 0.2)], [1.1, Color(0.95, 0.35, 0.15)]]
+	for i in range(1, paradas.size()):
+		if v <= paradas[i][0]:
+			var a: Array = paradas[i - 1]
+			return (a[1] as Color).lerp(paradas[i][1], (v - a[0]) / (paradas[i][0] - a[0]))
+	return paradas[-1][1]
+
+
+func _montar_vento(v: Rect2i) -> void:
+	var passo := maxi(1, int(camera.distancia / 22.0))
+	var mm := _tiles.multimesh
+	var n := ceili(v.size.x / float(passo)) * ceili(v.size.y / float(passo))
+	mm.instance_count = n
+	var i := 0
+	var esc := Basis().scaled(Vector3(passo, 1, passo))
+	for y in range(v.position.y, v.end.y, passo):
+		for x in range(v.position.x, v.end.x, passo):
+			var t := Vector2i(x, y)
+			mm.set_instance_transform(i, Transform3D(esc, Grade.ponto_mundo(Vector2(t) + Vector2(passo, passo) * 0.5, 0.05)))
+			mm.set_instance_color(i, Color(cor_vento(vento_medio_em(t)), 0.7))
+			i += 1
+	mm.instance_count = i
+	# setas a cada 8 tiles (mais espaçadas de longe), deitadas, apontando para onde o vento médio sopra
+	var dir := clima.vento_medio.normalized() if clima.vento_medio.length() > 1e-4 else clima.direcao_vento
+	var ang := atan2(dir.y, dir.x)                                     # giro em Y: +x vai a (cos, 0, −sen) = mundo da grade
+	var ps := 8 * passo
+	var sm := _setas.multimesh
+	sm.instance_count = 0
+	var setas: Array[Transform3D] = []
+	for y in range(snappedi(v.position.y, ps), v.end.y, ps):
+		for x in range(snappedi(v.position.x, ps), v.end.x, ps):
+			setas.append(Transform3D(Basis(Vector3.UP, ang).scaled(Vector3.ONE * passo), Grade.ponto_mundo(Vector2(x, y) + Vector2(0.5, 0.5), 0.1)))
+	sm.instance_count = setas.size()
+	for k in setas.size():
+		sm.set_instance_transform(k, setas[k])
+	var centro := Vector2(Grade.tile_de_mundo(camera.alvo))
+	_desenhar_rotulos([{"texto": "Vento médio %d%% %s" % [clima.vento_medio.length() * 100, Clima.nome_rumo(clima.vento_medio)],
+			"pos": centro, "cor": Color(0.85, 0.95, 1.0), "tam": 1.0,
+			"sub": "predomina %s nesta estação · cor = vento do lugar" % Clima.nome_rumo(clima.rumo_atual()), "prio": 0}])
+
+
+## Seta plana (haste + ponta) deitada no chão, apontando para +x.
+func _malha_seta(mat: Material) -> ArrayMesh:
+	var p := PackedVector3Array([
+		Vector3(-1.2, 0, -0.12), Vector3(0.4, 0, -0.12), Vector3(0.4, 0, 0.12),
+		Vector3(-1.2, 0, -0.12), Vector3(0.4, 0, 0.12), Vector3(-1.2, 0, 0.12),
+		Vector3(0.4, 0, -0.45), Vector3(1.3, 0, 0), Vector3(0.4, 0, 0.45)])
+	var c := PackedColorArray()
+	for k in p.size():
+		c.append(Color(0.95, 0.97, 1.0, 0.9))
+	var a := []
+	a.resize(Mesh.ARRAY_MAX)
+	a[Mesh.ARRAY_VERTEX] = p
+	a[Mesh.ARRAY_COLOR] = c
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, a)
+	var mm := (mat as StandardMaterial3D).duplicate() as StandardMaterial3D
+	mm.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mesh.surface_set_material(0, mm)
+	return mesh
 
 
 func _mancha(chave: String, m: Dictionary) -> Dictionary:
@@ -295,8 +388,7 @@ func _criar_ficha() -> void:
 	_camada.layer = 20
 	add_child(_camada)
 	_ficha = PanelContainer.new()
-	_ficha.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 40)
-	_ficha.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_ficha.set_anchors_preset(Control.PRESET_TOP_LEFT)          # posição: _posicionar_ficha (abaixo da interface)
 	_ficha.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.07, 0.08, 0.1, 0.86)
@@ -320,6 +412,26 @@ func _atualizar_ficha() -> void:
 	_marca.visible = ligada
 	_marca.position = Grade.centro_mundo(t) + Vector3(0, 0.08, 0)
 	_ficha_texto.text = descrever(t)
+	_posicionar_ficha()
+
+
+## Centro, no alto, mas logo abaixo de qualquer peça da interface que estiver ali (barra de ferramentas): nunca por cima.
+func _posicionar_ficha() -> void:
+	var vp := get_viewport().get_visible_rect().size
+	var tam := _ficha.get_combined_minimum_size()
+	_ficha.size = tam
+	var x := (vp.x - tam.x) * 0.5
+	var y := 12.0
+	var areas: Array = areas_interface.call() if areas_interface.is_valid() else []
+	for volta in 4:
+		var mexeu := false
+		for r: Rect2 in areas:
+			if Rect2(x, y, tam.x, tam.y).intersects(r):
+				y = r.end.y + 8.0
+				mexeu = true
+		if not mexeu:
+			break
+	_ficha.position = Vector2(x, y)
 
 
 ## Texto da ficha de um tile (também usado nos testes).
@@ -330,6 +442,9 @@ func descrever(t: Vector2i) -> String:
 		linhas.append(_d.agua.get(GeradorMundo.Terreno.keys()[ter], "Água"))
 	else:
 		linhas.append(_d.biomas.get(gerador.bioma(t), gerador.bioma(t)))
+	if clima != null and vento_local != null:
+		var lugar := vento_local.fator(t, clima.vento_medio)
+		linhas.append("Vento médio aqui: %d%% %s (o lugar dá %+d%%)" % [vento_medio_em(t) * 100, Clima.nome_rumo(clima.vento_medio), (lugar - 1.0) * 100])
 	var j := gerador.distribuicao.jazida(t)
 	if not j.is_empty():
 		var info: Dictionary = _d.jazidas.get(j.tipo, {"nome": j.tipo, "extrator": ""})

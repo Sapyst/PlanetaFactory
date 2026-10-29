@@ -133,7 +133,7 @@ Ficha de cada peça do menu: energia, o que guarda, integridade (♥), custo e a
 |---|---|---|---|---|
 | **Gerador** — Queima carvão e gera energia. | gera até 900 kW (combustível) · polui 30/min | 200 | 10 placa de ferro, 5 tubo, 10 pedra | início |
 | **Painel solar** — Energia do sol, sem combustível: nada à noite, menos com nuvem e chuva, mais no verão. | gera até 300 kW (sol: zero à noite) | 120 | 6 placa de ferro, 8 vidro, 3 circuito | Energia renovável |
-| **Turbina eólica** — Energia do vento, sem combustível (rende mais com vento forte). | gera até 200 kW (vento) | 180 | 14 placa de ferro, 10 engrenagem, 2 motor | Energia renovável |
+| **Turbina eólica** — Energia do vento, sem combustível: vira para o vento; rende mais no alto e em campo aberto, para na calmaria e se protege na ventania. | gera até 200 kW (vento) | 180 | 14 placa de ferro, 10 engrenagem, 2 motor | Energia renovável |
 | **Acumulador** — Guarda a sobra de energia da rede e devolve quando falta. | guarda 80 MJ (até 500 kW) | 250 | 10 placa de ferro, 8 bateria, 4 circuito | Acumulação |
 | **Poste** — Leva energia por cabo. | — | 40 | 1 placa de ferro, 1 placa de cobre | início |
 | **Torre sem fio** — Leva energia sem cabo, longe. | — | 120 | 20 placa de cobre, 10 circuito, 5 cristal lapidado | Energia sem fio |
@@ -169,7 +169,9 @@ Ficha de cada peça do menu: energia, o que guarda, integridade (♥), custo e a
 - **As estações seguem o calendário real:** cada uma dura 7 dias de verdade e passa mesmo com o jogo fechado (um ano = 4 semanas). Isso pede planejamento: estoque e acumuladores para o inverno.
 - O painel solar rende pela luz do dia e do clima (nada à noite). A turbina rende pelo vento, dia e noite. Fontes grátis (núcleo, sol, vento) são usadas antes do combustível; a sobra carrega os acumuladores, que devolvem quando falta.
 
-- **Primavera:** dia normal, secura 20% (fogo), clima mais provável: Chuva, Nublado.
-- **Verão:** dia mais longo, secura 85% (fogo), clima mais provável: Céu limpo, Tempestade.
-- **Outono:** dia normal, secura 50% (fogo), clima mais provável: Nublado, Tempestade.
-- **Inverno:** dia mais curto, secura 10% (fogo), clima mais provável: Neblina, Nublado.
+- **Vento:** cada estação tem um rumo; a direção oscila ±40° em volta e rajadas atravessam o mapa. O lugar muda a força: +12% por nível acima do entorno (até +36%), +15% em campo aberto, praia e beira-mar, −30% em floresta e pântano, −6% por árvore plantada perto, −20% atrás de construção alta. A turbina fica parada abaixo de 25% de vento, chega ao máximo em 85% e acima de 115% põe as pás em bandeira (rende 40%). Veja o mapa do vento na visão de recursos (V duas vezes).
+
+- **Primavera:** vento de leste, dia normal, secura 20% (fogo), clima mais provável: Chuva, Nublado.
+- **Verão:** vento de nordeste, dia mais longo, secura 85% (fogo), clima mais provável: Céu limpo, Tempestade.
+- **Outono:** vento de oeste, dia normal, secura 50% (fogo), clima mais provável: Nublado, Tempestade.
+- **Inverno:** vento de sul, dia mais curto, secura 10% (fogo), clima mais provável: Neblina, Nublado.

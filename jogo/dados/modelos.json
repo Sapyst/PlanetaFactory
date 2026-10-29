@@ -512,7 +512,7 @@
    2,
    2
   ],
-  "descricao": "turbina eólica: torre octogonal afilada, nacele e hélice de 3 pás virada para o sul (gira com o vento); gera energia sem combustível.",
+  "descricao": "turbina eólica: torre octogonal afilada; a nacele gira no topo para encarar o vento e a hélice de 3 pás gira com ele; gera energia sem combustível.",
   "ocupa_canto": false,
   "partes": [
    {
@@ -525,8 +525,17 @@
     ]
    },
    {
-    "nome": "helice",
+    "nome": "nacele",
     "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.0,
+     2.58
+    ]
+   },
+   {
+    "nome": "helice",
+    "pai": "nacele",
     "pivo": [
      0.0,
      -0.36,

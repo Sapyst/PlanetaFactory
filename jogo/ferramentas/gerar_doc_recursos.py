@@ -115,9 +115,17 @@ L += ['### Opções no painel da peça', '',
       '- O painel solar rende pela luz do dia e do clima (nada à noite). A turbina rende pelo vento, dia e noite. '
       'Fontes grátis (núcleo, sol, vento) são usadas antes do combustível; a sobra carrega os acumuladores, '
       'que devolvem quando falta.', '']
+amb = ler('ambiente.json')
+vl, tb = amb['vento_local'], amb['turbina']
+L += ['- **Vento:** cada estação tem um rumo; a direção oscila ±40° em volta e rajadas atravessam o mapa. O lugar muda '
+      'a força: +%d%% por nível acima do entorno (até +%d%%), +%d%% em campo aberto, praia e beira-mar, −%d%% em floresta '
+      'e pântano, −%d%% por árvore plantada perto, −%d%% atrás de construção alta. A turbina fica parada abaixo de %d%% de '
+      'vento, chega ao máximo em %d%% e acima de %d%% põe as pás em bandeira (rende %d%%). Veja o mapa do vento na visão de '
+      'recursos (V duas vezes).' % tuple(round(x * 100) for x in (vl['por_nivel'], vl['alto_max'], vl['aberto'], vl['floresta'],
+      vl['por_arvore'], vl['sotavento'], tb['corte'], tb['nominal'], tb['protecao'], tb['so_protecao'])), '']
 for e in clima['estacoes']:
-    L.append('- **%s:** dia %s, secura %d%% (fogo), clima mais provável: %s.' % (
-        e['nome'], {0.0: 'normal'}.get(e.get('dia_extra', 0.0), 'mais longo' if e.get('dia_extra', 0) > 0 else 'mais curto'),
+    L.append('- **%s:** vento de %s, dia %s, secura %d%% (fogo), clima mais provável: %s.' % (
+        e['nome'], e.get('vento_de', '?'), {0.0: 'normal'}.get(e.get('dia_extra', 0.0), 'mais longo' if e.get('dia_extra', 0) > 0 else 'mais curto'),
         round(100 * e['secura']), ', '.join(clima.get('nomes', {}).get(k, k) for k, v in sorted(e['pesos'].items(), key=lambda x: -x[1])[:2])))
 os.makedirs(os.path.dirname(SAIDA), exist_ok=True)
 open(SAIDA, 'w', encoding='utf-8').write('\n'.join(L) + '\n')

@@ -13,7 +13,9 @@ outras três; as árvores precisam existir antes de o raio e o fogo terem o que 
 
 ---
 
-## Etapa 1 — Vento de verdade (v0.10)
+## Etapa 1 — Vento de verdade (v0.10) — feita
+Extra: a nacele da turbina vira para encarar o vento.
+
 **Direção predominante por estação.** Cada estação tem um rumo médio (ex.: primavera de leste, inverno de sul) e a
 direção do momento oscila em volta dele (±40°), com **rajadas** (picos de 3–8 s, até +60% de força) que passam
 como ondas pelo mapa.

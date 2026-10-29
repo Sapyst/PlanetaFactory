@@ -98,6 +98,8 @@ func _process(delta: float) -> void:
 	RenderingServer.global_shader_parameter_set("pocas", clima.pocas)
 	RenderingServer.global_shader_parameter_set("chuva_agora", v.chuva)
 	RenderingServer.global_shader_parameter_set("vento_dir", clima.direcao_vento * (0.4 + v.vento))
+	var rj: Dictionary = clima.rajada
+	RenderingServer.global_shader_parameter_set("rajada", Vector3(float(rj.frente), float(rj.amp), float(rj.largura)) if not rj.is_empty() else Vector3(-1.0e6, 0.0, 12.0))
 	_relampagos(delta)
 	var dia := _dia_e_noite()
 	RenderingServer.global_shader_parameter_set("sol_dir", sol.global_transform.basis.z.normalized())

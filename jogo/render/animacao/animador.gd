@@ -9,7 +9,8 @@ extends Node
 ##   _antena   gira (laboratório)           _cabecote sobe/desce (bomba)
 ##   _giro/_braco1/_braco2/_garra           braço mecânico (pega atrás, solta na frente)
 ##   _giro/_canhao                          torre (mira `alvo`)
-##   _helice   gira no eixo norte–sul (turbina eólica; `ritmo` = vento)
+##   _helice   gira no eixo da nacele (turbina eólica; `ritmo` = vento)
+##   _nacele   vira devagar até a hélice encarar o vento (`rumo_vento`: para onde o vento sopra, na grade)
 ## Cristais (P_Cristal) brilham fraco pelo `brilho` (0..1; negativo = segue `ativo`), suavizado.
 
 @export var ativo := true
@@ -25,6 +26,8 @@ var _ik := {}
 var alvo: Node3D = null
 var ponto_alvo := Vector3.INF      ## alternativa a `alvo`: mira um ponto do mundo
 var tempo := 0.0
+var rumo_vento := Vector2.ZERO
+var _guinada := INF
 var brilho := -1.0
 var _brilho := -1.0
 var _brilho_posto := -1.0
@@ -70,6 +73,11 @@ func _process(delta: float) -> void:
 		_gira("rotor", t * 2.5)
 	if tem("antena"):
 		_gira("antena", t * 0.8)
+	if tem("nacele") and rumo_vento.length() > 1e-4:
+		# a hélice fica no −Y do Blender (+Z local): +Z tem de apontar para de onde o vento vem (mundo = (−x, +y da grade))
+		var alvo_g := atan2(-rumo_vento.x, rumo_vento.y) - (get_parent() as Node3D).global_rotation.y
+		_guinada = alvo_g if _guinada == INF else rotate_toward(_guinada, alvo_g, delta * 0.35)
+		_gira("nacele", _guinada)
 	if tem("helice"):
 		var b: Transform3D = _base["helice"]
 		(_partes["helice"] as Node3D).transform = Transform3D(Basis(Vector3(0, 0, 1), t * 3.0) * b.basis, b.origin)

@@ -194,7 +194,7 @@
   "viveiro": "Com seiva pelo cano, planta mudas em volta (raio 8) que viram árvores e limpam o ar e o chão.",
   "gerador": "Queima carvão e gera energia.",
   "painel_solar": "Energia do sol, sem combustível: nada à noite, menos com nuvem e chuva, mais no verão.",
-  "turbina_eolica": "Energia do vento, sem combustível (rende mais com vento forte).",
+  "turbina_eolica": "Energia do vento, sem combustível: vira para o vento; rende mais no alto e em campo aberto, para na calmaria e se protege na ventania.",
   "acumulador": "Guarda a sobra de energia da rede e devolve quando falta.",
   "poste_energia": "Leva energia por cabo.",
   "torre_sem_fio": "Leva energia sem cabo, longe.",

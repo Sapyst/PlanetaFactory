@@ -4,6 +4,10 @@ extends RefCounted
 ## suave dos valores. `valores` = o que o desenho usa agora (nuvens, neblina, chuva, luz, vento); `molhado` sobe com
 ## chuva e seca devagar; `deslocamento` = quanto as nuvens já andaram com o vento (sombra no chão).
 ## Tempestade solta raios (eventos). Desligado (`ativo` = false) fica em céu limpo.
+## Vento: cada estação tem um rumo predominante ("vento_de", de onde vem); a direção do momento oscila ±40° em volta
+## dele e a força vem do estado do clima. Rajadas: frentes que atravessam o mapa a favor do vento (perto de `foco`,
+## onde a câmera olha), somando força por onde passam. `vento_medio` = média móvel (10 min de jogo) de direção × força.
+## Grade: +x = leste, +y = norte. `direcao_vento` aponta PARA onde o vento sopra.
 
 var ativo := true
 var atual := "limpo"
@@ -12,6 +16,11 @@ var molhado := 0.0
 var pocas := 0.0          ## 0..1: quanto as baixadas já encheram (enche devagar com chuva forte, seca mais devagar ainda)
 var deslocamento := Vector2.ZERO
 var direcao_vento := Vector2(1, 0.35).normalized()
+var t_vento := 0.0                   ## segundos de jogo (oscilação da direção)
+var rajada := {}                     ## {frente (m ao longo do vento), amp, largura, vel}; vazio = nenhuma
+var prox_rajada := 20.0
+var foco := Vector2.ZERO             ## onde a câmera olha (grade): rajadas nascem a barlavento daqui
+var vento_medio := Vector2.ZERO      ## média móvel de direção × força
 var restante := 120.0
 var tempo_real := false             ## jogo: estação pelo relógio de verdade (7 dias reais cada); testes usam o tempo simulado
 var estacao := 0                    ## índice em clima.json "estacoes"
@@ -21,11 +30,13 @@ var hora := 0.3                     ## 0..1 do dia (0 = meia-noite, 0,5 = meio-d
 var poluicao_total := 0.0            ## vem do mundo: ar sujo deixa tufão mais provável
 var eventos: Array[String] = []     ## acumula ("raio"); quem desenha consome e limpa
 var _rng := RandomNumberGenerator.new()
+var _rng_vento := RandomNumberGenerator.new()   ## rajadas à parte: não mexem na sequência do clima
 var _d: Dictionary
 
 
 func _init(semente := 1) -> void:
 	_rng.seed = semente
+	_rng_vento.seed = semente * 7919 + 13
 	_d = Registro.clima
 	valores = _alvo().duplicate()
 
@@ -132,11 +143,78 @@ func tick(dt: float) -> void:
 		pocas = minf(1.0, pocas + dt * 0.012 * valores.chuva)
 	else:
 		pocas = maxf(0.0, pocas - dt * 0.0035)
-	direcao_vento = direcao_vento.rotated(_rng.randf_range(-0.02, 0.02) * dt).normalized()
+	_vento(dt)
 	deslocamento += direcao_vento * (1.5 + 6.0 * valores.vento) * dt
 	if _d.estados[atual].get("raios", false) and ativo and _rng.randf() < dt * 0.07:
 		if eventos.size() < 4:
 			eventos.append("raio")
+
+
+const RUMOS := {"leste": 0.0, "nordeste": 45.0, "norte": 90.0, "noroeste": 135.0, "oeste": 180.0, "sudoeste": 225.0, "sul": 270.0, "sudeste": 315.0}
+
+
+## Para onde sopra o rumo predominante da estação (vetor unitário da grade).
+func rumo_estacao(e := -1) -> Vector2:
+	var es: Array = _d.get("estacoes", [])
+	if es.is_empty():
+		return Vector2.LEFT
+	var de: String = es[estacao if e < 0 else e].get("vento_de", "leste")
+	return Vector2.from_angle(deg_to_rad(float(RUMOS.get(de, 0.0)) + 180.0))
+
+
+## "de leste", "de sudoeste"... de onde vem o vento `v` (que sopra para v).
+static func nome_rumo(v: Vector2) -> String:
+	if v.length() < 1e-4:
+		return "sem direção"
+	var de := fposmod(rad_to_deg((-v).angle()), 360.0)
+	var melhor := ""
+	var dist := 999.0
+	for n in RUMOS:
+		var d := absf(angle_difference(deg_to_rad(de), deg_to_rad(RUMOS[n])))
+		if d < dist:
+			dist = d
+			melhor = n
+	return "de " + melhor
+
+
+## Força do vento no ponto (grade), 0..~1,6: estado do clima + rajada passando (sem o fator do lugar: VentoLocal).
+func vento_em(p: Vector2) -> float:
+	var v: float = valores.vento
+	if not rajada.is_empty():
+		var x := p.dot(direcao_vento) - float(rajada.frente)
+		v += float(rajada.amp) * exp(-x * x / pow(float(rajada.largura), 2.0))
+	return v
+
+
+## Rumo predominante de agora: o da estação, virando devagar a partir do da anterior no primeiro quarto dela.
+func rumo_atual() -> Vector2:
+	var es: Array = _d.get("estacoes", [])
+	var rumo := rumo_estacao()
+	if not es.is_empty():
+		var antes := rumo_estacao((estacao + es.size() - 1) % es.size())
+		var k := smoothstep(0.0, 0.25, t_estacao / float(_d.get("estacao_s", 604800)))
+		rumo = Vector2.from_angle(lerp_angle(antes.angle(), rumo.angle(), k))
+	return rumo
+
+
+func _vento(dt: float) -> void:
+	t_vento += dt
+	var rumo := rumo_atual()
+	var osc := deg_to_rad(40.0) * (0.6 * sin(t_vento / 97.0) + 0.4 * sin(t_vento / 41.0 + 1.3))
+	direcao_vento = rumo.rotated(osc)
+	# rajadas: uma frente por vez; nascem a barlavento do foco e passam por ele
+	if rajada.is_empty():
+		prox_rajada -= dt * (0.5 + valores.vento)
+		if prox_rajada <= 0.0 and ativo:
+			prox_rajada = _rng_vento.randf_range(12.0, 35.0)
+			rajada = {"frente": foco.dot(direcao_vento) - 70.0, "amp": _rng_vento.randf_range(0.25, 0.6) * (0.4 + valores.vento) / 1.4,
+					"largura": _rng_vento.randf_range(10.0, 18.0), "vel": 6.0 + 10.0 * valores.vento}
+	else:
+		rajada.frente = float(rajada.frente) + float(rajada.vel) * dt
+		if float(rajada.frente) > foco.dot(direcao_vento) + 90.0:
+			rajada = {}
+	var k_m := clampf(dt / 600.0, 0.0, 1.0)
+	vento_medio = vento_medio.lerp(direcao_vento * valores.vento, k_m)
 
 
 ## Próximo estado: pesos do estado × pesos da estação; tufão cresce com a poluição do ar (causa e efeito).
@@ -161,7 +239,8 @@ func _sortear(pesos: Dictionary) -> String:
 
 func estado() -> Dictionary:
 	return {"atual": atual, "valores": valores, "molhado": molhado, "pocas": pocas, "deslocamento": deslocamento, "restante": restante,
-			"vento": direcao_vento, "rng": _rng.state, "estacao": estacao, "t_estacao": t_estacao, "hora": hora}
+			"vento": direcao_vento, "rng": _rng.state, "estacao": estacao, "t_estacao": t_estacao, "hora": hora,
+			"t_vento": t_vento, "vento_medio": vento_medio}
 
 
 func restaurar(d: Dictionary) -> void:
@@ -176,3 +255,5 @@ func restaurar(d: Dictionary) -> void:
 	estacao = d.get("estacao", 0)
 	t_estacao = d.get("t_estacao", 0.0)
 	hora = d.get("hora", 0.3)
+	t_vento = d.get("t_vento", 0.0)
+	vento_medio = d.get("vento_medio", Vector2.ZERO)

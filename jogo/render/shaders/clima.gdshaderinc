@@ -54,3 +54,18 @@ float aneis_chuva(vec2 p, float t) {
 	}
 	return s;
 }
+
+// Vento (grade: +x leste, +y norte; mundo = (x, −z)). vento_dir = direção × (0,4 + força). rajada = frente da onda
+// ao longo do vento (m), amplitude, largura (m): uma faixa de vento mais forte que atravessa o mapa.
+global uniform vec2 vento_dir;
+global uniform vec3 rajada;
+float rajada_em(vec3 mundo) {
+	vec2 d = length(vento_dir) > 0.01 ? normalize(vento_dir) : vec2(1.0, 0.0);
+	float x = dot(vec2(mundo.x, -mundo.z), d) - rajada.x;
+	return rajada.y * exp(-x * x / (rajada.z * rajada.z));
+}
+// direção do vento no mundo (x, z), unitária
+vec2 vento_mundo() {
+	vec2 d = length(vento_dir) > 0.01 ? normalize(vento_dir) : vec2(1.0, 0.0);
+	return vec2(d.x, -d.y);
+}

@@ -37,16 +37,17 @@ def painel_solar():
 
 
 def turbina_eolica():
-    m = Modelo('turbina_eolica', EN, 2, 2, descricao='turbina eólica: torre octogonal afilada, nacele e hélice de 3 pás '
-               'virada para o sul (gira com o vento); gera energia sem combustível.')
+    m = Modelo('turbina_eolica', EN, 2, 2, descricao='turbina eólica: torre octogonal afilada; a nacele gira no topo para '
+               'encarar o vento e a hélice de 3 pás gira com ele; gera energia sem combustível.')
     p = m.parte(); base_ht(p, 2, 2)
     v = p.cil((0, 0, 0.22), 0.42, 0.24, 'P_Escuro', lados=8, rot=PI/8, r2=0.34); p.chanfrar(v, 0.02)
     p.cil((0, 0, 1.47), 0.20, 2.26, 'P_Aco', lados=8, rot=PI/8, r2=0.11)
     for z in (0.80, 1.60):
         p.cil((0, 0, z), 0.20 - (z - 0.34)*0.04 + 0.012, 0.03, 'P_Cristal', lados=8, rot=PI/8)
-    v = p.caixa(-0.17, 0.17, -0.24, 0.45, 2.58, 2.86, 'P_Escuro'); p.chanfrar(v, 0.03)   # nacele
-    p.caixa(-0.12, 0.12, 0.45, 0.462, 2.66, 2.78, 'P_Cristal')
-    h = m.parte('helice', pai='corpo', pivo=(0, -0.36, 2.72))                  # hélice (gira em torno do eixo norte)
+    nc = m.parte('nacele', pai='corpo', pivo=(0, 0, 2.58))                     # nacele: vira para o vento (eixo vertical)
+    v = nc.caixa(-0.17, 0.17, -0.24, 0.45, 2.58, 2.86, 'P_Escuro'); nc.chanfrar(v, 0.03)
+    nc.caixa(-0.12, 0.12, 0.45, 0.462, 2.66, 2.78, 'P_Cristal')
+    h = m.parte('helice', pai='nacele', pivo=(0, -0.36, 2.72))                 # hélice (gira em torno do eixo da nacele)
     h.cil((0, -0.34, 2.72), 0.11, 0.20, 'P_Aco', lados=8, eixo='Y')
     h.cil((0, -0.47, 2.72), 0.07, 0.07, 'P_Cristal', lados=8, eixo='Y', r2=0.02)
     for k in range(3):

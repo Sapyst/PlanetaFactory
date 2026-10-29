@@ -53,6 +53,21 @@ fontes". Remover um poste religa quem ficou sem. Fantasma do poste mostra os fio
   Cada uma muda a duração do dia (`dia_extra`), a secura (fogo) e os pesos do clima.
 - Fotos: roteiros param o relógio ao meio da manhã; `-- hora 0.0` fotografa à meia-noite; `-- ciclo` deixa andar.
 
+## Vento
+- `Clima`: cada estação tem um rumo predominante (`vento_de` em `clima.json`); a direção do momento oscila ±40° em
+  volta dele e vira devagar na troca de estação. **Rajadas**: frentes de vento mais forte (+18 a +43%) que nascem a
+  barlavento de onde a câmera olha e atravessam o mapa (`vento_em(p)`); a grama e as árvores se curvam quando passam.
+  `vento_medio` = média móvel de 10 min de jogo (vai no save).
+- `ambiente/vento_local.gd`: fator do lugar — alto +12% por nível acima do entorno (até +36%), baixada até −24%,
+  campo aberto/praia/beira-mar +15%, floresta/pântano −30%, árvores plantadas −6% cada, a sotavento de construção
+  alta e larga −20%. Números em `ambiente.json` "vento_local".
+- Turbina: rende pelo vento do lugar dela (clima × lugar × rajada) numa curva — parada abaixo de 25%, sobe até 85%,
+  plena até 115%, acima disso pás em bandeira (40%, protege). A nacele vira devagar para encarar o vento.
+- Poluição do ar: o que vaza do chunk vai 70% vento abaixo (`vento_a_favor`), o resto para os 4 lados.
+- Fogo já corria a favor do vento; chuva já caía inclinada; grama e árvores agora inclinam na direção do vento.
+- Visão de recursos: V de novo liga a camada **Vento** — mapa de calor do vento médio de cada lugar, setas no chão
+  na direção média e a ficha do tile com "vento médio aqui". Roteiros: `vento`, `turbina`.
+
 ## Sujeira, consequências e limpeza
 - `ambiente/ambiente_vivo.gd`: máquinas sujam o chão em volta, vazam óleo, despejam na água; enxurrada leva a sujeira
   para rios e lagos. **Consequências:** bomba de seiva com poça contaminada rende menos e se desgasta; chão sujo perto

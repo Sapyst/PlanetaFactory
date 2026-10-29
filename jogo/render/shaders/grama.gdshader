@@ -1,18 +1,19 @@
 // Grama em massa (uma MultiMesh = uma chamada de desenho): cada instância é um tufo de folhas finas. O vento é todo
-// na GPU: uma onda rítmica que atravessa o campo (rajadas em faixas) + tremor fino por folha; dobra mais na ponta.
+// na GPU, na direção e força do vento do clima (vento_dir): onda rítmica que atravessa o campo + a rajada de verdade
+// (faixa larga que passa, a mesma que a turbina sente) + tremor fino por folha; dobra mais na ponta.
 // Cor: base escura (sombra do tufo) → ponta clara, variando por instância (COLOR do MultiMesh).
 shader_type spatial;
 render_mode cull_disabled, diffuse_lambert, specular_disabled;
 
 uniform vec3 cor_base : source_color = vec3(0.16, 0.24, 0.10);
 uniform vec3 cor_ponta : source_color = vec3(0.47, 0.58, 0.28);
-uniform vec2 vento_dir = vec2(0.8, 0.6);
 uniform float forca = 0.35;
 uniform sampler2D mapa_fabrica : filter_nearest, hint_default_black;   // do chunk: R = piso, B = aplainado
 uniform vec2 origem_mapa;
 uniform sampler2D mapa_ambiente : filter_linear, hint_default_transparent;   // A = queimado, R = sujeira
 uniform float raio_vista = 38.0;
 global uniform vec3 alvo_camera;
+#include "res://render/shaders/clima.gdshaderinc"
 
 varying float altura;
 varying float queimando;
@@ -34,15 +35,18 @@ void vertex() {
 	tom *= mix(vec3(1.0), vec3(0.18, 0.12, 0.08), smoothstep(0.0, 0.25, q));
 	tom *= mix(vec3(1.0), vec3(0.72, 0.62, 0.42), smoothstep(0.1, 0.6, amb.r));   // suja: amarelada
 	some = max(some, smoothstep(raio_vista - 6.0, raio_vista, distance(o.xz, alvo_camera.xz)));
+	some = max(some, visao_recursos);                       // visão de recursos/vento: o chão fica limpo para ler
 	VERTEX *= 1.0 - some;
 	vec3 mundo = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-	vec2 d = normalize(vento_dir);
-	float fase = dot(mundo.xz, d) * 0.35 - TIME * 1.9;
-	// rajada: faixas que passam pelo campo; respiração lenta por cima
-	float rajada = pow(0.5 + 0.5 * sin(fase), 3.0) * (0.75 + 0.25 * sin(TIME * 0.37 + mundo.x * 0.05));
-	float tremor = sin(TIME * 7.0 + mundo.x * 3.1 + mundo.z * 2.3) * 0.08;
+	vec2 d = vento_mundo();
+	float intensidade = clamp(length(vento_dir) - 0.4, 0.0, 1.0);          // 0 calmaria .. 1 ventania
+	float fase = dot(mundo.xz, d) * 0.35 - TIME * (1.2 + 1.6 * intensidade);
+	// ondas rítmicas que passam pelo campo; respiração lenta por cima; a rajada do clima empurra forte onde passa
+	float onda = pow(0.5 + 0.5 * sin(fase), 3.0) * (0.75 + 0.25 * sin(TIME * 0.37 + mundo.x * 0.05));
+	float tremor = sin(TIME * (5.0 + 5.0 * intensidade) + mundo.x * 3.1 + mundo.z * 2.3) * (0.05 + 0.07 * intensidade);
 	float curva = altura * altura;
-	vec2 empurra = d * (rajada * forca + 0.06) * curva + vec2(tremor, -tremor) * curva * 0.5;
+	vec2 empurra = d * (onda * forca * (0.4 + intensidade) + 0.04 + 0.12 * intensidade + rajada_em(mundo) * 0.55) * curva
+			+ vec2(tremor, -tremor) * curva * 0.5;
 	VERTEX.x += (inverse(mat3(MODEL_MATRIX)) * vec3(empurra.x, 0.0, empurra.y)).x;
 	VERTEX.z += (inverse(mat3(MODEL_MATRIX)) * vec3(empurra.x, 0.0, empurra.y)).z;
 	VERTEX.y -= length(empurra) * 0.35 * curva;           // dobra: a ponta abaixa

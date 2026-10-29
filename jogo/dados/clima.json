@@ -111,10 +111,11 @@
  "_nota_estacoes": "Estações: ciclo de duracao_s cada; 'pesos' multiplica o peso de ir para cada estado; 'secura' 0..1 (incêndio); 'grama' tom da grama.",
  "estacao_s": 604800,
  "dia_s": 720,
+ "_vento": "vento_de = rumo predominante da estação (de onde vem); a direção oscila ±40° em volta; rajadas a cada 12–35 s (mais com vento forte)",
  "_dia": "ciclo de dia e noite em segundos (começa às 07:12); estações seguem o relógio real: estacao_s = 7 dias reais cada (passam mesmo com o jogo fechado; ano = 4 semanas); noite ~38% do ciclo na primavera/outono, menos no verão (dia_extra +) e mais no inverno (dia_extra −); painel solar só rende de dia",
  "estacoes": [
   {
-   "nome": "Primavera", "dia_extra": 0.0,
+   "nome": "Primavera", "vento_de": "leste", "dia_extra": 0.0,
    "pesos": {
     "chuva": 1.4,
     "nublado": 1.1,
@@ -125,7 +126,7 @@
    "secura": 0.2
   },
   {
-   "nome": "Verão", "dia_extra": 0.18,
+   "nome": "Verão", "vento_de": "nordeste", "dia_extra": 0.18,
    "pesos": {
     "limpo": 1.8,
     "chuva": 0.5,
@@ -136,7 +137,7 @@
    "secura": 0.85
   },
   {
-   "nome": "Outono", "dia_extra": 0.0,
+   "nome": "Outono", "vento_de": "oeste", "dia_extra": 0.0,
    "pesos": {
     "nublado": 1.4,
     "tempestade": 1.4,
@@ -147,7 +148,7 @@
    "secura": 0.5
   },
   {
-   "nome": "Inverno", "dia_extra": -0.2,
+   "nome": "Inverno", "vento_de": "sul", "dia_extra": -0.2,
    "pesos": {
     "neblina": 2.2,
     "nublado": 1.3,

@@ -49,7 +49,8 @@ var _saidas_portas: Array[Dictionary] = []   ## {origem: Object, tile: Vector2i}
 var _membros: Dictionary = {}          ## id → membro da rede (dict)
 var acumulado: Dictionary = {}         ## id do acumulador → MJ guardados
 var sol := 1.0                         ## 0..1: quanto os painéis solares rendem agora (o mundo passa do clima)
-var vento := 0.5                       ## 0..1: idem para as turbinas eólicas
+var vento := 0.5                       ## força do vento (0..~1,6) para turbina sem valor próprio
+var vento_turbina: Dictionary = {}     ## id da turbina → vento no lugar dela (clima × VentoLocal × rajada), o mundo passa
 var juncoes: Array[Dictionary] = []    ## itens que acabaram de entrar pela lateral: {caminho, pos, lado, passo} (desenho desliza)
 
 const EXTRA_JUNCAO := 0.375            ## m além da borda na rampa de junção (o item para a 0,25 m do eixo da vizinha)
@@ -253,8 +254,23 @@ func kw_de(id: int) -> float:
 		kw *= float(modo(id)[1])
 	match regra.get("renovavel", ""):
 		"sol": kw *= sol
-		"vento": kw *= vento
+		"vento": kw *= curva_turbina(float(vento_turbina.get(id, vento)))
 	return kw
+
+
+## Fração da potência da turbina pelo vento do lugar: parada abaixo do corte, sobe até o nominal, plena até a
+## proteção; em ventania põe as pás em bandeira e rende pouco (não quebra).
+static func curva_turbina(v: float) -> float:
+	var c: Dictionary = Registro.ambiente.get("turbina", {})
+	var corte := float(c.get("corte", 0.25))
+	var nominal := float(c.get("nominal", 0.85))
+	if v > float(c.get("protecao", 1.15)):
+		return float(c.get("so_protecao", 0.4))
+	return clampf((v - corte) / (nominal - corte), 0.0, 1.0)
+
+
+func em_protecao(id: int) -> bool:
+	return float(vento_turbina.get(id, vento)) > float(Registro.ambiente.get("turbina", {}).get("protecao", 1.15))
 
 
 ## Broca: a jazida que mais aparece debaixo dela.

@@ -33,6 +33,7 @@ var _desenho_colonia: DesenhoColonia
 var _desenho_trens: DesenhoTrens
 var _desenho_poluicao: DesenhoPoluicao
 var _visao: VisaoRecursos
+var vento_local: VentoLocal
 var _fluxo: DesenhoFluxo
 var animar_tudo := false             ## mostruário (vídeos): toda máquina e braço mexendo
 var _no_nucleo: Node3D
@@ -96,6 +97,7 @@ func _ready() -> void:
 	pesquisa = Pesquisa.new(modo == "demo")
 	fabrica = Fabrica.new(mapa)
 	ambiente = AmbienteVivo.new(gerador, mapa, semente)
+	vento_local = VentoLocal.new(gerador, mapa, ambiente)
 	agua = AguaJogo.new(gerador, mapa)
 	ambiente.dano = func(id: int, pontos: float) -> void: _danificar(id, pontos)
 	ambiente.poluicao = poluicao
@@ -142,6 +144,7 @@ func _ready() -> void:
 	if args.has("roteiro") and not args.has("ciclo"):
 		clima.ciclo = false
 		clima.tempo_real = false
+		clima.t_estacao = float(Registro.clima.estacao_s) * 0.5     # meio da estação (vento no rumo dela)
 		clima.hora = 0.45
 	if hi >= 0 and args.size() > hi + 1:
 		clima.hora = float(args[hi + 1])
@@ -316,6 +319,8 @@ func _criar_desenhos() -> void:
 	_visao.gerador = gerador
 	_visao.mapa = mapa
 	_visao.camera = camera
+	_visao.clima = clima
+	_visao.vento_local = vento_local
 	_visao.areas_interface = func() -> Array[Rect2]: return controle.barra.areas_ocupadas()
 	add_child(_visao)
 	var da := DesenhoAmbiente.new()
@@ -344,6 +349,10 @@ func _criar_desenhos() -> void:
 
 func alternar_recursos() -> bool:
 	return _visao.alternar()
+
+
+func camada_visao() -> String:
+	return _visao.camada
 
 
 func alternar_poluicao() -> bool:
@@ -864,7 +873,9 @@ func _animar_estruturas() -> void:
 			var a := _animador(id)
 			if a != null:
 				a.ativo = animar_tudo or fabrica.ligada(id)
-				a.ritmo = 0.3 + fabrica.vento
+				a.rumo_vento = clima.direcao_vento
+				var vt := float(fabrica.vento_turbina.get(id, fabrica.vento))
+				a.ritmo = 0.15 if fabrica.em_protecao(id) else (0.0 if Fabrica.curva_turbina(vt) <= 0.0 else 0.3 + vt)
 	for id in fabrica.bracos:
 		var a := _animador(id)
 		if a != null:
@@ -885,7 +896,16 @@ func _animador(id: int) -> Animador:
 func _tick_mundo(dt: float) -> void:
 	# renováveis: sol (luz, menos nuvem e chuva) e vento do clima de agora
 	fabrica.sol = clampf(clima.luz_dia() * float(clima.valores.luz) * (1.0 - 0.5 * float(clima.valores.nuvens)) * (1.0 - 0.6 * float(clima.valores.chuva)), 0.0, 1.0)
-	fabrica.vento = clampf(0.05 + 0.95 * float(clima.valores.vento), 0.0, 1.0)
+	# vento: cada turbina sente o vento do lugar dela (relevo, mata, sombra de construção) e as rajadas que passam
+	clima.foco = Vector2(Grade.tile_de_mundo(camera.alvo))
+	fabrica.vento = float(clima.valores.vento)
+	fabrica.vento_turbina.clear()
+	for id in _turbinas:
+		if mapa.estruturas.has(id):
+			var et: Dictionary = mapa.estruturas[id]
+			var c := Grade.centro_da_area(et.minimo, et.area, et.rot)
+			fabrica.vento_turbina[id] = clima.vento_em(c) * vento_local.fator(Vector2i(c.floor()), clima.direcao_vento)
+	poluicao.vento = clima.direcao_vento * float(clima.valores.vento)
 	if _fabrica_suja:
 		fabrica.reconstruir()
 		_fabrica_suja = false
@@ -1153,8 +1173,17 @@ func _detalhe() -> void:
 				linhas.append("Guardado: %.1f de %.0f MJ · carrega/descarrega até %d kW" % [fabrica.acumulado.get(id, 0.0), regra.acumula_mj, regra.acumula_kw])
 			else:
 				var agora: float = -fabrica.kw_de(id)
-				var nota: String = {"sol": " (sol agora: %d%%)" % (fabrica.sol * 100), "vento": " (vento agora: %d%%)" % (fabrica.vento * 100)}.get(regra.get("renovavel", ""), "")
+				var nota: String = {"sol": " (sol agora: %d%%)" % (fabrica.sol * 100)}.get(regra.get("renovavel", ""), "")
 				linhas.append("Geração: até %d kW agora, máximo %d kW%s" % [agora, -float(regra.get("energia_kw", 0.0)), nota])
+				if regra.get("renovavel", "") == "vento":
+					var c := Grade.centro_da_area(e.minimo, e.area, e.rot)
+					var f := vento_local.fator(Vector2i(c.floor()), clima.direcao_vento)
+					linhas.append("Vento aqui: %d%% %s · o lugar dá %+d%%" % [float(fabrica.vento_turbina.get(id, fabrica.vento)) * 100, Clima.nome_rumo(clima.direcao_vento), (f - 1.0) * 100])
+					var tc: Dictionary = Registro.ambiente.get("turbina", {})
+					if fabrica.em_protecao(id):
+						linhas.append("Ventania: pás em bandeira (rende %d%%, protege a turbina)" % (float(tc.get("so_protecao", 0.4)) * 100))
+					elif Fabrica.curva_turbina(float(fabrica.vento_turbina.get(id, fabrica.vento))) <= 0.0:
+						linhas.append("Vento fraco demais: parada (gira acima de %d%%)" % (float(tc.get("corte", 0.25)) * 100))
 	# ficha da rede elétrica em que está ligada
 	var est := fabrica.rede.estat_de(id)
 	if not est.is_empty() and Fiacao.papel(e.nome) != "":
@@ -1223,8 +1252,8 @@ func _hud() -> void:
 	for t in colonia.torres.values():
 		municao += t.municao
 	var aqui := poluicao.em(Grade.tile_de_mundo(camera.alvo))
-	var texto := "%s %s · %s · Clima: %s\nPoluição aqui: %.1f   ·   total: %.0f\nNinhos: %d   ·   aranhas: %d\nMunição nas torres: %d   ·   trens: %d" % [
-			clima.periodo(), clima.relogio(), clima.nome_estacao(), clima.nome(), aqui, poluicao.total(), colonia.ninhos.size(), colonia.aranhas.size(), municao, trens.size()]
+	var texto := "%s %s · %s · Clima: %s · Vento %d%% %s\nPoluição aqui: %.1f   ·   total: %.0f\nNinhos: %d   ·   aranhas: %d\nMunição nas torres: %d   ·   trens: %d" % [
+			clima.periodo(), clima.relogio(), clima.nome_estacao(), clima.nome(), clima.vento_em(clima.foco) * 100, Clima.nome_rumo(clima.direcao_vento), aqui, poluicao.total(), colonia.ninhos.size(), colonia.aranhas.size(), municao, trens.size()]
 	if modo != "demo":
 		var principais: Array[String] = []
 		for k in ["placa_ferro", "engrenagem", "placa_cobre", "pedra"]:

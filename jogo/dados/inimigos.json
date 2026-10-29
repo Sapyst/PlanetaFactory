@@ -1,7 +1,7 @@
 {
  "_nota": "Poluição e aranhas. Unidades: poluição em pontos por chunk (32×32); taxas por segundo. As fontes (máquinas) emitem 'poluicao' de estruturas.json por minuto.",
  "poluicao": {
-  "difusao": 0.05,
+  "difusao": 0.05, "vento_a_favor": 0.7,
   "minimo_espalhar": 0.6,
   "absorcao": 0.003,
   "absorcao_fixa": 0.01,

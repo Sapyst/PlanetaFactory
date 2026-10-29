@@ -77,7 +77,7 @@ func test_solar_e_eolica_seguem_o_clima() -> void:
 	f.sol = 0.0
 	f.vento = 0.15
 	f.tick(1.0)
-	perto(f.rede.satisfacao(mq), 30.0 / 150.0, 1e-3, "sem sol e quase sem vento: 30 de 150 kW")
+	perto(f.rede.satisfacao(mq), 0.0, 1e-6, "sem sol e vento abaixo do corte: turbina parada")
 
 
 func test_desligar_e_modos() -> void:

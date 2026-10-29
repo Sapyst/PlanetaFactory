@@ -162,7 +162,8 @@ func mudar_nivel(passo: int, ciclo := false) -> void:
 
 func alternar_recursos() -> void:
 	if mundo.has_method("alternar_recursos"):
-		barra.ligar_recursos(mundo.alternar_recursos())
+		var sim: bool = mundo.alternar_recursos()
+		barra.ligar_recursos(sim, mundo.camada_visao() if mundo.has_method("camada_visao") else "recursos")
 
 
 func alternar_poluicao() -> void:

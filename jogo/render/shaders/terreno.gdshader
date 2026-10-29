@@ -20,8 +20,8 @@ uniform float camada_jazida = 7.0;  // zona de minério nunca vira piso
 uniform float primeira_agua = 8.0;
 uniform float escala = 0.25;
 uniform float camada_rocha = 3.0;
-global uniform vec3 piso_crescer;
-global uniform vec2 vento_dir;        // grade: direção × força do vento (o fogo corre nessa direção)   // (x, y da grade, raio): piso de fábrica só até esse raio (abertura); 1e6 = livre
+global uniform vec3 piso_crescer;   // (x, y da grade, raio): piso de fábrica só até esse raio (abertura); 1e6 = livre
+// vento_dir (grade: direção × força do vento — o fogo corre nessa direção) vem de clima.gdshaderinc
 uniform float alt_nivel = 1.0;      // metros por nível de relevo   // barranco (encosta íngreme) mostra pedra
 #include "res://render/shaders/clima.gdshaderinc"
 
