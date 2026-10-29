@@ -97,7 +97,11 @@ func _ready() -> void:
 	canto.add_child(info_vb)
 	var chips := PanelContainer.new()
 	chips.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	chips.add_theme_stylebox_override("panel", Tema.caixa(Color(0.03, 0.05, 0.06, 0.62), Color(0.31, 0.9, 0.87, 0.25), 999, 8))
+	# raio pequeno: o texto tem várias linhas, um canto em pílula cortaria as pontas das linhas
+	var caixa_info := Tema.caixa(Color(0.03, 0.05, 0.06, 0.72), Color(0.31, 0.9, 0.87, 0.25), 10, 8)
+	caixa_info.content_margin_left = 16
+	caixa_info.content_margin_right = 18
+	chips.add_theme_stylebox_override("panel", caixa_info)
 	chips.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	info_vb.add_child(chips)
 	_info = Label.new()
