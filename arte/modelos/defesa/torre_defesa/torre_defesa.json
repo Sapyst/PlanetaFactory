@@ -6,7 +6,7 @@
   2,
   2
  ],
- "descricao": "Torre de defesa. Munição entra pelo sul. Partes: base, giro (gira em Z), canhao (inclina).",
+ "descricao": "torre de defesa: pedestal octogonal, cabeça blindada com olho sensor e canhão de trilho duplo. Munição entra pelo sul. Partes: base, giro (gira em Z), canhao (inclina).",
  "ocupa_canto": false,
  "partes": [
   {
@@ -54,18 +54,18 @@
    ]
   }
  ],
- "tris": 332,
+ "tris": 480,
  "dims": [
   1.9,
   1.95,
-  1.46
+  1.38
  ],
  "materiais": [
   "P_Aco",
   "P_Concreto",
   "P_Cristal",
   "P_Escuro",
-  "P_Faixa",
+  "P_Fogo",
   "P_Metal"
  ]
 }

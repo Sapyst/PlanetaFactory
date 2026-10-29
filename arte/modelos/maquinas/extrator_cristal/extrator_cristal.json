@@ -6,7 +6,7 @@
   3,
   3
  ],
- "descricao": "Extrator de Cristal: vai sobre jazida de cristal. Saída no meio da borda sul.",
+ "descricao": "extrator de cristal: câmara octogonal sobre a jazida, quatro pilones que suspendem o prisma de ressonância, anel de extração que sobe e desce e calha de luz até a boca sul.",
  "ocupa_canto": false,
  "partes": [
   {
@@ -19,21 +19,57 @@
    ]
   },
   {
-   "nome": "cristal",
-   "pai": "corpo",
-   "pivo": [
-    0.0,
-    0.0,
-    2.3
-   ]
-  },
-  {
    "nome": "hastes",
    "pai": "corpo",
    "pivo": [
     0.0,
     0.0,
-    0.0
+    1.3
+   ]
+  },
+  {
+   "nome": "cristal",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.0,
+    1.9
+   ]
+  },
+  {
+   "nome": "pistao0",
+   "pai": "corpo",
+   "pivo": [
+    -1.05,
+    -1.05,
+    0.44
+   ]
+  },
+  {
+   "nome": "pistao1",
+   "pai": "corpo",
+   "pivo": [
+    -1.05,
+    1.05,
+    0.44
+   ]
+  },
+  {
+   "nome": "pistao2",
+   "pai": "corpo",
+   "pivo": [
+    1.05,
+    -1.05,
+    0.44
+   ]
+  },
+  {
+   "nome": "pistao3",
+   "pai": "corpo",
+   "pivo": [
+    1.05,
+    1.05,
+    0.44
    ]
   }
  ],
@@ -58,36 +94,36 @@
   [
    -1.35,
    -1.35,
-   0.38
+   0.372
   ],
   [
    -1.35,
    1.35,
-   0.38
+   0.372
   ],
   [
    1.35,
    -1.35,
-   0.38
+   0.372
   ],
   [
    1.35,
    1.35,
-   0.38
+   0.372
   ]
  ],
- "tris": 840,
+ "tris": 1398,
  "dims": [
   2.9,
   2.95,
-  3.2
+  2.55
  ],
  "materiais": [
+  "P_Aco",
   "P_Cobre",
   "P_Concreto",
   "P_Cristal",
   "P_Escuro",
-  "P_Faixa",
   "P_Metal"
  ]
 }

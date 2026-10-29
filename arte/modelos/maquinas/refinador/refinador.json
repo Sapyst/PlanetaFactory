@@ -6,7 +6,7 @@
   3,
   3
  ],
- "descricao": "Refinador: processa fluidos (seiva, óleo). Fluido entra a oeste, sai a leste; item ao norte.",
+ "descricao": "refinador: dois reatores octogonais e torre de fracionamento com anel de campo que gira; fluido entra a oeste, sai a leste; item ao norte.",
  "ocupa_canto": false,
  "partes": [
   {
@@ -16,6 +16,33 @@
     0.0,
     0.0,
     0.0
+   ]
+  },
+  {
+   "nome": "antena",
+   "pai": "corpo",
+   "pivo": [
+    0.45,
+    0.0,
+    2.4
+   ]
+  },
+  {
+   "nome": "pistao0",
+   "pai": "corpo",
+   "pivo": [
+    0.55,
+    -0.8,
+    0.76
+   ]
+  },
+  {
+   "nome": "pistao1",
+   "pai": "corpo",
+   "pivo": [
+    0.55,
+    0.8,
+    0.76
    ]
   }
  ],
@@ -70,31 +97,31 @@
   [
    -1.35,
    -1.35,
-   0.38
+   0.372
   ],
   [
    -1.35,
    1.35,
-   0.38
+   0.372
   ],
   [
    1.35,
    -1.35,
-   0.38
+   0.372
   ]
  ],
- "tris": 692,
+ "tris": 1374,
  "dims": [
   3.0,
   2.95,
-  3.2
+  3.12
  ],
  "materiais": [
+  "P_Aco",
   "P_Cobre",
   "P_Concreto",
   "P_Cristal",
   "P_Escuro",
-  "P_Faixa",
   "P_Metal"
  ]
 }

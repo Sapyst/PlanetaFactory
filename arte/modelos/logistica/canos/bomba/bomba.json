@@ -6,7 +6,7 @@
   1,
   1
  ],
- "descricao": "Bomba sobre poça de seiva/água: empurra fluido pela saída ao norte.",
+ "descricao": "bomba: corpo octogonal sobre a poça, êmbolo com anel de luz que sobe e desce; empurra fluido pela saída ao norte.",
  "ocupa_canto": false,
  "partes": [
   {
@@ -23,7 +23,7 @@
    "pai": "corpo",
    "pivo": [
     0.0,
-    -0.07,
+    -0.08,
     0.58
    ]
   }
@@ -49,20 +49,20 @@
   [
    0.3,
    -0.3,
-   0.3
+   0.28
   ]
  ],
- "tris": 204,
+ "tris": 312,
  "dims": [
   0.76,
   0.88,
   0.82
  ],
  "materiais": [
+  "P_Aco",
   "P_Cobre",
   "P_Concreto",
-  "P_Escuro",
-  "P_Faixa",
-  "P_Metal"
+  "P_Cristal",
+  "P_Escuro"
  ]
 }

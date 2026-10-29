@@ -66,9 +66,9 @@ Texturas de chão em `texturas/` (loop sem emenda; relatório em `texturas/_emen
 
 | Modelo | Área | Tri | Dimensões (m) | Portas | Descrição |
 |---|---|---|---|---|---|
-| `braco` | 1×1 | 252 | 0,68 × 0,78 × 0,71 | ITEM_ENT_S0, ITEM_SAI_N0 · partes: giro, braco1, braco2, garra | Braço mecânico: pega do tile ao sul e solta no tile ao norte. Alcance 1 tile. |
-| `braco_longo` | 1×1 | 252 | 0,68 × 0,86 × 0,79 | ITEM_ENT_S0, ITEM_SAI_N0 · partes: giro, braco1, braco2, garra | Braço longo: alcance 2 tiles (pula um tile). Em repouso fica dentro do próprio tile. |
-| `braco_rapido` | 1×1 | 272 | 0,68 × 0,78 × 0,71 | ITEM_ENT_S0, ITEM_SAI_N0 · partes: giro, braco1, braco2, garra | Braço rápido: alcance 1 tile, 2× mais rápido, consome mais energia. |
+| `braco` | 1×1 | 252 | 0,68 × 0,73 × 0,96 | ITEM_ENT_S0, ITEM_SAI_N0 · partes: giro, braco1, braco2, garra | Braço mecânico: pega do tile ao sul e solta no tile ao norte. Alcance 1 tile. |
+| `braco_longo` | 1×1 | 252 | 0,68 × 0,88 × 1,46 | ITEM_ENT_S0, ITEM_SAI_N0 · partes: giro, braco1, braco2, garra | Braço longo: alcance 2 tiles (pula um tile). Em repouso fica dentro do próprio tile. |
+| `braco_rapido` | 1×1 | 272 | 0,68 × 0,73 × 0,96 | ITEM_ENT_S0, ITEM_SAI_N0 · partes: giro, braco1, braco2, garra | Braço rápido: alcance 1 tile, 2× mais rápido, consome mais energia. |
 
 ## Armazenagem
 
@@ -80,7 +80,7 @@ Texturas de chão em `texturas/` (loop sem emenda; relatório em `texturas/_emen
 
 | Modelo | Área | Tri | Dimensões (m) | Portas | Descrição |
 |---|---|---|---|---|---|
-| `bomba` | 1×1 | 204 | 0,76 × 0,88 × 0,82 | FLUIDO_SAI_N0 · partes: cabecote | Bomba sobre poça de seiva/água: empurra fluido pela saída ao norte. |
+| `bomba` | 1×1 | 312 | 0,76 × 0,88 × 0,82 | FLUIDO_SAI_N0 · partes: cabecote | bomba: corpo octogonal sobre a poça, êmbolo com anel de luz que sobe e desce; empurra fluido pela saída ao norte. |
 | `cano_cruz` | 1×1 | 232 | 1,00 × 1,00 × 0,52 | FLUIDO_SAI_S0, FLUIDO_SAI_N0, FLUIDO_SAI_L0, FLUIDO_SAI_O0 | Cano em cruz (4 lados). |
 | `cano_curva` | 1×1 | 196 | 0,64 × 0,64 × 0,49 | FLUIDO_ENT_S0, FLUIDO_SAI_L0 | Cano em curva (sul–leste), uma malha só. |
 | `cano_reto` | 1×1 | 84 | 0,28 × 1,00 × 0,49 | FLUIDO_ENT_S0, FLUIDO_SAI_N0 | Cano reto (norte–sul). |
@@ -90,13 +90,13 @@ Texturas de chão em `texturas/` (loop sem emenda; relatório em `texturas/_emen
 
 | Modelo | Área | Tri | Dimensões (m) | Portas | Descrição |
 |---|---|---|---|---|---|
-| `broca_minerio` | 2×2 | 480 | 1,90 × 1,95 × 1,85 | ITEM_SAI_S0 · partes: rotor | Broca de minério (ferro, cobre, pedra, carvão, sílex). Saída sul (tile da esquerda). |
-| `extrator_cristal` | 3×3 | 840 | 2,90 × 2,95 × 3,20 | ITEM_SAI_S1 · partes: cristal, hastes | Extrator de Cristal: vai sobre jazida de cristal. Saída no meio da borda sul. |
+| `broca_minerio` | 2×2 | 924 | 1,90 × 1,95 × 1,62 | ITEM_SAI_S0 · partes: rotor, pistao0, pistao1 | broca: carcaça octogonal blindada, coroa de lâminas que gira em volta do eixo de perfuração e dois pistões que cravam a broca. Saída sul (tile da esquerda). |
+| `extrator_cristal` | 3×3 | 1398 | 2,90 × 2,95 × 2,55 | ITEM_SAI_S1 · partes: hastes, cristal, pistao0, pistao1, pistao2, pistao3 | extrator de cristal: câmara octogonal sobre a jazida, quatro pilones que suspendem o prisma de ressonância, anel de extração que sobe e desce e calha de luz até a boca sul. |
 | `fornalha` | 2×2 | 836 | 1,90 × 2,00 × 1,19 | ITEM_ENT_S1, ITEM_SAI_N0 · partes: pistao0, pistao1 | fornalha de indução: cadinho octogonal, núcleo incandescente visto por frestas, bobinas de cobre e aletas de calor. Entra pelo sul, sai pelo norte. |
-| `laboratorio` | 3×3 | 672 | 2,90 × 2,95 × 2,79 | ITEM_ENT_S1 · partes: antena | Laboratório: consome pacotes de pesquisa. Entra pelo sul (meio). |
+| `laboratorio` | 3×3 | 1302 | 2,90 × 2,95 × 2,54 | ITEM_ENT_S1 · partes: antena, pistao0, pistao1, pistao2, pistao3 | laboratório: tambor octogonal, cúpula de sensores com pilares de dados de cristal e varredor que gira no topo. Entra pelo sul (meio). |
 | `montadora` | 3×3 | 1026 | 2,90 × 3,00 × 1,83 | ITEM_ENT_S1, ITEM_SAI_N1 · partes: antena, cristal | montadora: câmara blindada octogonal, anel manipulador suspenso que gira e prisma de montagem de cristal. Entra pelo sul, sai pelo norte (meio). |
-| `nucleo` | 3×3 | 738 | 3,00 × 3,00 × 2,56 | ITEM_ENT_S1, ITEM_ENT_N1, ITEM_ENT_L1, ITEM_ENT_O1 · partes: cristal, antena | Núcleo: a unidade semeadora da IA. Tudo que entra (esteira nas 4 bocas ou braço) vira estoque para construir. Partes: cristal (monólito pulsa), antena (anel gira). |
-| `refinador` | 3×3 | 692 | 3,00 × 2,95 × 3,20 | FLUIDO_ENT_O1, FLUIDO_SAI_L1, ITEM_SAI_N0 | Refinador: processa fluidos (seiva, óleo). Fluido entra a oeste, sai a leste; item ao norte. |
+| `nucleo` | 3×3 | 1010 | 3,00 × 3,00 × 2,56 | ITEM_ENT_S1, ITEM_ENT_N1, ITEM_ENT_L1, ITEM_ENT_O1 · partes: cristal, antena | Núcleo: a unidade semeadora da IA. Tudo que entra (esteira nas 4 bocas ou braço) vira estoque para construir. Partes: cristal (monólito pulsa), antena (anel gira). |
+| `refinador` | 3×3 | 1374 | 3,00 × 2,95 × 3,12 | FLUIDO_ENT_O1, FLUIDO_SAI_L1, ITEM_SAI_N0 · partes: antena, pistao0, pistao1 | refinador: dois reatores octogonais e torre de fracionamento com anel de campo que gira; fluido entra a oeste, sai a leste; item ao norte. |
 | `terraplenagem` | 3×3 | 950 | 2,90 × 2,90 × 2,23 | — · partes: antena, cristal, cabecote | Terraplenagem: unidade de modelagem do terreno da IA. Enquanto existir, libera Aplainar em qualquer lugar do mapa. Partes: antena (anel de sensores gira), cristal (núcleo pulsa), bloco (rocha suspensa). |
 
 ## Energia e fluidos
@@ -114,7 +114,7 @@ Texturas de chão em `texturas/` (loop sem emenda; relatório em `texturas/_emen
 |---|---|---|---|---|---|
 | `muro_centro` | 1×1 | 24 | 0,64 × 0,64 × 1,50 | — | Pilar do muro (centro do tile). O jogo junta muro_lado para cada vizinho com muro. |
 | `muro_lado` | 1×1 | 24 | 0,48 × 0,20 × 1,26 | — | Pano de muro do centro até a borda norte (girar para os outros lados). |
-| `torre_defesa` | 2×2 | 332 | 1,90 × 1,95 × 1,46 | ITEM_ENT_S1 · partes: giro, canhao | Torre de defesa. Munição entra pelo sul. Partes: base, giro (gira em Z), canhao (inclina). |
+| `torre_defesa` | 2×2 | 480 | 1,90 × 1,95 × 1,38 | ITEM_ENT_S1 · partes: giro, canhao | torre de defesa: pedestal octogonal, cabeça blindada com olho sensor e canhão de trilho duplo. Munição entra pelo sul. Partes: base, giro (gira em Z), canhao (inclina). |
 
 ## Trilhos e estação
 

@@ -6,7 +6,7 @@
   3,
   3
  ],
- "descricao": "Laboratório: consome pacotes de pesquisa. Entra pelo sul (meio).",
+ "descricao": "laboratório: tambor octogonal, cúpula de sensores com pilares de dados de cristal e varredor que gira no topo. Entra pelo sul (meio).",
  "ocupa_canto": false,
  "partes": [
   {
@@ -24,7 +24,43 @@
    "pivo": [
     0.0,
     0.0,
-    1.85
+    1.62
+   ]
+  },
+  {
+   "nome": "pistao0",
+   "pai": "corpo",
+   "pivo": [
+    -1.05,
+    -1.05,
+    0.44
+   ]
+  },
+  {
+   "nome": "pistao1",
+   "pai": "corpo",
+   "pivo": [
+    -1.05,
+    1.05,
+    0.44
+   ]
+  },
+  {
+   "nome": "pistao2",
+   "pai": "corpo",
+   "pivo": [
+    1.05,
+    -1.05,
+    0.44
+   ]
+  },
+  {
+   "nome": "pistao3",
+   "pai": "corpo",
+   "pivo": [
+    1.05,
+    1.05,
+    0.44
    ]
   }
  ],
@@ -49,36 +85,37 @@
   [
    -1.35,
    -1.35,
-   0.38
+   0.372
   ],
   [
    -1.35,
    1.35,
-   0.38
+   0.372
   ],
   [
    1.35,
    -1.35,
-   0.38
+   0.372
   ],
   [
    1.35,
    1.35,
-   0.38
+   0.372
   ]
  ],
- "tris": 672,
+ "tris": 1302,
  "dims": [
   2.9,
   2.95,
-  2.79
+  2.54
  ],
  "materiais": [
+  "P_Aco",
   "P_Cobre",
   "P_Concreto",
   "P_Cristal",
   "P_Escuro",
-  "P_Faixa",
+  "P_Fogo",
   "P_Metal",
   "P_Vidro"
  ]

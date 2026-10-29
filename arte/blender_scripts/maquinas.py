@@ -84,47 +84,57 @@ def cano_porta(p, m, lado, k, io, ate):
 
 # ---------------------------------------------------------------- extração
 def extrator_cristal():
-    m = Modelo('extrator_cristal', M, 3, 3, descricao='Extrator de Cristal: vai sobre jazida de cristal. Saída no meio da borda sul.')
-    p = m.parte(); placa(p, 3, 3)
-    v = p.caixa(-1.25, 1.25, -1.25, 1.25, 0.12, 0.52, 'P_Escuro'); p.chanfrar(v, 0.08)
-    v = p.caixa(-1.10, 1.10, -1.10, 1.10, 0.52, 0.60, 'P_Metal'); p.chanfrar(v, 0.05)
-    p.cil((0, 0, 1.25), 0.62, 1.30, 'P_Metal', lados=8, rot=PI/8)
-    p.cil((0, 0, 0.75), 0.66, 0.08, 'P_Faixa', lados=8, rot=PI/8)
-    p.cil((0, 0, 1.60), 0.66, 0.10, 'P_Escuro', lados=8, rot=PI/8)
-    for i in range(4):
-        a = i*PI/2; p.caixa_c(math.cos(a)*0.66, math.sin(a)*0.66, 0.85, 0.10, 0.30, 0.70, 'P_Escuro', rot=a)
-    p.cil((0, 0, 2.075), 0.62, 0.35, 'P_Metal', lados=8, r2=0.30, rot=PI/8)
-    p.cil((0, 0, 2.29), 0.34, 0.10, 'P_Escuro', lados=8, rot=PI/8)
-    cr = m.parte('cristal', pai='corpo', pivo=(0, 0, 2.30))            # pulsa (escala/brilho)
-    cr.cil((0, 0, 2.75), 0.22, 0.90, 'P_Cristal', lados=6, r2=0.0)
-    h = m.parte('hastes', pai='corpo', pivo=(0, 0, 0))                 # sobe e desce (pistões + braços)
-    for i in range(4):
-        a = PI/4 + i*PI/2; x, y = math.cos(a)*1.25, math.sin(a)*1.25
-        p.cil((x, y, 0.82), 0.17, 0.45, 'P_Escuro', lados=6); h.cil((x, y, 1.30), 0.09, 0.60, 'P_Cobre', lados=6)
-        h.caixa_c(math.cos(a)*0.93, math.sin(a)*0.93, 1.57, 0.72, 0.14, 0.10, 'P_Metal', rot=a)
-    boca(p, m, 'S', 1, 'SAI')
-    # cano único: sai da torre, faz a curva e desce até a boca
-    cam = [(Vector((0, -0.55, 1.0)), Vector((0, -1, 0)))]
-    for i in range(5):
-        a = (PI/2)*i/4
-        cam.append((Vector((0, -1.18 - 0.15*math.sin(a), 0.85 + 0.15*math.cos(a))), Vector((0, -math.cos(a), -math.sin(a)))))
-    cam.append((Vector((0, -1.33, 0.56)), Vector((0, 0, -1))))
-    p.tubo(cam, 0.09, 'P_Cobre', tampa=(True, True), lado=(1, 0, 0))
-    terminais_cantos(m, p, 0.12)
+    m = Modelo('extrator_cristal', M, 3, 3, descricao='extrator de cristal: câmara octogonal sobre a jazida, quatro pilones '
+               'que suspendem o prisma de ressonância, anel de extração que sobe e desce e calha de luz até a boca sul.')
+    p = m.parte(); base_ht(p, 3, 3)
+    v = p.cil((0, 0, 0.34), 1.15, 0.48, 'P_Escuro', lados=8, rot=PI/8, r2=1.05); p.chanfrar(v, 0.05)
+    p.cil((0, 0, 0.60), 1.06, 0.04, 'P_Cristal', lados=8, rot=PI/8)
+    v = p.cil((0, 0, 0.74), 0.92, 0.24, 'P_Aco', lados=8, rot=PI/8, r2=0.80); p.chanfrar(v, 0.04)
+    p.cil((0, 0, 0.875), 0.44, 0.03, 'P_Cristal', lados=8, rot=PI/8)          # poço de ressonância
+    p.cil((0, 0, 1.12), 0.12, 0.44, 'P_Aco', lados=6)                          # eixo do anel
+    for k in range(4):                                                         # pilones que seguram o prisma
+        a = PI/4 + k*PI/2
+        c, s_ = math.cos(a), math.sin(a)
+        p.barra((c*0.95, s_*0.95, 0.60), (c*0.48, s_*0.48, 2.02), 0.13, 0.13, 'P_Aco')
+        p.cil((c*0.46, s_*0.46, 2.08), 0.07, 0.10, 'P_Cristal', lados=6)
+    h = m.parte('hastes', pai='corpo', pivo=(0, 0, 1.30))                       # anel de extração (sobe e desce)
+    for k in range(8):
+        a = k*PI/4
+        h.caixa_c(math.cos(a)*0.34, math.sin(a)*0.34, 1.30, 0.20, 0.09, 0.08, 'P_Escuro', rot=a + PI/2)
+        if k % 2 == 0:
+            h.cil((math.cos(a)*0.34, math.sin(a)*0.34, 1.40), 0.035, 0.04, 'P_Cristal', lados=6)
+    cr = m.parte('cristal', pai='corpo', pivo=(0, 0, 1.90))                     # prisma de ressonância (pulsa)
+    cr.cil((0, 0, 1.76), 0.04, 0.18, 'P_Cristal', lados=6, r2=0.24)
+    cr.cil((0, 0, 2.20), 0.24, 0.70, 'P_Cristal', lados=6, r2=0.0)
+    p.barra((0, -0.70, 0.98), (0, -1.28, 0.43), 0.26, 0.12, 'P_Escuro')         # calha até a boca
+    p.barra((0, -0.70, 1.045), (0, -1.28, 0.495), 0.10, 0.02, 'P_Cristal')
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            pistao(m, p, (sx + 1) + (sy + 1)//2, sx*1.05, sy*1.05, 0.10)
+    boca_ht(p, m, 'S', 1, 'SAI')
+    terminais_cantos(m, p, 0.112)
     return m
 
 def broca_minerio():
-    m = Modelo('broca_minerio', M, 2, 2, descricao='Broca de minério (ferro, cobre, pedra, carvão, sílex). Saída sul (tile da esquerda).')
-    p = m.parte(); placa(p, 2, 2)
-    v = p.caixa(-0.80, 0.80, -0.80, 0.80, 0.12, 0.70, 'P_Metal'); p.chanfrar(v, 0.05)
-    p.caixa(-0.81, 0.81, -0.81, 0.81, 0.40, 0.48, 'P_Faixa')
-    v = p.caixa(-0.45, 0.45, -0.45, 0.45, 0.70, 1.05, 'P_Escuro'); p.chanfrar(v, 0.04)
-    r = m.parte('rotor', pai='corpo', pivo=(0, 0, 1.10))               # gira em Z
-    r.cil((0, 0, 1.45), 0.18, 0.80, 'P_Metal', lados=8, r2=0.10)
-    r.engrenagem((0.0, 0.0, 1.10), 0.40, 0.32, 10, 0.08, 'P_Cobre')
-    p.cil((0.55, 0.55, 1.05), 0.10, 0.70, 'P_Escuro', lados=6)
-    boca(p, m, 'S', 0, 'SAI')
-    terminais_cantos(m, p, 0.12)
+    m = Modelo('broca_minerio', M, 2, 2, descricao='broca: carcaça octogonal blindada, coroa de lâminas que gira em volta do '
+               'eixo de perfuração e dois pistões que cravam a broca. Saída sul (tile da esquerda).')
+    p = m.parte(); base_ht(p, 2, 2)
+    v = p.cil((0, 0.10, 0.36), 0.70, 0.52, 'P_Escuro', lados=8, rot=PI/8, r2=0.62); p.chanfrar(v, 0.04)
+    p.cil((0, 0.10, 0.64), 0.63, 0.04, 'P_Cristal', lados=8, rot=PI/8)
+    for z in (0.28, 0.44):                                                     # frestas do furo
+        p.cil((0, 0.10, z), 0.72, 0.03, 'P_Cristal', lados=8, rot=PI/8)
+    v = p.cil((0, 0.10, 0.80), 0.50, 0.28, 'P_Aco', lados=8, rot=PI/8, r2=0.40); p.chanfrar(v, 0.03)
+    r = m.parte('rotor', pai='corpo', pivo=(0, 0.10, 0.94))                    # coroa de lâminas (gira em Z)
+    r.cil((0, 0.10, 1.25), 0.15, 0.60, 'P_Aco', lados=8, r2=0.05)
+    r.cil((0, 0.10, 0.98), 0.30, 0.08, 'P_Escuro', lados=8, rot=PI/8)
+    for k in range(6):
+        a = k*PI/3
+        r.barra((math.cos(a)*0.22, 0.10 + math.sin(a)*0.22, 1.00), (math.cos(a + 0.5)*0.40, 0.10 + math.sin(a + 0.5)*0.40, 1.16),
+                0.05, 0.10, 'P_Metal')
+    r.cil((0, 0.10, 1.58), 0.05, 0.08, 'P_Cristal', lados=6)
+    pistao(m, p, 0, -0.66, 0.66, 0.10); pistao(m, p, 1, 0.66, 0.66, 0.10)
+    boca_ht(p, m, 'S', 0, 'SAI')
+    terminais_cantos(m, p, 0.112)
     return m
 
 # ---------------------------------------------------------------- produção
@@ -175,39 +185,57 @@ def montadora():
     return m
 
 def refinador():
-    m = Modelo('refinador', M, 3, 3, descricao='Refinador: processa fluidos (seiva, óleo). Fluido entra a oeste, sai a leste; item ao norte.')
-    p = m.parte(); placa(p, 3, 3)
-    v = p.caixa(-1.20, 0.20, -1.20, 1.20, 0.12, 0.60, 'P_Metal'); p.chanfrar(v, 0.05)
+    m = Modelo('refinador', M, 3, 3, descricao='refinador: dois reatores octogonais e torre de fracionamento com anel de '
+               'campo que gira; fluido entra a oeste, sai a leste; item ao norte.')
+    p = m.parte(); base_ht(p, 3, 3)
+    v = p.caixa(-1.18, 1.00, -1.15, 1.10, 0.10, 0.48, 'P_Escuro'); p.chanfrar(v, 0.05)
+    p.caixa(-1.05, 0.88, -1.02, -0.99, 0.48, 0.495, 'P_Cristal')
+    for y in (-0.55, 0.55):                                                    # reatores
+        v = p.cil((-0.50, y, 1.13), 0.40, 1.30, 'P_Aco', lados=8, rot=PI/8, r2=0.34); p.chanfrar(v, 0.03)
+        for z in (0.85, 1.30):
+            p.cil((-0.50, y, z), 0.41 - (z - 0.48)*0.046, 0.04, 'P_Cristal', lados=8, rot=PI/8)
+        p.cil((-0.50, y, 1.84), 0.31, 0.12, 'P_Escuro', lados=8, rot=PI/8, r2=0.18)
+    v = p.cil((0.45, 0, 1.68), 0.30, 2.40, 'P_Escuro', lados=8, rot=PI/8, r2=0.16); p.chanfrar(v, 0.02)   # torre
+    for z in (0.90, 1.50, 2.10):
+        p.cil((0.45, 0, z), 0.32 - (z - 0.48)*0.058, 0.04, 'P_Cristal', lados=8, rot=PI/8)
+    p.cil((0.45, 0, 3.0), 0.07, 0.24, 'P_Cristal', lados=6, r2=0.0)
     for y in (-0.55, 0.55):
-        p.cil((-0.55, y, 1.20), 0.45, 1.20, 'P_Metal', lados=10)
-        p.cil((-0.55, y, 1.84), 0.45, 0.08, 'P_Faixa', lados=10)
-        p.cil((-0.55, y, 1.96), 0.45, 0.16, 'P_Escuro', lados=10, r2=0.25)
-    p.cil((0.70, 0.0, 1.60), 0.35, 3.0, 'P_Escuro', lados=8)
-    for z in (0.8, 1.6, 2.4): p.cil((0.70, 0.0, z), 0.38, 0.10, 'P_Cobre', lados=8)
-    p.cil((0.70, 0.0, 3.15), 0.06, 0.10, 'P_Cristal', lados=6)
-    p.barra((-0.10, -0.55, 1.5), (0.40, 0.0, 1.5), 0.12, 0.12, 'P_Cobre')
-    p.barra((-0.10, 0.55, 1.5), (0.40, 0.0, 1.53), 0.12, 0.12, 'P_Cobre')
+        p.barra((-0.18, y*0.9, 1.40), (0.24, y*0.25, 1.40), 0.09, 0.09, 'P_Metal')
+    an = m.parte('antena', pai='corpo', pivo=(0.45, 0, 2.40))                  # anel de campo (gira)
+    for k in range(6):
+        a = k*PI/3
+        an.caixa_c(0.45 + math.cos(a)*0.34, math.sin(a)*0.34, 2.40, 0.16, 0.06, 0.05, 'P_Aco', rot=a + PI/2)
+        an.cil((0.45 + math.cos(a)*0.34, math.sin(a)*0.34, 2.465), 0.025, 0.03, 'P_Cristal', lados=6)
+    pistao(m, p, 0, 0.55, -0.80, 0.48, h=0.28); pistao(m, p, 1, 0.55, 0.80, 0.48, h=0.28)
     cano_porta(p, m, 'O', 1, 'ENT', 0.32); cano_porta(p, m, 'L', 1, 'SAI', 0.50)
-    p.caixa(1.0, 1.45, -0.20, 0.20, 0.12, 0.60, 'P_Escuro')
-    boca(p, m, 'N', 0, 'SAI')
-    terminais_cantos(m, p, 0.12)
+    boca_ht(p, m, 'N', 0, 'SAI')
+    terminais_cantos(m, p, 0.112)
     return m
 
 def laboratorio():
-    m = Modelo('laboratorio', M, 3, 3, descricao='Laboratório: consome pacotes de pesquisa. Entra pelo sul (meio).')
-    p = m.parte(); placa(p, 3, 3)
-    v = p.cil((0, 0, 0.50), 1.30, 0.76, 'P_Metal', lados=12); p.chanfrar(v, 0.04)
-    p.cil((0, 0, 0.92), 1.32, 0.08, 'P_Faixa', lados=12)
-    p.cil((0, 0, 1.30), 1.10, 0.70, 'P_Vidro', lados=12, r2=0.55)
-    p.cil((0, 0, 1.75), 0.55, 0.20, 'P_Escuro', lados=12)
-    an = m.parte('antena', pai='corpo', pivo=(0, 0, 1.85))             # gira em Z
-    an.cil((0, 0, 2.25), 0.05, 0.80, 'P_Metal', lados=6)
-    an.caixa_c(0, 0, 2.30, 0.50, 0.06, 0.06, 'P_Escuro')
-    an.cil((0, 0, 2.70), 0.14, 0.18, 'P_Cristal', lados=6, r2=0.0)
-    for i in range(3):
-        a = PI/2 + i*2*PI/3; p.cil((math.cos(a)*0.60, math.sin(a)*0.60, 1.35), 0.12, 0.30, 'P_Cristal', lados=6)
-    boca(p, m, 'S', 1, 'ENT')
-    terminais_cantos(m, p, 0.12)
+    m = Modelo('laboratorio', M, 3, 3, descricao='laboratório: tambor octogonal, cúpula de sensores com pilares de dados '
+               'de cristal e varredor que gira no topo. Entra pelo sul (meio).')
+    p = m.parte(); base_ht(p, 3, 3)
+    v = p.cil((0, 0, 0.40), 1.18, 0.60, 'P_Escuro', lados=8, rot=PI/8, r2=1.08); p.chanfrar(v, 0.05)
+    p.cil((0, 0, 0.72), 1.09, 0.04, 'P_Cristal', lados=8, rot=PI/8)
+    v = p.cil((0, 0, 0.84), 0.98, 0.20, 'P_Aco', lados=8, rot=PI/8, r2=0.90); p.chanfrar(v, 0.03)
+    p.cil((0, 0, 1.22), 0.86, 0.56, 'P_Vidro', lados=8, rot=PI/8, r2=0.42)
+    for k in range(3):                                                         # pilares de dados sob a cúpula
+        a = PI/2 + k*2*PI/3
+        p.cil((math.cos(a)*0.48, math.sin(a)*0.48, 1.16), 0.09, 0.40, 'P_Cristal', lados=6)
+    v = p.cil((0, 0, 1.56), 0.44, 0.12, 'P_Escuro', lados=8, rot=PI/8, r2=0.30); p.chanfrar(v, 0.02)
+    an = m.parte('antena', pai='corpo', pivo=(0, 0, 1.62))                     # varredor (gira)
+    an.cil((0, 0, 2.00), 0.05, 0.76, 'P_Aco', lados=6)
+    for k in range(3):
+        a = k*2*PI/3
+        an.barra((0, 0, 1.94), (math.cos(a)*0.50, math.sin(a)*0.50, 1.74), 0.05, 0.05, 'P_Aco')
+        an.cil((math.cos(a)*0.52, math.sin(a)*0.52, 1.72), 0.05, 0.06, 'P_Cristal', lados=6)
+    an.cil((0, 0, 2.46), 0.10, 0.16, 'P_Cristal', lados=6, r2=0.0)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            pistao(m, p, (sx + 1) + (sy + 1)//2, sx*1.05, sy*1.05, 0.10)
+    boca_ht(p, m, 'S', 1, 'ENT')
+    terminais_cantos(m, p, 0.112)
     return m
 
 def nucleo():
@@ -328,18 +356,23 @@ def tanque():
 
 # ---------------------------------------------------------------- defesa
 def torre_defesa():
-    m = Modelo('torre_defesa', D, 2, 2, descricao='Torre de defesa. Munição entra pelo sul. Partes: base, giro (gira em Z), canhao (inclina).')
-    b = m.parte('base'); placa(b, 2, 2)
-    v = b.cil((0, 0, 0.45), 0.75, 0.66, 'P_Escuro', lados=8, rot=PI/8); b.chanfrar(v, 0.05)
-    b.cil((0, 0, 0.82), 0.60, 0.08, 'P_Faixa', lados=8, rot=PI/8)
-    boca(b, m, 'S', 1, 'ENT', larg=0.30)
+    m = Modelo('torre_defesa', D, 2, 2, descricao='torre de defesa: pedestal octogonal, cabeça blindada com olho sensor e '
+               'canhão de trilho duplo. Munição entra pelo sul. Partes: base, giro (gira em Z), canhao (inclina).')
+    b = m.parte('base'); base_ht(b, 2, 2)
+    v = b.cil((0, 0, 0.42), 0.72, 0.64, 'P_Escuro', lados=8, rot=PI/8, r2=0.60); b.chanfrar(v, 0.05)
+    b.cil((0, 0, 0.78), 0.61, 0.05, 'P_Cristal', lados=8, rot=PI/8)
+    boca_ht(b, m, 'S', 1, 'ENT', larg=0.30)
     g = m.parte('giro', pai='base', pivo=(0, 0, 0.86))
-    v = g.cil((0, 0, 1.06), 0.50, 0.40, 'P_Metal', lados=8, rot=PI/8); g.chanfrar(v, 0.04)
-    g.caixa_c(0, -0.10, 1.26, 0.70, 0.60, 0.20, 'P_Metal')
-    g.cil((0, 0.25, 1.40), 0.06, 0.10, 'P_Cristal', lados=6)
+    v = g.cil((0, 0, 0.96), 0.52, 0.20, 'P_Aco', lados=8, rot=PI/8, r2=0.46); g.chanfrar(v, 0.03)
+    v = g.caixa_c(0, 0.02, 1.06, 0.62, 0.66, 0.32, 'P_Escuro'); g.chanfrar(v, 0.06)
+    g.caixa_c(0, -0.315, 1.24, 0.30, 0.04, 0.06, 'P_Cristal')                 # olho sensor
+    g.caixa_c(0, 0.36, 1.10, 0.40, 0.04, 0.14, 'P_Aco')
     c = m.parte('canhao', pai='giro', pivo=(0, -0.20, 1.20))
-    c.cil((0, -0.20, 1.20), 0.14, 0.40, 'P_Escuro', eixo='X', lados=8)
-    for x in (-0.09, 0.09): c.barra((x, -0.20, 1.20), (x, -0.88, 1.24), 0.07, 0.07, 'P_Aco')
+    c.cil((0, -0.20, 1.20), 0.13, 0.46, 'P_Aco', eixo='X', lados=8)
+    for x in (-0.10, 0.10):
+        c.barra((x, -0.24, 1.20), (x, -0.90, 1.24), 0.07, 0.08, 'P_Metal')
+        c.cil((x, -0.92, 1.24), 0.045, 0.05, 'P_Cristal', eixo='Y', lados=6)
+    c.barra((0, -0.30, 1.20), (0, -0.78, 1.23), 0.10, 0.03, 'P_Cristal')
     return m
 
 def muro_centro():

@@ -6,7 +6,7 @@
   2,
   2
  ],
- "descricao": "Broca de minério (ferro, cobre, pedra, carvão, sílex). Saída sul (tile da esquerda).",
+ "descricao": "broca: carcaça octogonal blindada, coroa de lâminas que gira em volta do eixo de perfuração e dois pistões que cravam a broca. Saída sul (tile da esquerda).",
  "ocupa_canto": false,
  "partes": [
   {
@@ -23,8 +23,26 @@
    "pai": "corpo",
    "pivo": [
     0.0,
-    0.0,
-    1.1
+    0.1,
+    0.94
+   ]
+  },
+  {
+   "nome": "pistao0",
+   "pai": "corpo",
+   "pivo": [
+    -0.66,
+    0.66,
+    0.44
+   ]
+  },
+  {
+   "nome": "pistao1",
+   "pai": "corpo",
+   "pivo": [
+    0.66,
+    0.66,
+    0.44
    ]
   }
  ],
@@ -49,31 +67,31 @@
   [
    -0.85,
    0.85,
-   0.38
+   0.372
   ],
   [
    0.85,
    -0.85,
-   0.38
+   0.372
   ],
   [
    0.85,
    0.85,
-   0.38
+   0.372
   ]
  ],
- "tris": 480,
+ "tris": 924,
  "dims": [
   1.9,
   1.95,
-  1.85
+  1.62
  ],
  "materiais": [
+  "P_Aco",
   "P_Cobre",
   "P_Concreto",
   "P_Cristal",
   "P_Escuro",
-  "P_Faixa",
   "P_Metal"
  ]
 }

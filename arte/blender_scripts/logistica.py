@@ -162,14 +162,16 @@ def cano_t():    return _cano_hub('cano_t', 'Cano em T (sul, norte, leste).', 'S
 def cano_cruz(): return _cano_hub('cano_cruz', 'Cano em cruz (4 lados).', 'SNLO')
 
 def bomba():
-    m = Modelo('bomba', C, descricao='Bomba sobre poça de seiva/água: empurra fluido pela saída ao norte.'); p = m.parte()
-    v = p.caixa(-0.38, 0.38, -0.38, 0.22, 0.0, 0.12, 'P_Concreto'); p.chanfrar(v, 0.02)
-    v = p.caixa(-0.28, 0.28, -0.30, 0.16, 0.12, 0.58, 'P_Metal'); p.chanfrar(v, 0.03)
-    c = m.parte('cabecote', pai='corpo', pivo=(0, -0.07, 0.58))        # sobe e desce (bombeando)
-    c.cil((0, -0.07, 0.68), 0.16, 0.20, 'P_Escuro', lados=8)
-    c.cil((0, -0.07, 0.80), 0.08, 0.04, 'P_Faixa', lados=8)
-    terminal(m, p, 0.30, -0.30, 0.12, baixo=True)
-    p.caixa(-0.29, 0.29, -0.31, 0.17, 0.30, 0.36, 'P_Faixa')
+    m = Modelo('bomba', C, descricao='bomba: corpo octogonal sobre a poça, êmbolo com anel de luz que sobe e desce; '
+               'empurra fluido pela saída ao norte.'); p = m.parte()
+    v = p.caixa(-0.38, 0.38, -0.38, 0.22, 0.0, 0.10, 'P_Escuro'); p.chanfrar(v, 0.03)
+    p.caixa(-0.20, 0.20, -0.33, -0.31, 0.10, 0.112, 'P_Cristal')
+    v = p.cil((0, -0.08, 0.34), 0.26, 0.48, 'P_Aco', lados=8, rot=PI/8, r2=0.21); p.chanfrar(v, 0.02)
+    p.cil((0, -0.08, 0.40), 0.245, 0.03, 'P_Cristal', lados=8, rot=PI/8)
+    c = m.parte('cabecote', pai='corpo', pivo=(0, -0.08, 0.58))        # êmbolo (sobe e desce, bombeando)
+    c.cil((0, -0.08, 0.68), 0.15, 0.20, 'P_Escuro', lados=8, rot=PI/8)
+    c.cil((0, -0.08, 0.80), 0.10, 0.04, 'P_Cristal', lados=8, rot=PI/8)
+    terminal(m, p, 0.30, -0.30, 0.10, baixo=True)
     cano_trecho(p, reto((0, 0.16, 0), (0, 0.5, 0)), flange_ini=False)
     m.porta('FLUIDO', 'SAI', 'N', perfil='cano'); return m
 
