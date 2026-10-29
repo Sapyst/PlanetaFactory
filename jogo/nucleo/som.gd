@@ -1,7 +1,7 @@
 extends Node
-## Autoload: toca os sons (assets/sons, gerados por ferramentas/gerar_sons.py) e a trilha em loop.
+## Autoload: toca os sons (assets/sons, gerados por ferramentas/gerar_sons.py). Sem música (Sapyst pediu tirar).
 ## Sons do mundo saem posicionados (mais baixo longe da câmera); cada som tem um intervalo mínimo para uma
-## rajada de tiros não virar ruído. Barramentos "Efeitos" e "Musica" (volumes nas configurações).
+## rajada de tiros não virar ruído. Barramento "Efeitos" (volume nas configurações).
 
 const INTERVALO := {"tiro": 0.07, "construir": 0.05, "clique": 0.03, "aranha_morre": 0.08, "alerta": 4.0, "apito_trem": 3.0, "trovao": 1.5, "fogo": 2.0, "faisca": 0.15}
 
@@ -9,7 +9,6 @@ var _sons: Dictionary = {}
 var _ultimo: Dictionary = {}
 var _pool2d: Array[AudioStreamPlayer] = []
 var _pool3d: Array[AudioStreamPlayer3D] = []
-var _musica: AudioStreamPlayer
 
 
 func _ready() -> void:
@@ -32,9 +31,6 @@ func _ready() -> void:
 		p.max_distance = 160.0
 		add_child(p)
 		_pool3d.append(p)
-	_musica = AudioStreamPlayer.new()
-	_musica.bus = "Musica"
-	add_child(_musica)
 
 
 func tocar(nome: String, onde := Vector3.INF, volume_db := 0.0) -> void:
@@ -57,19 +53,6 @@ func tocar(nome: String, onde := Vector3.INF, volume_db := 0.0) -> void:
 		p.volume_db = volume_db
 		p.pitch_scale = randf_range(0.94, 1.06)
 		p.play()
-
-
-func musica(ligar := true) -> void:
-	if not ligar or not _sons.has("trilha") or DisplayServer.get_name() == "headless":
-		_musica.stop()
-		return
-	if _musica.playing:
-		return
-	var s: AudioStreamWAV = _sons["trilha"]
-	s.loop_mode = AudioStreamWAV.LOOP_FORWARD
-	s.loop_end = s.data.size() / 2
-	_musica.stream = s
-	_musica.play()
 
 
 func _livre2d() -> AudioStreamPlayer:

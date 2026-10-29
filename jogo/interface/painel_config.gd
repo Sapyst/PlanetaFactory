@@ -13,7 +13,6 @@ func _ready() -> void:
 	t.add_theme_font_size_override("font_size", 26)
 	add_child(t)
 	_deslizante("Volume dos efeitos", "volume", 0.0, 1.0, 0.05)
-	_deslizante("Volume da música", "musica", 0.0, 1.0, 0.05)
 	_deslizante("Tamanho da interface", "texto", 0.8, 1.6, 0.1)
 	_deslizante("Resolução do 3D (menos = mais leve)", "resolucao", 0.5, 1.0, 0.05)
 	var sombra := CheckButton.new()

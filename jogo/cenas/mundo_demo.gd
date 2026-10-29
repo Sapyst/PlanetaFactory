@@ -91,6 +91,8 @@ func _ready() -> void:
 	DesenhoChunk.preparar(gerador)
 	DesenhoChunk.aquecer()
 	poluicao = Poluicao.new(gerador)
+	if args.has("densidade_grama"):               # medição: -- densidade_grama N
+		DesenhoChunk.densidade_grama = float(args[args.find("densidade_grama") + 1])
 	clima = Clima.new(semente)
 	clima.tempo_real = true                    # estações: 7 dias reais cada
 	colonia = Colonia.new(mapa, poluicao, semente)
@@ -126,7 +128,6 @@ func _ready() -> void:
 	add_child(pausa)
 	_salvar_em = float(Sessao.config.autosalvar_s)
 	Sessao.aplicar.call_deferred()
-	Som.musica(true)
 	# jogo novo: o núcleo chega do espaço (abertura; um toque pula)
 	if modo == "novo" and dados.is_empty() and _no_nucleo != null and (not args.has("roteiro") or args.has("abertura")):
 		var ab := Abertura.new()

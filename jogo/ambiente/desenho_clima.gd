@@ -63,6 +63,7 @@ var _flash := 0.0
 var _vida_raio := 0.0
 var _trovoes: Array[float] = []      ## segundos até cada trovão pendente
 var _ceu: ProceduralSkyMaterial
+var mexer_ceu := true                ## medição: false deixa o céu parado (o céu refaz o reflexo do ambiente ao mudar)
 var _preenche: DirectionalLight3D
 
 
@@ -145,7 +146,7 @@ func _dia_e_noite() -> float:
 	sol.global_basis = Basis.looking_at(-dir, Vector3.UP if absf(dir.y) < 0.99 else Vector3.FORWARD)
 	if _preenche != null:
 		_preenche.light_energy = _base.preenche * lerpf(0.55, 1.0, dia)
-	if _ceu != null:
+	if _ceu != null and mexer_ceu:
 		var poente := clampf(1.0 - absf(alt - 0.1) / 0.35, 0.0, 1.0)        # céu alaranjado perto do horizonte
 		var hz: Color = (_base.ceu_horizonte as Color).lerp(CEU_POENTE, poente * 0.6)
 		_ceu.sky_top_color = (CEU_NOITE[0] as Color).lerp(_base.ceu_topo, dia)

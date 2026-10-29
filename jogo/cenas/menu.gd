@@ -17,7 +17,6 @@ func _ready() -> void:
 		get_tree().change_scene_to_file.call_deferred(JOGO)
 		return
 	theme = Tema.criar()
-	Som.musica(true)
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	var fundo := TextureRect.new()
 	fundo.texture = load("res://assets/ui/fundo_menu.png")

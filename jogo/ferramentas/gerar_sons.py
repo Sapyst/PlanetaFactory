@@ -1,4 +1,4 @@
-"""Sons do jogo sintetizados por código (sem amostras de terceiros): efeitos curtos e uma trilha ambiente em loop.
+"""Sons do jogo sintetizados por código (sem amostras de terceiros): efeitos curtos (sem música).
 Saída: assets/sons/*.wav (mono 16 bits). Rodar: python3 ferramentas/gerar_sons.py [nome ...] (sem nome = todos)"""
 import math, random, struct, wave, os
 
@@ -98,35 +98,6 @@ def derrota():
     return out
 
 
-def trilha():
-    """32 s em loop: pad lento (lá menor – fá – dó – sol) + grave + brilho de cristal esparso."""
-    dur = 32.0; n = int(dur * TAXA); out = [0.0] * n
-    acordes = [(220.0, 261.63, 329.63), (174.61, 220.0, 261.63), (130.81, 196.0, 261.63), (196.0, 246.94, 293.66)]
-    seg = dur / 4
-    for k, ac in enumerate(acordes):
-        ini = int(k * seg * TAXA); m = int(seg * TAXA)
-        for i in range(m):
-            t = i / TAXA
-            a = math.sin(math.pi * min(1.0, t / seg)) ** 1.5           # sobe e desce suave dentro do acorde
-            s = 0.0
-            for f in ac:
-                for desaf in (-0.6, 0.6):                                 # dois osciladores levemente desafinados
-                    s += math.sin(2 * math.pi * (f + desaf) * t + desaf)
-            s += 1.4 * math.sin(2 * math.pi * ac[0] / 2 * t)              # grave
-            out[ini + i] += s * a * 0.12
-    for _ in range(18):                                                  # brilhos de cristal
-        ini = random.randint(0, n - int(1.5 * TAXA)); f = random.choice((1046.5, 1318.5, 1568.0, 1760.0))
-        for i in range(int(1.5 * TAXA)):
-            t = i / TAXA
-            out[ini + i] += math.sin(2 * math.pi * f * t) * math.exp(-t / 0.4) * 0.08
-    # emenda do loop: 0,3 s de cruzamento entre fim e começo
-    x = int(0.3 * TAXA)
-    for i in range(x):
-        a = i / x
-        out[i] = out[i] * a + out[n - x + i] * (1 - a)
-    return out[: n - x]
-
-
 def chuva():
     """6 s em loop: chiado (dois filtros) + gotas esparsas estalando; emenda cruzada no fim."""
     n = int(6.0 * TAXA)
@@ -223,7 +194,7 @@ def faisca():
 os.makedirs(SAIDA, exist_ok=True)
 for nome, f in [('clique', clique), ('construir', construir), ('remover', remover), ('tiro', tiro),
                 ('aranha_morre', aranha_morre), ('alerta', alerta), ('pesquisa', pesquisa), ('apito_trem', apito_trem),
-                ('derrota', derrota), ('trilha', trilha), ('chuva', chuva), ('trovao', trovao), ('reentrada', reentrada), ('impacto', impacto), ('fogo', fogo), ('faisca', faisca)]:
+                ('derrota', derrota), ('chuva', chuva), ('trovao', trovao), ('reentrada', reentrada), ('impacto', impacto), ('fogo', fogo), ('faisca', faisca)]:
     import sys
     if len(sys.argv) > 1 and nome not in sys.argv[1:]:
         continue

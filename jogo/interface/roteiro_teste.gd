@@ -97,6 +97,14 @@ func _ready() -> void:
 						var o: Dictionary = cena.gerador.distribuicao.obstaculo(t)
 						if not o.is_empty() and Distribuicao.eh_arvore(o.nome) and (x + y) % 3 == 0:
 							amb.fogo[t] = 8.0 + 16.0 * float((x * 7 + y * 3) % 5) / 4.0)
+		"medir":                                       # custo por quadro: desliga uma coisa por vez e mede
+			_roteiro_medir()
+		"inventario":                                  # quem soma os triângulos na cena
+			em(120, func():
+				var cam: CameraJogo = cena.camera
+				cam.distancia = 60.0
+				cam.posicionar())
+			em(200, func(): _inventario())
 		"faiscas":                                     # acumulador carregado de perto (use com -- hora 0.0)
 			_roteiro_energia()
 			em(180, func():                            # depois do roteiro de energia mexer na câmera
@@ -659,6 +667,118 @@ func _roteiro_limpeza() -> void:
 				m.fluidos["seiva"] = 1000.0
 				m.acordar()
 		Engine.time_scale = 6.0)
+
+
+var _med := {}
+
+
+func _roteiro_medir() -> void:
+	var etapas := [["tudo", func(): pass],
+		["sem árvores/vegetação", func(): _vegetacao(false)],
+		["sem grama", func(): _vegetacao(true); _grama(false)],
+		["sem sombras", func(): _grama(true); (cena.get_node("Sol") as DirectionalLight3D).shadow_enabled = false],
+		["céu parado", func(): (cena.get_node("Sol") as DirectionalLight3D).shadow_enabled = true; _desenho_clima().mexer_ceu = false],
+		["só céu parado + sem árvores + sem grama", func(): _vegetacao(false); _grama(false)]]
+	em(3, func():
+		Sessao.config.fps = false
+		RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
+		var cam: CameraJogo = cena.camera
+		cam.distancia = 60.0
+		cam.posicionar())
+	for i in etapas.size():
+		var e: Array = etapas[i]
+		em(120 + i * 150, func():
+			e[1].call()
+			_med = {"nome": e[0], "n": 0, "gpu": 0.0, "cpu": 0.0, "draw": 0, "prim": 0})
+		for q in range(150 + i * 150, 265 + i * 150):
+			em(q, func():
+				var vp := get_viewport().get_viewport_rid()
+				_med.n += 1
+				_med.gpu += RenderingServer.viewport_get_measured_render_time_gpu(vp)
+				_med.cpu += RenderingServer.viewport_get_measured_render_time_cpu(vp)
+				_med.draw += RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME)
+				_med.prim += RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME))
+		em(266 + i * 150, func():
+			var n := float(_med.n)
+			print("MEDIDA %-40s gpu %.2f ms · cpu render %.2f ms · %d chamadas · %d mil triângulos" % [_med.nome, _med.gpu / n, _med.cpu / n, int(_med.draw / n), int(_med.prim / n / 1000.0)]))
+
+
+func _tris(m: Mesh) -> int:
+	if m == null:
+		return 0
+	var t := 0
+	for s in m.get_surface_count():
+		var a := m.surface_get_arrays(s)
+		var idx: PackedInt32Array = a[Mesh.ARRAY_INDEX] if a[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+		var v: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+		t += (idx.size() if idx.size() > 0 else v.size()) / 3
+	return t
+
+
+func _inventario() -> void:
+	var soma := {}
+	var cont := {}
+	var cache := {}
+	for n in cena.find_children("*", "GeometryInstance3D", true, false):
+		var g := n as GeometryInstance3D
+		if not g.is_visible_in_tree():
+			continue
+		var chave := ""
+		var tris := 0
+		if g is MultiMeshInstance3D:
+			var mm := (g as MultiMeshInstance3D).multimesh
+			if mm == null or mm.mesh == null:
+				continue
+			if not cache.has(mm.mesh):
+				cache[mm.mesh] = _tris(mm.mesh)
+			var vis := mm.visible_instance_count if mm.visible_instance_count >= 0 else mm.instance_count
+			tris = int(cache[mm.mesh]) * vis
+			chave = "MM " + str(g.name).get_slice("#", 0).rstrip("0123456789_")
+			if str(g.get_parent().get_class()) == "Node3D" and g.get_parent() is DesenhoChunk and g == g.get_parent().grama:
+				chave = "MM grama"
+		elif g is MeshInstance3D:
+			var me := (g as MeshInstance3D).mesh
+			if me == null:
+				continue
+			if not cache.has(me):
+				cache[me] = _tris(me) if not (me is ImmediateMesh) else 0
+			tris = int(cache[me])
+			chave = "MI " + str(g.get_parent().name).left(18) + "/" + str(g.name).left(14)
+			if g.get_parent() is DesenhoChunk:
+				chave = "MI chunk/" + str(g.name).left(14)
+		else:
+			chave = g.get_class()
+		soma[chave] = int(soma.get(chave, 0)) + tris
+		cont[chave] = int(cont.get(chave, 0)) + 1
+	var ks := soma.keys()
+	ks.sort_custom(func(a, b): return soma[a] > soma[b])
+	var total := 0
+	for k in soma:
+		total += soma[k]
+	print("INVENT total %d mil triângulos em cena (visíveis, sem recorte)" % (total / 1000))
+	for k in ks.slice(0, 18):
+		print("INVENT %-46s %8d mil  (%d nós)" % [k, soma[k] / 1000, cont[k]])
+
+
+func _vegetacao(sim: bool) -> void:
+	for k in cena.chunks:
+		for o in cena.chunks[k]._objetos:
+			if Registro.modelos.get(str(o.name).get_slice("#", 0), {}).get("categoria", "") == "mapa/vegetacao":
+				o.visible = sim
+
+
+func _grama(sim: bool) -> void:
+	for k in cena.chunks:
+		var g: Node3D = cena.chunks[k].grama
+		if g != null:
+			g.visible = sim
+
+
+func _desenho_clima() -> DesenhoClima:
+	for c in cena.get_children():
+		if c is DesenhoClima:
+			return c
+	return null
 
 
 ## Canto (12×12 tiles) com mais árvores destas espécies num raio de 90 tiles do início.
