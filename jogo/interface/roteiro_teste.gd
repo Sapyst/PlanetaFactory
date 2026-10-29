@@ -14,7 +14,8 @@ var _passos: Array = []      ## [quadro, Callable]
 
 func _ready() -> void:
 	# o gerenciador de janelas pode impor outro tamanho; a gravação é 1280×720, então a tela lógica também
-	get_window().content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+	if not OS.get_cmdline_user_args().has("celular"):     # -- celular: tela larga como a do celular (20:9)
+		get_window().content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
 	match roteiro:
 		"construir": _roteiro_pc()
 		"toque": _roteiro_toque()
@@ -124,6 +125,10 @@ func _ready() -> void:
 				cam.alvo += Vector3(70, 0, 40)
 				cam.distancia = 70.0
 				cam.posicionar())
+		"telas":                                       # interface em telas de celular/tablet: nada passa da borda
+			_roteiro_telas()
+		"dedo":                                        # celular: rolar lista com o dedo, arrastar mapa, pinça
+			_roteiro_dedo()
 		"faiscas":                                     # acumulador carregado de perto (use com -- hora 0.0)
 			_roteiro_energia()
 			em(180, func():                            # depois do roteiro de energia mexer na câmera
@@ -835,6 +840,98 @@ func _sem_ninhos(w: Vector2i) -> void:
 
 ## Interface B: abre Produção (painel com explicações), escolhe a fornalha, toca no mapa (holograma + ações),
 ## gira, e por fim constrói. Fotos: ~40 painel aberto, ~80 holograma pendente, ~120 construída.
+## Toques injetados: abre as peças, rola a lista arrastando EM CIMA de um botão (não pode escolher a peça),
+## toca numa peça (escolhe), arrasta o mapa com um dedo e dá pinça. Imprime o que aconteceu.
+## Tamanhos lógicos (já com a escala 1,35 do celular): 20:9, 16:9, tablet 4:3, celular em pé seria outro jogo.
+func _roteiro_telas() -> void:
+	var telas := [Vector2i(1185, 533), Vector2i(948, 533), Vector2i(948, 711), Vector2i(1280, 720)]
+	em(4, func():
+		Sessao.config.fps = false
+		get_window().content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+		get_tree().root.content_scale_factor = 1.0)
+	for i in telas.size():
+		var t: Vector2i = telas[i]
+		em(10 + i * 40, func():
+			get_window().content_scale_size = t
+			cena.controle.barra._tocar_categoria(3)
+			cena.selecionar(Vector2(8, 1)))
+		em(30 + i * 40, func():
+			var vis := get_viewport().get_visible_rect()
+			var ruins: Array[String] = []
+			for c in cena.controle.barra.find_children("*", "Control", true, false):
+				var ct := c as Control
+				if not ct.is_visible_in_tree() or ct is ScrollContainer or ct.get_parent() is VBoxContainer and ct.get_parent().get_parent() is ScrollContainer:
+					continue
+				if ct is Label or ct is Button or ct is PanelContainer:
+					var r := ct.get_global_rect()
+					if r.size.x > 1 and not vis.grow(1).encloses(r):
+						ruins.append("%s %s" % [ct.name, r])
+			print("TELA %s: visível %s · fora da tela: %d %s" % [t, vis.size, ruins.size(), ruins.slice(0, 4)]))
+
+
+func _roteiro_dedo() -> void:
+	var m := {}                                   # dicionário é referência: os passos enxergam o que o anterior guardou
+	var rol := func() -> ScrollContainer:
+		return cena.controle.barra._pecas.get_parent() as ScrollContainer
+	em(4, func():
+		Sessao.config.fps = false
+		if OS.get_cmdline_user_args().has("lista_cheia"):
+			get_tree().root.content_scale_factor = 2.4)      # lista maior que a tela: dá para rolar
+	em(10, func():
+		var c := botao("cat:3")
+		toque(0, c, true)
+		toque(0, c, false))
+	em(30, func():
+		var r: ScrollContainer = rol.call()
+		print("TOQUE limiar ", snappedf(Toque.limiar(get_viewport()), 0.1), " escala ", get_tree().root.content_scale_factor, " tela ", get_viewport().get_visible_rect().size)
+		print("TOQUE lista: altura ", r.size.y, " conteúdo ", r.get_v_scroll_bar().max_value, " rolagem ", r.scroll_vertical))
+	em(32, func():
+		m.b0 = botao("fornalha")
+		toque(0, m.b0, true))
+	for k in 12:
+		em(34 + k, func(): arrasto(0, m.b0 - Vector2(0, 14.0 * k), m.b0 - Vector2(0, 14.0 * (k + 1))))
+	em(47, func(): toque(0, m.b0 - Vector2(0, 168), false))
+	em(70, func():
+		print("TOQUE rolagem depois de arrastar sobre a fornalha: ", rol.call().scroll_vertical, " · peça na mão '", cena.controle.peca, "' (vazia = certo)"))
+	em(80, func():
+		var c := botao("montadora")
+		toque(0, c, true)
+		toque(0, c, false))
+	em(90, func():
+		print("TOQUE tocou montadora: peça na mão '", cena.controle.peca, "'")
+		toque(0, Vector2(300, 300), true))        # segurar parado = clique direito: larga a peça
+	em(97, func():
+		toque(0, Vector2(300, 300), false))
+	em(99, func(): print("TOQUE segurou parado: peça na mão '", cena.controle.peca, "' (vazia = certo)"))
+	var p0 := Vector2(500, 420)
+	em(100, func():
+		m.alvo0 = cena.camera.alvo
+		m.chao0 = cena.camera.no_chao(p0)
+		toque(0, p0, true))
+	for k in 10:
+		em(102 + k, func(): arrasto(0, p0 + Vector2(20.0 * k, 0), p0 + Vector2(20.0 * (k + 1), 0)))
+	em(124, func():
+		var chao: Vector3 = cena.camera.no_chao(p0 + Vector2(200, 0))
+		print("TOQUE arrasto: câmera andou ", snappedf(m.alvo0.distance_to(cena.camera.alvo), 0.01), " m · o chão do dedo saiu ", snappedf(Vector2(chao.x - m.chao0.x, chao.z - m.chao0.z).length(), 0.01), " m do lugar (≈0 = preso no dedo)")
+		toque(0, p0 + Vector2(200, 0), false)
+		m.alvo1 = cena.camera.alvo)
+	em(150, func(): print("TOQUE deslize depois de soltar parado: ", snappedf(m.alvo1.distance_to(cena.camera.alvo), 0.01), " m (≈0 = certo)"))
+	em(160, func():
+		m.d0 = cena.camera.distancia
+		m.meio0 = cena.camera.no_chao(Vector2(640, 360))
+		toque(0, Vector2(540, 360), true)
+		toque(1, Vector2(740, 360), true))
+	for k in 8:
+		em(162 + k, func():
+			arrasto(0, Vector2(540 - 15.0 * k, 360), Vector2(540 - 15.0 * (k + 1), 360))
+			arrasto(1, Vector2(740 + 15.0 * k, 360), Vector2(740 + 15.0 * (k + 1), 360)))
+	em(171, func():
+		toque(1, Vector2(860, 360), false)
+		toque(0, Vector2(420, 360), false)
+		var meio: Vector3 = cena.camera.no_chao(Vector2(640, 360))
+		print("TOQUE pinça: distância ", snappedf(m.d0, 0.1), " → ", snappedf(cena.camera.distancia, 0.1), " (abrir aproxima) · ponto entre os dedos saiu ", snappedf(Vector2(meio.x - m.meio0.x, meio.z - m.meio0.z).length(), 0.01), " m"))
+
+
 func _roteiro_interface() -> void:
 	em(4, func():
 		Sessao.config.fps = false

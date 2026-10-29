@@ -39,6 +39,8 @@ var _por_toque := false
 var _aviso := ""
 var _aviso_ate := 0
 var _clique_ini := Vector2.INF
+var _segurar := {}                     ## toque segurado: {i, pos, t, feito} — meio segundo parado = clique direito
+const SEGURAR_MS := 500
 ## Peça pendente (máquinas e afins, não caminhos): tocar/clicar põe o holograma; ele espera Girar, Mover
 ## (arrastar o holograma ou tocar noutro lugar) e Construir. Caminhos (esteira, cano, trilho, muro) seguem no arraste.
 var _pendente := false
@@ -169,6 +171,19 @@ func alternar_recursos() -> void:
 func alternar_poluicao() -> void:
 	if mundo.has_method("alternar_poluicao"):
 		barra.ligar_poluicao(mundo.alternar_poluicao())
+
+
+## Pressionar e segurar (celular) = clique direito do mouse: larga o traço, o holograma e a peça na mão.
+## Vibra de leve para o dedo sentir que pegou.
+func _clique_direito_toque() -> void:
+	_clique_ini = Vector2.INF
+	if not (_ativo() or _gesto or _pendente):
+		return
+	Input.vibrate_handheld(35)
+	for i in 3:                                   # traço, holograma e peça na mão: larga tudo (o dedo ainda está encostado)
+		if _ativo() or _gesto or _pendente:
+			cancelar()
+	_avisar("Cancelado")
 
 
 func cancelar() -> void:
@@ -360,6 +375,8 @@ func _toque(e: InputEventScreenTouch) -> void:
 		if _toques.is_empty() and barra.sobre_interface(e.position):
 			return
 		_toques[e.index] = e.position
+		camera.segurando = true
+		_segurar = {"i": e.index, "pos": e.position, "t": 0.0, "feito": false} if _toques.size() == 1 else {}
 		if _toques.size() == 1 and _ativo() and (not _pendente or _movendo or _perto_do_holograma(e.position)):
 			_dedo = e.index
 			_gesto = true
@@ -376,7 +393,13 @@ func _toque(e: InputEventScreenTouch) -> void:
 		if not _toques.has(e.index):
 			return
 		_toques.erase(e.index)
-		if _clique_ini != Vector2.INF and _toques.is_empty() and _clique_ini.distance_to(e.position) < 14.0:
+		if not _segurar.is_empty() and _segurar.i == e.index:
+			if _segurar.feito:
+				_clique_ini = Vector2.INF               # já agiu como clique direito: soltar não é toque
+			_segurar = {}
+		if _toques.is_empty():
+			camera.soltar()                         # dedo parado antes de soltar: a câmera não sai deslizando
+		if _clique_ini != Vector2.INF and _toques.is_empty() and _clique_ini.distance_to(e.position) < Toque.limiar(get_viewport()):
 			if _pendente:
 				_mirar(e.position)
 				_tile_pend = _cursor                    # toque noutro lugar: o holograma vai para lá
@@ -404,19 +427,27 @@ func _toque_arrastou(e: InputEventScreenDrag) -> void:
 	_por_toque = true
 	if not _toques.has(e.index):
 		return
+	var antes: Vector2 = _toques[e.index]
 	_toques[e.index] = e.position
+	if not _segurar.is_empty() and _segurar.i == e.index and (_segurar.pos as Vector2).distance_to(e.position) >= Toque.limiar(get_viewport()):
+		_segurar = {}                               # o dedo andou: é arrasto, não segurar
 	if _toques.size() >= 2:
-		camera.arrastar(e.relative / float(_toques.size()))
+		# dois dedos: o meio deles arrasta o chão e a abertura dá o zoom em volta do meio
+		var meio := _meio_dedos()
+		camera.arrastar_tela(meio - e.relative / float(_toques.size()), meio)
 		var d := _distancia_dedos()
 		if _pinca > 0.0 and d > 0.0:
-			camera.zoom(_pinca / d)
+			camera.zoom_em(_pinca / d, meio)
 		_pinca = d
 	elif _gesto and e.index == _dedo:
 		_mirar(e.position)
 	elif not _gesto:
-		camera.arrastar(e.relative)
-		if _clique_ini != Vector2.INF and _clique_ini.distance_to(e.position) >= 14.0:
+		if _clique_ini != Vector2.INF and _clique_ini.distance_to(e.position) < Toque.limiar(get_viewport()):
+			return                                  # ainda pode ser um toque: o mapa não treme com o dedo
+		if _clique_ini != Vector2.INF:
+			antes = _clique_ini                     # começou a arrastar: leva o chão desde onde o dedo encostou
 			_clique_ini = Vector2.INF
+		camera.arrastar_tela(antes, e.position)
 	_atualizar()
 
 
@@ -424,6 +455,11 @@ func _selecionar(tela: Vector2) -> void:
 	var p := camera.no_chao(tela)
 	if p != Vector3.INF and mundo.has_method("selecionar"):
 		mundo.selecionar(Vector2(p.x, -p.z))
+
+
+func _meio_dedos() -> Vector2:
+	var ps := _toques.values()
+	return ((ps[0] as Vector2) + (ps[1] as Vector2)) * 0.5 if ps.size() >= 2 else Vector2.ZERO
 
 
 func _distancia_dedos() -> float:
@@ -587,7 +623,12 @@ func _motivo_legivel(it: Dictionary) -> String:
 	return barra.texto_motivo(it.motivo)
 
 
-func _process(_d: float) -> void:
+func _process(delta: float) -> void:
+	if not _segurar.is_empty() and not _segurar.feito:
+		_segurar.t = float(_segurar.t) + delta
+		if _segurar.t * 1000.0 >= SEGURAR_MS:
+			_segurar.feito = true
+			_clique_direito_toque()
 	if _pendente:
 		_atualizar()                                  # a barra de ações acompanha o holograma quando a câmera anda
 	# o aviso ("Construído: 5") some sozinho

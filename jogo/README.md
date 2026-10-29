@@ -109,6 +109,18 @@ Medido arrastando a câmera 18 m/s (`-- modo demo roteiro panorama`): antes 71 q
 depois 0 quadros > 33 ms. Celular: 3D a 70% da resolução, sem sombra, sem brilho; aranhas só desenhadas perto da
 vista. Contador de FPS embutido (ligado por padrão na fase de testes; Configurações desliga).
 
+## Toque (celular primeiro)
+- Toque × arrasto pelo dedo em milímetros reais (`interface/toque.gd`, 3,2 mm), não em pixels da tela de 720.
+- Câmera: o chão fica preso embaixo do dedo (`CameraJogo.arrastar_tela`), sem atraso; pinça aproxima em volta do
+  meio dos dedos (`zoom_em`); com o dedo na tela não há inércia, e soltar com o dedo parado não desliza.
+- Listas (peças, painel de detalhe): `RolagemToque` rola arrastando em qualquer ponto (também sobre os botões), com
+  embalo; o botão embaixo do dedo não é apertado se o toque virou arrasto (`RolagemToque.so_clique`).
+- Pressionar e segurar 0,5 s = clique direito do mouse (larga traço, holograma e peça; vibra).
+- Celular: interface 1,35× por padrão; tela estreita (< 1300 de largura lógica) põe as ferramentas só com ícone e
+  estreita os painéis; a coluna de categorias cabe na altura. `-- roteiro telas celular` confere que nada passa da
+  borda em 20:9, 16:9 e 4:3; `-- roteiro dedo celular [lista_cheia]` injeta toques e imprime o resultado.
+- Categorias com ícones de símbolo em vetor (`assets/icones/categorias/*.svg`).
+
 ## Oval de visão, névoa e desempenho da grama
 - `ambiente/visao.gd` (Visao): a tela vista como um oval deitado no chão, centrado no ponto olhado e do tamanho do
   zoom. Dentro, tudo desenha e anima; a borda é um degradê; fora, névoa escura (`aplicar_visao` em

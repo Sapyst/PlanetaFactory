@@ -105,6 +105,7 @@ func _ready() -> void:
 	chips.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	info_vb.add_child(chips)
 	_info = Label.new()
+	_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info.add_theme_font_size_override("font_size", 15)
 	_info.add_theme_color_override("font_color", Color(0.62, 0.95, 0.92))
 	chips.add_child(_info)
@@ -148,6 +149,7 @@ func _ready() -> void:
 	_det_botoes.add_theme_constant_override("separation", 4)
 	corpo.add_child(_det_botoes)
 	rolagem.add_child(corpo)
+	rolagem.add_child(RolagemToque.new())          # arrastar em cima dos botões rola a lista (celular)
 	rolagem.custom_minimum_size = Vector2(0, 360)
 	_det_rolagem = rolagem
 	dv.add_child(rolagem)
@@ -221,6 +223,7 @@ func _ready() -> void:
 	_pecas.add_theme_constant_override("separation", 6)
 	_pecas.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	rol.add_child(_pecas)
+	rol.add_child(RolagemToque.new())
 	# coluna de categorias (polegar direito)
 	var col := PanelContainer.new()
 	linha.add_child(col)
@@ -264,6 +267,44 @@ func _ready() -> void:
 		ah.add_child(b)
 		_botoes_acao[a[0]] = b
 	marcar("", false)
+	get_viewport().size_changed.connect(_ajustar_tamanhos)
+	_ajustar_tamanhos()
+
+
+const ENCOLHEM := ["remover", "aplainar", "escavar", "recursos"]   ## em tela estreita ficam só com o ícone
+const LARGURA_ESTREITA := 1300.0
+
+
+## Troca o texto de uma ferramenta respeitando o modo estreito (só o ícone).
+func texto_ferramenta(chave: String, texto: String) -> void:
+	var b: Button = _botoes_ferr[chave]
+	b.set_meta("texto_cheio", texto)
+	b.text = texto.get_slice(" ", 0) if get_viewport().get_visible_rect().size.x < LARGURA_ESTREITA and chave in ENCOLHEM else texto
+
+
+## Tela estreita (celular 16:9, tablet, interface ampliada): ferramentas só com ícone e painéis mais estreitos, para
+## nada passar da borda nem empurrar o resto. Refeito quando a tela muda de tamanho.
+func _ajustar_tamanhos() -> void:
+	var tela := get_viewport().get_visible_rect().size
+	var estreita := tela.x < LARGURA_ESTREITA
+	for k in _botoes_ferr:
+		var b: Button = _botoes_ferr[k]
+		if not b.has_meta("texto_cheio"):
+			b.set_meta("texto_cheio", b.text)
+		var cheio: String = b.get_meta("texto_cheio")
+		b.text = cheio.get_slice(" ", 0) if estreita and k in ENCOLHEM else cheio
+	_painel_pecas.custom_minimum_size.x = clampf(tela.x * 0.36, 250.0, 400.0)
+	_detalhe.custom_minimum_size.x = clampf(tela.x * 0.3, 240.0, 320.0)
+	_det_texto.custom_minimum_size.x = _detalhe.custom_minimum_size.x - 24.0
+	_det_rolagem.custom_minimum_size.y = clampf(tela.y * 0.5, 180.0, 360.0)
+	_dica.custom_minimum_size.x = clampf(tela.x * 0.36, 220.0, 420.0)
+	# status do canto: quebra as linhas longas em vez de alargar a coluna da esquerda
+	_info.custom_minimum_size.x = clampf(tela.x * 0.3, 220.0, 420.0)
+	# categorias: a coluna inteira cabe na altura (8 botões de 66 passavam dos 533 de um celular e esticavam tudo)
+	var n := _abas.get_child_count()
+	var alt := clampf((tela.y - 44.0 - (n - 1) * 6.0) / maxf(n, 1), 40.0, 66.0)
+	for b in _abas.get_children():
+		(b as Control).custom_minimum_size = Vector2(72.0 if tela.x >= LARGURA_ESTREITA else 58.0, alt)
 
 
 ## Barra de ações da peça pendente: mostra em `pos` (tela, abaixo do fantasma) ou esconde (INF).
@@ -355,7 +396,7 @@ func detalhe(titulo: String, texto: String, botoes: Array) -> void:
 		bt.focus_mode = Control.FOCUS_NONE
 		bt.custom_minimum_size = Vector2(0, 46)
 		bt.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		bt.pressed.connect(b.acao)
+		bt.pressed.connect(RolagemToque.so_clique(b.acao))
 		_det_botoes.add_child(bt)
 		_destacar(bt, b.get("ligado", false), COR_DESTAQUE)
 
@@ -367,7 +408,7 @@ func fechar_detalhe() -> void:
 
 func ligar_recursos(sim: bool, camada := "recursos") -> void:
 	_destacar(_botoes_ferr["recursos"], sim, Color(0.35, 0.85, 0.8))
-	_botoes_ferr["recursos"].text = "◈ Vento" if sim and camada == "vento" else "◈ Recursos"
+	texto_ferramenta("recursos", "◈ Vento" if sim and camada == "vento" else "◈ Recursos")
 
 
 func ligar_poluicao(sim: bool) -> void:
@@ -457,7 +498,7 @@ func _mostrar_categoria(i: int) -> void:
 				"🔒 pesquisar" if bloqueada else ", ".join(partes), "" if bloqueada else extra]
 		b.add_theme_font_size_override("font_size", 14)
 		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		b.pressed.connect(func(): Som.tocar("clique"); peca_escolhida.emit(nome); fechar_pecas())
+		b.pressed.connect(RolagemToque.so_clique(func(): Som.tocar("clique"); peca_escolhida.emit(nome); fechar_pecas()))
 		if bloqueada:
 			b.modulate = Color(0.6, 0.6, 0.65)
 		_pecas.add_child(b)
@@ -486,8 +527,9 @@ static func ficha(nome: String) -> String:
 	return " · ".join(p)
 
 
+## Ícone de peça (render do modelo, .png) ou de categoria (símbolo em vetor, "categorias/<nome>" → .svg).
 func _icone(modelo: String) -> Texture2D:
-	var c := "res://assets/icones/%s.png" % modelo
+	var c := "res://assets/icones/%s.%s" % [modelo, "svg" if modelo.begins_with("categorias/") else "png"]
 	return load(c) if ResourceLoader.exists(c) else null
 
 

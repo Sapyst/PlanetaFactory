@@ -16,9 +16,20 @@ func _init() -> void:
 		config.sombras = false
 		DesenhoChunk.densidade_grama = 22.0         # gramado mais ralo no celular
 	var cf := ConfigFile.new()
-	if cf.load(ARQ_CONFIG) == OK:
+	var tinha := cf.load(ARQ_CONFIG) == OK
+	if tinha:
 		for k in config:
 			config[k] = cf.get_value("jogo", k, config[k])
+	# celular: a tela base tem 720 de altura e o botão de 48 dá ~4,5 mm — pequeno para o dedo. Interface 1,35× por
+	# padrão (botões ~6–7 mm); quem já tinha configuração salva sobe para pelo menos isso uma vez.
+	if eh_celular() and (not tinha or not cf.has_section_key("jogo", "ui_celular")):
+		config.texto = maxf(float(config.texto), 1.35)
+	config["ui_celular"] = true
+
+
+## Celular de verdade, ou o PC simulando um (-- celular: escala de interface e limiares do toque).
+static func eh_celular() -> bool:
+	return OS.has_feature("mobile") or OS.get_cmdline_user_args().has("celular")
 
 
 func salvar_config() -> void:

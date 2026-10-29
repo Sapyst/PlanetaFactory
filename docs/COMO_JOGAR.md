@@ -39,10 +39,12 @@ Você é a IA do núcleo que caiu no planeta. O objetivo é crescer: extrair, fa
 ## Controles
 | Ação | PC | Celular |
 |---|---|---|
-| Mover a câmera | arrastar / WASD | arrastar |
-| Zoom | roda do mouse | pinça |
+| Mover a câmera | arrastar / WASD | arrastar (o chão fica preso no dedo) |
+| Zoom | roda do mouse | pinça (aproxima onde estão os dedos) |
+| Rolar uma lista | roda do mouse | arrastar em qualquer ponto dela, até em cima dos botões |
 | Construir | escolher a peça na barra da direita e clicar | tocar na peça e no lugar |
 | Girar a peça | R | botão da peça |
+| Cancelar / largar a peça | clique direito | pressionar e segurar meio segundo (vibra) |
 | Remover | X e clicar (ou arrastar um retângulo) | botão Remover |
 | Ver jazidas / vento | V (de novo: vento) | botão Recursos |
 | Pesquisa | T | botão ⚗ |

@@ -207,14 +207,5 @@
   "sinal_trem": "Divide a linha em blocos.",
   "trem": "Trem sobre um trilho reto."
  },
- "icones_categoria": {
-  "Esteiras": "esteira_reta",
-  "Braços": "braco",
-  "Canos": "cano_reto",
-  "Produção": "fornalha",
-  "Energia": "gerador",
-  "Defesa": "torre_defesa",
-  "Limpeza": "coletor_lixo",
-  "Trilhos": "locomotiva"
- }
+ "icones_categoria": {"Esteiras": "categorias/esteiras", "Braços": "categorias/bracos", "Canos": "categorias/canos", "Produção": "categorias/producao", "Energia": "categorias/energia", "Defesa": "categorias/defesa", "Limpeza": "categorias/limpeza", "Trilhos": "categorias/trilhos"}
 }

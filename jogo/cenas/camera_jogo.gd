@@ -24,6 +24,8 @@ var alvo := Vector3(8, 0, -1):
 var destino := Vector3(8, 0, -1)
 var _vel := Vector3.ZERO              ## m/s do arrasto (para a inércia)
 var _ultimo_arrasto := 0
+var _quadro_arrasto := 0
+var segurando := false                ## dedo na tela: sem inércia (em quadro lento ela entrava entre dois arrastos)
 var distancia := DIST_PADRAO
 var angulo := 0.6
 
@@ -46,7 +48,7 @@ func _process(delta: float) -> void:
 	if v != Vector2.ZERO:
 		destino += Vector3(v.x, 0, v.y).limit_length(1.0).rotated(Vector3.UP, angulo) * distancia * VEL_TECLADO * delta
 	# inércia: soltou o dedo com a câmera em movimento → continua e freia
-	if Time.get_ticks_msec() - _ultimo_arrasto > 60 and _vel.length() > 0.05:
+	if not segurando and Time.get_ticks_msec() - _ultimo_arrasto > 60 and _vel.length() > 0.05:
 		destino += _vel * delta
 		_vel *= exp(-4.5 * delta)
 	if alvo.distance_squared_to(destino) > 1e-6:
@@ -93,6 +95,41 @@ func arrastar(rel: Vector2) -> void:
 func zoom(fator: float) -> void:
 	distancia = clampf(distancia * fator, DIST_MIN, DIST_MAX)
 	posicionar()
+
+
+## Toque: arrasta o chão preso embaixo do dedo (o ponto que estava sob `de` fica sob `para`), sem atraso.
+func arrastar_tela(de: Vector2, para: Vector2) -> void:
+	var a := no_chao(de)
+	var b := no_chao(para)
+	if a == Vector3.INF or b == Vector3.INF:
+		arrastar(para - de)
+		return
+	var passo := Vector3(a.x - b.x, 0, a.z - b.z)
+	destino += passo
+	var agora := Time.get_ticks_msec()
+	var dt := maxf((agora - _ultimo_arrasto) / 1000.0, 1.0 / 120.0)
+	_vel = _vel.lerp(passo / dt, 0.5) if dt < 0.1 else Vector3.ZERO
+	_ultimo_arrasto = agora
+	_quadro_arrasto = Engine.get_process_frames()
+	_suave(destino)                       # no dedo, a câmera vai junto na hora (a suavização é para o teclado)
+
+
+## Dedo saiu da tela: se estava parado antes de soltar, sem embalo.
+func soltar() -> void:
+	segurando = false
+	if Time.get_ticks_msec() - _ultimo_arrasto > 60 or Engine.get_process_frames() - _quadro_arrasto > 2:
+		_vel = Vector3.ZERO
+
+
+## Pinça: zoom em volta do ponto entre os dedos (o que está ali fica ali).
+func zoom_em(fator: float, tela: Vector2) -> void:
+	var antes := no_chao(tela)
+	zoom(fator)
+	var depois := no_chao(tela)
+	if antes != Vector3.INF and depois != Vector3.INF:
+		destino += Vector3(antes.x - depois.x, 0, antes.z - depois.z)
+		_suave(destino)
+	_vel = Vector3.ZERO
 
 
 func girar(d: float) -> void:
