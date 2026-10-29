@@ -23,6 +23,17 @@ static func papel(nome: String) -> String:
 	return ""
 
 
+## A ligação a–b é sem cabo? Torre sem fio sempre; núcleo só com máquina (área em volta) — com poste é cabo:
+## a energia da central sai pelo fio e vai longe pela linha de postes.
+static func liga_sem_cabo(a: Dictionary, b: Dictionary) -> bool:
+	if a.nome == "torre_sem_fio" or b.nome == "torre_sem_fio":
+		return true
+	if a.nome == "nucleo" or b.nome == "nucleo":
+		var outro: Dictionary = b if a.nome == "nucleo" else a
+		return papel(outro.nome) != "poste"
+	return eh_sem_fio(a.nome) or eh_sem_fio(b.nome)
+
+
 static func eh_sem_fio(nome: String) -> bool:
 	return bool(Registro.estruturas.get(nome, {}).get("sem_fio", false))
 
@@ -197,7 +208,7 @@ static func completar(mapa: MapaOcupacao) -> void:
 ## central da área (o corpo do modelo é menor que a área; preso na borda o fio ficava solto no ar).
 static func ponto_fio(e: Dictionary, para: Vector2) -> Vector3:
 	var dims: Array = Registro.modelos.get(e.nome, {}).get("dims", [1, 1, 1])
-	if papel(e.nome) == "poste":
+	if papel(e.nome) == "poste" and Registro.modelos.get(e.nome, {}).get("terminais", []).is_empty():
 		return Grade.ponto_mundo(centro(e), float(dims[2]) - 0.12)
 	var terms: Array = Registro.modelos.get(e.nome, {}).get("terminais", [])
 	if not terms.is_empty():

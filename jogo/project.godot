@@ -69,3 +69,15 @@ alvo_camera={
 "type": "vec3",
 "value": Vector3(0, 0, 0)
 }
+vento_dir={
+"type": "vec2",
+"value": Vector2(1, 0)
+}
+fogo_mapa={
+"type": "sampler2D",
+"value": ""
+}
+fogo_origem={
+"type": "vec2",
+"value": Vector2(0, 0)
+}

@@ -20,7 +20,8 @@ uniform float camada_jazida = 7.0;  // zona de minério nunca vira piso
 uniform float primeira_agua = 8.0;
 uniform float escala = 0.25;
 uniform float camada_rocha = 3.0;
-global uniform vec3 piso_crescer;   // (x, y da grade, raio): piso de fábrica só até esse raio (abertura); 1e6 = livre
+global uniform vec3 piso_crescer;
+global uniform vec2 vento_dir;        // grade: direção × força do vento (o fogo corre nessa direção)   // (x, y da grade, raio): piso de fábrica só até esse raio (abertura); 1e6 = livre
 uniform float alt_nivel = 1.0;      // metros por nível de relevo   // barranco (encosta íngreme) mostra pedra
 #include "res://render/shaders/clima.gdshaderinc"
 
@@ -98,6 +99,7 @@ vec4 ambiente_em(vec2 grade, vec2 w1, vec2 w2) {
 }
 
 void fragment() {
+	float brasa = 0.0;
 	vec2 grade = vec2(mundo.x, -mundo.z);
 	float camada = camada_em(grade);
 	vec2 uv = mundo.xz * escala;
@@ -195,6 +197,22 @@ void fragment() {
 	float oleo = smoothstep(0.35, 0.55, amb.g + (grao - 0.5) * 0.35);
 	vec3 arco = 0.5 + 0.5 * cos(6.2832 * (vec3(0.0, 0.33, 0.67) + dot(mundo.xz, vec2(0.7, 0.4)) * 0.8 + TIME * 0.05));
 	c_terra = mix(c_terra, vec3(0.03, 0.03, 0.035) + arco * 0.06, oleo);
+	// brasa: onde queima agora o chão brilha laranja, tremendo (é a luz do fogo no Factorio: rente ao chão)
+	// só onde o fogo é recente (B alto) e em pontos do grão: brasas, não um tapete
+	// fogo no próprio chão (nada de sprite): línguas esticadas e correndo com o vento, cor pela temperatura
+	float fogo_i = smoothstep(0.02, 0.5, amb.b);
+	if (fogo_i > 0.0) {
+		vec2 vd = length(vento_dir) > 0.01 ? normalize(vento_dir) : vec2(1.0, 0.0);
+		vec2 pp = vec2(dot(grade, vd), dot(grade, vec2(-vd.y, vd.x)));
+		vec2 q1 = vec2(pp.x * 0.35 - TIME * 1.4, pp.y * 1.3);          // estica ao longo do vento
+		float n = texture(detalhe, q1 * 0.5).r * 0.6 + texture(detalhe, q1 * 1.3 + vec2(-TIME * 0.9, 0.37)).r * 0.4;
+		float lingua = smoothstep(0.42, 0.78, n + fogo_i * 0.45 - 0.22);
+		float tremor = 0.8 + 0.2 * sin(TIME * 11.0 + n * 17.0);
+		brasa = lingua * fogo_i * tremor;
+		float brasa_fundo = smoothstep(0.5, 0.8, grao) * fogo_i * 0.5;  // pontos de brasa entre as línguas
+		brasa = max(brasa, brasa_fundo);
+	}
+	c_terra = mix(c_terra, vec3(0.05, 0.035, 0.03), smoothstep(0.0, 0.3, amb.b) * 0.85);   // queimando: chão escuro
 	vec3 c = mix(c_terra, c_agua, agua);
 	c *= 0.88 + 0.24 * d;
 	float poca = 0.0;
@@ -208,6 +226,9 @@ void fragment() {
 		c = apagar_visao(c, (camada == camada_jazida && agua < 0.5) ? 0.0 : 0.85);
 	}
 	ALBEDO = c;
+	vec3 fogo_cor = mix(vec3(0.55, 0.05, 0.01), vec3(1.0, 0.33, 0.04), smoothstep(0.25, 0.7, brasa));
+	fogo_cor = mix(fogo_cor, vec3(1.0, 0.85, 0.45), smoothstep(0.7, 1.0, brasa));
+	EMISSION = fogo_cor * brasa * 1.3 * (1.0 - agua);
 	float oleo_r = smoothstep(0.35, 0.55, ambiente_em(grade, w1, w2).g);
 	ROUGHNESS = mix(mix(mix(mix(0.92, 0.55, molhado), 0.06, poca), 0.15, oleo_r * (1.0 - agua)), 0.08, agua);
 	SPECULAR = mix(0.5 + 0.4 * poca, 0.8, agua);

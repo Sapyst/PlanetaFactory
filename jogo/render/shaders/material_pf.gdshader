@@ -22,9 +22,12 @@ uniform sampler2D textura : source_color, filter_linear_mipmap;
 uniform bool tem_textura = false;
 uniform bool rolagem_uv2 = false;  // modelo texturizado: o UV da lona foi para o 2º canal
 #include "res://render/shaders/clima.gdshaderinc"
+global uniform sampler2D fogo_mapa : filter_linear, hint_default_transparent;   // 96×96 tiles em volta da câmera: B queimando, A queimado
+global uniform vec2 fogo_origem;
 
 varying float v_dist;
 varying vec3 v_mundo;
+varying float v_alt;              // altura do vértice no modelo (vegetação: base 0 → copa)
 
 void vertex() {
 	vec3 mundo = NODE_POSITION_WORLD;
@@ -39,6 +42,7 @@ void vertex() {
 		VERTEX.y += sin(TIME * 1.2 + fase) * 0.015 * boiar;
 	}
 	v_dist = rolagem_uv2 ? UV2.y : UV.y;
+	v_alt = VERTEX.y;
 	v_mundo = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
 
@@ -55,6 +59,16 @@ void fragment() {
 	base *= 1.0 - 0.6 * sombra_nuvem(v_mundo);
 	if (visao_recursos > 0.0) {
 		base = apagar_visao(base, 0.6);
+	}
+	if (vento > 0.0) {
+		// vegetação: o fogo do tile sobe pela planta (brasa de baixo para cima) e o que queimou vira carvão
+		vec4 fg = texture(fogo_mapa, (vec2(v_mundo.x, -v_mundo.z) - fogo_origem) / 96.0);
+		float h = clamp(v_alt / 2.2, 0.0, 1.0);
+		float queima = smoothstep(0.02, 0.5, fg.b);
+		float carvao = max(fg.a * 0.9, queima * smoothstep(h, h + 0.4, 1.0 - fg.b));
+		base = mix(base, vec3(0.05, 0.04, 0.035), clamp(carvao, 0.0, 1.0));
+		float fl = 0.6 + 0.4 * sin(TIME * 12.0 + v_mundo.x * 5.0 + v_mundo.z * 3.0);
+		EMISSION += vec3(1.0, 0.32, 0.04) * queima * smoothstep(0.25, 0.0, abs(h - (1.0 - fg.b))) * fl * 1.6;
 	}
 	ALBEDO = base;
 	ROUGHNESS = mix(aspereza, 0.45, m * 0.8);   // sem espelho: faceta molhada não pode estourar de branco

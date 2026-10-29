@@ -280,6 +280,7 @@ func _criar_desenhos() -> void:
 	da.ambiente = ambiente
 	da.chunks = chunks
 	da.camera = camera
+	da.clima = clima
 	add_child(da)
 	var dc := DesenhoClima.new()
 	dc.clima = clima
@@ -787,6 +788,10 @@ func _tick_mundo(dt: float) -> void:
 	for ev in ambiente.eventos:
 		if ev.tipo == "fogo_inicio" and is_instance_valid(controle):
 			controle._avisar("Incêndio! A vegetação seca pegou fogo perto de uma máquina quente")
+		elif ev.tipo == "vegetacao_queimada":
+			var rel := construtor._relatorio_vazio()
+			rel.limpos.append({"tile": ev.tile, "tiles": ev.tiles})
+			sincronizar(rel)
 	ambiente.eventos.clear()
 	poluicao.tick(dt)
 	colonia.tick(dt, fontes_vivas)

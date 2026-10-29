@@ -15,6 +15,7 @@ uniform float raio_vista = 38.0;
 global uniform vec3 alvo_camera;
 
 varying float altura;
+varying float queimando;
 varying vec3 tom;
 
 void vertex() {
@@ -28,6 +29,7 @@ void vertex() {
 	float some = smoothstep(0.12, 0.35, max(fb.r, fb.b));
 	// queima: só o tufo do tile que queima — escurece e encolhe enquanto o fogo come, some quando acaba
 	float q = amb.a;
+	queimando = smoothstep(0.02, 0.4, amb.b) * (1.0 - smoothstep(0.6, 0.9, q));
 	some = max(some, smoothstep(0.1, 0.7, q));
 	tom *= mix(vec3(1.0), vec3(0.18, 0.12, 0.08), smoothstep(0.0, 0.25, q));
 	tom *= mix(vec3(1.0), vec3(0.72, 0.62, 0.42), smoothstep(0.1, 0.6, amb.r));   // suja: amarelada
@@ -52,4 +54,15 @@ void fragment() {
 	ALBEDO = c;
 	ROUGHNESS = 0.9;
 	BACKLIGHT = vec3(0.25, 0.32, 0.12) * altura;          // luz atravessando a folha
+	if (queimando > 0.0) {
+		// a frente de fogo sobe pela folha: ponta em brasa, meio laranja, pé ainda escuro
+		// cada tufo pega fogo no seu tempo (não acende o tile inteiro de uma vez); a chama sobe pela folha e treme
+		float sorte = fract(tom.r * 37.1 + tom.g * 13.7);
+		float aceso = smoothstep(sorte * 0.7, sorte * 0.7 + 0.15, queimando);
+		float fl = 0.55 + 0.45 * sin(TIME * 14.0 + sorte * 40.0 + altura * 7.0);
+		float chama = smoothstep(0.35, 0.95, altura) * aceso * fl;
+		vec3 c2 = mix(vec3(0.65, 0.07, 0.01), vec3(1.0, 0.36, 0.04), smoothstep(0.55, 1.0, altura));
+		EMISSION = c2 * chama * 1.3;
+		ALBEDO *= 1.0 - 0.85 * aceso;
+	}
 }

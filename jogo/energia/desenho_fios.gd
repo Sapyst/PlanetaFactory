@@ -58,7 +58,7 @@ func refazer() -> void:
 			var f: Dictionary = mapa.estruturas[o]
 			var a := Fiacao.ponto_fio(e, Fiacao.centro(f))
 			var b := Fiacao.ponto_fio(f, Fiacao.centro(e))
-			if Fiacao.eh_sem_fio(e.nome) or Fiacao.eh_sem_fio(f.nome):
+			if Fiacao.liga_sem_cabo(e, f):
 				_fita(feixes, a, b, 0.0, 0.10, true)
 				tem_feixe = true
 			else:

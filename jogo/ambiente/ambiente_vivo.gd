@@ -160,7 +160,21 @@ func _agua() -> void:
 		somar(t, AGUA, muda[t])
 
 
+## Árvore/arbusto/cogumelo no tile queima mais tempo (é combustível); 1 = só grama.
+func _madeira(t: Vector2i) -> float:
+	if mapa.limpos.has(t):
+		return 1.0
+	var o := gerador.distribuicao.obstaculo(t)
+	if o.is_empty():
+		return 1.0
+	return float(_d.fogo.get("madeira", {}).get(o.nome, 1.0))
+
+
 func _inflamavel(t: Vector2i) -> bool:
+	if not mapa.limpos.has(t):
+		var o := gerador.distribuicao.obstaculo(t)
+		if not o.is_empty() and float(_d.fogo.get("madeira", {}).get(o.nome, 1.0)) <= 0.0:
+			return false
 	if fogo.has(t) or mapa.tiles.has(t) or gerador.terreno(t) != GeradorMundo.Terreno.TERRA:
 		return false
 	if not gerador.distribuicao.jazida(t).is_empty() or valor(t, QUEIM) > 0.6:
@@ -172,7 +186,7 @@ func _acender(t: Vector2i) -> void:
 	if fogo.size() >= int(_d.fogo.max_focos):
 		return
 	var dur: Array = _d.fogo.duracao_s
-	fogo[t] = _rng.randf_range(dur[0], dur[1])
+	fogo[t] = _rng.randf_range(dur[0], dur[1]) * _madeira(t)
 	if fogo.size() == 1:
 		eventos.append({"tipo": "fogo_inicio", "tile": t})
 
@@ -185,7 +199,7 @@ func _fogo(chuva: float, vento: Vector2, secura: float, tufao: bool) -> void:
 	var esp: float = float(_d.fogo.espalha) * (0.3 + secura) * (3.0 if tufao else 1.0)
 	for t in fogo:
 		fogo[t] -= 1.0 + chuva * float(_d.fogo.chuva_apaga) * 10.0
-		somar(t, QUEIM, 0.09)
+		somar(t, QUEIM, 0.22)
 		if fogo[t] <= 0.0:
 			apagar.append(t)
 			continue
@@ -201,6 +215,13 @@ func _fogo(chuva: float, vento: Vector2, secura: float, tufao: bool) -> void:
 	for t in apagar:
 		fogo.erase(t)
 		somar(t, QUEIM, 1.0)
+		# a vegetação do tile virou cinza: árvore/arbusto some do mapa (o mundo redesenha o chunk)
+		if not mapa.limpos.has(t):
+			var o := gerador.distribuicao.obstaculo(t)
+			if not o.is_empty():
+				mapa.limpar_obstaculo(t)
+				_mancha(Vector2(t) + Vector2(0.5, 0.5), 1.8, QUEIM, 0.8)
+				eventos.append({"tipo": "vegetacao_queimada", "tile": t, "tiles": Grade.tiles_da_area(o.ancora, o.area, 0)})
 	for t in novos:
 		_acender(t)
 
@@ -258,7 +279,11 @@ func imagem(k: Vector2i) -> Image:
 			var l := Grade.local_de(t)
 			var o := (l.y * T + l.x) * CANAIS
 			var arr: PackedFloat32Array = a
-			img.set_pixel(i, j, Color(arr[o], arr[o + 1], arr[o + 2], arr[o + 3]))
+			# em terra o canal da água suja não é usado: ali vai a brasa (tile queimando agora, 0..1 pelo fogo restante)
+			var b := arr[o + 2]
+			if fogo.has(t):
+				b = clampf(float(fogo[t]) / 4.5, 0.0, 1.0)       # recém-aceso = 1, quase apagando = 0 (faixa estreita: a frente)
+			img.set_pixel(i, j, Color(arr[o], arr[o + 1], b, arr[o + 3]))
 	return img
 
 

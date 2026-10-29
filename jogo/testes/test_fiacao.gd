@@ -103,3 +103,21 @@ func test_nucleo_alimenta_em_volta() -> void:
 	f.reconstruir()
 	f.rede.tick(1.0)
 	verificar(f.rede.satisfacao(perto) < 1.0, "pouca potência: muitas máquinas dividem (%.2f)" % f.rede.satisfacao(perto))
+
+
+func test_energia_do_nucleo_vai_pelo_cabo() -> void:
+	var m := MapaOcupacao.new(GeradorMundo.new(1337))
+	for x in range(-4, 40):
+		for y in range(-6, 6):
+			m.limpar_obstaculo(Vector2i(x, y))
+	var n := m.colocar("nucleo", Vector2i(-1, -1), 0)
+	Fiacao.ligar_novo(m, n)
+	for x in [8, 16, 24]:
+		Fiacao.ligar_novo(m, m.colocar("poste_energia", Vector2i(x, 0), 0))
+	var longe := m.colocar("montadora", Vector2i(26, 1), 0)
+	Fiacao.ligar_novo(m, longe)
+	var f := Fabrica.new(m)
+	f.reconstruir()
+	f.rede.tick(1.0)
+	verificar(f.rede.satisfacao(longe) > 0.5, "máquina a 29 m recebe a energia do núcleo pela linha de postes (%.2f)" % f.rede.satisfacao(longe))
+	verificar(not Fiacao.liga_sem_cabo(m.estruturas[n], m.estruturas[m.tiles[Vector2i(8, 0)]]), "núcleo ↔ poste é cabo de verdade")

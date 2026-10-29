@@ -387,10 +387,15 @@ func _roteiro_ambiente() -> void:
 				cena.fabrica.tick(1.0)
 			a._passo(cena.fabrica, c)
 			# deixa a emissão da fábrica viva entre os passos acelerados
-		var alvo := Grade.tile_de_mundo(cena.camera.alvo) + Vector2i(-9, 6)
-		for d in [Vector2i.ZERO, Vector2i(1, 0), Vector2i(0, 1)]:
-			if a._inflamavel(alvo + d):
-				a._acender(alvo + d)
+		cena.controle.barra.visible = false
+		Sessao.config.fps = false
+		var alvo := Grade.tile_de_mundo(cena.camera.alvo)
+		var acesos := 0
+		for r in range(0, 8):
+			for d in [Vector2i(r, 0), Vector2i(-r, 0), Vector2i(0, r), Vector2i(0, -r)]:
+				if acesos < 3 and a._inflamavel(alvo + d):
+					a._acender(alvo + d)
+					acesos += 1
 		print("AMBIENTE chunks=%d fogo=%d" % [a.dados.size(), a.fogo.size()]))
 
 

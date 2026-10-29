@@ -65,6 +65,7 @@ func _process(delta: float) -> void:
 	RenderingServer.global_shader_parameter_set("nuvem_cobertura", v.nuvens)
 	RenderingServer.global_shader_parameter_set("nuvem_deslocamento", clima.deslocamento)
 	RenderingServer.global_shader_parameter_set("molhado", clima.molhado)
+	RenderingServer.global_shader_parameter_set("vento_dir", clima.direcao_vento * (0.4 + v.vento))
 	RenderingServer.global_shader_parameter_set("sol_dir", sol.global_transform.basis.z.normalized())
 	_relampagos(delta)
 	# luz e névoa do ambiente

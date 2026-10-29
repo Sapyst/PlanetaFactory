@@ -231,6 +231,7 @@ def nucleo():
         an.caixa_c(math.cos(a)*0.62, math.sin(a)*0.62, 1.92, 0.20, 0.07, 0.05, 'P_Aco', rot=a + PI/2)
     for lado in 'SNLO':
         boca_ht(p, m, lado, 1, 'ENT')
+    terminais_cantos(m, p, 0.112)
     return m
 
 def terraplenagem():
