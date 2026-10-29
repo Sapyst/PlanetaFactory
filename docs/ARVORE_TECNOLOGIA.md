@@ -1,6 +1,6 @@
 # Árvore de tecnologia
 
-Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. Nada aqui está no jogo ainda além das 14 pesquisas que já existem em `jogo/dados/progressao.json` (mantidas com os mesmos IDs, pré-requisitos e custos). Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
+Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 15 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade; as outras aparecem como "em breve" até a estrutura, o item ou o pacote existir. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
 
 ## Eras e pacotes de pesquisa
 
@@ -586,7 +586,7 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
 - **Água na base continua seca (decidido).** Fundir aço e lapidar cristal ficam sem água, como hoje. A pesquisa
   `bomba_agua` libera as versões **refrigeradas** dessas duas receitas (com água, +50% de produto). Assim nada que já
   funciona quebra.
-- **As 14 pesquisas atuais não mudam.** Mesmos IDs, pré-requisitos e custos (incluindo `energia`, que existe no jogo
+- **As 14 pesquisas originais não mudam** (a 15ª, `dano_energia_1`, entrou depois como a primeira melhoria jogável: +20% de dano da torre com energia). Mesmos IDs, pré-requisitos e custos (incluindo `energia`, que existe no jogo
   mesmo fora da lista do pedido). `refino`, `acumulacao` e `energia` ficam na era do meio, ainda pagas só com pacote
   básico, como hoje.
 - **Torre básica a energia** continua liberada no início; `defesa` segue sendo a receita de munição.

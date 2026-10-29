@@ -272,3 +272,31 @@ func test_aranha_nunca_entra_em_construcao() -> void:
 			if c._bloqueio(Vector2i(p.floor())) >= 0:
 				dentro += 1
 	igual(dentro, 0, "o centro de uma aranha nunca está dentro de construção")
+
+
+## Melhoria pesquisada (Pesquisa.bonus) aumenta o dano: menos tiros para matar a mesma aranha.
+func test_torre_com_melhoria_de_dano() -> void:
+	var tiros := []
+	for b in [0.0, 1.0]:
+		var s := _cenario()
+		var m: MapaOcupacao = s[0]
+		var c: Colonia = s[2]
+		var fonte: int = s[3]
+		var bonus_energia: float = b
+		c.bonus = func(chave: String) -> float: return bonus_energia if chave == "dano_torre_energia" else 0.0
+		c.torre_energia = func(_id: int, _mj: float) -> bool: return true          # sempre com energia guardada
+		m.colocar("torre_defesa", Vector2i(-28, 0), 0)
+		var a := c._nova_aranha(s[4])
+		c.aranhas[a].estado = Colonia.E.ATACANDO
+		c.aranhas[a].alvo = fonte
+		var n := 0
+		var fontes: Array[Dictionary] = [{"id": fonte, "pos": Vector2(-33, 1)}]
+		for i in 30 * 60:
+			c.tick(1.0 / 30.0, fontes)
+			for e in c.eventos:
+				if e.tipo == "tiro": n += 1
+			if not c.aranhas.has(a):
+				break
+		verificar(not c.aranhas.has(a), "aranha morreu (bônus %s)" % b)
+		tiros.append(n)
+	verificar(tiros[1] < tiros[0], "com +100%% de dano precisa de menos tiros (%d < %d)" % [tiros[1], tiros[0]])

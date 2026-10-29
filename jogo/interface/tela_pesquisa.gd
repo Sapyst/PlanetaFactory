@@ -1,8 +1,11 @@
 class_name TelaPesquisa
 extends CanvasLayer
-## Árvore de pesquisa (botão ⚗ / T), por cima do jogo: cada pesquisa é um nó com o ícone do que libera, em colunas
-## por profundidade (sem pré-requisito à esquerda) e ligado aos pré-requisitos por linhas (verde = já feito).
-## O quadro rola nas duas direções pelo dedo (RolagemToque). Tocar num nó mostra o detalhe ao lado: custo, o que
+## Árvore de pesquisa (botão ⚗ / T), por cima do jogo: a árvore de tecnologia inteira (dados/arvore.json) em três
+## faixas, uma por era (base, meio, super avançada), cada uma com a sua cor. Dentro da faixa, colunas por profundidade
+## (sem pré-requisito da mesma era à esquerda); linhas ligam aos pré-requisitos (verde = já feito). As pesquisas que
+## já existem no jogo (progressao.json) se pesquisam; as outras aparecem esmaecidas como "em breve".
+## O quadro rola nas duas direções pelo dedo (RolagemToque) e tem zoom: pinça com dois dedos, Ctrl + roda do mouse,
+## gesto do trackpad ou os botões − e +. Tocar num nó mostra o detalhe ao lado: custo, o que
 ## libera em casas com ícone, o que falta e o botão Pesquisar.
 
 signal fechou
@@ -11,6 +14,14 @@ const NO := Vector2(250, 92)           ## tamanho de um nó
 const ESP := Vector2(72, 18)           ## espaço entre colunas / entre nós
 const COR_FEITA := Tema.COR.sucesso
 const COR_TRAVADA := Tema.COR.travado
+const CABECALHO := 46.0                ## altura do título da faixa da era
+const ERA_COR := {"base": Color(0.36, 0.62, 0.29), "meio": Color(0.29, 0.5, 0.77), "avancada": Color(0.6, 0.37, 0.79)}
+const COR_OBJETIVO := Color(0.85, 0.31, 0.25)
+const TIPOS := {                       ## o que a tecnologia faz no jogo: símbolo e explicação
+	"estrutura": ["■", "estrutura nova"], "receita": ["⚗", "receita nova"], "melhoria": ["▲", "melhora o que já existe"],
+	"infinita": ["∞", "melhoria infinita"], "objetivo": ["★", "objetivo final"]}
+const ZOOM_MIN := 0.3
+const ZOOM_MAX := 1.6
 
 var pesquisa: Pesquisa
 var rotulo: Callable                     ## nome da peça → texto (BarraConstrucao.rotulo)
@@ -22,10 +33,16 @@ var _raiz: Control
 var _status: Label
 var _barra: ProgressBar
 var _rolagem: ScrollContainer
-var _arvore: Control                     ## quadro com os nós (desenha as linhas)
+var _arvore: Control                     ## quadro com os nós (desenha as linhas); escala = zoom
+var _palco: Control                      ## ocupa na rolagem o tamanho do quadro já com zoom
+var _rt: RolagemToque
+var _zoom := 0.0                         ## 0 = ainda não ajustado à tela
+var _dedos: Dictionary = {}              ## índice do toque → posição (pinça)
+var _pinca := {}                         ## {dist, zoom} no começo da pinça
 var _lado: PanelContainer
 var _det: VBoxContainer
 var _pos: Dictionary = {}                ## id → retângulo do nó no quadro
+var _faixas: Array = []                  ## [{rect, cor, nome}] das eras
 var _nos: Dictionary = {}                ## id → Button
 var _sel := ""
 var _assinatura := ""
@@ -69,6 +86,15 @@ func _ready() -> void:
 	fechar_b.custom_minimum_size = Vector2(120, 52)
 	fechar_b.focus_mode = Control.FOCUS_NONE
 	fechar_b.pressed.connect(fechar)
+	for z in [["−", 1.0 / 1.25], ["+", 1.25]]:                     # zoom por botão (mesmo efeito da pinça)
+		var zb := Button.new()
+		zb.text = z[0]
+		zb.custom_minimum_size = Vector2(52, 52)
+		zb.focus_mode = Control.FOCUS_NONE
+		zb.add_theme_font_size_override("font_size", 26)
+		var fator: float = z[1]
+		zb.pressed.connect(func(): _zoom_em(_zoom * fator, _rolagem.size / 2.0))
+		topo.add_child(zb)
 	topo.add_child(fechar_b)
 	v.add_child(Tema.faixa_titulo())
 	_barra = ProgressBar.new()
@@ -83,10 +109,13 @@ func _ready() -> void:
 	_rolagem.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_rolagem.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	corpo.add_child(_rolagem)
+	_palco = Control.new()
+	_rolagem.add_child(_palco)
 	_arvore = Control.new()
 	_arvore.draw.connect(_desenhar_linhas)
-	_rolagem.add_child(_arvore)
-	_rolagem.add_child(RolagemToque.new())
+	_palco.add_child(_arvore)
+	_rt = RolagemToque.new()
+	_rolagem.add_child(_rt)
 	_lado = PanelContainer.new()
 	_lado.add_theme_stylebox_override("panel", Tema.caixa(Color(0.05, 0.05, 0.06, 0.95), Color(Tema.cor("filete"), 0.7), 10, 12))
 	corpo.add_child(_lado)
@@ -115,6 +144,8 @@ func abrir() -> void:
 	if _sel == "" and pesquisa != null:
 		_sel = pesquisa.ativa
 	_posicionar()
+	if _zoom == 0.0:                                              # 1ª vez: cabe mais na tela pequena
+		_zoom = clampf(_painel.get_viewport().get_visible_rect().size.x / 1700.0, 0.5, 1.0)
 	_atualizar()
 
 
@@ -129,8 +160,8 @@ func _posicionar() -> void:
 	var tela := _painel.get_viewport().get_visible_rect().size
 	var m := 12.0
 	_painel.position = Vector2(m, m)
-	_painel.size = tela - Vector2(2.0 * m, 2.0 * m)
-	_painel.custom_minimum_size = _painel.size
+	_painel.custom_minimum_size = tela - Vector2(2.0 * m, 2.0 * m)   # mínimo antes: senão o antigo (maior) segura o tamanho
+	_painel.size = _painel.custom_minimum_size
 	_lado.custom_minimum_size.x = clampf(tela.x * 0.3, 250.0, 360.0)
 
 
@@ -166,47 +197,160 @@ func _atualizar() -> void:
 	_mostrar_detalhe()
 	if primeira and _sel != "" and _pos.has(_sel):         # abre com a pesquisa ativa à vista
 		var r: Rect2 = _pos[_sel]
-		_rolagem.set_deferred("scroll_horizontal", int(maxf(0.0, r.position.x - 40.0)))
-		_rolagem.set_deferred("scroll_vertical", int(maxf(0.0, r.position.y - 80.0)))
+		_rolagem.set_deferred("scroll_horizontal", int(maxf(0.0, r.position.x * _zoom - 40.0)))
+		_rolagem.set_deferred("scroll_vertical", int(maxf(0.0, r.position.y * _zoom - 80.0)))
+
+
+# ------------------------------------------------------------------ zoom
+func _aplicar_zoom() -> void:
+	_arvore.scale = Vector2(_zoom, _zoom)
+	_palco.custom_minimum_size = _arvore.custom_minimum_size * _zoom
+
+
+## Zoom mantendo parado o ponto do quadro que está sob `foco` (posição dentro da área de rolagem).
+func _zoom_em(novo: float, foco: Vector2) -> void:
+	novo = clampf(novo, ZOOM_MIN, ZOOM_MAX)
+	if is_equal_approx(novo, _zoom):
+		return
+	var rol := Vector2(_rolagem.scroll_horizontal, _rolagem.scroll_vertical)
+	var conteudo := (rol + foco) / _zoom
+	_zoom = novo
+	_aplicar_zoom()
+	await get_tree().process_frame                               # barras de rolagem já com o tamanho novo
+	var alvo := conteudo * _zoom - foco
+	_rolagem.scroll_horizontal = int(maxf(0.0, alvo.x))
+	_rolagem.scroll_vertical = int(maxf(0.0, alvo.y))
+	_rt.sincronizar()
+
+
+func _input(e: InputEvent) -> void:
+	if not visible:
+		return
+	var dentro := func(p: Vector2) -> bool: return _rolagem.get_global_rect().has_point(p)
+	if e is InputEventMagnifyGesture and dentro.call(e.position):
+		_zoom_em(_zoom * e.factor, e.position - _rolagem.global_position)
+	elif e is InputEventMouseButton and e.pressed and e.ctrl_pressed and dentro.call(e.position) \
+			and e.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+		_zoom_em(_zoom * (1.1 if e.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0 / 1.1), e.position - _rolagem.global_position)
+		get_viewport().set_input_as_handled()
+	elif e is InputEventScreenTouch:
+		if e.pressed and dentro.call(e.position):
+			_dedos[e.index] = e.position
+		else:
+			_dedos.erase(e.index)
+		if _dedos.size() == 2:
+			var p: Array = _dedos.values()
+			_pinca = {"dist": maxf((p[0] as Vector2).distance_to(p[1]), 1.0), "zoom": _zoom}
+			_rt.parado = true
+		elif _dedos.size() < 2 and _rt.parado:
+			_pinca = {}
+			_rt.parado = false
+			_rt.sincronizar()
+	elif e is InputEventScreenDrag and _dedos.has(e.index):
+		_dedos[e.index] = e.position
+		if _dedos.size() == 2 and not _pinca.is_empty():
+			var p: Array = _dedos.values()
+			var meio: Vector2 = ((p[0] as Vector2) + (p[1] as Vector2)) / 2.0 - _rolagem.global_position
+			_zoom_em(_pinca.zoom * (p[0] as Vector2).distance_to(p[1]) / _pinca.dist, meio)
+			get_viewport().set_input_as_handled()
 
 
 # ------------------------------------------------------------------ árvore
+## Todos os nós: a árvore completa; sem arvore.json, só as pesquisas jogáveis.
+func _ids() -> Array:
+	return pesquisa.arvore().keys() if not pesquisa.arvore().is_empty() else pesquisa.pesquisas().keys()
+
+
+## Dados de um nó: os da pesquisa jogável (custo real em pacotes) com a era da árvore; ou só os da árvore.
+func _no(id: String) -> Dictionary:
+	var a: Dictionary = pesquisa.arvore().get(id, {})
+	if pesquisa.jogavel(id):
+		var d: Dictionary = pesquisa.pesquisas()[id].duplicate()
+		d.era = a.get("era", "base")
+		d.tipo = a.get("tipo", "estrutura")
+		d.texto = a.get("libera", "")
+		return d
+	return a
+
+
+func _em_breve(id: String) -> bool:
+	return not pesquisa.jogavel(id)
+
+
+func _nome(id: String) -> String:
+	return str(_no(id).get("nome", id))
+
+
+## Profundidade dentro da própria era: só contam os pré-requisitos da mesma era.
 func _profundidade(id: String, memo: Dictionary) -> int:
 	if memo.has(id):
 		return memo[id]
 	var p := 0
-	for r in pesquisa.pesquisas()[id].get("requer", []):
-		p = maxi(p, _profundidade(r, memo) + 1)
+	var era: String = _no(id).get("era", "")
+	for r in _no(id).get("requer", []):
+		if _no(r).get("era", "") == era:
+			p = maxi(p, _profundidade(r, memo) + 1)
 	memo[id] = p
 	return p
 
 
-## Colunas por profundidade; dentro da coluna, na ordem média dos pré-requisitos (linhas cruzam menos).
+## Uma faixa por era, lado a lado; na faixa, colunas por profundidade e, dentro da coluna, na ordem média dos
+## pré-requisitos (linhas cruzam menos).
 func _layout() -> void:
 	var memo := {}
-	var colunas: Dictionary = {}
-	for id in pesquisa.pesquisas():
+	var por_era: Dictionary = {}
+	for id in _ids():
+		var era: String = _no(id).get("era", "base")
+		if not por_era.has(era):
+			por_era[era] = {}
 		var p := _profundidade(id, memo)
-		if not colunas.has(p):
-			colunas[p] = []
-		colunas[p].append(id)
+		if not por_era[era].has(p):
+			por_era[era][p] = []
+		por_era[era][p].append(id)
+	var ordem: Array = []
+	for e in pesquisa.eras():
+		ordem.append(e.id)
+	for e in por_era:
+		if not e in ordem:
+			ordem.append(e)
 	var linha: Dictionary = {}
 	_pos.clear()
+	_faixas.clear()
+	var x := 16.0
 	var maior := 0
-	for p in range(colunas.size()):
-		var lista: Array = colunas.get(p, [])
-		lista.sort_custom(func(a, b): return _media(a, linha) < _media(b, linha))
-		for i in lista.size():
-			linha[lista[i]] = i
-			_pos[lista[i]] = Rect2(Vector2(16 + p * (NO.x + ESP.x), 16 + i * (NO.y + ESP.y)), NO)
-		maior = maxi(maior, lista.size())
-	_arvore.custom_minimum_size = Vector2(32 + colunas.size() * (NO.x + ESP.x) - ESP.x, 32 + maior * (NO.y + ESP.y) - ESP.y)
+	for era in ordem:
+		if not por_era.has(era):
+			continue
+		var colunas: Dictionary = por_era[era]
+		var x0 := x
+		var mais := 0
+		for p in range(colunas.size()):
+			var lista: Array = colunas.get(p, [])
+			lista.sort_custom(func(a, b): return _media(a, linha) < _media(b, linha))
+			for i in lista.size():
+				linha[lista[i]] = i
+				_pos[lista[i]] = Rect2(Vector2(x + 14.0, 16 + CABECALHO + i * (NO.y + ESP.y)), NO)
+			mais = maxi(mais, lista.size())
+			x += NO.x + ESP.x
+		maior = maxi(maior, mais)
+		var nome_era: String = era
+		for e in pesquisa.eras():
+			if e.id == era:
+				nome_era = e.nome
+		_faixas.append({"x0": x0, "x1": x + 28.0 - ESP.x, "cor": ERA_COR.get(era, COR_TRAVADA), "nome": nome_era, "era": era})
+		x += 28.0 + 24.0
+	var alto := 32 + CABECALHO + maior * (NO.y + ESP.y) - ESP.y
+	for f in _faixas:
+		f.rect = Rect2(Vector2(f.x0, 8), Vector2(f.x1 - f.x0, alto - 8))
+	_arvore.custom_minimum_size = Vector2(x, alto)
+	_arvore.size = _arvore.custom_minimum_size
+	_aplicar_zoom()
 
 
 func _media(id: String, linha: Dictionary) -> float:
-	var req: Array = pesquisa.pesquisas()[id].get("requer", [])
+	var req: Array = _no(id).get("requer", [])
 	if req.is_empty():
-		return float(pesquisa.pesquisas().keys().find(id))
+		return float(_ids().find(id))
 	var s := 0.0
 	for r in req:
 		s += float(linha.get(r, 0))
@@ -218,8 +362,19 @@ func _montar_arvore() -> void:
 		c.queue_free()
 	_nos.clear()
 	_layout()
+	for f in _faixas:                                             # título de cada era no alto da faixa
+		var t := Label.new()
+		var n := 0
+		for id in _pos:
+			if _no(id).get("era", "") == f.era:
+				n += 1
+		t.text = "%s  ·  %d tecnologias" % [f.nome, n]
+		t.add_theme_font_size_override("font_size", 20)
+		t.add_theme_color_override("font_color", (f.cor as Color).lightened(0.35))
+		t.position = Vector2(f.rect.position.x + 26.0, f.rect.position.y + 10.0)
+		_arvore.add_child(t)
 	for id in _pos:
-		var pq: Dictionary = pesquisa.pesquisas()[id]
+		var pq: Dictionary = _no(id)
 		var b := Button.new()
 		b.focus_mode = Control.FOCUS_NONE
 		b.position = (_pos[id] as Rect2).position
@@ -229,18 +384,18 @@ func _montar_arvore() -> void:
 		b.icon = _icone_da(id)
 		b.expand_icon = false
 		b.add_theme_constant_override("icon_max_width", 56)
-		b.text = "%s\n%s" % [pq.nome, _situacao(id)]
+		b.text = "%s\n%s" % [pq.get("nome", id), _situacao(id)]
 		b.add_theme_font_size_override("font_size", 16)
 		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		var cor := _cor(id)
-		var fundo := Color(0.05, 0.08, 0.1, 0.96).lerp(cor, 0.12)
-		for estado in ["normal", "hover", "pressed"]:
-			var st := Tema.caixa(fundo.lightened(0.06 if estado == "hover" else 0.0), cor, 10, 8)
-			st.border_width_left = 3 if _sel != id else 5
-			st.border_width_right = st.border_width_left
-			st.border_width_top = st.border_width_left
-			st.border_width_bottom = st.border_width_left
-			b.add_theme_stylebox_override(estado, st)
+		# placa em relevo com moldura na cor da situação (a mesma da barra de construção); escolhida = âmbar
+		var cor := Tema.cor("destaque") if _sel == id else _cor(id)
+		if _em_breve(id) and _sel != id:
+			cor = cor.darkened(0.45)
+			b.add_theme_color_override("font_color", Color(0.70, 0.70, 0.72))
+		b.add_theme_stylebox_override("normal", Tema.botao_cor_estilo(cor))
+		b.add_theme_stylebox_override("hover", Tema.botao_cor_estilo(cor.lightened(0.18)))
+		b.add_theme_stylebox_override("pressed", Tema.botao_cor_estilo(cor.lightened(0.3)))
+		b.add_theme_stylebox_override("hover_pressed", Tema.botao_cor_estilo(cor.lightened(0.3)))
 		b.pressed.connect(RolagemToque.so_clique(func():
 			Som.tocar("clique")
 			_sel = id
@@ -251,9 +406,19 @@ func _montar_arvore() -> void:
 
 
 func _desenhar_linhas() -> void:
+	var ci := _arvore.get_canvas_item()
+	for f in _faixas:                                             # faixas das eras: chapa com rebites, tinta da era
+		var c: Color = f.cor
+		var r: Rect2 = f.rect
+		Tema.chapa_estilo().draw(ci, r)
+		_arvore.draw_rect(r.grow(-6.0), Color(c, 0.07))
+		var cab := Rect2(r.position + Vector2(10, 8), Vector2(r.size.x - 20, CABECALHO - 12))
+		_arvore.draw_rect(cab, Color(c.darkened(0.55), 0.85))
+		_arvore.draw_texture_rect(Tema.listra(), Rect2(cab.position.x, cab.end.y, cab.size.x, 7), true)   # listras sob o título
+		_arvore.draw_rect(Rect2(cab.position, Vector2(6, cab.size.y)), c)
 	for id in _pos:
 		var r: Rect2 = _pos[id]
-		for req in pesquisa.pesquisas()[id].get("requer", []):
+		for req in _no(id).get("requer", []):
 			if not _pos.has(req):
 				continue
 			var rr: Rect2 = _pos[req]
@@ -263,11 +428,15 @@ func _desenhar_linhas() -> void:
 			var lado := float(int(r.position.y / (NO.y + ESP.y)) % 4) / 3.0
 			var mx := a.x + ESP.x * (0.25 + 0.5 * lado)
 			var cor := COR_FEITA if pesquisa.concluidas.has(req) else COR_TRAVADA
+			if _em_breve(id):
+				cor = Color(ERA_COR.get(_no(id).get("era", ""), COR_TRAVADA), 0.4)
 			_arvore.draw_polyline(PackedVector2Array([a, Vector2(mx, a.y), Vector2(mx, b.y), b]), cor, 3.0, true)
 			_arvore.draw_circle(b, 5.0, cor)
 
 
 func _cor(id: String) -> Color:
+	if _em_breve(id):
+		return COR_OBJETIVO if _no(id).get("objetivo", false) else ERA_COR.get(_no(id).get("era", ""), COR_TRAVADA)
 	if pesquisa.ativa == id:
 		return BarraConstrucao.COR_DESTAQUE
 	if pesquisa.concluidas.has(id):
@@ -277,8 +446,23 @@ func _cor(id: String) -> Color:
 	return COR_TRAVADA
 
 
+## Custo da árvore em texto curto: "básico 30 + automação 30".
+func _custo_texto(pq: Dictionary) -> String:
+	var partes: Array[String] = []
+	for c in pq.get("pacotes", []):
+		partes.append("%s %d" % [c[0], int(c[1])])
+	return " + ".join(partes)
+
+
 func _situacao(id: String) -> String:
-	var pq: Dictionary = pesquisa.pesquisas()[id]
+	var pq: Dictionary = _no(id)
+	var tipo: String = (TIPOS.get(pq.get("tipo", ""), [""]) as Array)[0]
+	if _em_breve(id):
+		return tipo + " " + ("objetivo final" if pq.get("objetivo", false) else "em breve")
+	return tipo + " " + _situacao_jogavel(id, pq)
+
+
+func _situacao_jogavel(id: String, pq: Dictionary) -> String:
 	if pesquisa.concluidas.has(id):
 		return "✓ concluída"
 	if pesquisa.ativa == id:
@@ -290,7 +474,9 @@ func _situacao(id: String) -> String:
 
 ## Ícone do nó: a primeira peça que libera; sem peça, o primeiro item das receitas.
 func _icone_da(id: String) -> Texture2D:
-	var pq: Dictionary = pesquisa.pesquisas()[id]
+	var pq: Dictionary = _no(id)
+	if _em_breve(id):
+		return null
 	for n in pq.get("libera", []):
 		var t := _tex_peca(n)
 		if t != null:
@@ -321,20 +507,36 @@ static func _tex_item(it: String) -> Texture2D:
 func _mostrar_detalhe() -> void:
 	for c in _det.get_children():
 		c.queue_free()
-	if _sel == "" or not pesquisa.pesquisas().has(_sel):
+	if _sel == "" or not _no(_sel).size():
 		var l := Label.new()
 		l.text = "Toque numa pesquisa da árvore.\n\nO laboratório (com energia) gasta pacotes de pesquisa. A montadora faz cada pacote com 1 cristal lapidado + 1 engrenagem; um braço leva os pacotes ao laboratório."
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		l.add_theme_font_size_override("font_size", 15)
 		_det.add_child(l)
 		return
-	var pq: Dictionary = pesquisa.pesquisas()[_sel]
+	var pq: Dictionary = _no(_sel)
 	var nome := Label.new()
-	nome.text = pq.nome
+	nome.text = pq.get("nome", _sel)
 	nome.add_theme_font_size_override("font_size", 22)
 	nome.add_theme_color_override("font_color", _cor(_sel).lightened(0.2))
 	nome.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_det.add_child(nome)
+	var era := Label.new()
+	for e in pesquisa.eras():
+		if e.id == pq.get("era", ""):
+			era.text = e.nome
+	era.add_theme_font_size_override("font_size", 14)
+	era.add_theme_color_override("font_color", (ERA_COR.get(pq.get("era", ""), COR_TRAVADA) as Color).lightened(0.3))
+	_det.add_child(era)
+	var tp := Label.new()
+	var t: Array = TIPOS.get(pq.get("tipo", ""), ["", ""])
+	tp.text = "%s  %s" % [t[0], t[1]]
+	tp.add_theme_font_size_override("font_size", 14)
+	tp.add_theme_color_override("font_color", Tema.cor("info"))
+	_det.add_child(tp)
+	if _em_breve(_sel):
+		_detalhe_em_breve(pq)
+		return
 	var custo := HBoxContainer.new()
 	custo.add_theme_constant_override("separation", 8)
 	custo.add_child(Casa.nova(_tex_item("pacote_pesquisa"), str(int(pq.pacotes))))
@@ -343,6 +545,16 @@ func _mostrar_detalhe() -> void:
 	cl.add_theme_font_size_override("font_size", 14)
 	custo.add_child(cl)
 	_det.add_child(custo)
+	if not pq.get("bonus", {}).is_empty():                        # melhoria: diz o efeito, não há casas
+		var ml := Label.new()
+		ml.text = "Melhora"
+		ml.add_theme_color_override("font_color", Tema.cor("titulo"))
+		_det.add_child(ml)
+		var mt := Label.new()
+		mt.text = str(pq.get("texto", ""))
+		mt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		mt.add_theme_font_size_override("font_size", 14)
+		_det.add_child(mt)
 	var tl := Label.new()
 	tl.text = "Libera"
 	tl.add_theme_color_override("font_color", Tema.cor("titulo"))
@@ -362,6 +574,10 @@ func _mostrar_detalhe() -> void:
 			nomes.append("receita de " + nm.to_lower())
 	var ln := Label.new()
 	ln.text = ", ".join(nomes) if not nomes.is_empty() else "—"
+	if nomes.is_empty() and not pq.get("bonus", {}).is_empty():   # só melhora: sem seção "Libera" vazia
+		tl.visible = false
+		casas.visible = false
+		ln.visible = false
 	ln.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	ln.add_theme_font_size_override("font_size", 14)
 	_det.add_child(ln)
@@ -370,7 +586,7 @@ func _mostrar_detalhe() -> void:
 		var rl := Label.new()
 		var partes: Array[String] = []
 		for r in req:
-			partes.append(("✓ " if pesquisa.concluidas.has(r) else "✗ ") + pesquisa.pesquisas()[r].nome)
+			partes.append(("✓ " if pesquisa.concluidas.has(r) else "✗ ") + _nome(r))
 		rl.text = "Precisa de: " + ", ".join(partes)
 		rl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		rl.add_theme_font_size_override("font_size", 14)
@@ -394,4 +610,42 @@ func _mostrar_detalhe() -> void:
 	else:
 		b.text = "Termine antes o que falta"
 		b.disabled = true
+	_det.add_child(b)
+
+
+## Pesquisa que ainda não existe no jogo: custo planejado, o que vai liberar, o que precisa antes.
+func _detalhe_em_breve(pq: Dictionary) -> void:
+	var linhas: Array[String] = []
+	linhas.append("Custo planejado: " + _custo_texto(pq) + " pacotes" if not pq.get("pacotes", []).is_empty() else "Sem pacotes: só as colônias produzem.")
+	if pq.has("tempo"):
+		linhas.append("%s s por pacote no laboratório" % String.num(float(pq.tempo), 1).trim_suffix(".0"))
+	var l := Label.new()
+	l.text = "\n".join(linhas)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.add_theme_font_size_override("font_size", 14)
+	_det.add_child(l)
+	var tl := Label.new()
+	tl.text = "Vai liberar"
+	tl.add_theme_color_override("font_color", Tema.cor("titulo"))
+	_det.add_child(tl)
+	var lib := Label.new()
+	lib.text = str(pq.get("libera", "—"))
+	lib.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lib.add_theme_font_size_override("font_size", 14)
+	_det.add_child(lib)
+	var req: Array = pq.get("requer", [])
+	if not req.is_empty():
+		var rl := Label.new()
+		var partes: Array[String] = []
+		for r in req:
+			partes.append(("✓ " if pesquisa.concluidas.has(r) else "✗ ") + _nome(r))
+		rl.text = "Precisa de: " + ", ".join(partes)
+		rl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		rl.add_theme_font_size_override("font_size", 14)
+		_det.add_child(rl)
+	var b := Button.new()
+	b.custom_minimum_size = Vector2(0, 56)
+	b.focus_mode = Control.FOCUS_NONE
+	b.text = "★ Objetivo final — em breve" if pq.get("objetivo", false) else "Em breve: ainda não está no jogo"
+	b.disabled = true
 	_det.add_child(b)

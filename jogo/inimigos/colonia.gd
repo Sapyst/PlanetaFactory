@@ -24,6 +24,7 @@ var ninhos: Dictionary = {}       ## id da estrutura → {id, centro: Vector2, v
 var aranhas: Dictionary = {}      ## id → {id, pos: Vector2, vida, ninho, estado, alvo (id estrutura), destino: Vector2, mordendo}
 var torres: Dictionary = {}       ## id da estrutura → {municao, recarga, mira: Vector2, mirando}
 var torre_energia: Callable       ## func(id, mj) -> bool: tiro com a energia guardada na torre (Fabrica.gastar_torre)
+var bonus: Callable               ## (opcional) func(chave) -> float: melhorias pesquisadas (Pesquisa.bonus)
 var vida: Dictionary = {}         ## id da estrutura → vida atual (só as que levaram dano)
 var eventos: Array[Dictionary] = []
 ## Quem tira do mapa a estrutura que as aranhas derrubaram (o mundo troca por Construtor.destruir + desenho).
@@ -404,14 +405,16 @@ func _torres(dt: float) -> void:
 		if t.recarga > 0.0:
 			continue
 		# atira com a energia guardada; munição (se algum braço trouxe) é a reserva quando a energia acaba
+		var chave := "dano_torre_energia"                     # melhoria que vale para este tiro
 		if torre_energia.is_valid() and torre_energia.call(id, float(regra.get("tiro_mj", 0.05))):
 			pass
 		elif t.municao > 0:
 			t.municao -= 1
+			chave = "dano_bala"
 		else:
 			continue
 		t.recarga = 1.0 / float(regra.get("cadencia", 3))
-		var dano: float = regra.get("dano", 8)
+		var dano: float = float(regra.get("dano", 8)) * (1.0 + (float(bonus.call(chave)) if bonus.is_valid() else 0.0))
 		eventos.append({"tipo": "tiro", "torre": id, "de": c, "para": t.mira, "aranha": alvo, "ninho": ninho})
 		if alvo >= 0:
 			aranhas[alvo].vida -= dano

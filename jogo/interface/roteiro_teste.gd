@@ -145,11 +145,29 @@ func _ready() -> void:
 		"pesquisa":                                    # abre a árvore de pesquisa e escolhe um nó
 			em(4, func():
 				Sessao.config.fps = false
+				if OS.get_cmdline_user_args().has("celular"):    # tela lógica de celular (como no roteiro telas)
+					get_window().content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+					get_tree().root.content_scale_factor = 1.0
+					get_window().content_scale_size = Vector2i(948, 533)       # 16:9 com a escala do celular (cabe na gravação 1280×720)
 				cena.abrir_pesquisa())
 			em(30, func():
 				var t: TelaPesquisa = cena._tela_pesquisa
 				t._sel = "logistica"
 				t._atualizar())
+			em(50, func():                             # quadro ~70: pesquisa "em breve" da era do meio
+				var t: TelaPesquisa = cena._tela_pesquisa
+				t._sel = "bomba_agua"
+				t._atualizar()
+				var r: Rect2 = t._pos["bomba_agua"]
+				t._rolagem.scroll_horizontal = int(r.position.x * t._zoom - 200.0)
+				t._rolagem.scroll_vertical = int(maxf(0.0, r.position.y * t._zoom - 120.0)))
+			em(62, func():                             # quadro ~75: zoom afastado (visão das eras)
+				var t: TelaPesquisa = cena._tela_pesquisa
+				t._zoom_em(0.3, Vector2.ZERO))
+			em(70, func():                             # quadro ~85: do começo, com os títulos das eras
+				var t: TelaPesquisa = cena._tela_pesquisa
+				t._rolagem.scroll_horizontal = 0
+				t._rolagem.scroll_vertical = 0)
 		"dedo":                                        # celular: rolar lista com o dedo, arrastar mapa, pinça
 			_roteiro_dedo()
 		"faiscas":                                     # acumulador carregado de perto (use com -- hora 0.0)

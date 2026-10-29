@@ -110,8 +110,14 @@ depois 0 quadros > 33 ms. Celular: 3D a 70% da resolução, sem sombra, sem bril
 vista. Contador de FPS embutido (ligado por padrão na fase de testes; Configurações desliga).
 
 ## Interface (reforma 0.12)
-- Pesquisa em tela própria (`interface/tela_pesquisa.gd`): árvore com colunas por pré-requisito, linhas ligando
-  (verde = feito), nó com o ícone do que libera; tocar mostra o detalhe ao lado (custo, casas do que libera, Pesquisar).
+- Pesquisa em tela própria (`interface/tela_pesquisa.gd`): a árvore de tecnologia inteira (`dados/arvore.json`, 166
+  nós, gerado por `ferramentas/gerar_arvore.py` de `docs/ARVORE_TECNOLOGIA.mmd` + tabelas do `.md`) em três faixas de
+  era (chapa com listras no título), colunas por pré-requisito dentro da era, linhas ligando (verde = feito). Nós são
+  placas `Tema.botao_cor_estilo`; tipo no nó (■ estrutura, ⚗ receita, ▲ melhoria, ∞ infinita, ★ objetivo). Só as
+  pesquisas de `progressao.json` se pesquisam; o resto é "em breve". Zoom: pinça, Ctrl + roda, gesto do trackpad, − e +.
+- Melhorias: `bonus` na pesquisa (`progressao.json`), somado por `Pesquisa.bonus(chave)`; hoje lidos:
+  `dano_torre_energia` e `dano_bala` (Colonia, tiro da torre) e `velocidade_pesquisa` (laboratório). `test_arvore`
+  confere que toda chave de bônus tem quem a leia e que a árvore bate com as pesquisas jogáveis.
 - Painel de detalhe como gaveta: do status até a borda de baixo, a lista rola dentro (nunca passa da tela). Em
   máquinas, cabeçalho com ícone, receita em casas (`interface/casa.gd`: número = o que tem; borda vermelha = falta),
   saída e barras de progresso e energia. Laboratório: botão "Abrir a pesquisa".

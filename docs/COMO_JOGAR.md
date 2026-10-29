@@ -28,7 +28,9 @@ Você é a IA do núcleo que caiu no planeta. O objetivo é crescer: extrair, fa
 5. **Peças:** a **Montadora** faz engrenagens, tubos, fios e circuitos. Toque nela para escolher a receita.
 6. **Pesquisa:** a montadora faz pacotes de pesquisa (cristal lapidado + engrenagem). Um braço leva os pacotes ao
    **Laboratório**. No botão **Pesquisa** (⚗ / T) abre a árvore: toque numa pesquisa para ver o que ela libera e
-   aperte **Pesquisar**.
+   aperte **Pesquisar**. A árvore mostra as três eras (base, meio, super avançada) lado a lado; arraste com o dedo
+   para andar e use a pinça (ou − e +) para aproximar e afastar. Cada nó diz o tipo: ■ estrutura nova, ⚗ receita,
+   ▲ melhoria do que já existe. Nós esmaecidos são "em breve": ainda não estão no jogo.
 
 ## Cuidados
 - **Poluição:** máquinas poluem, e as aranhas dos ninhos vêm atrás de quem polui. A **Torre** (já liberada) defende

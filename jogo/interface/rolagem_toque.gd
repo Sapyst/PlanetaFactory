@@ -15,6 +15,7 @@ var _arrastando := false
 var _pos := Vector2.ZERO                 ## rolagem em float (scroll_* são inteiros)
 var _vel := Vector2.ZERO                 ## px/s para o embalo
 var _t_ultimo := 0
+var parado := false                      ## pinça em andamento (quem usa a lista faz zoom): não rola
 
 
 ## Botão de lista: só age se o toque não virou arrasto.
@@ -46,6 +47,11 @@ func _input(e: InputEvent) -> void:
 				if Time.get_ticks_msec() - _t_ultimo > 60:
 					_vel = Vector2.ZERO              # dedo parado antes de soltar: sem embalo
 			_arrastando = false
+	elif e is InputEventScreenDrag and e.index == _dedo and parado:
+		_vel = Vector2.ZERO
+		_arrastando = true
+		arrastou = true
+		get_viewport().set_input_as_handled()
 	elif e is InputEventScreenDrag and e.index == _dedo:
 		var d: Vector2 = e.position - _ini
 		if not _horizontal():
@@ -66,6 +72,12 @@ func _input(e: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 	elif e is InputEventMouseMotion and e.device == InputEvent.DEVICE_ID_EMULATION and _arrastando:
 		get_viewport().set_input_as_handled()        # a interface não vê o dedo andando sobre os botões
+
+
+## A rolagem mudou por fora (zoom): continua dali, sem embalo.
+func sincronizar() -> void:
+	_pos = Vector2(_rol.scroll_horizontal, _rol.scroll_vertical)
+	_vel = Vector2.ZERO
 
 
 func _horizontal() -> bool:

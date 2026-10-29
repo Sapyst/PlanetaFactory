@@ -110,6 +110,7 @@ func _ready() -> void:
 	fabrica.pesquisa = pesquisa
 	fabrica.torre_receber = func(id: int, n: int) -> void: colonia.carregar_torre(id, n)
 	colonia.torre_energia = fabrica.gastar_torre                # torre atira com a energia guardada da rede
+	colonia.bonus = pesquisa.bonus                              # melhorias pesquisadas (dano da torre)
 	_lotes = DesenhoLotes.new()
 	add_child(_lotes)
 	_criar_construcao()

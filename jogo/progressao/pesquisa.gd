@@ -19,6 +19,21 @@ func pesquisas() -> Dictionary:
 	return _d.get("pesquisas", {})
 
 
+## Árvore completa (dados/arvore.json): id → {nome, era, requer, pacotes [[tipo, n]], tempo, libera (texto)}.
+## Inclui as pesquisas jogáveis e as que ainda não existem no jogo ("em breve").
+func arvore() -> Dictionary:
+	return Registro.arvore.get("nos", {})
+
+
+func eras() -> Array:
+	return Registro.arvore.get("eras", [])
+
+
+## Pesquisa que já existe no jogo (está em progressao.json); o resto da árvore aparece como "em breve".
+func jogavel(id: String) -> bool:
+	return pesquisas().has(id)
+
+
 func disponivel(id: String) -> bool:
 	if concluidas.has(id) or not pesquisas().has(id):
 		return false
@@ -38,9 +53,18 @@ func pacotes_faltando() -> int:
 	return int(pesquisas()[ativa].pacotes) - feitos if ativa != "" else 0
 
 
-## Segundos de laboratório por pacote na pesquisa ativa.
+## Segundos de laboratório por pacote na pesquisa ativa (a melhoria "velocidade_pesquisa" encurta).
 func tempo_por_pacote() -> float:
-	return float(pesquisas()[ativa].get("tempo", 5)) if ativa != "" else 0.0
+	return float(pesquisas()[ativa].get("tempo", 5)) / (1.0 + bonus("velocidade_pesquisa")) if ativa != "" else 0.0
+
+
+## Melhorias: soma do campo "bonus" das pesquisas concluídas (ex.: "dano_torre_energia" 0,2 = +20%).
+## Quem usa a melhoria pergunta aqui; pesquisa que só libera peça ou receita não tem "bonus".
+func bonus(chave: String) -> float:
+	var s := 0.0
+	for id in concluidas:
+		s += float(pesquisas().get(id, {}).get("bonus", {}).get(chave, 0.0))
+	return s
 
 
 ## Um pacote consumido. Devolve o id concluído (ou "").

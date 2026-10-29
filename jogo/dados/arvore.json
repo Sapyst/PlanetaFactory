@@ -1,0 +1,4750 @@
+{
+ "_nota": "Gerado por jogo/ferramentas/gerar_arvore.py a partir de docs/ARVORE_TECNOLOGIA.mmd e .md. Não editar à mão.",
+ "eras": [
+  {
+   "id": "base",
+   "nome": "Era base"
+  },
+  {
+   "id": "meio",
+   "nome": "Era do meio"
+  },
+  {
+   "id": "avancada",
+   "nome": "Era super avançada"
+  }
+ ],
+ "nos": {
+  "defesa": {
+   "nome": "Munição",
+   "era": "base",
+   "requer": [],
+   "pacotes": [
+    [
+     "básico",
+     8
+    ]
+   ],
+   "tempo": 4.0,
+   "libera": "Receita munição (2 sílex + 1 placa de cobre)",
+   "existente": true,
+   "tipo": "receita"
+  },
+  "logistica": {
+   "nome": "Logística 2",
+   "era": "base",
+   "requer": [],
+   "pacotes": [
+    [
+     "básico",
+     12
+    ]
+   ],
+   "tempo": 4.0,
+   "libera": "Rampa sobe/desce, passagem subterrânea, braço longo; receita circuito",
+   "existente": true,
+   "tipo": "estrutura"
+  },
+  "aco": {
+   "nome": "Aço",
+   "era": "base",
+   "requer": [],
+   "pacotes": [
+    [
+     "básico",
+     20
+    ]
+   ],
+   "tempo": 5.0,
+   "libera": "Receita barra de aço (fornalha)",
+   "existente": true,
+   "tipo": "receita"
+  },
+  "fluidos": {
+   "nome": "Fluidos",
+   "era": "base",
+   "requer": [],
+   "pacotes": [
+    [
+     "básico",
+     20
+    ]
+   ],
+   "tempo": 5.0,
+   "libera": "Cano, cano em T, cano em cruz, bomba de seiva, tanque",
+   "existente": true,
+   "tipo": "estrutura"
+  },
+  "limpeza": {
+   "nome": "Limpeza",
+   "era": "base",
+   "requer": [],
+   "pacotes": [
+    [
+     "básico",
+     10
+    ]
+   ],
+   "tempo": 4.0,
+   "libera": "Coletor de lixo, filtro de água",
+   "existente": true,
+   "tipo": "estrutura"
+  },
+  "eletronica": {
+   "nome": "Eletrônica",
+   "era": "base",
+   "requer": [
+    "logistica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     20
+    ]
+   ],
+   "tempo": 5.0,
+   "libera": "Divisor, junção, braço rápido; receita motor",
+   "existente": true,
+   "tipo": "estrutura"
+  },
+  "armazenagem": {
+   "nome": "Armazenagem",
+   "era": "base",
+   "requer": [
+    "aco"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     10
+    ]
+   ],
+   "tempo": 4.0,
+   "libera": "Baú grande",
+   "existente": true,
+   "tipo": "estrutura"
+  },
+  "reflorestar": {
+   "nome": "Reflorestamento",
+   "era": "base",
+   "requer": [
+    "limpeza",
+    "fluidos"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     16
+    ]
+   ],
+   "tempo": 5.0,
+   "libera": "Viveiro",
+   "existente": true,
+   "tipo": "estrutura"
+  },
+  "muros_reforcados": {
+   "nome": "Muro de tijolo",
+   "era": "base",
+   "requer": [
+    "defesa"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     10
+    ]
+   ],
+   "tempo": 4.0,
+   "libera": "Muro de tijolo (700 ♥, o dobro do muro de pedra)",
+   "tipo": "estrutura"
+  },
+  "dano_energia_1": {
+   "nome": "Torre de energia: dano 1",
+   "era": "base",
+   "requer": [
+    "defesa"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     15
+    ]
+   ],
+   "tempo": 4.0,
+   "libera": "+20% de dano da torre básica",
+   "existente": true,
+   "tipo": "melhoria"
+  },
+  "cano_subterraneo": {
+   "nome": "Cano subterrâneo",
+   "era": "base",
+   "requer": [
+    "fluidos",
+    "logistica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     15
+    ]
+   ],
+   "tempo": 5.0,
+   "libera": "Cano subterrâneo: entrada e saída (até 9 tiles por baixo)",
+   "tipo": "estrutura"
+  },
+  "sensor_varredura": {
+   "nome": "Sensor de varredura",
+   "era": "base",
+   "requer": [
+    "eletronica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     20
+    ]
+   ],
+   "tempo": 5.0,
+   "libera": "Sensor de varredura 2×2: revela 1 chunk/min até 6 chunks e marca ninhos",
+   "tipo": "estrutura"
+  },
+  "farol_cristal": {
+   "nome": "Farol de cristal",
+   "era": "base",
+   "requer": [
+    "eletronica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     10
+    ]
+   ],
+   "tempo": 4.0,
+   "libera": "Farol 1×1: luz de 10 m à noite (mostra a fábrica e as aranhas que chegam)",
+   "tipo": "estrutura"
+  },
+  "monitor_ambiental": {
+   "nome": "Leitura ambiental",
+   "era": "base",
+   "requer": [
+    "sensor_varredura",
+    "limpeza"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     15
+    ]
+   ],
+   "tempo": 5.0,
+   "libera": "Camada Poluição/Sujeira na visão de recursos (V) e aviso de fúria dos ninhos",
+   "tipo": "estrutura"
+  },
+  "ferrovia": {
+   "nome": "Ferrovia",
+   "era": "base",
+   "requer": [
+    "logistica",
+    "aco"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     30
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Trilho, curva, fim de linha, estação, sinal, trem",
+   "existente": true,
+   "tipo": "estrutura"
+  },
+  "sem_fio": {
+   "nome": "Energia sem fio",
+   "era": "base",
+   "requer": [
+    "eletronica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     30
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Torre sem fio",
+   "existente": true,
+   "tipo": "estrutura"
+  },
+  "renovavel": {
+   "nome": "Energia renovável",
+   "era": "base",
+   "requer": [
+    "eletronica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     30
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Painel solar, turbina eólica",
+   "existente": true,
+   "tipo": "estrutura"
+  },
+  "briquete": {
+   "nome": "Briquete de biomassa",
+   "era": "base",
+   "requer": [
+    "reflorestar"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     15
+    ]
+   ],
+   "tempo": 5.0,
+   "libera": "Receita briquete (4 biomassa → 1 briquete de 10 MJ; queima com −30% de poluição)",
+   "tipo": "receita"
+  },
+  "automacao": {
+   "nome": "Automação",
+   "era": "base",
+   "requer": [
+    "eletronica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     25
+    ]
+   ],
+   "tempo": 5.0,
+   "libera": "Receita pacote de automação; laboratório aceita o pacote",
+   "tipo": "receita"
+  },
+  "torre_metralhadora": {
+   "nome": "Metralhadora",
+   "era": "base",
+   "requer": [
+    "defesa",
+    "aco"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     20
+    ]
+   ],
+   "tempo": 5.0,
+   "libera": "Metralhadora 2×2 (munição comum, 10 tiros/s)",
+   "tipo": "estrutura"
+  },
+  "dano_bala_1": {
+   "nome": "Munição: dano 1",
+   "era": "base",
+   "requer": [
+    "torre_metralhadora"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     20
+    ]
+   ],
+   "tempo": 5.0,
+   "libera": "+10% de dano das balas",
+   "tipo": "melhoria"
+  },
+  "cadencia_bala_1": {
+   "nome": "Metralhadora: cadência 1",
+   "era": "base",
+   "requer": [
+    "torre_metralhadora"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     20
+    ]
+   ],
+   "tempo": 5.0,
+   "libera": "+10% de tiros por segundo",
+   "tipo": "melhoria"
+  },
+  "montadora_2": {
+   "nome": "Montadora 2",
+   "era": "base",
+   "requer": [
+    "automacao",
+    "aco"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     30
+    ],
+    [
+     "automação",
+     30
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Montadora 2 (velocidade 1,0, 2 encaixes de módulo)",
+   "tipo": "estrutura"
+  },
+  "logistica_3": {
+   "nome": "Logística 3",
+   "era": "base",
+   "requer": [
+    "logistica",
+    "automacao"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     40
+    ],
+    [
+     "automação",
+     40
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Esteira rápida (3,75 itens/s) com rampa, passagem, divisor e junção rápidos",
+   "tipo": "estrutura"
+  },
+  "braco_filtro": {
+   "nome": "Braço com filtro",
+   "era": "base",
+   "requer": [
+    "automacao"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     30
+    ],
+    [
+     "automação",
+     30
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Braço com filtro (escolhe até 5 itens)",
+   "tipo": "estrutura"
+  },
+  "divisor_filtro": {
+   "nome": "Divisor com filtro",
+   "era": "base",
+   "requer": [
+    "automacao"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     25
+    ],
+    [
+     "automação",
+     25
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Divisor com filtro e prioridade de saída",
+   "tipo": "estrutura"
+  },
+  "fornalha_aco": {
+   "nome": "Fornalha de aço",
+   "era": "base",
+   "requer": [
+    "aco",
+    "automacao"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     30
+    ],
+    [
+     "automação",
+     30
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Fornalha de aço 2×2 (velocidade 2,0, −25% de poluição; queima combustível)",
+   "tipo": "estrutura"
+  },
+  "mineracao_1": {
+   "nome": "Produtividade de mineração 1",
+   "era": "base",
+   "requer": [
+    "automacao"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     40
+    ],
+    [
+     "automação",
+     40
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "+10% de minério por ciclo (broca e extrator)",
+   "tipo": "melhoria"
+  },
+  "pesquisa_vel_1": {
+   "nome": "Velocidade de pesquisa 1",
+   "era": "base",
+   "requer": [
+    "automacao"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     40
+    ],
+    [
+     "automação",
+     40
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "+20% de velocidade dos laboratórios",
+   "tipo": "melhoria"
+  },
+  "trem_automatico": {
+   "nome": "Trem automático",
+   "era": "base",
+   "requer": [
+    "ferrovia",
+    "automacao"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     40
+    ],
+    [
+     "automação",
+     40
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Rotas com condição (esperar cheio, vazio ou tempo) e sinal em cadeia",
+   "tipo": "estrutura"
+  },
+  "silo_granel": {
+   "nome": "Silo de granel",
+   "era": "base",
+   "requer": [
+    "armazenagem",
+    "automacao"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     30
+    ],
+    [
+     "automação",
+     30
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Silo 3×3 (20.000 itens de um só tipo)",
+   "tipo": "estrutura"
+  },
+  "dano_bala_2": {
+   "nome": "Munição: dano 2",
+   "era": "base",
+   "requer": [
+    "dano_bala_1",
+    "automacao"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     40
+    ],
+    [
+     "automação",
+     40
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "+15% de dano das balas",
+   "tipo": "melhoria"
+  },
+  "dano_energia_2": {
+   "nome": "Torre de energia: dano 2",
+   "era": "base",
+   "requer": [
+    "dano_energia_1",
+    "automacao"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     40
+    ],
+    [
+     "automação",
+     40
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "+20% de dano da torre básica",
+   "tipo": "melhoria"
+  },
+  "transmissao": {
+   "nome": "Transmissão longa",
+   "era": "base",
+   "requer": [
+    "aco",
+    "automacao"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     30
+    ],
+    [
+     "automação",
+     30
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Poste alto 1×1 (fio de 30 m, ligação de 3 m)",
+   "tipo": "estrutura"
+  },
+  "vagao_tanque": {
+   "nome": "Vagão-tanque",
+   "era": "base",
+   "requer": [
+    "trem_automatico",
+    "fluidos"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     30
+    ],
+    [
+     "automação",
+     30
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Vagão-tanque (25.000 de fluido) e bomba de estação",
+   "tipo": "estrutura"
+  },
+  "refino": {
+   "nome": "Refino de seiva",
+   "era": "meio",
+   "requer": [
+    "fluidos",
+    "eletronica",
+    "aco"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     40
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Refinador; receitas bateria, núcleo de cristal, módulo de controle",
+   "existente": true,
+   "tipo": "estrutura"
+  },
+  "acumulacao": {
+   "nome": "Acumulação",
+   "era": "meio",
+   "requer": [
+    "renovavel",
+    "refino"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     40
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Acumulador",
+   "existente": true,
+   "tipo": "estrutura"
+  },
+  "energia": {
+   "nome": "Energia avançada",
+   "era": "meio",
+   "requer": [
+    "refino"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     60
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Receita célula de energia",
+   "existente": true,
+   "tipo": "receita"
+  },
+  "bomba_agua": {
+   "nome": "Água como insumo",
+   "era": "meio",
+   "requer": [
+    "fluidos",
+    "automacao"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     30
+    ],
+    [
+     "automação",
+     30
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Bomba d'água 2×2 (40/s na margem), fluido água, receitas refrigeradas (aço e lapidação com +50%)",
+   "tipo": "estrutura"
+  },
+  "filtro_agua_limpa": {
+   "nome": "Filtro que devolve água",
+   "era": "meio",
+   "requer": [
+    "bomba_agua",
+    "limpeza"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     20
+    ],
+    [
+     "automação",
+     20
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Filtro de água passa a soltar água limpa pelo cano enquanto limpa",
+   "tipo": "estrutura"
+  },
+  "coletor_chuva": {
+   "nome": "Coletor de chuva",
+   "era": "meio",
+   "requer": [
+    "bomba_agua"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     25
+    ],
+    [
+     "automação",
+     25
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Coletor de chuva 2×2 (até 25/s com chuva forte, tanque de 2.000)",
+   "tipo": "estrutura"
+  },
+  "condensador_neblina": {
+   "nome": "Condensador de neblina",
+   "era": "meio",
+   "requer": [
+    "coletor_chuva"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     30
+    ],
+    [
+     "automação",
+     30
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Condensador de neblina 2×2 (até 12/s com neblina, usa 80 kW)",
+   "tipo": "estrutura"
+  },
+  "escavar_canal": {
+   "nome": "Escavação de canal",
+   "era": "meio",
+   "requer": [
+    "bomba_agua"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     20
+    ],
+    [
+     "automação",
+     20
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Terraplenagem cava canal de água (leva o rio até a bomba)",
+   "tipo": "estrutura"
+  },
+  "supressor_fogo": {
+   "nome": "Supressor de incêndio",
+   "era": "meio",
+   "requer": [
+    "bomba_agua",
+    "limpeza"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     25
+    ],
+    [
+     "automação",
+     25
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Supressor 1×1: borrifa água em 8 m, apaga fogo e molha grama seca",
+   "tipo": "estrutura"
+  },
+  "turbina_rio": {
+   "nome": "Turbina de correnteza",
+   "era": "meio",
+   "requer": [
+    "bomba_agua",
+    "renovavel"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     30
+    ],
+    [
+     "automação",
+     30
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Turbina de correnteza 2×2 no rio (150 kW, cai na seca)",
+   "tipo": "estrutura"
+  },
+  "para_raios": {
+   "nome": "Para-raios",
+   "era": "meio",
+   "requer": [
+    "automacao",
+    "aco"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     30
+    ],
+    [
+     "automação",
+     30
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Para-raios 1×1 (pega raios em 14 m; 120 MJ por raio para os acumuladores)",
+   "tipo": "estrutura"
+  },
+  "ciencia_militar": {
+   "nome": "Ciência militar",
+   "era": "meio",
+   "requer": [
+    "torre_metralhadora",
+    "muros_reforcados",
+    "automacao"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     40
+    ],
+    [
+     "automação",
+     40
+    ]
+   ],
+   "tempo": 6.0,
+   "libera": "Receita pacote militar",
+   "tipo": "receita"
+  },
+  "drones": {
+   "nome": "Drones de reparo",
+   "era": "meio",
+   "requer": [
+    "bomba_agua",
+    "sem_fio"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     50
+    ],
+    [
+     "automação",
+     50
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Estação de drones 2×2 (frota de 8, alcance 45 m, 50 de água por drone)",
+   "tipo": "estrutura"
+  },
+  "drones_bateria_1": {
+   "nome": "Bateria de drone 1",
+   "era": "meio",
+   "requer": [
+    "drones",
+    "acumulacao"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     40
+    ],
+    [
+     "automação",
+     40
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "+30% de tempo de voo dos drones",
+   "tipo": "melhoria"
+  },
+  "quimica": {
+   "nome": "Química de seiva",
+   "era": "meio",
+   "requer": [
+    "refino",
+    "bomba_agua"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     50
+    ],
+    [
+     "automação",
+     50
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Receitas resina e pacote químico (refinador)",
+   "tipo": "receita"
+  },
+  "liga_leve": {
+   "nome": "Liga leve",
+   "era": "meio",
+   "requer": [
+    "quimica",
+    "aco"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     40
+    ],
+    [
+     "automação",
+     40
+    ],
+    [
+     "químico",
+     40
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Receita liga leve (1 aço + 2 placas de cobre + 1 resina → 2)",
+   "tipo": "receita"
+  },
+  "processador": {
+   "nome": "Processador de cristal",
+   "era": "meio",
+   "requer": [
+    "quimica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     60
+    ],
+    [
+     "automação",
+     60
+    ],
+    [
+     "químico",
+     60
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Receita processador (2 circuitos + 1 resina + 1 cristal lapidado + 5 água)",
+   "tipo": "receita"
+  },
+  "bioquimica": {
+   "nome": "Bioquímica",
+   "era": "meio",
+   "requer": [
+    "reflorestar",
+    "filtro_agua_limpa",
+    "quimica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     40
+    ],
+    [
+     "automação",
+     40
+    ],
+    [
+     "químico",
+     40
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Receita pacote ecológico",
+   "tipo": "receita"
+  },
+  "combustivel_seiva": {
+   "nome": "Combustível de seiva",
+   "era": "meio",
+   "requer": [
+    "quimica",
+    "briquete"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     40
+    ],
+    [
+     "automação",
+     40
+    ],
+    [
+     "químico",
+     40
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Receita combustível de seiva (fluido) e gerador a fluido 3×3 (2,4 MW)",
+   "tipo": "receita"
+  },
+  "fornalha_eletrica": {
+   "nome": "Fornalha elétrica",
+   "era": "meio",
+   "requer": [
+    "fornalha_aco",
+    "quimica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     50
+    ],
+    [
+     "automação",
+     50
+    ],
+    [
+     "químico",
+     50
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Fornalha elétrica 2×2 (velocidade 2,0, sem combustível, 2 encaixes de módulo)",
+   "tipo": "estrutura"
+  },
+  "captador_carga": {
+   "nome": "Captador de carga",
+   "era": "meio",
+   "requer": [
+    "para_raios",
+    "acumulacao",
+    "quimica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     60
+    ],
+    [
+     "automação",
+     60
+    ],
+    [
+     "químico",
+     60
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Captador de carga 2×2 e o item cristal carregado (1 lapidado + 30 água por raio)",
+   "tipo": "estrutura"
+  },
+  "logistica_4": {
+   "nome": "Logística 4",
+   "era": "meio",
+   "requer": [
+    "logistica_3",
+    "liga_leve"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     60
+    ],
+    [
+     "automação",
+     60
+    ],
+    [
+     "químico",
+     60
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Esteira expressa (5,625 itens/s) com rampa, passagem, divisor e junção expressos",
+   "tipo": "estrutura"
+  },
+  "braco_empilhador": {
+   "nome": "Braço empilhador",
+   "era": "meio",
+   "requer": [
+    "braco_filtro",
+    "processador"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     50
+    ],
+    [
+     "automação",
+     50
+    ],
+    [
+     "químico",
+     50
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Braço empilhador (leva até 4 itens por vez)",
+   "tipo": "estrutura"
+  },
+  "montadora_3": {
+   "nome": "Montadora 3",
+   "era": "meio",
+   "requer": [
+    "montadora_2",
+    "processador"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     60
+    ],
+    [
+     "automação",
+     60
+    ],
+    [
+     "químico",
+     60
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Montadora 3 (velocidade 1,5, 4 encaixes de módulo)",
+   "tipo": "estrutura"
+  },
+  "rede_logica": {
+   "nome": "Rede lógica",
+   "era": "meio",
+   "requer": [
+    "processador",
+    "divisor_filtro"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     40
+    ],
+    [
+     "automação",
+     40
+    ],
+    [
+     "químico",
+     40
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Sensor de esteira, sensor de tanque, comparador e válvula (1×1)",
+   "tipo": "estrutura"
+  },
+  "modulo_velocidade_1": {
+   "nome": "Módulo de velocidade 1",
+   "era": "meio",
+   "requer": [
+    "processador",
+    "montadora_2"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     50
+    ],
+    [
+     "automação",
+     50
+    ],
+    [
+     "químico",
+     50
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Módulo de velocidade 1 (+20% velocidade, +50% energia)",
+   "tipo": "estrutura"
+  },
+  "modulo_eficiencia_1": {
+   "nome": "Módulo de eficiência 1",
+   "era": "meio",
+   "requer": [
+    "processador"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     50
+    ],
+    [
+     "automação",
+     50
+    ],
+    [
+     "químico",
+     50
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Módulo de eficiência 1 (−30% energia e −30% poluição)",
+   "tipo": "estrutura"
+  },
+  "modulo_produtividade_1": {
+   "nome": "Módulo de produtividade 1",
+   "era": "meio",
+   "requer": [
+    "processador"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     75
+    ],
+    [
+     "automação",
+     75
+    ],
+    [
+     "químico",
+     75
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Módulo de produtividade 1 (+4% produto, −15% velocidade, +40% poluição)",
+   "tipo": "estrutura"
+  },
+  "broca_grande": {
+   "nome": "Broca grande",
+   "era": "meio",
+   "requer": [
+    "mineracao_1",
+    "liga_leve"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     50
+    ],
+    [
+     "automação",
+     50
+    ],
+    [
+     "químico",
+     50
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Broca grande 3×3 (2,5× velocidade, −20% de poluição por minério)",
+   "tipo": "estrutura"
+  },
+  "extrator_2": {
+   "nome": "Extrator ressonante",
+   "era": "meio",
+   "requer": [
+    "processador",
+    "mineracao_1"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     50
+    ],
+    [
+     "automação",
+     50
+    ],
+    [
+     "químico",
+     50
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Extrator ressonante 3×3 (2× velocidade no cristal)",
+   "tipo": "estrutura"
+  },
+  "mineracao_2": {
+   "nome": "Produtividade de mineração 2",
+   "era": "meio",
+   "requer": [
+    "mineracao_1",
+    "quimica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     60
+    ],
+    [
+     "automação",
+     60
+    ],
+    [
+     "químico",
+     60
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "+10% de minério por ciclo",
+   "tipo": "melhoria"
+  },
+  "pesquisa_vel_2": {
+   "nome": "Velocidade de pesquisa 2",
+   "era": "meio",
+   "requer": [
+    "pesquisa_vel_1",
+    "quimica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     60
+    ],
+    [
+     "automação",
+     60
+    ],
+    [
+     "químico",
+     60
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "+30% de velocidade dos laboratórios",
+   "tipo": "melhoria"
+  },
+  "laboratorio_2": {
+   "nome": "Laboratório 2",
+   "era": "meio",
+   "requer": [
+    "pesquisa_vel_2",
+    "processador"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     80
+    ],
+    [
+     "automação",
+     80
+    ],
+    [
+     "químico",
+     80
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Laboratório 2 3×3 (2× velocidade, 2 encaixes de módulo)",
+   "tipo": "estrutura"
+  },
+  "drones_frota_1": {
+   "nome": "Frota de drones 1",
+   "era": "meio",
+   "requer": [
+    "drones",
+    "processador"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     40
+    ],
+    [
+     "automação",
+     40
+    ],
+    [
+     "químico",
+     40
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "+4 drones por estação (8 → 12)",
+   "tipo": "melhoria"
+  },
+  "drones_velocidade_1": {
+   "nome": "Velocidade de drone 1",
+   "era": "meio",
+   "requer": [
+    "drones",
+    "liga_leve"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     40
+    ],
+    [
+     "automação",
+     40
+    ],
+    [
+     "químico",
+     40
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "+25% de velocidade dos drones",
+   "tipo": "melhoria"
+  },
+  "drones_logisticos": {
+   "nome": "Drones logísticos",
+   "era": "meio",
+   "requer": [
+    "drones",
+    "processador",
+    "silo_granel"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     75
+    ],
+    [
+     "automação",
+     75
+    ],
+    [
+     "químico",
+     75
+    ]
+   ],
+   "tempo": 10.0,
+   "libera": "Porto logístico 2×2, baú provedor, baú requisitante e baú de estoque (1×1)",
+   "tipo": "estrutura"
+  },
+  "renovavel_2": {
+   "nome": "Painel solar 2",
+   "era": "meio",
+   "requer": [
+    "renovavel",
+    "processador"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     60
+    ],
+    [
+     "automação",
+     60
+    ],
+    [
+     "químico",
+     60
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Painel solar 2 (2×2, 500 kW, rende 15% com nuvem)",
+   "tipo": "estrutura"
+  },
+  "turbina_alta": {
+   "nome": "Turbina eólica alta",
+   "era": "meio",
+   "requer": [
+    "renovavel",
+    "liga_leve"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     60
+    ],
+    [
+     "automação",
+     60
+    ],
+    [
+     "químico",
+     60
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Turbina alta 3×3 (600 kW, conta como +2 níveis de altura no vento)",
+   "tipo": "estrutura"
+  },
+  "acumulacao_2": {
+   "nome": "Acumulador 2",
+   "era": "meio",
+   "requer": [
+    "acumulacao",
+    "processador"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     60
+    ],
+    [
+     "automação",
+     60
+    ],
+    [
+     "químico",
+     60
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Acumulador 2 (2×2, 200 MJ, 1,5 MW)",
+   "tipo": "estrutura"
+  },
+  "trem_eletrico": {
+   "nome": "Locomotiva elétrica",
+   "era": "meio",
+   "requer": [
+    "trem_automatico",
+    "liga_leve"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     60
+    ],
+    [
+     "automação",
+     60
+    ],
+    [
+     "químico",
+     60
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Trilho energizado e locomotiva elétrica (2× velocidade, sem poluição)",
+   "tipo": "estrutura"
+  },
+  "cartografia": {
+   "nome": "Varredura profunda",
+   "era": "meio",
+   "requer": [
+    "sensor_varredura",
+    "processador"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     50
+    ],
+    [
+     "automação",
+     50
+    ],
+    [
+     "químico",
+     50
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Sensor de varredura 2: até 16 chunks e mostra a riqueza das jazidas",
+   "tipo": "estrutura"
+  },
+  "coletor_lixo_2": {
+   "nome": "Coletor de lixo 2",
+   "era": "meio",
+   "requer": [
+    "limpeza",
+    "bioquimica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     40
+    ],
+    [
+     "automação",
+     40
+    ],
+    [
+     "químico",
+     40
+    ],
+    [
+     "ecológico",
+     40
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Coletor de lixo 2 (raio 10, recolhe cinza e devolve o item resíduo)",
+   "tipo": "estrutura"
+  },
+  "purificador_ar": {
+   "nome": "Purificador de ar",
+   "era": "meio",
+   "requer": [
+    "bioquimica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     50
+    ],
+    [
+     "automação",
+     50
+    ],
+    [
+     "químico",
+     50
+    ],
+    [
+     "ecológico",
+     50
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Purificador de ar 2×2 (absorve 6 de poluição/min do chunk)",
+   "tipo": "estrutura"
+  },
+  "viveiro_2": {
+   "nome": "Viveiro 2",
+   "era": "meio",
+   "requer": [
+    "reflorestar",
+    "bioquimica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     50
+    ],
+    [
+     "automação",
+     50
+    ],
+    [
+     "químico",
+     50
+    ],
+    [
+     "ecológico",
+     50
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Viveiro 2 (raio 12, escolhe a espécie do bioma, mudas crescem 2× mais rápido)",
+   "tipo": "estrutura"
+  },
+  "biodigestor": {
+   "nome": "Biodigestor",
+   "era": "meio",
+   "requer": [
+    "bioquimica",
+    "coletor_lixo_2"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     50
+    ],
+    [
+     "automação",
+     50
+    ],
+    [
+     "químico",
+     50
+    ],
+    [
+     "ecológico",
+     50
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Biodigestor 3×3 (resíduo + água suja → biomassa + seiva)",
+   "tipo": "estrutura"
+  },
+  "recuperar_solo": {
+   "nome": "Recuperação de solo",
+   "era": "meio",
+   "requer": [
+    "viveiro_2",
+    "coletor_lixo_2"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     60
+    ],
+    [
+     "automação",
+     60
+    ],
+    [
+     "químico",
+     60
+    ],
+    [
+     "ecológico",
+     60
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Terraplenagem recupera chão queimado, sujo ou com óleo",
+   "tipo": "estrutura"
+  },
+  "harmonia_ninhos": {
+   "nome": "Convivência com ninhos",
+   "era": "meio",
+   "requer": [
+    "monitor_ambiental",
+    "purificador_ar"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     60
+    ],
+    [
+     "automação",
+     60
+    ],
+    [
+     "químico",
+     60
+    ],
+    [
+     "ecológico",
+     60
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Ninho com fúria 0 não expande na direção da fábrica; −25% de grupos de ataque",
+   "tipo": "melhoria"
+  },
+  "municao_perfurante": {
+   "nome": "Munição perfurante",
+   "era": "meio",
+   "requer": [
+    "ciencia_militar",
+    "dano_bala_2"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     40
+    ],
+    [
+     "automação",
+     40
+    ],
+    [
+     "militar",
+     40
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Receita munição perfurante (+60% dano, atravessa 1 aranha)",
+   "tipo": "receita"
+  },
+  "dano_bala_3": {
+   "nome": "Munição: dano 3",
+   "era": "meio",
+   "requer": [
+    "dano_bala_2",
+    "ciencia_militar"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     60
+    ],
+    [
+     "automação",
+     60
+    ],
+    [
+     "militar",
+     60
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "+20% de dano das balas",
+   "tipo": "melhoria"
+  },
+  "cadencia_bala_2": {
+   "nome": "Metralhadora: cadência 2",
+   "era": "meio",
+   "requer": [
+    "cadencia_bala_1",
+    "ciencia_militar"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     60
+    ],
+    [
+     "automação",
+     60
+    ],
+    [
+     "militar",
+     60
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "+20% de tiros por segundo",
+   "tipo": "melhoria"
+  },
+  "dano_energia_3": {
+   "nome": "Torre de energia: dano 3",
+   "era": "meio",
+   "requer": [
+    "dano_energia_2",
+    "ciencia_militar"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     60
+    ],
+    [
+     "automação",
+     60
+    ],
+    [
+     "militar",
+     60
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "+30% de dano da torre básica",
+   "tipo": "melhoria"
+  },
+  "cadencia_energia_1": {
+   "nome": "Torre de energia: cadência 1",
+   "era": "meio",
+   "requer": [
+    "dano_energia_2",
+    "ciencia_militar"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     50
+    ],
+    [
+     "automação",
+     50
+    ],
+    [
+     "militar",
+     50
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "+20% de tiros por segundo e −10% de energia por tiro",
+   "tipo": "melhoria"
+  },
+  "mina_pulso": {
+   "nome": "Mina de pulso",
+   "era": "meio",
+   "requer": [
+    "ciencia_militar"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     30
+    ],
+    [
+     "automação",
+     30
+    ],
+    [
+     "militar",
+     30
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Mina de pulso 1×1 (atordoa aranhas por 3 s, rearma em 20 s)",
+   "tipo": "estrutura"
+  },
+  "posto_avancado": {
+   "nome": "Posto avançado",
+   "era": "meio",
+   "requer": [
+    "transmissao",
+    "silo_granel",
+    "ciencia_militar"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     50
+    ],
+    [
+     "automação",
+     50
+    ],
+    [
+     "militar",
+     50
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Posto avançado 3×3: núcleo-filho com estoque próprio e 150 kW sem fio",
+   "tipo": "estrutura"
+  },
+  "torre_foguetes": {
+   "nome": "Lança-foguetes",
+   "era": "meio",
+   "requer": [
+    "ciencia_militar",
+    "quimica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     60
+    ],
+    [
+     "automação",
+     60
+    ],
+    [
+     "militar",
+     60
+    ],
+    [
+     "químico",
+     60
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Lança-foguetes 3×3 e receita foguete (dano em área)",
+   "tipo": "estrutura"
+  },
+  "dano_foguete_1": {
+   "nome": "Foguetes: dano 1",
+   "era": "meio",
+   "requer": [
+    "torre_foguetes"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     60
+    ],
+    [
+     "automação",
+     60
+    ],
+    [
+     "militar",
+     60
+    ],
+    [
+     "químico",
+     60
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "+20% de dano dos foguetes",
+   "tipo": "melhoria"
+  },
+  "cadencia_foguete_1": {
+   "nome": "Lança-foguetes: cadência 1",
+   "era": "meio",
+   "requer": [
+    "torre_foguetes"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     60
+    ],
+    [
+     "automação",
+     60
+    ],
+    [
+     "militar",
+     60
+    ],
+    [
+     "químico",
+     60
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "+20% de disparos por segundo",
+   "tipo": "melhoria"
+  },
+  "muro_liga": {
+   "nome": "Muro de liga",
+   "era": "meio",
+   "requer": [
+    "muros_reforcados",
+    "liga_leve",
+    "ciencia_militar"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     40
+    ],
+    [
+     "automação",
+     40
+    ],
+    [
+     "militar",
+     40
+    ],
+    [
+     "químico",
+     40
+    ]
+   ],
+   "tempo": 8.0,
+   "libera": "Muro de liga (1.500 ♥, aranhas não escalam)",
+   "tipo": "estrutura"
+  },
+  "escudo_1": {
+   "nome": "Gerador de escudo",
+   "era": "meio",
+   "requer": [
+    "ciencia_militar",
+    "processador",
+    "acumulacao"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     75
+    ],
+    [
+     "automação",
+     75
+    ],
+    [
+     "militar",
+     75
+    ],
+    [
+     "químico",
+     75
+    ]
+   ],
+   "tempo": 10.0,
+   "libera": "Gerador de escudo 2×2 (bolha de 8 m que absorve 400 de dano, recarrega pela rede)",
+   "tipo": "estrutura"
+  },
+  "artilharia": {
+   "nome": "Artilharia",
+   "era": "meio",
+   "requer": [
+    "torre_foguetes",
+    "liga_leve",
+    "cartografia"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     100
+    ],
+    [
+     "automação",
+     100
+    ],
+    [
+     "militar",
+     100
+    ],
+    [
+     "químico",
+     100
+    ]
+   ],
+   "tempo": 10.0,
+   "libera": "Artilharia 3×3 e receita granada (alcance 120 m contra ninhos)",
+   "tipo": "estrutura"
+  },
+  "ciencia_tempestade": {
+   "nome": "Ciência de tempestade",
+   "era": "avancada",
+   "requer": [
+    "captador_carga",
+    "processador",
+    "liga_leve",
+    "bioquimica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     100
+    ],
+    [
+     "automação",
+     100
+    ],
+    [
+     "químico",
+     100
+    ],
+    [
+     "ecológico",
+     100
+    ]
+   ],
+   "tempo": 10.0,
+   "libera": "Receita pacote de tempestade",
+   "tipo": "receita"
+  },
+  "para_raios_2": {
+   "nome": "Para-raios de cristal",
+   "era": "avancada",
+   "requer": [
+    "para_raios",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     80
+    ],
+    [
+     "automação",
+     80
+    ],
+    [
+     "químico",
+     80
+    ],
+    [
+     "ecológico",
+     80
+    ],
+    [
+     "tempestade",
+     80
+    ]
+   ],
+   "tempo": 10.0,
+   "libera": "Para-raios de cristal 1×1 (22 m, 200 MJ por raio)",
+   "tipo": "estrutura"
+  },
+  "acumulador_cristal": {
+   "nome": "Acumulador de cristal",
+   "era": "avancada",
+   "requer": [
+    "acumulacao_2",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     120
+    ],
+    [
+     "automação",
+     120
+    ],
+    [
+     "químico",
+     120
+    ],
+    [
+     "ecológico",
+     120
+    ],
+    [
+     "tempestade",
+     120
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Acumulador de cristal 2×2 (600 MJ, 4 MW)",
+   "tipo": "estrutura"
+  },
+  "reator_cristal": {
+   "nome": "Reator de cristal",
+   "era": "avancada",
+   "requer": [
+    "energia",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Reator de cristal 3×3 (8 MW, queima célula de energia ou cristal carregado)",
+   "tipo": "estrutura"
+  },
+  "fundicao_cristal": {
+   "nome": "Fundição de cristal",
+   "era": "avancada",
+   "requer": [
+    "fornalha_eletrica",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     120
+    ],
+    [
+     "automação",
+     120
+    ],
+    [
+     "químico",
+     120
+    ],
+    [
+     "ecológico",
+     120
+    ],
+    [
+     "tempestade",
+     120
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Fundição de cristal 3×3 (velocidade 4,0, 4 encaixes, funde direto do minério para aço)",
+   "tipo": "estrutura"
+  },
+  "refinador_2": {
+   "nome": "Refinador 2",
+   "era": "avancada",
+   "requer": [
+    "quimica",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     120
+    ],
+    [
+     "automação",
+     120
+    ],
+    [
+     "químico",
+     120
+    ],
+    [
+     "ecológico",
+     120
+    ],
+    [
+     "tempestade",
+     120
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Refinador 2 3×3 (velocidade 2,0, 3 encaixes, devolve 50% menos água suja)",
+   "tipo": "estrutura"
+  },
+  "irradiador_modulos": {
+   "nome": "Irradiador de módulos",
+   "era": "avancada",
+   "requer": [
+    "modulo_velocidade_1",
+    "modulo_eficiencia_1",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     120
+    ],
+    [
+     "automação",
+     120
+    ],
+    [
+     "químico",
+     120
+    ],
+    [
+     "ecológico",
+     120
+    ],
+    [
+     "tempestade",
+     120
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Irradiador 3×3: divide o efeito de 2 módulos com as máquinas em 3 tiles",
+   "tipo": "estrutura"
+  },
+  "modulo_velocidade_2": {
+   "nome": "Módulo de velocidade 2",
+   "era": "avancada",
+   "requer": [
+    "modulo_velocidade_1",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     100
+    ],
+    [
+     "automação",
+     100
+    ],
+    [
+     "químico",
+     100
+    ],
+    [
+     "ecológico",
+     100
+    ],
+    [
+     "tempestade",
+     100
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Módulo de velocidade 2 (+30%)",
+   "tipo": "estrutura"
+  },
+  "modulo_eficiencia_2": {
+   "nome": "Módulo de eficiência 2",
+   "era": "avancada",
+   "requer": [
+    "modulo_eficiencia_1",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     100
+    ],
+    [
+     "automação",
+     100
+    ],
+    [
+     "químico",
+     100
+    ],
+    [
+     "ecológico",
+     100
+    ],
+    [
+     "tempestade",
+     100
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Módulo de eficiência 2 (−40% energia e poluição)",
+   "tipo": "estrutura"
+  },
+  "modulo_produtividade_2": {
+   "nome": "Módulo de produtividade 2",
+   "era": "avancada",
+   "requer": [
+    "modulo_produtividade_1",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Módulo de produtividade 2 (+6% produto)",
+   "tipo": "estrutura"
+  },
+  "mineracao_3": {
+   "nome": "Produtividade de mineração 3",
+   "era": "avancada",
+   "requer": [
+    "mineracao_2",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "+10% de minério por ciclo",
+   "tipo": "melhoria"
+  },
+  "pesquisa_vel_3": {
+   "nome": "Velocidade de pesquisa 3",
+   "era": "avancada",
+   "requer": [
+    "pesquisa_vel_2",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "+40% de velocidade dos laboratórios",
+   "tipo": "melhoria"
+  },
+  "drones_frota_2": {
+   "nome": "Frota de drones 2",
+   "era": "avancada",
+   "requer": [
+    "drones_frota_1",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     100
+    ],
+    [
+     "automação",
+     100
+    ],
+    [
+     "químico",
+     100
+    ],
+    [
+     "ecológico",
+     100
+    ],
+    [
+     "tempestade",
+     100
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "+8 drones por estação (12 → 20)",
+   "tipo": "melhoria"
+  },
+  "drones_bateria_2": {
+   "nome": "Bateria de drone 2",
+   "era": "avancada",
+   "requer": [
+    "drones_bateria_1",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     100
+    ],
+    [
+     "automação",
+     100
+    ],
+    [
+     "químico",
+     100
+    ],
+    [
+     "ecológico",
+     100
+    ],
+    [
+     "tempestade",
+     100
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "+50% de tempo de voo",
+   "tipo": "melhoria"
+  },
+  "drones_velocidade_2": {
+   "nome": "Velocidade de drone 2",
+   "era": "avancada",
+   "requer": [
+    "drones_velocidade_1",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     100
+    ],
+    [
+     "automação",
+     100
+    ],
+    [
+     "químico",
+     100
+    ],
+    [
+     "ecológico",
+     100
+    ],
+    [
+     "tempestade",
+     100
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "+35% de velocidade dos drones",
+   "tipo": "melhoria"
+  },
+  "drones_logisticos_2": {
+   "nome": "Drones logísticos 2",
+   "era": "avancada",
+   "requer": [
+    "drones_logisticos",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     120
+    ],
+    [
+     "automação",
+     120
+    ],
+    [
+     "químico",
+     120
+    ],
+    [
+     "ecológico",
+     120
+    ],
+    [
+     "tempestade",
+     120
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Drone logístico leva 4 itens; porto com 2× alcance",
+   "tipo": "estrutura"
+  },
+  "drones_tempestade": {
+   "nome": "Voo na tempestade",
+   "era": "avancada",
+   "requer": [
+    "drones_bateria_2",
+    "para_raios_2"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     100
+    ],
+    [
+     "automação",
+     100
+    ],
+    [
+     "químico",
+     100
+    ],
+    [
+     "ecológico",
+     100
+    ],
+    [
+     "tempestade",
+     100
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Drones blindados: voam com raios caindo na área",
+   "tipo": "estrutura"
+  },
+  "drones_defesa": {
+   "nome": "Drones de defesa",
+   "era": "avancada",
+   "requer": [
+    "drones_frota_1",
+    "dano_energia_3",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     120
+    ],
+    [
+     "automação",
+     120
+    ],
+    [
+     "militar",
+     120
+    ],
+    [
+     "químico",
+     120
+    ],
+    [
+     "ecológico",
+     120
+    ],
+    [
+     "tempestade",
+     120
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "+100% de dano dos drones em combate e +50% de vida",
+   "tipo": "melhoria"
+  },
+  "purificador_ar_2": {
+   "nome": "Purificador atmosférico",
+   "era": "avancada",
+   "requer": [
+    "purificador_ar",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     120
+    ],
+    [
+     "automação",
+     120
+    ],
+    [
+     "químico",
+     120
+    ],
+    [
+     "ecológico",
+     120
+    ],
+    [
+     "tempestade",
+     120
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Purificador atmosférico 3×3 (absorve 40 de poluição/min)",
+   "tipo": "estrutura"
+  },
+  "estacao_tratamento": {
+   "nome": "Estação de tratamento",
+   "era": "avancada",
+   "requer": [
+    "filtro_agua_limpa",
+    "refinador_2"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     100
+    ],
+    [
+     "automação",
+     100
+    ],
+    [
+     "químico",
+     100
+    ],
+    [
+     "ecológico",
+     100
+    ],
+    [
+     "tempestade",
+     100
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Estação de tratamento 3×3: água suja → água limpa (60/s), limpa o rio em 16 m",
+   "tipo": "estrutura"
+  },
+  "restauracao_bioma": {
+   "nome": "Restauração de bioma",
+   "era": "avancada",
+   "requer": [
+    "recuperar_solo",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Semeador de bioma 3×3: devolve cinzal e terra queimada à vegetação original",
+   "tipo": "estrutura"
+  },
+  "semeadura_nuvens": {
+   "nome": "Semeadura de nuvens",
+   "era": "avancada",
+   "requer": [
+    "condensador_neblina",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     120
+    ],
+    [
+     "automação",
+     120
+    ],
+    [
+     "químico",
+     120
+    ],
+    [
+     "ecológico",
+     120
+    ],
+    [
+     "tempestade",
+     120
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Semeador de nuvens 2×2: chama chuva num raio de 40 m (apaga fogo, enche coletores)",
+   "tipo": "estrutura"
+  },
+  "cupula_tempestade": {
+   "nome": "Cúpula contra raios",
+   "era": "avancada",
+   "requer": [
+    "para_raios_2",
+    "escudo_1"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "militar",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Cúpula 3×3: nenhum raio cai num raio de 30 m",
+   "tipo": "estrutura"
+  },
+  "controle_vento": {
+   "nome": "Defletor de vento",
+   "era": "avancada",
+   "requer": [
+    "semeadura_nuvens",
+    "turbina_alta"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Defletor 2×2: fixa a direção do vento em 40 m (poluição longe dos ninhos)",
+   "tipo": "estrutura"
+  },
+  "dano_bala_4": {
+   "nome": "Munição: dano 4",
+   "era": "avancada",
+   "requer": [
+    "dano_bala_3",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "militar",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "+20% de dano das balas",
+   "tipo": "melhoria"
+  },
+  "cadencia_bala_3": {
+   "nome": "Metralhadora: cadência 3",
+   "era": "avancada",
+   "requer": [
+    "cadencia_bala_2",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "militar",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "+20% de tiros por segundo",
+   "tipo": "melhoria"
+  },
+  "municao_cristal": {
+   "nome": "Munição de cristal carregado",
+   "era": "avancada",
+   "requer": [
+    "municao_perfurante",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     120
+    ],
+    [
+     "automação",
+     120
+    ],
+    [
+     "militar",
+     120
+    ],
+    [
+     "químico",
+     120
+    ],
+    [
+     "ecológico",
+     120
+    ],
+    [
+     "tempestade",
+     120
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Receita munição carregada (dano elétrico salta para 2 aranhas)",
+   "tipo": "receita"
+  },
+  "dano_foguete_2": {
+   "nome": "Foguetes: dano 2",
+   "era": "avancada",
+   "requer": [
+    "dano_foguete_1",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "militar",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "+30% de dano dos foguetes",
+   "tipo": "melhoria"
+  },
+  "cadencia_foguete_2": {
+   "nome": "Lança-foguetes: cadência 2",
+   "era": "avancada",
+   "requer": [
+    "cadencia_foguete_1",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "militar",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "+20% de disparos por segundo",
+   "tipo": "melhoria"
+  },
+  "foguete_enxame": {
+   "nome": "Foguete de enxame",
+   "era": "avancada",
+   "requer": [
+    "dano_foguete_2"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "militar",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Receita foguete de enxame (abre em 4 ogivas menores)",
+   "tipo": "receita"
+  },
+  "dano_energia_4": {
+   "nome": "Torre de energia: dano 4",
+   "era": "avancada",
+   "requer": [
+    "dano_energia_3",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "militar",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "+30% de dano da torre básica",
+   "tipo": "melhoria"
+  },
+  "cadencia_energia_2": {
+   "nome": "Torre de energia: cadência 2",
+   "era": "avancada",
+   "requer": [
+    "cadencia_energia_1",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "militar",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "+20% de tiros por segundo",
+   "tipo": "melhoria"
+  },
+  "dano_artilharia_1": {
+   "nome": "Artilharia: dano 1",
+   "era": "avancada",
+   "requer": [
+    "artilharia",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "militar",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "+30% de dano das granadas",
+   "tipo": "melhoria"
+  },
+  "alcance_artilharia_1": {
+   "nome": "Artilharia: alcance 1",
+   "era": "avancada",
+   "requer": [
+    "artilharia",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "militar",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "+20% de alcance (120 → 144 m)",
+   "tipo": "melhoria"
+  },
+  "artilharia_automatica": {
+   "nome": "Mira automática",
+   "era": "avancada",
+   "requer": [
+    "alcance_artilharia_1",
+    "cartografia"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     200
+    ],
+    [
+     "automação",
+     200
+    ],
+    [
+     "militar",
+     200
+    ],
+    [
+     "químico",
+     200
+    ],
+    [
+     "ecológico",
+     200
+    ],
+    [
+     "tempestade",
+     200
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Artilharia dispara sozinha em ninhos revelados no alcance",
+   "tipo": "estrutura"
+  },
+  "escudo_2": {
+   "nome": "Escudo 2",
+   "era": "avancada",
+   "requer": [
+    "escudo_1",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "militar",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Gerador de escudo: bolha de 12 m, 1.000 de dano, recarga 2×",
+   "tipo": "estrutura"
+  },
+  "muro_escudo": {
+   "nome": "Muro de campo",
+   "era": "avancada",
+   "requer": [
+    "muro_liga",
+    "escudo_2"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "militar",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Muro de campo 1×1 (regenera 5 ♥/s com energia)",
+   "tipo": "estrutura"
+  },
+  "nucleo_semente": {
+   "nome": "Núcleo-semente",
+   "era": "avancada",
+   "requer": [
+    "posto_avancado",
+    "drones_frota_1",
+    "ciencia_tempestade"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Receita núcleo-semente e lançador de sementes 3×3 (alcance 400 m)",
+   "tipo": "receita"
+  },
+  "colonias": {
+   "nome": "Colônias",
+   "era": "avancada",
+   "requer": [
+    "nucleo_semente",
+    "drones_logisticos"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     200
+    ],
+    [
+     "automação",
+     200
+    ],
+    [
+     "químico",
+     200
+    ],
+    [
+     "ecológico",
+     200
+    ],
+    [
+     "tempestade",
+     200
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Semente pousada vira colônia (kit + 2 drones) que fabrica pacote gênese; receptor de cápsulas 2×2",
+   "tipo": "estrutura"
+  },
+  "computacao_quantica": {
+   "nome": "Computação quântica",
+   "era": "avancada",
+   "requer": [
+    "ciencia_tempestade",
+    "laboratorio_2",
+    "energia"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ]
+   ],
+   "tempo": 12.0,
+   "libera": "Forja quântica 3×3; receitas processador quântico e pacote quântico",
+   "tipo": "estrutura"
+  },
+  "modulo_velocidade_3": {
+   "nome": "Módulo de velocidade 3",
+   "era": "avancada",
+   "requer": [
+    "modulo_velocidade_2",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     200
+    ],
+    [
+     "automação",
+     200
+    ],
+    [
+     "químico",
+     200
+    ],
+    [
+     "ecológico",
+     200
+    ],
+    [
+     "tempestade",
+     200
+    ],
+    [
+     "quântico",
+     200
+    ]
+   ],
+   "tempo": 15.0,
+   "libera": "Módulo de velocidade 3 (+50%)",
+   "tipo": "estrutura"
+  },
+  "modulo_eficiencia_3": {
+   "nome": "Módulo de eficiência 3",
+   "era": "avancada",
+   "requer": [
+    "modulo_eficiencia_2",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     200
+    ],
+    [
+     "automação",
+     200
+    ],
+    [
+     "químico",
+     200
+    ],
+    [
+     "ecológico",
+     200
+    ],
+    [
+     "tempestade",
+     200
+    ],
+    [
+     "quântico",
+     200
+    ]
+   ],
+   "tempo": 15.0,
+   "libera": "Módulo de eficiência 3 (−50% energia e poluição)",
+   "tipo": "estrutura"
+  },
+  "modulo_produtividade_3": {
+   "nome": "Módulo de produtividade 3",
+   "era": "avancada",
+   "requer": [
+    "modulo_produtividade_2",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     300
+    ],
+    [
+     "automação",
+     300
+    ],
+    [
+     "químico",
+     300
+    ],
+    [
+     "ecológico",
+     300
+    ],
+    [
+     "tempestade",
+     300
+    ],
+    [
+     "quântico",
+     300
+    ]
+   ],
+   "tempo": 15.0,
+   "libera": "Módulo de produtividade 3 (+10% produto)",
+   "tipo": "estrutura"
+  },
+  "montadora_4": {
+   "nome": "Montadora quântica",
+   "era": "avancada",
+   "requer": [
+    "montadora_3",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     200
+    ],
+    [
+     "automação",
+     200
+    ],
+    [
+     "químico",
+     200
+    ],
+    [
+     "ecológico",
+     200
+    ],
+    [
+     "tempestade",
+     200
+    ],
+    [
+     "quântico",
+     200
+    ]
+   ],
+   "tempo": 15.0,
+   "libera": "Montadora quântica 3×3 (velocidade 2,5, 4 encaixes, 2 receitas ao mesmo tempo)",
+   "tipo": "estrutura"
+  },
+  "logistica_5": {
+   "nome": "Logística 5",
+   "era": "avancada",
+   "requer": [
+    "logistica_4",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     200
+    ],
+    [
+     "automação",
+     200
+    ],
+    [
+     "químico",
+     200
+    ],
+    [
+     "ecológico",
+     200
+    ],
+    [
+     "tempestade",
+     200
+    ],
+    [
+     "quântico",
+     200
+    ]
+   ],
+   "tempo": 15.0,
+   "libera": "Esteira quântica (7,5 itens/s) com rampa, passagem, divisor e junção quânticos",
+   "tipo": "estrutura"
+  },
+  "braco_quantico": {
+   "nome": "Braço quântico",
+   "era": "avancada",
+   "requer": [
+    "braco_empilhador",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     150
+    ],
+    [
+     "automação",
+     150
+    ],
+    [
+     "químico",
+     150
+    ],
+    [
+     "ecológico",
+     150
+    ],
+    [
+     "tempestade",
+     150
+    ],
+    [
+     "quântico",
+     150
+    ]
+   ],
+   "tempo": 15.0,
+   "libera": "Braço quântico (ciclo 0,2 s, 8 itens por vez, alcance 1 a 3)",
+   "tipo": "estrutura"
+  },
+  "broca_profunda": {
+   "nome": "Broca de núcleo",
+   "era": "avancada",
+   "requer": [
+    "broca_grande",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     200
+    ],
+    [
+     "automação",
+     200
+    ],
+    [
+     "químico",
+     200
+    ],
+    [
+     "ecológico",
+     200
+    ],
+    [
+     "tempestade",
+     200
+    ],
+    [
+     "quântico",
+     200
+    ]
+   ],
+   "tempo": 15.0,
+   "libera": "Broca de núcleo 3×3: jazida esgotada continua rendendo 10% para sempre",
+   "tipo": "estrutura"
+  },
+  "laboratorio_3": {
+   "nome": "Laboratório quântico",
+   "era": "avancada",
+   "requer": [
+    "laboratorio_2",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     200
+    ],
+    [
+     "automação",
+     200
+    ],
+    [
+     "químico",
+     200
+    ],
+    [
+     "ecológico",
+     200
+    ],
+    [
+     "tempestade",
+     200
+    ],
+    [
+     "quântico",
+     200
+    ]
+   ],
+   "tempo": 15.0,
+   "libera": "Laboratório quântico 3×3 (4× velocidade, 4 encaixes)",
+   "tipo": "estrutura"
+  },
+  "fusao": {
+   "nome": "Reator de fusão",
+   "era": "avancada",
+   "requer": [
+    "reator_cristal",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     300
+    ],
+    [
+     "automação",
+     300
+    ],
+    [
+     "químico",
+     300
+    ],
+    [
+     "ecológico",
+     300
+    ],
+    [
+     "tempestade",
+     300
+    ],
+    [
+     "quântico",
+     300
+    ]
+   ],
+   "tempo": 15.0,
+   "libera": "Reator de fusão 3×3 (30 MW; consome água e cristal carregado)",
+   "tipo": "estrutura"
+  },
+  "controle_clima": {
+   "nome": "Regulador climático",
+   "era": "avancada",
+   "requer": [
+    "controle_vento",
+    "cupula_tempestade",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     400
+    ],
+    [
+     "automação",
+     400
+    ],
+    [
+     "militar",
+     400
+    ],
+    [
+     "químico",
+     400
+    ],
+    [
+     "ecológico",
+     400
+    ],
+    [
+     "tempestade",
+     400
+    ],
+    [
+     "quântico",
+     400
+    ]
+   ],
+   "tempo": 20.0,
+   "libera": "Regulador 3×3: escolhe o clima num raio de 80 m",
+   "tipo": "estrutura"
+  },
+  "simbiose": {
+   "nome": "Simbiose",
+   "era": "avancada",
+   "requer": [
+    "restauracao_bioma",
+    "harmonia_ninhos",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     300
+    ],
+    [
+     "automação",
+     300
+    ],
+    [
+     "químico",
+     300
+    ],
+    [
+     "ecológico",
+     300
+    ],
+    [
+     "tempestade",
+     300
+    ],
+    [
+     "quântico",
+     300
+    ]
+   ],
+   "tempo": 15.0,
+   "libera": "Estruturas viram abrigo de musgo: −50% de poluição global; ninhos em paz não atacam",
+   "tipo": "melhoria"
+  },
+  "dano_artilharia_2": {
+   "nome": "Artilharia: dano 2",
+   "era": "avancada",
+   "requer": [
+    "dano_artilharia_1",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     250
+    ],
+    [
+     "automação",
+     250
+    ],
+    [
+     "militar",
+     250
+    ],
+    [
+     "químico",
+     250
+    ],
+    [
+     "ecológico",
+     250
+    ],
+    [
+     "tempestade",
+     250
+    ],
+    [
+     "quântico",
+     250
+    ]
+   ],
+   "tempo": 15.0,
+   "libera": "+40% de dano das granadas",
+   "tipo": "melhoria"
+  },
+  "alcance_artilharia_2": {
+   "nome": "Artilharia: alcance 2",
+   "era": "avancada",
+   "requer": [
+    "alcance_artilharia_1",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     250
+    ],
+    [
+     "automação",
+     250
+    ],
+    [
+     "militar",
+     250
+    ],
+    [
+     "químico",
+     250
+    ],
+    [
+     "ecológico",
+     250
+    ],
+    [
+     "tempestade",
+     250
+    ],
+    [
+     "quântico",
+     250
+    ]
+   ],
+   "tempo": 15.0,
+   "libera": "+30% de alcance",
+   "tipo": "melhoria"
+  },
+  "transportador_quantico": {
+   "nome": "Transportador quântico",
+   "era": "avancada",
+   "requer": [
+    "colonias",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     300
+    ],
+    [
+     "automação",
+     300
+    ],
+    [
+     "químico",
+     300
+    ],
+    [
+     "ecológico",
+     300
+    ],
+    [
+     "tempestade",
+     300
+    ],
+    [
+     "quântico",
+     300
+    ]
+   ],
+   "tempo": 15.0,
+   "libera": "Transportador quântico 3×3: troca itens entre colônias sem trilho",
+   "tipo": "estrutura"
+  },
+  "rede_colonias": {
+   "nome": "Mente distribuída",
+   "era": "avancada",
+   "requer": [
+    "transportador_quantico"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     300
+    ],
+    [
+     "automação",
+     300
+    ],
+    [
+     "químico",
+     300
+    ],
+    [
+     "ecológico",
+     300
+    ],
+    [
+     "tempestade",
+     300
+    ],
+    [
+     "quântico",
+     300
+    ],
+    [
+     "gênese",
+     300
+    ]
+   ],
+   "tempo": 15.0,
+   "libera": "Laboratórios das colônias somam na pesquisa; colônias trocam energia",
+   "tipo": "estrutura"
+  },
+  "singularidade": {
+   "nome": "Núcleo de singularidade",
+   "era": "avancada",
+   "requer": [
+    "fusao",
+    "colonias"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     500
+    ],
+    [
+     "automação",
+     500
+    ],
+    [
+     "químico",
+     500
+    ],
+    [
+     "ecológico",
+     500
+    ],
+    [
+     "tempestade",
+     500
+    ],
+    [
+     "quântico",
+     500
+    ],
+    [
+     "gênese",
+     500
+    ]
+   ],
+   "tempo": 20.0,
+   "libera": "Núcleo de singularidade 3×3 (100 MW, sem poluição)",
+   "tipo": "estrutura"
+  },
+  "casco_foguete": {
+   "nome": "Casco de liga quântica",
+   "era": "avancada",
+   "requer": [
+    "liga_leve",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     250
+    ],
+    [
+     "automação",
+     250
+    ],
+    [
+     "químico",
+     250
+    ],
+    [
+     "ecológico",
+     250
+    ],
+    [
+     "tempestade",
+     250
+    ],
+    [
+     "quântico",
+     250
+    ]
+   ],
+   "tempo": 15.0,
+   "libera": "Receita casco de foguete",
+   "tipo": "receita"
+  },
+  "propulsao_cristal": {
+   "nome": "Propulsão de cristal",
+   "era": "avancada",
+   "requer": [
+    "reator_cristal",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     250
+    ],
+    [
+     "automação",
+     250
+    ],
+    [
+     "químico",
+     250
+    ],
+    [
+     "ecológico",
+     250
+    ],
+    [
+     "tempestade",
+     250
+    ],
+    [
+     "quântico",
+     250
+    ]
+   ],
+   "tempo": 15.0,
+   "libera": "Receita propelente de cristal (fluido)",
+   "tipo": "receita"
+  },
+  "navegacao": {
+   "nome": "Navegação estelar",
+   "era": "avancada",
+   "requer": [
+    "cartografia",
+    "computacao_quantica",
+    "colonias"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     300
+    ],
+    [
+     "automação",
+     300
+    ],
+    [
+     "químico",
+     300
+    ],
+    [
+     "ecológico",
+     300
+    ],
+    [
+     "tempestade",
+     300
+    ],
+    [
+     "quântico",
+     300
+    ]
+   ],
+   "tempo": 15.0,
+   "libera": "Receita mapa estelar (cartão de rota do foguete)",
+   "tipo": "receita"
+  },
+  "silo_lancamento": {
+   "nome": "Silo de lançamento",
+   "era": "avancada",
+   "requer": [
+    "casco_foguete",
+    "propulsao_cristal"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     400
+    ],
+    [
+     "automação",
+     400
+    ],
+    [
+     "químico",
+     400
+    ],
+    [
+     "ecológico",
+     400
+    ],
+    [
+     "tempestade",
+     400
+    ],
+    [
+     "quântico",
+     400
+    ]
+   ],
+   "tempo": 20.0,
+   "libera": "Silo de lançamento 3×3 (monta o foguete por 100 partes)",
+   "tipo": "estrutura"
+  },
+  "foguete_proliferacao": {
+   "nome": "Foguete de proliferação",
+   "era": "avancada",
+   "requer": [
+    "silo_lancamento",
+    "navegacao",
+    "rede_colonias"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     1000
+    ],
+    [
+     "automação",
+     1000
+    ],
+    [
+     "militar",
+     1000
+    ],
+    [
+     "químico",
+     1000
+    ],
+    [
+     "ecológico",
+     1000
+    ],
+    [
+     "tempestade",
+     1000
+    ],
+    [
+     "quântico",
+     1000
+    ],
+    [
+     "gênese",
+     1000
+    ]
+   ],
+   "tempo": 20.0,
+   "libera": "Receita carga-semente; lançar o foguete = fim da campanha",
+   "objetivo": true,
+   "tipo": "objetivo"
+  },
+  "mineracao_infinita": {
+   "nome": "Produtividade de mineração N",
+   "era": "avancada",
+   "requer": [
+    "mineracao_3",
+    "colonias",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     500
+    ],
+    [
+     "automação",
+     500
+    ],
+    [
+     "químico",
+     500
+    ],
+    [
+     "ecológico",
+     500
+    ],
+    [
+     "tempestade",
+     500
+    ],
+    [
+     "quântico",
+     500
+    ],
+    [
+     "gênese",
+     500
+    ]
+   ],
+   "tempo": 30.0,
+   "libera": "+10% de minério por nível — infinita (custo × 1,5 por nível)",
+   "tipo": "infinita"
+  },
+  "pesquisa_infinita": {
+   "nome": "Velocidade de pesquisa N",
+   "era": "avancada",
+   "requer": [
+    "pesquisa_vel_3",
+    "rede_colonias"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     500
+    ],
+    [
+     "automação",
+     500
+    ],
+    [
+     "químico",
+     500
+    ],
+    [
+     "ecológico",
+     500
+    ],
+    [
+     "tempestade",
+     500
+    ],
+    [
+     "quântico",
+     500
+    ],
+    [
+     "gênese",
+     500
+    ]
+   ],
+   "tempo": 30.0,
+   "libera": "+10% de velocidade dos laboratórios por nível — infinita (custo × 1,5 por nível)",
+   "tipo": "infinita"
+  },
+  "dano_bala_infinito": {
+   "nome": "Munição: dano N",
+   "era": "avancada",
+   "requer": [
+    "dano_bala_4",
+    "colonias",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     500
+    ],
+    [
+     "automação",
+     500
+    ],
+    [
+     "militar",
+     500
+    ],
+    [
+     "químico",
+     500
+    ],
+    [
+     "ecológico",
+     500
+    ],
+    [
+     "tempestade",
+     500
+    ],
+    [
+     "quântico",
+     500
+    ],
+    [
+     "gênese",
+     500
+    ]
+   ],
+   "tempo": 30.0,
+   "libera": "+10% de dano das balas por nível — infinita (custo × 1,5 por nível)",
+   "tipo": "infinita"
+  },
+  "dano_foguete_infinito": {
+   "nome": "Foguetes: dano N",
+   "era": "avancada",
+   "requer": [
+    "dano_foguete_2",
+    "colonias",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     500
+    ],
+    [
+     "automação",
+     500
+    ],
+    [
+     "militar",
+     500
+    ],
+    [
+     "químico",
+     500
+    ],
+    [
+     "ecológico",
+     500
+    ],
+    [
+     "tempestade",
+     500
+    ],
+    [
+     "quântico",
+     500
+    ],
+    [
+     "gênese",
+     500
+    ]
+   ],
+   "tempo": 30.0,
+   "libera": "+10% de dano dos foguetes por nível — infinita (custo × 1,5 por nível)",
+   "tipo": "infinita"
+  },
+  "dano_artilharia_infinito": {
+   "nome": "Artilharia: dano N",
+   "era": "avancada",
+   "requer": [
+    "dano_artilharia_2",
+    "colonias"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     500
+    ],
+    [
+     "automação",
+     500
+    ],
+    [
+     "militar",
+     500
+    ],
+    [
+     "químico",
+     500
+    ],
+    [
+     "ecológico",
+     500
+    ],
+    [
+     "tempestade",
+     500
+    ],
+    [
+     "quântico",
+     500
+    ],
+    [
+     "gênese",
+     500
+    ]
+   ],
+   "tempo": 30.0,
+   "libera": "+10% de dano das granadas por nível — infinita (custo × 1,5 por nível)",
+   "tipo": "infinita"
+  },
+  "dano_energia_infinito": {
+   "nome": "Torre de energia: dano N",
+   "era": "avancada",
+   "requer": [
+    "dano_energia_4",
+    "colonias",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     500
+    ],
+    [
+     "automação",
+     500
+    ],
+    [
+     "militar",
+     500
+    ],
+    [
+     "químico",
+     500
+    ],
+    [
+     "ecológico",
+     500
+    ],
+    [
+     "tempestade",
+     500
+    ],
+    [
+     "quântico",
+     500
+    ],
+    [
+     "gênese",
+     500
+    ]
+   ],
+   "tempo": 30.0,
+   "libera": "+10% de dano da torre básica por nível — infinita (custo × 1,5 por nível)",
+   "tipo": "infinita"
+  },
+  "escudo_infinito": {
+   "nome": "Escudo N",
+   "era": "avancada",
+   "requer": [
+    "escudo_2",
+    "colonias",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     500
+    ],
+    [
+     "automação",
+     500
+    ],
+    [
+     "militar",
+     500
+    ],
+    [
+     "químico",
+     500
+    ],
+    [
+     "ecológico",
+     500
+    ],
+    [
+     "tempestade",
+     500
+    ],
+    [
+     "quântico",
+     500
+    ],
+    [
+     "gênese",
+     500
+    ]
+   ],
+   "tempo": 30.0,
+   "libera": "+15% de capacidade de escudo por nível — infinita (custo × 1,5 por nível)",
+   "tipo": "infinita"
+  },
+  "drones_infinito": {
+   "nome": "Velocidade de frota N",
+   "era": "avancada",
+   "requer": [
+    "drones_velocidade_2",
+    "colonias",
+    "computacao_quantica"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     500
+    ],
+    [
+     "automação",
+     500
+    ],
+    [
+     "químico",
+     500
+    ],
+    [
+     "ecológico",
+     500
+    ],
+    [
+     "tempestade",
+     500
+    ],
+    [
+     "quântico",
+     500
+    ],
+    [
+     "gênese",
+     500
+    ]
+   ],
+   "tempo": 30.0,
+   "libera": "+10% de velocidade de drones e trens por nível — infinita (custo × 1,5 por nível)",
+   "tipo": "infinita"
+  },
+  "purificacao_infinita": {
+   "nome": "Purificação N",
+   "era": "avancada",
+   "requer": [
+    "simbiose",
+    "colonias"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     500
+    ],
+    [
+     "automação",
+     500
+    ],
+    [
+     "químico",
+     500
+    ],
+    [
+     "ecológico",
+     500
+    ],
+    [
+     "tempestade",
+     500
+    ],
+    [
+     "quântico",
+     500
+    ],
+    [
+     "gênese",
+     500
+    ]
+   ],
+   "tempo": 30.0,
+   "libera": "+10% de limpeza de coletores, filtros e purificadores por nível — infinita (custo × 1,5 por nível)",
+   "tipo": "infinita"
+  },
+  "eficiencia_infinita": {
+   "nome": "Eficiência de rede N",
+   "era": "avancada",
+   "requer": [
+    "fusao",
+    "colonias"
+   ],
+   "pacotes": [
+    [
+     "básico",
+     500
+    ],
+    [
+     "automação",
+     500
+    ],
+    [
+     "químico",
+     500
+    ],
+    [
+     "ecológico",
+     500
+    ],
+    [
+     "tempestade",
+     500
+    ],
+    [
+     "quântico",
+     500
+    ],
+    [
+     "gênese",
+     500
+    ]
+   ],
+   "tempo": 30.0,
+   "libera": "−5% de consumo de energia de todas as máquinas por nível (até −50%) — infinita (custo × 1,5 por nível)",
+   "tipo": "infinita"
+  }
+ }
+}
