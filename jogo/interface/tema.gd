@@ -4,11 +4,12 @@ class_name Tema
 static func criar() -> Theme:
 	var t := Theme.new()
 	t.default_font_size = 18
-	var painel := caixa(BarraConstrucao.COR_FUNDO, BarraConstrucao.COR_BORDA, 12, 10)
+	# visual da IA: painéis grafite translúcidos, borda ciano fina
+	var painel := caixa(Color(0.055, 0.07, 0.09, 0.9), Color(0.31, 0.9, 0.87, 0.35), 12, 10)
 	t.set_stylebox("panel", "PanelContainer", painel)
-	var normal := caixa(Color(0.16, 0.17, 0.21), Color(0.30, 0.32, 0.38), 8, 6)
-	var hover := caixa(Color(0.22, 0.23, 0.28), Color(0.45, 0.47, 0.54), 8, 6)
-	var apertado := caixa(BarraConstrucao.COR_DESTAQUE.darkened(0.6), BarraConstrucao.COR_DESTAQUE, 8, 6)
+	var normal := caixa(Color(0.10, 0.12, 0.15, 0.95), Color(1, 1, 1, 0.12), 10, 6)
+	var hover := caixa(Color(0.13, 0.17, 0.2), Color(0.31, 0.9, 0.87, 0.5), 10, 6)
+	var apertado := caixa(Color(0.08, 0.25, 0.26), Color(0.31, 0.9, 0.87), 8, 6)
 	var desligado := caixa(Color(0.12, 0.12, 0.15), Color(0.2, 0.2, 0.24), 8, 6)
 	t.set_stylebox("normal", "Button", normal)
 	t.set_stylebox("hover", "Button", hover)

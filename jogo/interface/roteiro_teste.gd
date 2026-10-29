@@ -36,6 +36,7 @@ func _ready() -> void:
 		"montagem": _roteiro_montagem()
 		"bracos": _roteiro_bracos()
 		"filtro": _roteiro_filtro()
+		"interface": _roteiro_interface()
 		"grama": _roteiro_grama()
 		"ambiente": _roteiro_ambiente()
 		"recursos":
@@ -392,6 +393,22 @@ func _roteiro_bracos() -> void:
 				f.baus[id].merge({"minerio_ferro": 40, "carvao": 20})
 		for id in f.combustivel:
 			f.combustivel[id] = 500.0)
+
+
+## Interface B: abre Produção (painel com explicações), escolhe a fornalha, toca no mapa (holograma + ações),
+## gira, e por fim constrói. Fotos: ~40 painel aberto, ~80 holograma pendente, ~120 construída.
+func _roteiro_interface() -> void:
+	em(4, func():
+		Sessao.config.fps = false
+		for x in range(-8, 4):
+			for y in range(-8, 4):
+				cena.mapa.limpar_obstaculo(Vector2i(x, y)))
+	em(10, func(): clicar(botao("cat:3")))
+	em(50, func(): clicar(botao("fornalha")))
+	em(60, func(): toque(0, tela(Vector2i(-4, -3)), true))
+	em(62, func(): toque(0, tela(Vector2i(-4, -3)), false))
+	em(90, func(): clicar(botao("girar")))
+	em(118, func(): clicar(botao("construir")))
 
 
 ## Braço com filtro pegando do meio da esteira: pedra e carvão passando, só o carvão vai para o baú.

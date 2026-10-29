@@ -37,7 +37,13 @@ var _pinca := 0.0
 var _por_toque := false
 var _aviso := ""
 var _aviso_ate := 0
-var _clique_ini := Vector2.INF        ## onde começou um clique/toque de mão vazia (se não arrastar, seleciona)
+var _clique_ini := Vector2.INF
+## Peça pendente (máquinas e afins, não caminhos): tocar/clicar põe o holograma; ele espera Girar, Mover
+## (arrastar o holograma ou tocar noutro lugar) e Construir. Caminhos (esteira, cano, trilho, muro) seguem no arraste.
+var _pendente := false
+var _tile_pend := Vector2i.ZERO
+var _movendo := false
+var _arrastando_pend := false        ## onde começou um clique/toque de mão vazia (se não arrastar, seleciona)
 
 
 func configurar(p_construtor: Construtor, p_camera: CameraJogo, p_barra: BarraConstrucao, p_fantasma: Fantasma, p_mundo: Node) -> void:
@@ -48,6 +54,7 @@ func configurar(p_construtor: Construtor, p_camera: CameraJogo, p_barra: BarraCo
 	mundo = p_mundo
 	barra.peca_escolhida.connect(escolher)
 	barra.ferramenta.connect(_ferramenta)
+	barra.acao_pendente.connect(_acao_pendente)
 	barra.fechar_detalhe_pedido.connect(func(): mundo.selecionar(Vector2.INF))
 	barra.pode_desfazer(false)
 	barra.mostrar_nivel(construtor.nivel)
@@ -55,7 +62,61 @@ func configurar(p_construtor: Construtor, p_camera: CameraJogo, p_barra: BarraCo
 
 
 # ------------------------------------------------------------------ ações
+func _usa_pendente() -> bool:
+	return peca != "" and not removendo and peca != APLAINAR and not Construtor.arrastavel(peca)
+
+
+func _acao_pendente(a: String) -> void:
+	match a:
+		"girar": girar()
+		"mover": _movendo = not _movendo
+		"construir": _construir_pendente()
+		"cancelar_peca":
+			_pendente = false
+			_movendo = false
+	_chave_plano = ""
+	_atualizar()
+
+
+func _construir_pendente() -> void:
+	if not _pendente:
+		return
+	_cursor = _tile_pend
+	_cursor_valido = true
+	_chave_plano = ""
+	_atualizar()
+	_confirmar()
+	_pendente = false
+	_movendo = false
+
+
+## Fim de um toque/clique sobre o mapa com peça de pôr na mão: põe/move o holograma (dois toques no mesmo
+## lugar = construir).
+func _soltar_pendente() -> void:
+	if not _cursor_valido:
+		return
+	if _pendente and not _movendo and not _arrastando_pend and _cursor == _tile_pend:
+		_construir_pendente()
+		return
+	_pendente = true
+	_tile_pend = _cursor
+	_movendo = false
+	_chave_plano = ""
+
+
+func _perto_do_holograma(tela: Vector2) -> bool:
+	if not _pendente:
+		return false
+	var p := camera.no_chao(tela)
+	if p == Vector3.INF:
+		return false
+	var c := Grade.centro_da_area(_tile_pend, Registro.area(peca), rot)
+	return Vector2(p.x, -p.z).distance_to(c) < maxf(1.4, Registro.area(peca).x * 0.8)
+
+
 func escolher(nome: String) -> void:
+	_pendente = false
+	_movendo = false
 	if peca == nome and not removendo:
 		nome = ""                          # tocar de novo na peça solta ela
 	peca = nome
@@ -105,7 +166,10 @@ func alternar_poluicao() -> void:
 
 
 func cancelar() -> void:
-	if _gesto:
+	if _pendente:
+		_pendente = false
+		_movendo = false
+	elif _gesto:
 		_cancelar_gesto()
 	else:
 		peca = ""
@@ -206,6 +270,7 @@ func _tecla(e: InputEventKey) -> void:
 		KEY_N: mudar_nivel(1, true)
 		KEY_PAGEUP: mudar_nivel(1)
 		KEY_PAGEDOWN: mudar_nivel(-1)
+		KEY_ENTER, KEY_KP_ENTER: _construir_pendente()
 		KEY_ESCAPE:
 			if _ativo() or _gesto: cancelar()
 			else: mundo.abrir_pausa()
@@ -239,22 +304,32 @@ func _mouse_botao(e: InputEventMouseButton) -> void:
 			if e.pressed:
 				if barra.sobre_interface(e.position):
 					return
-				if _ativo():
+				if _ativo() and (not _pendente or _movendo or _perto_do_holograma(e.position)):
 					_mirar(e.position)
 					_gesto = true
 					_inicio = _cursor
+					_arrastando_pend = _pendente and _perto_do_holograma(e.position)
 				else:
 					_arrasto_camera = true
 					_clique_ini = e.position
 			else:
 				if _clique_ini != Vector2.INF and _clique_ini.distance_to(e.position) < 8.0:
-					_selecionar(e.position)
+					if _pendente:
+						_mirar(e.position)
+						_tile_pend = _cursor                  # toque noutro lugar: o holograma vai para lá
+						_chave_plano = ""
+					else:
+						_selecionar(e.position)
 				_clique_ini = Vector2.INF
 				if _gesto:
 					_mirar(e.position)
-					_atualizar()
-					_confirmar()
+					if _usa_pendente():
+						_soltar_pendente()
+					else:
+						_atualizar()
+						_confirmar()
 					_gesto = false
+					_arrastando_pend = false
 				_arrasto_camera = false
 	_atualizar()
 
@@ -276,9 +351,10 @@ func _toque(e: InputEventScreenTouch) -> void:
 		if _toques.is_empty() and barra.sobre_interface(e.position):
 			return
 		_toques[e.index] = e.position
-		if _toques.size() == 1 and _ativo():
+		if _toques.size() == 1 and _ativo() and (not _pendente or _movendo or _perto_do_holograma(e.position)):
 			_dedo = e.index
 			_gesto = true
+			_arrastando_pend = _pendente and _perto_do_holograma(e.position)
 			_mirar(e.position)
 			_inicio = _cursor
 		elif _toques.size() == 1:
@@ -292,13 +368,22 @@ func _toque(e: InputEventScreenTouch) -> void:
 			return
 		_toques.erase(e.index)
 		if _clique_ini != Vector2.INF and _toques.is_empty() and _clique_ini.distance_to(e.position) < 14.0:
-			_selecionar(e.position)                 # toque curto de mão vazia = ver a peça/trem
+			if _pendente:
+				_mirar(e.position)
+				_tile_pend = _cursor                    # toque noutro lugar: o holograma vai para lá
+				_chave_plano = ""
+			else:
+				_selecionar(e.position)             # toque curto de mão vazia = ver a peça/trem
 		_clique_ini = Vector2.INF
 		if _gesto and e.index == _dedo:
 			_mirar(e.position)
-			_atualizar()
-			_confirmar()
+			if _usa_pendente():
+				_soltar_pendente()
+			else:
+				_atualizar()
+				_confirmar()
 			_cancelar_gesto()
+			_arrastando_pend = false
 		if _toques.size() < 2:
 			_pinca = 0.0
 		if _toques.is_empty():
@@ -350,14 +435,20 @@ func _mirar(tela: Vector2) -> void:
 # ------------------------------------------------------------------ plano + fantasma + dica
 func _atualizar() -> void:
 	barra.pode_desfazer(construtor.pode_desfazer())
-	var mostrar := _ativo() and _cursor_valido and (_gesto or not _por_toque)
+	if _pendente and not _usa_pendente():
+		_pendente = false
+	if _pendente and _gesto and _arrastando_pend and _cursor_valido:
+		_tile_pend = _cursor                          # arrastando o holograma
+	var mostrar := _ativo() and (_pendente or (_cursor_valido and (_gesto or not _por_toque)))
 	if not mostrar:
+		barra.acoes_em(Vector2.INF, false, false)
 		fantasma.limpar()
 		_plano.clear()
 		_chave_plano = ""
 		barra.dica(_dica_parada(), false)
 		return
-	var chave := "%s|%s|%d|%s|%s|%s|%d" % [peca, removendo, rot, _inicio, _cursor, _gesto, construtor.nivel]
+	var alvo := _tile_pend if _pendente else _cursor
+	var chave := "%s|%s|%d|%s|%s|%s|%d|%s" % [peca, removendo, rot, _inicio, alvo, _gesto, construtor.nivel, _pendente]
 	if chave != _chave_plano:
 		_chave_plano = chave
 		var a := _inicio if _gesto else _cursor
@@ -368,9 +459,16 @@ func _atualizar() -> void:
 		elif Construtor.arrastavel(peca):
 			_plano = construtor.plano_linha(peca, a, _cursor, rot)
 		else:
-			_plano = construtor.plano_peca(peca, _cursor, rot)
+			_plano = construtor.plano_peca(peca, alvo, rot)
 		fantasma.mostrar(_plano, removendo)
 		_previa_fios()
+	if _pendente:
+		var c := Grade.centro_da_area(_tile_pend, Registro.area(peca), rot)
+		var tela := camera.unproject_position(Grade.ponto_mundo(c))
+		var raio := camera.unproject_position(Grade.ponto_mundo(c + Vector2(0, -Registro.area(peca).y * 0.6))).y - tela.y
+		barra.acoes_em(tela + Vector2(0, absf(raio)), Construtor.pode_tudo(_plano), _movendo)
+	else:
+		barra.acoes_em(Vector2.INF, false, false)
 	_dica_do_plano()
 
 
@@ -425,6 +523,10 @@ func _dica_peca() -> String:
 		return _dica_parada()
 	var acao := "toque" if _por_toque else "clique"
 	var t := "%s — %s para pôr" % [barra.rotulo(peca), acao]
+	if _usa_pendente():
+		t = "%s — %s no mapa para posicionar; depois Girar, Mover e Construir" % [barra.rotulo(peca), acao]
+		if _pendente:
+			t = "%s — arraste o holograma para mover · ✓ Construir" % barra.rotulo(peca)
 	if construtor.cobrar:
 		if construtor.pesquisa != null and not construtor.pesquisa.peca_liberada(peca):
 			return "%s — precisa pesquisar: %s (botão Pesquisa)" % [barra.rotulo(peca), construtor.pesquisa.quem_libera(peca)]
@@ -471,6 +573,8 @@ func _motivo_legivel(it: Dictionary) -> String:
 
 
 func _process(_d: float) -> void:
+	if _pendente:
+		_atualizar()                                  # a barra de ações acompanha o holograma quando a câmera anda
 	# o aviso ("Construído: 5") some sozinho
 	if _aviso != "" and Time.get_ticks_msec() >= _aviso_ate:
 		_aviso = ""
