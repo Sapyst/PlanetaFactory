@@ -299,7 +299,15 @@ static func _chao_dados(c: ChunkDados, gerador: GeradorMundo) -> Dictionary:
 			# rio e lago pelo tile; mar pelo campo contínuo (costa natural, praia em rampa)
 			ag[j * lado + i] = 1.0 if gerador.eh_agua(ter) and ter != GeradorMundo.Terreno.MAR and ter != GeradorMundo.Terreno.OCEANO else 0.0
 			if ter == GeradorMundo.Terreno.RIO:
-				rio[t] = true
+				rio[t] = gerador.direcao_rio(t)
+	# relevo e elevação contínuos: variam devagar (ruídos de baixa frequência) — calculados uma vez por canto de
+	# tile e interpolados nos vértices (igual ao cálculo direto a olho, ~9× menos ruído)
+	var lc := n + 5
+	var campo := PackedVector2Array()
+	campo.resize(lc * lc)
+	for j in lc:
+		for i in lc:
+			campo[j * lc + i] = gerador.campos_em(Vector2(base + Vector2i(i - 2, j - 2)))
 	var v := n * SUB + 1
 	var alt := PackedFloat32Array()            # (v + 2)²: uma volta a mais para as normais
 	alt.resize((v + 2) * (v + 2))
@@ -307,44 +315,55 @@ static func _chao_dados(c: ChunkDados, gerador: GeradorMundo) -> Dictionary:
 	agua_v.resize((v + 2) * (v + 2))
 	var mar_v := PackedVector2Array()           # (fração de mar, fração de fundo) por vértice
 	mar_v.resize((v + 2) * (v + 2))
+	var relevo := gerador.relevo_ativo
 	for vj in v + 2:
 		for vi in v + 2:
 			var g := Vector2(base) + Vector2(vi - 1, vj - 1) / float(SUB)
-			# relevo contínuo no ponto (o tile (i, j) usa o valor do seu canto, por isso −0,5): encosta em curva
-			var h := GeradorMundo.patamar(gerador.relevo_em(g - Vector2(0.5, 0.5)))
+			# campo contínuo no ponto (o tile (i, j) usa o valor do seu canto, por isso −0,5)
+			var s := g - Vector2(0.5, 0.5) - Vector2(base) + Vector2(2, 2)
+			var ci := clampi(floori(s.x), 0, lc - 2)
+			var cj := clampi(floori(s.y), 0, lc - 2)
+			var fx := s.x - ci
+			var fy := s.y - cj
+			var cp := campo[cj * lc + ci].lerp(campo[cj * lc + ci + 1], fx).lerp(campo[(cj + 1) * lc + ci].lerp(campo[(cj + 1) * lc + ci + 1], fx), fy)
+			var h := GeradorMundo.patamar(cp.x)
+			var e := cp.y
+			# água de rio/lago pelo tile: fração bilinear (suavizada) dos 4 centros em volta
 			var q := g - Vector2(0.5, 0.5) - Vector2(base) + Vector2(mg, mg)
 			var i0 := clampi(floori(q.x), 0, lado - 2)
 			var j0 := clampi(floori(q.y), 0, lado - 2)
-			var f := Vector2(clampf(q.x - i0, 0.0, 1.0), clampf(q.y - j0, 0.0, 1.0))
-			f = f * f * (Vector2(3, 3) - 2.0 * f)
-			var a4 := [ag[j0 * lado + i0], ag[j0 * lado + i0 + 1], ag[(j0 + 1) * lado + i0], ag[(j0 + 1) * lado + i0 + 1]]
-			var wa := lerpf(lerpf(a4[0], a4[1], f.x), lerpf(a4[2], a4[3], f.x), f.y)
-			agua_v[vj * (v + 2) + vi] = wa
-			if wa > 0.0:
-				# superfície da água = nível dos tiles de água em volta (mar, leito do rio, fundo do lago)
-				var pw := [(1.0 - f.x) * (1.0 - f.y), f.x * (1.0 - f.y), (1.0 - f.x) * f.y, f.x * f.y]
-				var ids := [j0 * lado + i0, j0 * lado + i0 + 1, (j0 + 1) * lado + i0, (j0 + 1) * lado + i0 + 1]
-				var sw := 0.0
-				var sl := 0.0
-				for m in 4:
-					sw += pw[m] * a4[m]
-					sl += pw[m] * a4[m] * nv[ids[m]]
-				if sw > 0.0:
-					h = lerpf(h, sl / sw, smoothstep(0.0, 0.6, wa))
-			# mar: costa pela elevação contínua (e baixada abaixo do nível do mar ligada à costa); a praia desce em
-			# rampa até o nível do mar
-			var e := gerador.elevacao_em(g - Vector2(0.5, 0.5))
+			var ux := clampf(q.x - i0, 0.0, 1.0)
+			var uy := clampf(q.y - j0, 0.0, 1.0)
+			ux = ux * ux * (3.0 - 2.0 * ux)
+			uy = uy * uy * (3.0 - 2.0 * uy)
+			var k00 := j0 * lado + i0
+			var a0 := ag[k00]
+			var a1 := ag[k00 + 1]
+			var a2 := ag[k00 + lado]
+			var a3 := ag[k00 + lado + 1]
+			var wa := 0.0
+			if a0 + a1 + a2 + a3 > 0.0:
+				var w0 := (1.0 - ux) * (1.0 - uy) * a0
+				var w1 := ux * (1.0 - uy) * a1
+				var w2 := (1.0 - ux) * uy * a2
+				var w3 := ux * uy * a3
+				wa = w0 + w1 + w2 + w3
+				# superfície = nível dos tiles de água em volta (leito do rio, fundo do lago)
+				var sl := w0 * nv[k00] + w1 * nv[k00 + 1] + w2 * nv[k00 + lado] + w3 * nv[k00 + lado + 1]
+				h = lerpf(h, sl / wa, smoothstep(0.0, 0.6, wa))
+			# mar: costa pela elevação contínua (e baixada abaixo do nível do mar perto da costa); praia em rampa
 			var baixada := 0.0
-			if e < 0.02 and gerador.relevo_ativo:
-				baixada = smoothstep(-1.42, -1.58, gerador.relevo_em(g - Vector2(0.5, 0.5))) * smoothstep(0.02, -0.02, e)
+			if e < 0.02 and relevo:
+				baixada = smoothstep(-1.42, -1.58, cp.x) * smoothstep(0.02, -0.02, e)
 			var mar := maxf(smoothstep(-0.165, -0.195, e), baixada)
 			var rampa := maxf(smoothstep(-0.10, -0.18, e), baixada)
-			if rampa > 0.0 and gerador.relevo_ativo:
+			if rampa > 0.0 and relevo:
 				h = lerpf(h, float(GeradorMundo.NIVEL_MAR), rampa)
-			mar_v[vj * (v + 2) + vi] = Vector2(mar, smoothstep(-0.27, -0.36, e))
+			var kk := vj * (v + 2) + vi
+			mar_v[kk] = Vector2(mar, smoothstep(-0.27, -0.36, e))
 			wa = maxf(wa, mar)
-			agua_v[vj * (v + 2) + vi] = wa
-			alt[vj * (v + 2) + vi] = h * Grade.ALT_NIVEL - 0.12 * pow(wa, 1.5)
+			agua_v[kk] = wa
+			alt[kk] = h * Grade.ALT_NIVEL - 0.12 * wa * sqrt(wa)
 	var verts := PackedVector3Array()
 	var normais := PackedVector3Array()
 	var cores := PackedColorArray()
@@ -364,16 +383,17 @@ static func _chao_dados(c: ChunkDados, gerador: GeradorMundo) -> Dictionary:
 			var dx := (alt[k + 1] - alt[k - 1]) / (2.0 * passo)
 			var dy := (alt[k + (v + 2)] - alt[k - (v + 2)]) / (2.0 * passo)
 			normais[vj * v + vi] = Vector3(-dx, 1.0, dy).normalized()
-			# pé de barranco escurece: quanto o terreno em volta (até ~1 tile) é mais alto que aqui
-			var oc := 0.0
-			for o in [Vector2i(2, 0), Vector2i(-2, 0), Vector2i(0, 2), Vector2i(0, -2), Vector2i(1, 1), Vector2i(-1, 1), Vector2i(1, -1), Vector2i(-1, -1)]:
-				var xi := clampi(vi + 1 + o.x, 0, v + 1)
-				var yj := clampi(vj + 1 + o.y, 0, v + 1)
-				oc += maxf(0.0, alt[yj * (v + 2) + xi] - alt[k])
-			oclusao[vj * v + vi] = Vector2(clampf(oc * 0.22, 0.0, 1.0), 0.0)
+			# pé de barranco escurece: quanto o terreno a ~2/3 de tile em volta é mais alto que aqui
+			var hk := alt[k]
+			var l2 := maxi(vi - 1, 0) + (vj + 1) * (v + 2)
+			var r2 := mini(vi + 3, v + 1) + (vj + 1) * (v + 2)
+			var d2 := (vi + 1) + maxi(vj - 1, 0) * (v + 2)
+			var u2 := (vi + 1) + mini(vj + 3, v + 1) * (v + 2)
+			var oc := maxf(0.0, alt[l2] - hk) + maxf(0.0, alt[r2] - hk) + maxf(0.0, alt[d2] - hk) + maxf(0.0, alt[u2] - hk)
+			oclusao[vj * v + vi] = Vector2(clampf(oc * 0.42, 0.0, 1.0), 0.0)
 			mar_out[vj * v + vi] = mar_v[k]
 			var t := Vector2i(floori(g.x - 0.001 if vi == v - 1 else g.x), floori(g.y - 0.001 if vj == v - 1 else g.y))
-			var fl := gerador.direcao_rio(t) if rio.has(t) else Vector2.ZERO
+			var fl: Vector2 = rio.get(t, Vector2.ZERO)
 			cores[vj * v + vi] = Color(agua_v[k], 0.5 + 0.5 * fl.x, 0.5 + 0.5 * fl.y, 1.0 if rio.has(t) else 0.0)
 	var idx := PackedInt32Array()
 	idx.resize((v - 1) * (v - 1) * 6)

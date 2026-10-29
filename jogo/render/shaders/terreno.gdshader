@@ -126,6 +126,13 @@ void fragment() {
 		vec2 corre_onda = fluxo.z > 0.5 ? vec2(fluxo.x, -fluxo.y) * 0.12 : vec2(0.05, 0.0);
 		onda = texture(detalhe, mundo.xz * 0.12 + corre_onda * TIME).r;
 		c_agua *= 0.9 + 0.25 * onda;
+		// cachoeira/corredeira: onde a superfície da água inclina, espuma branca correndo rio abaixo
+		float queda = smoothstep(0.992, 0.90, normal_mundo.y);
+		if (queda > 0.0) {
+			vec2 desce = normalize(vec2(normal_mundo.x, normal_mundo.z) + vec2(1e-4));
+			float estria = texture(detalhe, vec2(dot(mundo.xz, vec2(-desce.y, desce.x)) * 0.9, dot(mundo.xz, desce) * 0.25 - TIME * 1.6)).r;
+			c_agua = mix(c_agua, vec3(0.86, 0.9, 0.92), queda * smoothstep(0.35, 0.75, estria) * 0.9);
+		}
 		// espuma rala bem na linha da margem
 		c_agua = mix(c_agua, vec3(0.62, 0.66, 0.66), smoothstep(0.62, 0.5, wf) * 0.35 * smoothstep(0.4, 0.7, onda));
 	}

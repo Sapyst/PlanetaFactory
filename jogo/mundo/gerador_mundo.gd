@@ -159,10 +159,16 @@ func nivel_bruto(tile: Vector2i) -> int:
 ## Relevo contínuo (em níveis, sem arredondar) num ponto qualquer: o nível do tile é este valor arredondado no
 ## canto do tile; o desenho do chão usa o valor em cada ponto — a encosta segue a curva do ruído, não a grade.
 func relevo_em(p: Vector2) -> float:
+	return campos_em(p).x
+
+
+## (relevo contínuo, elevação continental) no ponto, calculando a elevação uma vez só (desenho do chão).
+func campos_em(p: Vector2) -> Vector2:
+	var e := elevacao_em(p)
 	if not relevo_ativo:
-		return 0.0
-	var r := _relevo.get_noise_2d(p.x, p.y) * 1.5 + (elevacao_em(p) - 0.25) * 0.9
-	return clampf(r * smoothstep(42.0, 95.0, p.length()) * 2.4, -3.49, 3.49)
+		return Vector2(0.0, e)
+	var r := _relevo.get_noise_2d(p.x, p.y) * 1.5 + (e - 0.25) * 0.9
+	return Vector2(clampf(r * smoothstep(42.0, 95.0, p.length()) * 2.4, -3.49, 3.49), e)
 
 
 ## Altura desenhada (em níveis) a partir do relevo contínuo: patamar plano e encosta curta onde cruza um meio nível.
