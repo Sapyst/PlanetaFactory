@@ -35,6 +35,15 @@ def boca_ht(p, m, lado, k, io, larg=0.44):
     m.porta('ITEM', io, lado, k)
 
 
+def pistao(m, p, n, x, y, z, curso=0.16, h=0.34, r=0.075):
+    """Pistão vertical: camisa escura fixa + haste de aço com cabeça de luz (parte 'pistaoN': comprime/descomprime)."""
+    p.cil((x, y, z + h/2), r + 0.035, h, 'P_Escuro', lados=8)
+    p.cil((x, y, z + h + 0.014), r + 0.045, 0.024, 'P_Aco', lados=8, rot=0.2)
+    hs = m.parte('pistao%d' % n, pai='corpo', pivo=(x, y, z + h))
+    hs.cil((x, y, z + h + curso/2 + 0.03), r*0.55, curso + 0.06, 'P_Metal', lados=6)
+    hs.cil((x, y, z + h + curso + 0.08), r + 0.01, 0.05, 'P_Cristal', lados=8)
+
+
 def base_ht(p, w, d, h=0.10):
     """Placa grafite chanfrada com um veio de luz rente à borda."""
     v = p.caixa(-w/2 + RECUO, w/2 - RECUO, -d/2 + RECUO, d/2 - RECUO, 0, h, 'P_Escuro'); p.chanfrar(v, 0.05)
@@ -130,6 +139,7 @@ def fornalha():
         p.cil((0, 0.05, z), 0.60, 0.05, 'P_Cobre', lados=12)
     v = p.cil((0, 0.05, 1.02), 0.52, 0.26, 'P_Escuro', lados=8, rot=PI/8, r2=0.36); p.chanfrar(v, 0.03)
     p.cil((0, 0.05, 1.16), 0.30, 0.05, 'P_Fogo', lados=8, rot=PI/8)
+    pistao(m, p, 0, -0.66, 0.70, 0.10); pistao(m, p, 1, -0.66, -0.62, 0.10)     # lado oeste (bocas ficam a leste)
     for k in range(8):                                         # nervuras de dissipação rentes ao cadinho
         a = PI/8 + k*PI/4
         p.caixa_c(math.cos(a)*0.80, 0.05 + math.sin(a)*0.80, 0.42, 0.06, 0.16, 0.58, 'P_Escuro', rot=a)

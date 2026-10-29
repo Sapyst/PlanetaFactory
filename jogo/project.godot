@@ -61,3 +61,7 @@ visao_recursos={
 "type": "float",
 "value": 0.0
 }
+piso_crescer={
+"type": "vec3",
+"value": Vector3(0, 0, 1e+06)
+}

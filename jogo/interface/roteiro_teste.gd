@@ -33,6 +33,7 @@ func _ready() -> void:
 		"encosta": _roteiro_encosta()
 		"aplainar": _roteiro_aplainar()
 		"aranha": _roteiro_aranha()
+		"montagem": _roteiro_montagem()
 		"recursos":
 			em(4, func(): cena.controle.alternar_recursos())
 			em(6, func(): mover(tela(Vector2i(-15, -9))))
@@ -337,6 +338,23 @@ func _roteiro_aplainar() -> void:
 		for x in [-6, -3, 3, 6]:
 			cena.sincronizar(con.executar(con.plano_peca("fornalha", c + Vector2i(x, 3), 0)))
 		print("APLAINAR ok, central: ", cena.mapa.tem_terraplenagem()))
+
+
+## Animação de construção: três máquinas postas uma depois da outra num chão vazio (a montagem e o piso crescendo).
+func _roteiro_montagem() -> void:
+	em(2, func():
+		cena.controle.barra.visible = false
+		Sessao.config.fps = false
+		cena.animar_tudo = true
+		for x in range(-14, -1):
+			for y in range(-16, -6):
+				cena.mapa.limpar_obstaculo(Vector2i(x, y)))
+	var pecas := [["fornalha", Vector2i(-12, -12)], ["montadora", Vector2i(-8, -13)], ["gerador", Vector2i(-4, -12)]]
+	for i in pecas.size():
+		var p: Array = pecas[i]
+		em(20 + i * 45, func():
+			var con: Construtor = cena.construtor
+			cena.sincronizar(con.executar(con.plano_peca(p[0], p[1], 0))))
 
 
 ## Aranha andando de perto (GIF da animação): uma aranha solta circulando no chão plano do início.

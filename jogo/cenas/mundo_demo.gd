@@ -397,9 +397,15 @@ func sincronizar(rel: Dictionary) -> void:
 	for ap in rel.get("aplainados", []):
 		for d in [Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(1, 1)]:
 			tocados[Grade.chunk_de(ap[0] + d)] = true
+	var centros: Array = []
+	for id in rel.colocados:
+		if mapa.estruturas.has(id):
+			var en: Dictionary = mapa.estruturas[id]
+			if not DesenhoLotes.aceita(en.nome):
+				centros.append(Grade.centro_da_area(en.minimo, en.area, en.rot))
 	for k in tocados:
 		if chunks.has(k) and not redesenhar.has(k):
-			chunks[k].atualizar(mapa)
+			chunks[k].atualizar(mapa, centros)
 	var religar := {}
 	for t in muros:
 		for d in [Vector2i.ZERO] + Array(Grade.DIRECOES):
@@ -439,15 +445,16 @@ func _criar_no(id: int, nova := false) -> Node3D:
 	Materiais.converter(n)
 	n.position = pos
 	n.rotation.y = ang
+	var a: Animador = null
 	if Registro.modelos[e.nome].get("partes", []).size() > 1:      # só quem tem peça móvel (esteira não)
-		var a := Animador.new()
+		a = Animador.new()
 		a.ativo = not nova
 		n.add_child(a)
 	_nos[id] = n
 	if nova:
-		n.scale = Vector3(1.0, 0.2, 1.0)
-		var tw := n.create_tween()
-		tw.tween_property(n, "scale", Vector3.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		var mo := Montagem.new()               # monta parte por parte; o Animador assume no fim
+		mo.animador = a
+		n.add_child(mo)
 	return n
 
 

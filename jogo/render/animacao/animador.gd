@@ -54,6 +54,12 @@ func _process(delta: float) -> void:
 		_gira("braco", sin(t * 1.7) * 0.9)
 	if tem("braco1"):
 		_braco_mecanico()
+	# pistões: comprimem e descomprimem em fases alternadas (só trabalhando)
+	var k := 0
+	while tem("pistao%d" % k):
+		var c := 0.5 - 0.5 * cos(t * 5.5 + k * PI) if ativo else 0.0
+		_desloca("pistao%d" % k, Vector3(0, -0.15 * c, 0))
+		k += 1
 	if tem("canhao") and (alvo != null or ponto_alvo != Vector3.INF):
 		_mirar()
 

@@ -309,6 +309,24 @@
      0.0,
      0.0
     ]
+   },
+   {
+    "nome": "pistao0",
+    "pai": "corpo",
+    "pivo": [
+     -0.66,
+     0.7,
+     0.44
+    ]
+   },
+   {
+    "nome": "pistao1",
+    "pai": "corpo",
+    "pivo": [
+     -0.66,
+     -0.62,
+     0.44
+    ]
    }
   ],
   "portas": [
@@ -343,7 +361,7 @@
     ]
    }
   ],
-  "tris": 628,
+  "tris": 836,
   "dims": [
    1.9,
    2.0,
@@ -355,7 +373,8 @@
    "P_Concreto",
    "P_Cristal",
    "P_Escuro",
-   "P_Fogo"
+   "P_Fogo",
+   "P_Metal"
   ],
   "erros": []
  },

@@ -19,6 +19,7 @@ uniform float camada_jazida = 7.0;  // zona de minério nunca vira piso
 uniform float primeira_agua = 8.0;
 uniform float escala = 0.25;
 uniform float camada_rocha = 3.0;
+global uniform vec3 piso_crescer;   // (x, y da grade, raio): piso de fábrica só até esse raio (abertura); 1e6 = livre
 uniform float alt_nivel = 1.0;      // metros por nível de relevo   // barranco (encosta íngreme) mostra pedra
 #include "res://render/shaders/clima.gdshaderinc"
 
@@ -130,6 +131,11 @@ void fragment() {
 				+ fabrica_em(grade + vec2(w2.y, -w1.x) * 1.4) + fabrica_em(grade);
 		f = smoothstep(0.18, 0.55, f * 0.25);
 		if (camada == camada_jazida || a == camada_jazida) { f = 0.0; }   // recurso fica à vista
+		if (piso_crescer.z < 1.0e5) {
+			// cresce do centro com borda irregular (o mesmo ruído das bordas)
+			float r = piso_crescer.z * (0.85 + 0.3 * d) + w1.x * 1.2;
+			f *= smoothstep(r, r - 1.2, distance(grade, piso_crescer.xy));
+		}
 		if (f > 0.0) {
 			vec3 piso = texture(texturas, vec3(grade * vec2(0.25, -0.25), camada_piso)).rgb;
 			c_terra = mix(c_terra, piso, f);

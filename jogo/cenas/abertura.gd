@@ -51,6 +51,10 @@ var _env: Environment
 var _guardado := {}
 var _tex_macia: Texture2D
 var _raios: Sprite3D
+var _sois: Array[Sprite3D] = []       ## núcleo, halo e raios do sol (reposicionados a cada quadro na borda do planeta)
+var _centro_planeta := Vector3.ZERO
+var _raio_planeta := 0.0
+var _crescer := -1.0                  ## tempo desde o pouso (o piso de fábrica cresce em volta)
 
 
 func _ready() -> void:
@@ -58,7 +62,8 @@ func _ready() -> void:
 	_tex_macia = _textura_macia()
 	_cam = Camera3D.new()
 	_cam.fov = 50.0
-	_cam.far = 9000.0
+	_cam.far = 30000.0
+	_cam.near = 2.0                 # no espaço: precisão de profundidade para o planeta cobrir o sol
 	add_child(_cam)
 	_cam.make_current()
 	if barra != null:
@@ -72,6 +77,7 @@ func _ready() -> void:
 	_criar_tela()
 	nucleo.visible = false
 	_cam.environment = _amb_espaco
+	_piso(0.0)
 	_posicionar(0.0)
 
 
@@ -118,6 +124,7 @@ func _fase_espaco(t: float, delta: float) -> void:
 	_nave.global_position = ESPACO + Vector3(-8.0 + t * 1.6, 0, 0) + Vector3(0, s * s * 0.6, 0)
 	if _raios != null:
 		_raios.rotation.z = t * 0.05                       # raios do sol girando devagar
+	_por_sol()
 	var quente := smoothstep(T_SOLTA + 0.9, T_BRANCO, t)
 	_calor.global_position = pos + Vector3(0, -1.6, 0)
 	_calor.modulate = Color(1.0, 0.55, 0.25, 0.85 * quente)
@@ -138,11 +145,29 @@ func _fase_espaco(t: float, delta: float) -> void:
 		_cam.look_at(pos + Vector3(0, -8.0 - s * 6.0, -14.0))
 
 
+## Sol exatamente na borda do planeta vista da câmera, longe atrás dele: o planeta cobre a metade de baixo.
+func _por_sol() -> void:
+	var cam := _cam.global_position
+	var para := _centro_planeta - cam
+	var d := para.length()
+	var v := para / d
+	var ang := asin(clampf(_raio_planeta / d, 0.0, 1.0))
+	var lado := (_cam.global_basis.y + _cam.global_basis.x * 0.45)       # na borda de cima, um pouco à direita
+	var u := (lado - v * lado.dot(v)).normalized()
+	var dir := v * cos(ang) + u * sin(ang)
+	var dist := d * 2.5                                               # atrás do planeta (dentro do far da câmera)
+	for sp in _sois:
+		sp.global_position = cam + dir * dist
+		sp.pixel_size = float(sp.get_meta("tam")) * dist / float(sp.texture.get_width())
+
+
 # ------------------------------------------------------------------ 2/3. mapa
 func _ir_para_mapa() -> void:
 	_no_mapa = true
 	_espaco.visible = false
 	_cam.environment = null
+	_cam.near = 0.05
+	_cam.far = 900.0
 	nucleo.visible = true
 	for n in _nuvens:
 		n.visible = true
@@ -163,9 +188,13 @@ func _fase_mapa(t: float, delta: float) -> void:
 		_rastro.emitting = false
 		if not _impacto:
 			_impacto = true
+			_crescer = 0.0
 			if not _pulando:
 				_bater()
 	_rastro.global_position = nucleo.global_position + Vector3(0, 1.2, 0)
+	if _crescer >= 0.0:
+		_crescer += delta
+		_piso(5.5 * smoothstep(0.0, 2.6, _crescer))       # o piso se espalha a partir do núcleo pousado
 	var tq := t - T_CHAO
 	if tq > 0.0 and tq < 1.4 and not _pulando:
 		var s := 1.0 + sin(tq * 9.0) * 0.08 * exp(-tq * 3.0)
@@ -226,7 +255,13 @@ func _tela(t: float) -> void:
 		_texto.modulate.a = 1.0 - smoothstep(T_CAMERA + 0.8, T_FIM - 0.2, t)
 
 
+## Raio (tiles) até onde o piso de fábrica aparece em volta do núcleo; ≥ 1e5 = sem limite (jogo normal).
+func _piso(raio: float) -> void:
+	RenderingServer.global_shader_parameter_set("piso_crescer", Vector3(_final.x, -_final.z, raio))
+
+
 func _acabar() -> void:
+	_piso(1.0e6)
 	if _env != null:
 		_env.fog_density = _guardado.densidade
 	nucleo.position = _final
@@ -287,17 +322,18 @@ func _criar_espaco() -> void:
 		_espaco.add_child(mi)
 		mi.global_position = centro
 	# sol amarelo forte atrás da borda do planeta, com halo e raios (giram devagar)
-	var pos_sol := centro + sol_dir * (raio + 1400.0) + Vector3(0, 380, 0)
+	_centro_planeta = centro
+	_raio_planeta = raio
 	for k in 3:
 		var sp := Sprite3D.new()
 		sp.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		sp.shaded = false
 		sp.texture = load("res://assets/texturas/sol_raios.png" if k == 2 else "res://assets/texturas/sol.png")
-		sp.pixel_size = [3.2, 9.0, 7.5][k]
+		sp.set_meta("tam", [0.16, 0.55, 0.85][k])          # tamanho aparente na tela (radianos)
 		sp.modulate = [Color(2.2, 2.0, 1.4), Color(1.4, 1.1, 0.55, 0.55), Color(1.6, 1.35, 0.8, 0.85)][k]
 		sp.render_priority = k
 		_espaco.add_child(sp)
-		sp.global_position = pos_sol
+		_sois.append(sp)
 		if k == 2:
 			_raios = sp
 	# estrelas

@@ -359,7 +359,7 @@ def texturizar(json_arq):
     bpy.context.view_layer.objects.active = objs[0]
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.01, scale_to_bounds=True)
+    bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.02, scale_to_bounds=True)
     bpy.ops.object.mode_set(mode='OBJECT')
     # materiais: especiais ficam (cópia só para o assado); os outros viram procedurais
     originais = {}
@@ -375,6 +375,15 @@ def texturizar(json_arq):
                 t = cp.node_tree.nodes.new('ShaderNodeTexImage')
                 t.image = img
                 cp.node_tree.nodes.active = t
+                # no atlas a ilha do especial fica neutra escura: o jogo usa o material próprio dele, e a cor forte
+                # (ciano/laranja) vazava pelas margens para as faces vizinhas como manchas ("glitch" azul)
+                for nd in cp.node_tree.nodes:
+                    if nd.type == 'BSDF_PRINCIPLED':
+                        nd.inputs['Base Color'].default_value = (0.05, 0.05, 0.055, 1.0)
+                        if 'Emission Strength' in nd.inputs:
+                            nd.inputs['Emission Strength'].default_value = 0.0
+                    elif nd.type == 'EMISSION':
+                        nd.inputs['Strength'].default_value = 0.0
                 o.data.materials[i] = cp
                 cp['original'] = m.name
             elif not m.get('assado'):

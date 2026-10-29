@@ -126,10 +126,57 @@ func montar(d: Dictionary, mapa: MapaOcupacao = null) -> void:
 
 
 ## Construção mudou neste chunk: piso de fábrica e objetos naturais escondidos.
-func atualizar(mapa: MapaOcupacao) -> void:
+## `crescer_de`: centros (grade) de construções novas — o piso novo se espalha a partir deles em vez de surgir.
+func atualizar(mapa: MapaOcupacao, crescer_de: Array = []) -> void:
 	_mapa = mapa
+	var antiga: Image = null
+	if not crescer_de.is_empty() and _img_fabrica != null:
+		antiga = _img_fabrica.duplicate() as Image
 	atualizar_fabrica()
+	if antiga != null:
+		_img_final = _img_fabrica.duplicate() as Image
+		_img_antiga = antiga
+		_centros_crescer = crescer_de
+		_t_crescer = 0.0
+		_compor_crescer()
+		set_process(true)
 	refazer_objetos()
+
+
+var _img_final: Image
+var _img_antiga: Image
+var _centros_crescer: Array = []
+var _t_crescer := -1.0
+const T_CRESCER := 1.6
+
+
+func _process(delta: float) -> void:
+	if _t_crescer < 0.0:
+		set_process(false)
+		return
+	_t_crescer += delta
+	_compor_crescer()
+	if _t_crescer >= T_CRESCER:
+		_t_crescer = -1.0
+		_img_antiga = null
+
+
+## Mistura antiga → final por distância ao centro mais perto; o raio cresce suave (o chão "se prolifera").
+func _compor_crescer() -> void:
+	var n := Grade.TAM_CHUNK
+	var base: Vector2i = _dados.coord * n
+	var r := 7.0 * smoothstep(0.0, T_CRESCER, maxf(_t_crescer, 0.0))
+	for j in n + 2:
+		for i in n + 2:
+			var g := Vector2(base + Vector2i(i - 1, j - 1)) + Vector2(0.5, 0.5)
+			var dmin := 1e9
+			for c in _centros_crescer:
+				dmin = minf(dmin, g.distance_to(c))
+			var k := clampf((r - dmin) / 1.5 + 0.5, 0.0, 1.0)
+			var a := _img_antiga.get_pixel(i, j)
+			var b := _img_final.get_pixel(i, j)
+			_img_fabrica.set_pixel(i, j, Color(lerpf(a.r, b.r, k), b.g if k > 0.5 else a.g, lerpf(a.b, b.b, k)))
+	_tex_fabrica.update(_img_fabrica)
 
 
 ## Mapa 34×34 (chunk + margem): 1 onde há construção no chão (o shader espalha o piso de fábrica a partir daí).

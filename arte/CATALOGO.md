@@ -92,7 +92,7 @@ Texturas de chão em `texturas/` (loop sem emenda; relatório em `texturas/_emen
 |---|---|---|---|---|---|
 | `broca_minerio` | 2×2 | 480 | 1,90 × 1,95 × 1,85 | ITEM_SAI_S0 · partes: rotor | Broca de minério (ferro, cobre, pedra, carvão, sílex). Saída sul (tile da esquerda). |
 | `extrator_cristal` | 3×3 | 840 | 2,90 × 2,95 × 3,20 | ITEM_SAI_S1 · partes: cristal, hastes | Extrator de Cristal: vai sobre jazida de cristal. Saída no meio da borda sul. |
-| `fornalha` | 2×2 | 628 | 1,90 × 2,00 × 1,19 | ITEM_ENT_S1, ITEM_SAI_N0 | fornalha de indução: cadinho octogonal, núcleo incandescente visto por frestas, bobinas de cobre e aletas de calor. Entra pelo sul, sai pelo norte. |
+| `fornalha` | 2×2 | 836 | 1,90 × 2,00 × 1,19 | ITEM_ENT_S1, ITEM_SAI_N0 · partes: pistao0, pistao1 | fornalha de indução: cadinho octogonal, núcleo incandescente visto por frestas, bobinas de cobre e aletas de calor. Entra pelo sul, sai pelo norte. |
 | `laboratorio` | 3×3 | 672 | 2,90 × 2,95 × 2,79 | ITEM_ENT_S1 · partes: antena | Laboratório: consome pacotes de pesquisa. Entra pelo sul (meio). |
 | `montadora` | 3×3 | 1026 | 2,90 × 3,00 × 1,83 | ITEM_ENT_S1, ITEM_SAI_N1 · partes: antena, cristal | montadora: câmara blindada octogonal, anel manipulador suspenso que gira e prisma de montagem de cristal. Entra pelo sul, sai pelo norte (meio). |
 | `nucleo` | 3×3 | 738 | 3,00 × 3,00 × 2,56 | ITEM_ENT_S1, ITEM_ENT_N1, ITEM_ENT_L1, ITEM_ENT_O1 · partes: cristal, antena | Núcleo: a unidade semeadora da IA. Tudo que entra (esteira nas 4 bocas ou braço) vira estoque para construir. Partes: cristal (monólito pulsa), antena (anel gira). |
