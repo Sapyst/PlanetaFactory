@@ -1,6 +1,7 @@
 {
  "_nota": "Modo 'novo': construir custa itens do núcleo (devolvidos ao remover). Limpar obstáculo dá itens. Pesquisa libera peças e receitas: laboratório consome pacotes de pesquisa.",
  "kit_inicial": {"placa_ferro": 160, "engrenagem": 60, "placa_cobre": 60, "pedra": 80, "tubo": 16, "carvao": 40, "municao": 10},
+ "custo_aplainar": {"pedra": 1},
  "custos": {
   "esteira": {"placa_ferro": 1},
   "esteira_rampa": {"placa_ferro": 2, "engrenagem": 1},
@@ -24,6 +25,7 @@
   "gerador": {"placa_ferro": 10, "tubo": 5, "pedra": 10},
   "poste_energia": {"placa_ferro": 1, "placa_cobre": 1},
   "torre_sem_fio": {"placa_cobre": 20, "circuito": 10, "cristal_lapidado": 5},
+  "terraplenagem": {"placa_ferro": 30, "engrenagem": 15, "pedra": 40},
   "torre_defesa": {"placa_ferro": 10, "engrenagem": 6, "placa_cobre": 5},
   "muro_centro": {"pedra": 5},
   "trilho_reto": {"placa_ferro": 2, "pedra": 1},
@@ -38,7 +40,7 @@
            "cacto_cristal": {"cristal_bruto": 3}, "pedregulho": {"pedra": 6}, "rocha_grande": {"pedra": 20},
            "montanha_3x3": {"pedra": 45}, "montanha_5x5": {"pedra": 120}},
  "liberado_inicio": ["esteira", "braco", "bau", "extrator_cristal", "broca_minerio", "fornalha", "montadora", "laboratorio",
-                     "gerador", "poste_energia", "muro_centro"],
+                     "gerador", "poste_energia", "muro_centro", "terraplenagem"],
  "receitas_inicio": ["fundir_ferro", "fundir_cobre", "cozer_tijolo", "fundir_vidro", "fio", "engrenagem", "tubo", "lapidar", "pesquisa"],
  "pesquisas": {
   "defesa":      {"nome": "Defesa",            "pacotes": 8,  "tempo": 4, "requer": [], "libera": ["torre_defesa"], "receitas": ["municao"]},

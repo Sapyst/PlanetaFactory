@@ -39,6 +39,14 @@ func mostrar(plano: Array[Dictionary], remover := false) -> void:
 	var ns := 0
 	for it in plano:
 		var cor := _cor(it, remover)
+		if it.get("acao", "") == "aplainar":
+			# prévia do patamar: a pegada já na altura que o chão vai ter
+			var pa := _pegada(np)
+			np += 1
+			var t: Vector2i = it.tile
+			pa.position = Vector3(t.x + 0.5, float(it.nivel) * Grade.ALT_NIVEL + 0.06, -(t.y + 0.5))
+			pa.material_override = _material(Color(cor, 0.45 if it.muda else 0.2))
+			continue
 		var nome: String = it.nome
 		var area := Registro.area(nome)
 		var no := _pegar_modelo(Registro.menu.get("icones", {}).get(nome, nome) if nome == "trem" else nome)

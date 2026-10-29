@@ -156,9 +156,44 @@ def trovao():
     return out
 
 
+def reentrada():
+    """5 s: rugido de reentrada — chiado grave que cresce e sobe de tom, com crepitar de calor."""
+    n = int(5.0 * TAXA)
+    grave = ruido_filtrado(n, 160); medio = ruido_filtrado(n, 900)
+    out = []
+    for i in range(n):
+        t = i / n
+        sobe = t ** 1.6
+        out.append(grave[i] * (0.4 + 1.6 * sobe) + medio[i] * 0.9 * sobe * (0.7 + 0.3 * math.sin(2 * math.pi * 7 * i / TAXA)))
+    for _ in range(140):
+        ini = random.randint(int(n * 0.3), n - 300); amp = random.uniform(0.1, 0.4) * ini / n
+        for i in range(250):
+            out[ini + i] += random.uniform(-1, 1) * math.exp(-i / 40.0) * amp
+    return [a * min(1.0, i / (0.4 * TAXA)) for i, a in enumerate(out)]
+
+
+def impacto():
+    """3,5 s: estrondo da queda (baque grave + onda de choque), estalo de metal e cascalho caindo."""
+    n = int(3.5 * TAXA)
+    grave = ruido_filtrado(n, 70); medio = ruido_filtrado(n, 600)
+    out = []
+    for i in range(n):
+        t = i / TAXA
+        baque = math.sin(2 * math.pi * (55 - 25 * min(t, 1.0)) * t) * math.exp(-t / 0.35) * 1.4
+        onda = grave[i] * min(1.0, t / 0.02) * math.exp(-t / 0.9) * 3.0
+        metal = sum(math.sin(2 * math.pi * f * t) for f in (310, 467, 731)) * math.exp(-t / 0.25) * 0.25
+        out.append(baque + onda + metal + medio[i] * math.exp(-t / 0.15) * 1.2)
+    for _ in range(90):
+        ini = random.randint(int(0.25 * TAXA), n - 400); amp = random.uniform(0.05, 0.25) * (1.0 - ini / n)
+        f = random.uniform(1500, 4000)
+        for i in range(380):
+            out[ini + i] += math.sin(2 * math.pi * f * i / TAXA) * math.exp(-i / 50.0) * amp
+    return out
+
+
 os.makedirs(SAIDA, exist_ok=True)
 for nome, f in [('clique', clique), ('construir', construir), ('remover', remover), ('tiro', tiro),
                 ('aranha_morre', aranha_morre), ('alerta', alerta), ('pesquisa', pesquisa), ('apito_trem', apito_trem),
-                ('derrota', derrota), ('trilha', trilha), ('chuva', chuva), ('trovao', trovao)]:
+                ('derrota', derrota), ('trilha', trilha), ('chuva', chuva), ('trovao', trovao), ('reentrada', reentrada), ('impacto', impacto)]:
     gravar(nome, f())
     print('SOM', nome)

@@ -138,7 +138,7 @@ func atualizar_fabrica() -> void:
 	var n := Grade.TAM_CHUNK
 	var base: Vector2i = _dados.coord * n
 	if _img_fabrica == null:
-		_img_fabrica = Image.create(n + 2, n + 2, false, Image.FORMAT_RG8)    # R = piso, G = nível da construção
+		_img_fabrica = Image.create(n + 2, n + 2, false, Image.FORMAT_RGB8)   # R = piso, G = nível alvo, B = aplainar
 	_img_fabrica.fill(Color(0, 0, 0))
 	if _mapa != null:
 		# espalha 2 tiles em volta de cada construção, enfraquecendo com a distância (o shader deforma a borda)
@@ -146,6 +146,30 @@ func atualizar_fabrica() -> void:
 		valor.resize((n + 2) * (n + 2))
 		var alvo := PackedInt32Array()
 		alvo.resize((n + 2) * (n + 2))
+		var plano := PackedFloat32Array()
+		plano.resize((n + 2) * (n + 2))
+		# Terraplenagem: tiles aplainados viram patamar (sem piso de concreto); a borda desce em rampa de ~3 tiles
+		# (aterro/corte suave, não faca)
+		for j in range(-3, n + 5):
+			for i in range(-3, n + 5):
+				var t := base + Vector2i(i - 1, j - 1)
+				var ap: Variant = _mapa.gerador.aplainado_em(t)
+				if ap == null:
+					continue
+				for dj in range(-3, 4):
+					for di in range(-3, 4):
+						var x := i + di
+						var y := j + dj
+						if x < 0 or y < 0 or x > n + 1 or y > n + 1:
+							continue
+						var v := clampf(1.0 - Vector2(di, dj).length() / 3.6, 0.0, 1.0)
+						if v <= 0.0:
+							continue
+						var k := y * (n + 2) + x
+						if v > plano[k]:
+							plano[k] = v
+							if v >= valor[k]:
+								alvo[k] = int(ap)
 		for j in range(-ESPALHA, n + 2 + ESPALHA):
 			for i in range(-ESPALHA, n + 2 + ESPALHA):
 				var id: int = _mapa.tiles.get(base + Vector2i(i - 1, j - 1), -1)
@@ -166,11 +190,13 @@ func atualizar_fabrica() -> void:
 						if v > valor[k]:
 							valor[k] = v
 							alvo[k] = nv_e
+						plano[k] = maxf(plano[k], v)
 		for j in n + 2:
 			for i in n + 2:
 				var v := valor[j * (n + 2) + i]
-				if v > 0.0:
-					_img_fabrica.set_pixel(i, j, Color(v, (alvo[j * (n + 2) + i] + 8) / 255.0, 0))
+				var pl := plano[j * (n + 2) + i]
+				if v > 0.0 or pl > 0.0:
+					_img_fabrica.set_pixel(i, j, Color(v, (alvo[j * (n + 2) + i] + 8) / 255.0, pl))
 	if _tex_fabrica == null:
 		_tex_fabrica = ImageTexture.create_from_image(_img_fabrica)
 		(get_node("chao") as MeshInstance3D).material_override.set_shader_parameter("mapa_fabrica", _tex_fabrica)
@@ -205,7 +231,7 @@ func refazer_objetos() -> void:
 					if mapa.tiles.has(t):
 						continue
 					# grama/flor/seixo não ficam em cima do piso de fábrica
-					if enfeite and _img_fabrica != null and _img_fabrica.get_pixel(t.x - base.x + 1, t.y - base.y + 1).r > 0.45:
+					if enfeite and _img_fabrica != null and maxf(_img_fabrica.get_pixel(t.x - base.x + 1, t.y - base.y + 1).r, _img_fabrica.get_pixel(t.x - base.x + 1, t.y - base.y + 1).b) > 0.45:
 						continue
 					lista.append(d.transf[nome][i])
 				grupos[nome] = _buffer(lista)
@@ -340,7 +366,7 @@ static func _chao_dados(c: ChunkDados, gerador: GeradorMundo) -> Dictionary:
 				var ql := g - Vector2(0.5, 0.5)
 				if ql.distance_squared_to(cl) > pow(float(lg.raio) * 1.1 + 1.0, 2.0):
 					continue
-				var lf := smoothstep(0.35, -0.35, gerador.hidro.dist_lago(lg, ql, cp.x))
+				var lf := smoothstep(0.35, -0.35, gerador.hidro.dist_lago(lg, ql, cp.x)) * smoothstep(Hidrologia.RAIO_SECO - 1.5, Hidrologia.RAIO_SECO + 0.5, ql.length())
 				if lf > 0.0:
 					h = lerpf(h, float(lg.nivel), smoothstep(0.0, 0.7, lf))
 					wa = maxf(wa, lf)

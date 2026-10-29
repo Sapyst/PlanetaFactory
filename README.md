@@ -1,8 +1,10 @@
 # PlanetaFactory (nome provisório)
 
-Jogo de automação/fábrica para PC e celular: plano infinito procedural em grade 1×1, esteiras (inclusive elevadas),
-braços mecânicos, logística de transporte e inimigos. Tema: planeta vivo — a fábrica drena o planeta e o
-"sistema imunológico" dele reage.
+Jogo de automação/fábrica para PC e celular. **Você é uma inteligência artificial com defeito** — uma unidade
+semeadora que chega a um planeta com uma única diretriz: **proliferar**. Ela não destrói o ambiente de propósito:
+constrói, coleta, se modifica, se melhora e se espalha — e o planeta muda (por bem ou por mal) como consequência.
+O planeta é vivo e o "sistema imunológico" dele reage. Mundo procedural infinito e contínuo; a grade 1×1 é só o
+sistema de construção. O jogo começa com o núcleo caindo do espaço.
 
 ![Voo sobre uma fábrica](docs/midia/voo.gif)
 
@@ -34,7 +36,7 @@ braços mecânicos, logística de transporte e inimigos. Tema: planeta vivo — 
 2. `jogo/ferramentas/testar.sh` — importa e roda todos os testes do jogo sem janela.
 3. `godot --path jogo --write-movie /tmp/q.png --fixed-fps 30 --quit-after 70 -- camera X Z DIST` — foto real.
 4. `python3 jogo/ferramentas/gerar_sons.py` — sintetiza os sons; `python3 jogo/ferramentas/gerar_nuvens.py` — mapa das nuvens.
-5. `godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.5.2.apk` — APK.
+5. `godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.6.0.apk` — APK.
 6. `... -- camera -3 2 11 roteiro construir` (ou `roteiro toque`) — teste visual da construção com cliques/toques injetados.
 7. `godot --path jogo --write-movie /tmp/v/q.png --fixed-fps 30 -- roteiro mostruario voo` — regrava o voo do mostruário
    (sem `voo` e com `camera X Z DIST` tira prints; `visao`/`setas` ligam a visão de recursos/as setas).
@@ -53,6 +55,10 @@ braços mecânicos, logística de transporte e inimigos. Tema: planeta vivo — 
   vira lago que enche o fundo e não transborda; lagoas de chuva em depressões úmidas; mar no nível do mar, invadindo
   baixadas da costa; praia em rampa. Costa, rios (pela distância ao traçado do rio) e lagos (forma contínua com lóbulos) com
   contorno natural — nada sai de tile.
+- Terraplenagem (central da IA): enquanto existir, libera **Aplainar** (tecla L) — arrastar uma área em qualquer
+  lugar do mapa e virar patamar no nível de onde começou (corta/aterra, borda em rampa; 1 pedra por tile alterado).
+- Abertura (`jogo/cenas/abertura.gd`): o núcleo se solta de uma nave, cai pelas nuvens com rastro de calor, bate no
+  chão (estrondo, poeira, tremor) e a câmera desce para o jogo; um toque pula.
 - Clima dinâmico (`jogo/dados/clima.json`, `jogo/ambiente/clima.gd` + `desenho_clima.gd`): estados trocam sozinhos com
   transição suave; nuvens numa camada alta com espessura variável (grossa não passa luz, fina passa parte, rasgos
   soltam feixes de sol); neblina de chão com corpo (fatias, abre em volta de máquinas e trens); chuva em volta da

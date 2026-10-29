@@ -31,6 +31,7 @@ func _ready() -> void:
 		"rota": _roteiro_rota()
 		"mostruario": _roteiro_mostruario()
 		"encosta": _roteiro_encosta()
+		"aplainar": _roteiro_aplainar()
 		"recursos":
 			em(4, func(): cena.controle.alternar_recursos())
 			em(6, func(): mover(tela(Vector2i(-15, -9))))
@@ -309,6 +310,21 @@ func _roteiro_encosta() -> void:
 				postos += rel.colocados.size()
 				cena.sincronizar(rel)
 		print("ENCOSTA %d fornalhas postas" % postos))
+
+
+## Terraplenagem: a central no meio, um patamar aplainado em volta (atravessando encostas) e fornalhas em cima.
+func _roteiro_aplainar() -> void:
+	em(3, func():
+		var con: Construtor = cena.construtor
+		cena.controle.barra.visible = false
+		var c := Grade.tile_de_mundo(cena.camera.alvo)
+		cena.sincronizar(con.executar(con.plano_peca("terraplenagem", c, 0)))
+		var pl := con.plano_aplainar(c - Vector2i(14, 12), c + Vector2i(14, 12))
+		cena.sincronizar(con.executar(pl))
+		print("APLAINAR ", Construtor.contar(pl))
+		for x in [-6, -3, 3, 6]:
+			cena.sincronizar(con.executar(con.plano_peca("fornalha", c + Vector2i(x, 3), 0)))
+		print("APLAINAR ok, central: ", cena.mapa.tem_terraplenagem()))
 
 
 ## Traço inteligente: fornalha no caminho → o fantasma contorna (foto ~30); põe; um traço novo começando ao lado

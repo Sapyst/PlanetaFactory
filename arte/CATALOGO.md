@@ -1,6 +1,6 @@
 # Catálogo de modelos
 
-97 modelos. Gerado por `blender_scripts/catalogo.py` — não editar à mão.
+98 modelos. Gerado por `blender_scripts/catalogo.py` — não editar à mão.
 
 Portas: `ITEM`/`FLUIDO`/`TRILHO`, `ENT`/`SAI`, lado (S/N/L/O) e índice do tile na borda. Ficam no .glb como nós `PORTA_*`.
 Partes: peças móveis exportadas separadas (o jogo anima pelo nome — ver jogo/render/animacao/animador.gd).
@@ -97,6 +97,7 @@ Texturas de chão em `texturas/` (loop sem emenda; relatório em `texturas/_emen
 | `montadora` | 3×3 | 220 | 2,90 × 3,00 × 2,42 | ITEM_ENT_S1, ITEM_SAI_N1 · partes: braco | Montadora: monta peças por receita. Entra pelo sul, sai pelo norte (meio). |
 | `nucleo` | 3×3 | 366 | 3,00 × 3,00 × 2,20 | ITEM_ENT_S1, ITEM_ENT_N1, ITEM_ENT_L1, ITEM_ENT_O1 · partes: cristal | Núcleo: a base do jogador. Tudo que entra (esteira nas 4 bocas ou braço) vira estoque para construir. |
 | `refinador` | 3×3 | 488 | 3,00 × 2,95 × 3,20 | FLUIDO_ENT_O1, FLUIDO_SAI_L1, ITEM_SAI_N0 | Refinador: processa fluidos (seiva, óleo). Fluido entra a oeste, sai a leste; item ao norte. |
+| `terraplenagem` | 3×3 | 950 | 2,90 × 2,90 × 2,23 | — · partes: antena, cristal, cabecote | Terraplenagem: unidade de modelagem do terreno da IA. Enquanto existir, libera Aplainar em qualquer lugar do mapa. Partes: antena (anel de sensores gira), cristal (núcleo pulsa), bloco (rocha suspensa). |
 
 ## Energia e fluidos
 
@@ -152,8 +153,8 @@ Texturas de chão em `texturas/` (loop sem emenda; relatório em `texturas/_emen
 | `arvore_campina_b` | 1×1 | 80 | 0,68 × 0,59 × 1,75 | — | Árvore alta da campina (bloqueia 1 tile). |
 | `arvore_morta` | 1×1 | 56 | 0,58 × 0,47 × 1,32 | — | Árvore seca do cinzal. |
 | `cacto_cristal` | 1×1 | 108 | 0,50 × 0,20 × 1,03 | — | Planta cristalina do deserto de sílex. |
-| `cogumelo_gigante_a` | 1×1 | 160 | 0,89 × 0,87 × 1,65 | — | Cogumelo gigante da floresta fúngica. Corte dá biomassa. |
-| `cogumelo_gigante_b` | 1×1 | 160 | 0,79 × 0,78 × 2,25 | — | Cogumelo gigante alto. Corte dá biomassa. |
+| `cogumelo_gigante_a` | 1×1 | 1254 | 0,92 × 0,91 × 1,60 | — | Cogumelo gigante da floresta fúngica. Corte dá biomassa. |
+| `cogumelo_gigante_b` | 1×1 | 1254 | 0,92 × 0,91 × 2,08 | — | Cogumelo gigante alto. Corte dá biomassa. |
 | `flor_luminosa` | enfeite | 84 | 0,24 × 0,14 × 0,36 | — | Flor bioluminescente (enfeite; brilha à noite). |
 | `grama_tufo` | enfeite | 24 | 0,16 × 0,16 × 0,29 | — | Tufo de grama (enfeite; balança com o vento no shader). |
 | `junco` | enfeite | 132 | 0,25 × 0,34 × 0,73 | — | Juncos do pântano e beira de lago (enfeite). |
@@ -173,13 +174,13 @@ Texturas de chão em `texturas/` (loop sem emenda; relatório em `texturas/_emen
 
 | Modelo | Área | Tri | Dimensões (m) | Portas | Descrição |
 |---|---|---|---|---|---|
-| `jazida_areia` | 1×1 | 144 | 0,68 × 0,52 × 0,08 | — | Duna de areia (broca). |
-| `jazida_carvao` | 1×1 | 120 | 0,54 × 0,49 × 0,12 | — | Jazida de carvão (broca). |
-| `jazida_cobre` | 1×1 | 120 | 0,65 × 0,35 × 0,12 | — | Jazida de cobre (broca). |
-| `jazida_cristal` | 1×1 | 60 | 0,31 × 0,67 × 0,31 | — | Jazida de cristal (extrator). |
-| `jazida_ferro` | 1×1 | 120 | 0,39 × 0,55 × 0,12 | — | Jazida de ferro (broca). |
-| `jazida_pedra` | 1×1 | 120 | 0,64 × 0,59 × 0,12 | — | Jazida de pedra (broca). |
-| `jazida_silex` | 1×1 | 120 | 0,62 × 0,50 × 0,12 | — | Jazida de sílex (broca). |
+| `jazida_areia` | 1×1 | 144 | 0,36 × 0,52 × 0,08 | — | Duna de areia (broca). |
+| `jazida_carvao` | 1×1 | 120 | 0,74 × 0,66 × 0,12 | — | Jazida de carvão (broca). |
+| `jazida_cobre` | 1×1 | 120 | 0,55 × 0,41 × 0,12 | — | Jazida de cobre (broca). |
+| `jazida_cristal` | 1×1 | 60 | 0,53 × 0,43 × 0,30 | — | Jazida de cristal (extrator). |
+| `jazida_ferro` | 1×1 | 120 | 0,62 × 0,40 × 0,12 | — | Jazida de ferro (broca). |
+| `jazida_pedra` | 1×1 | 120 | 0,56 × 0,41 × 0,12 | — | Jazida de pedra (broca). |
+| `jazida_silex` | 1×1 | 120 | 0,54 × 0,59 × 0,12 | — | Jazida de sílex (broca). |
 | `poca_seiva` | 1×1 | 152 | 0,82 × 0,83 × 0,08 | — | Poça de seiva (bomba por cima). Fluido do planeta. |
 
 ## Mapa: água

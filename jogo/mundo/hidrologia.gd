@@ -249,6 +249,8 @@ func _tiles_lago(out: Dictionary, lg: Dictionary, ini: Vector2i, fim: Vector2i) 
 
 func _guardar_lago(out: Dictionary, lg: Dictionary, ini: Vector2i, fim: Vector2i) -> void:
 	var c: Vector2 = lg.centro
+	if c.length() < RAIO_SECO + float(lg.raio) * 1.1:
+		return                                        # nada de lago cortado pela área seca do início
 	var r: float = lg.raio * 1.1 + 4.0
 	if c.x + r < ini.x or c.y + r < ini.y or c.x - r > fim.x or c.y - r > fim.y:
 		return
@@ -317,7 +319,7 @@ func _riscar(out: Dictionary, rio: Dictionary, ini: Vector2i, fim: Vector2i) -> 
 		var meia := 1.0 + minf(1.6, i * 0.012)
 		var dir: Vector2 = ((pts[mini(i + 1, pts.size() - 1)] - pts[maxi(i - 1, 0)]) as Vector2).normalized()
 		var nv: int = rio.niveis[i]
-		if p.x >= ini.x and p.y >= ini.y and p.x < fim.x and p.y < fim.y:
+		if p.x >= ini.x and p.y >= ini.y and p.x < fim.x and p.y < fim.y and p.length() > RAIO_SECO + meia:
 			if not out.has("_pontos"):
 				out["_pontos"] = []
 			out["_pontos"].append([p, meia, nv, dir])

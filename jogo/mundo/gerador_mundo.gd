@@ -24,6 +24,7 @@ var _lagoa := FastNoiseLite.new()
 var _relevo := FastNoiseLite.new()
 var relevo_ativo := true
 var hidro: Hidrologia
+var _aplainado := {}                 ## tile → nível imposto pela Terraplenagem (sobrepõe o relevo)
 const NIVEL_MAR := -2                ## superfície do mar (em níveis de relevo)            ## falso = mundo todo plano (testes de desempenho com fábricas enormes)
 var _niveis := {}                 ## chunk → PackedByteArray (nível + 8)
 var _trava := Mutex.new()
@@ -102,7 +103,37 @@ func eh_agua(t: int) -> bool:
 ## Cache por chunk: 1 byte por tile = nível + 8 (bits 0–3) | encosta (bit 4) | terreno (bits 5–7). Ruído de relevo + a elevação continental, quantizado em
 ## terraços; plano em volta do início (some suave entre 42 e 95 tiles). Guardado por chunk (seguro entre threads).
 func nivel(tile: Vector2i) -> int:
+	if not _aplainado.is_empty():
+		_trava.lock()
+		var a: Variant = _aplainado.get(tile)
+		_trava.unlock()
+		if a != null:
+			return a
 	return (_info(tile) & 15) - 8
+
+
+## Terraplenagem: impõe um nível ao tile (−1 = volta ao relevo natural).
+func aplainar(tile: Vector2i, nv: Variant) -> void:
+	_trava.lock()
+	if nv == null:
+		_aplainado.erase(tile)
+	else:
+		_aplainado[tile] = int(nv)
+	_trava.unlock()
+
+
+func aplainado_em(tile: Vector2i) -> Variant:
+	_trava.lock()
+	var a: Variant = _aplainado.get(tile)
+	_trava.unlock()
+	return a
+
+
+func aplainados() -> Dictionary:
+	_trava.lock()
+	var c := _aplainado.duplicate()
+	_trava.unlock()
+	return c
 
 
 func terreno(tile: Vector2i) -> int:
@@ -111,7 +142,7 @@ func terreno(tile: Vector2i) -> int:
 
 ## Tile no meio de uma encosta (o chão desenhado ali não bate com o nível do tile): não aceita construção.
 func em_encosta(tile: Vector2i) -> bool:
-	return (_info(tile) & 16) != 0
+	return (_info(tile) & 16) != 0 and aplainado_em(tile) == null
 
 
 func _info(tile: Vector2i) -> int:

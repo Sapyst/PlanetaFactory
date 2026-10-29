@@ -357,6 +357,41 @@ func plano_remocao(a: Vector2i, b: Vector2i) -> Array[Dictionary]:
 	return out
 
 
+## Aplainar (Terraplenagem): o retângulo vira patamar no nível do tile onde o arraste começou. Sem obra no local;
+## corta/aterra e limpa a vegetação. Água não; construção em outro nível bloqueia aquele tile.
+## Itens: {acao: "aplainar", tile, nivel, motivo, muda (o nível muda?)}.
+func plano_aplainar(a: Vector2i, b: Vector2i) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var alvo := mapa.gerador.nivel(a)
+	var sem := not mapa.tem_terraplenagem()
+	for x in range(mini(a.x, b.x), maxi(a.x, b.x) + 1):
+		for y in range(mini(a.y, b.y), maxi(a.y, b.y) + 1):
+			var t := Vector2i(x, y)
+			var motivo := ""
+			if sem:
+				motivo = "sem_terraplenagem"
+			elif mapa.gerador.eh_agua(mapa.gerador.terreno(t)):
+				motivo = "agua"
+			elif mapa.tiles.has(t) and mapa.gerador.nivel(t) != alvo:
+				motivo = "ocupado"
+			out.append({"acao": "aplainar", "tile": t, "minimo": t, "nome": "aplainar", "rot": 0, "nivel": alvo, "motivo": motivo,
+					"muda": mapa.gerador.nivel(t) != alvo or mapa.gerador.em_encosta(t)})
+	if cobrar and not sem:
+		var gasto := 0
+		var por: Dictionary = Registro.progressao.get("custo_aplainar", {})
+		for it in out:
+			if it.motivo == "" and it.muda:
+				var cabe := true
+				for k in por:
+					if int(inventario.get(k, 0)) < (gasto + 1) * int(por[k]):
+						cabe = false
+				if not cabe:
+					it.motivo = "sem_recursos"
+				else:
+					gasto += 1
+	return out
+
+
 # ------------------------------------------------------------------ custos
 ## Chave de custo: as peças de esteira/cano escolhidas sozinhas custam como "esteira"/"cano".
 static func chave_custo(nome: String) -> String:
@@ -448,6 +483,18 @@ func executar(plano: Array[Dictionary]) -> Dictionary:
 				if not o.is_empty():
 					rel.limpos.append({"tile": it.tile, "tiles": Grade.tiles_da_area(o.ancora, o.area, 0)})
 					_mexer_estoque(Registro.progressao.get("drops", {}).get(o.nome, {}), 1, rel)
+			"aplainar":
+				var t: Vector2i = it.tile
+				rel.aplainados.append([t, mapa.gerador.aplainado_em(t)])
+				mapa.gerador.aplainar(t, it.nivel)
+				if it.muda:
+					_mexer_estoque(Registro.progressao.get("custo_aplainar", {}), -1, rel)
+				if not mapa.limpos.has(t):
+					var o := mapa.limpar_obstaculo(t)
+					if not o.is_empty():
+						rel.limpos.append({"tile": t, "tiles": Grade.tiles_da_area(o.ancora, o.area, 0)})
+						_mexer_estoque(Registro.progressao.get("drops", {}).get(o.nome, {}), 1, rel)
+				mapa.versao += 1
 			"remover":
 				if mapa.estruturas.has(it.id):
 					_mexer_estoque(custo_de(mapa.estruturas[it.id].nome), 1, rel)
@@ -497,17 +544,23 @@ func desfazer() -> Dictionary:
 		for t in l.tiles:
 			mapa.limpos.erase(t)
 		rel.restaurados.append(l)
+	for i in range(h.aplainados.size() - 1, -1, -1):
+		var ap: Array = h.aplainados[i]
+		mapa.gerador.aplainar(ap[0], ap[1])
+		rel.aplainados.append([ap[0], null])
+	if not h.aplainados.is_empty():
+		mapa.versao += 1
 	_mexer_estoque(h.estoque, -1, rel)
 	return rel
 
 
 func _relatorio_vazio() -> Dictionary:
 	return {"colocados": [] as Array[int], "removidos": [] as Array[Dictionary], "limpos": [] as Array[Dictionary],
-			"restaurados": [] as Array[Dictionary], "trens": [] as Array[Dictionary], "estoque": {}}
+			"restaurados": [] as Array[Dictionary], "trens": [] as Array[Dictionary], "estoque": {}, "aplainados": []}
 
 
 func _relatorio_vazio_de_fato(r: Dictionary) -> bool:
-	return r.colocados.is_empty() and r.removidos.is_empty() and r.limpos.is_empty()
+	return r.colocados.is_empty() and r.removidos.is_empty() and r.limpos.is_empty() and r.aplainados.is_empty()
 
 
 func _colocar(it: Dictionary, rel: Dictionary) -> bool:

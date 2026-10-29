@@ -308,3 +308,37 @@ func test_rota_rapida() -> void:
 	verificar(Construtor.pode_tudo(p), "acha a passagem entre os baús")
 	verificar(ms < 40.0, "rota em %.1f ms" % ms)
 	print("      rota com desvio: %.1f ms" % ms)
+
+
+func test_aplainar() -> void:
+	var c := _c()
+	var g := c.mapa.gerador
+	# acha uma área com dois níveis longe do início
+	var a := Vector2i.ZERO
+	for x in range(60, 400):
+		var t := Vector2i(x, 5)
+		if g.nivel(t) != g.nivel(t + Vector2i(3, 0)) and not g.eh_agua(g.terreno(t)) and not g.eh_agua(g.terreno(t + Vector2i(3, 0))):
+			a = t
+			break
+	verificar(a != Vector2i.ZERO, "achou um barranco")
+	var b := a + Vector2i(5, 3)
+	var sem := c.plano_aplainar(a, b)
+	igual(sem[0].motivo, "sem_terraplenagem", "sem a central, não aplaina")
+	c.executar(c.plano_peca("terraplenagem", Vector2i(-6, 6), 0))
+	verificar(c.mapa.tem_terraplenagem(), "central construída")
+	var p := c.plano_aplainar(a, b)
+	var alvo := g.nivel(a)
+	var mudam := 0
+	for it in p:
+		if it.motivo == "" and it.muda:
+			mudam += 1
+	verificar(mudam > 0, "algum tile muda de nível (%d)" % mudam)
+	var antes := g.nivel(a + Vector2i(3, 0))
+	c.executar(p)
+	for it in p:
+		if it.motivo == "":
+			igual(g.nivel(it.tile), alvo, "tile %s no nível do começo" % it.tile)
+	verificar(not g.em_encosta(a + Vector2i(3, 0)), "aplainado não é encosta")
+	igual(c.mapa.motivo_bloqueio("fornalha", a + Vector2i(2, 1), 0) in ["", "obstaculo"], true, "dá para construir no patamar")
+	c.desfazer()
+	igual(g.nivel(a + Vector2i(3, 0)), antes, "desfazer devolve o relevo")

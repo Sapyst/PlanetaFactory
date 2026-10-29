@@ -106,7 +106,7 @@ func _ready() -> void:
 	_ferr = VBoxContainer.new()
 	_ferr.add_theme_constant_override("separation", 4)
 	dir.add_child(_ferr)
-	for f in [["nivel", "Nível: chão", "N"], ["girar", "Girar", "R"], ["remover", "Remover", "X"], ["desfazer", "Desfazer", "Ctrl+Z"], ["cancelar", "Cancelar", "Esc"],
+	for f in [["nivel", "Nível: chão", "N"], ["girar", "Girar", "R"], ["remover", "Remover", "X"], ["aplainar", "Aplainar", "L"], ["desfazer", "Desfazer", "Ctrl+Z"], ["cancelar", "Cancelar", "Esc"],
 			["recursos", "Recursos", "V"], ["poluicao", "Poluição", "P"], ["pesquisa", "Pesquisa", "T"], ["menu", "Menu", "Esc"]]:
 		var b := Button.new()
 		b.text = f[1] if toque else "%s  (%s)" % [f[1], f[2]]
@@ -195,9 +195,10 @@ func marcar(nome: String, removendo: bool) -> void:
 	for k in _botoes_peca:
 		_destacar(_botoes_peca[k], k == nome, COR_DESTAQUE)
 	_destacar(_botoes_ferr["remover"], removendo, COR_PERIGO)
+	_destacar(_botoes_ferr["aplainar"], nome == "#aplainar", Color(0.35, 0.85, 0.8))
 	var ativo := nome != "" or removendo
 	_botoes_ferr["cancelar"].disabled = not ativo
-	_botoes_ferr["girar"].disabled = nome == ""
+	_botoes_ferr["girar"].disabled = nome == "" or nome.begins_with("#")
 
 
 ## Texto do botão de nível (chão / 0,5 m / 1,0 m).

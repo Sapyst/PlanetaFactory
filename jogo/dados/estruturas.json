@@ -24,6 +24,7 @@
  "montadora":         {"grupo": "maquina", "maquina": "montadora", "velocidade": 0.75, "energia_kw": 150, "poluicao": 3, "vida": 300},
  "refinador":         {"grupo": "maquina", "maquina": "refinador", "velocidade": 1.0, "energia_kw": 420, "poluicao": 6, "vida": 350},
  "laboratorio":       {"grupo": "laboratorio", "energia_kw": 60, "vida": 150},
+ "terraplenagem":     {"grupo": "terraplenagem", "vida": 400, "_nota": "enquanto existir, libera Aplainar em qualquer lugar do mapa"},
  "gerador":           {"grupo": "gerador", "energia_kw": -900, "combustivel": true, "poluicao": 30, "vida": 200},
  "poste_energia":     {"grupo": "poste", "raio_fio": 9, "raio_ligacao": 5, "vida": 40, "_raios": "fio: até outro poste (centro a centro); ligacao: até a borda de máquina/gerador"},
  "torre_sem_fio":     {"grupo": "poste", "sem_fio": true, "raio_fio": 40, "raio_ligacao": 14, "vida": 120},

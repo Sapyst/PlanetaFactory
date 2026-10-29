@@ -5,7 +5,7 @@ extends Node
 ##  PC      peça na mão: passar o mouse = fantasma; clicar = pôr; arrastar = traçar (esteira/cano/trilho/muro/poste)
 ##          botão direito: cancela (clique) ou move a câmera (arrasto); meio ou esquerdo sem peça = move a câmera
 ##          roda = zoom; Q/E = gira a câmera; WASD/setas = anda; R = girar peça (Shift+R ao contrário)
-##          X = remover; V = visão de recursos; Ctrl+Z = desfazer; Esc = cancelar; 1..9 = peça da aba; Tab = próxima aba
+##          X = remover; L = aplainar (Terraplenagem); V = visão de recursos; Ctrl+Z = desfazer; Esc = cancelar; 1..9 = peça da aba; Tab = próxima aba
 ##  Toque   1 dedo com peça na mão: o fantasma segue o dedo e a peça é posta ao soltar (arrastar = traçar)
 ##          1 dedo sem peça = move a câmera; 2 dedos = move + pinça (zoom) e cancelam o traço em andamento
 ##
@@ -19,6 +19,7 @@ var mundo: Node                     ## precisa de sincronizar(rel: Dictionary)
 
 var peca := ""                      ## "" = mão vazia
 var removendo := false
+const APLAINAR := "#aplainar"       ## ferramenta da Terraplenagem (peça "na mão" que planeja um retângulo)
 var rot := 0
 
 var _plano: Array[Dictionary] = []
@@ -69,6 +70,10 @@ func girar(passo := -1) -> void:
 		return
 	rot = posmod(rot + passo, 4)           # −1 = horário (como o jogador espera do botão)
 	_atualizar()
+
+
+func alternar_aplainar() -> void:
+	escolher(APLAINAR)
 
 
 func alternar_remover() -> void:
@@ -126,6 +131,7 @@ func _ferramenta(nome: String) -> void:
 		"cancelar": cancelar()
 		"poluicao": alternar_poluicao()
 		"recursos": alternar_recursos()
+		"aplainar": alternar_aplainar()
 		"nivel": mudar_nivel(1, true)
 		"pesquisa": mundo.abrir_pesquisa()
 		"menu": mundo.abrir_pausa()
@@ -148,6 +154,10 @@ func _confirmar() -> void:
 	if removendo:
 		_avisar("Removido: %d" % _plano.size())
 		Som.tocar("remover")
+	elif peca == APLAINAR:
+		if n.ok > 0:
+			Som.tocar("construir")
+		_avisar("Aplainado: %d tile(s)%s" % [n.ok, "  ·  %d bloqueado(s)" % n.bloqueados if n.bloqueados > 0 else ""])
 	elif n.ok > 0:
 		Som.tocar("construir")
 		_avisar("Construído: %d%s" % [n.ok, "  ·  %d bloqueada(s)" % n.bloqueados if n.bloqueados > 0 else ""])
@@ -192,6 +202,7 @@ func _tecla(e: InputEventKey) -> void:
 		KEY_X: alternar_remover()
 		KEY_P: alternar_poluicao()
 		KEY_V: alternar_recursos()
+		KEY_L: alternar_aplainar()
 		KEY_N: mudar_nivel(1, true)
 		KEY_PAGEUP: mudar_nivel(1)
 		KEY_PAGEDOWN: mudar_nivel(-1)
@@ -352,6 +363,8 @@ func _atualizar() -> void:
 		var a := _inicio if _gesto else _cursor
 		if removendo:
 			_plano = construtor.plano_remocao(a, _cursor)
+		elif peca == APLAINAR:
+			_plano = construtor.plano_aplainar(a, _cursor)
 		elif Construtor.arrastavel(peca):
 			_plano = construtor.plano_linha(peca, a, _cursor, rot)
 		else:
@@ -398,12 +411,18 @@ func _dica_parada() -> String:
 		return _aviso
 	if removendo:
 		return "Remover — %s numa peça ou árvore · arraste para um retângulo" % ("toque" if _por_toque else "clique")
+	if peca == APLAINAR:
+		if not construtor.mapa.tem_terraplenagem():
+			return "Aplainar — construa uma Terraplenagem primeiro (aba Produção)"
+		return "Aplainar — arraste uma área em qualquer lugar: vira patamar no nível de onde começou · 1 pedra por tile alterado"
 	if peca == "":
 		return ""
 	return _dica_peca()
 
 
 func _dica_peca() -> String:
+	if peca == APLAINAR:
+		return _dica_parada()
 	var acao := "toque" if _por_toque else "clique"
 	var t := "%s — %s para pôr" % [barra.rotulo(peca), acao]
 	if construtor.cobrar:

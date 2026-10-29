@@ -39,10 +39,10 @@ float aplainar(vec2 grade, out float alvo) {
 	float s = 0.0;
 	for (int k = 0; k < 4; k++) {
 		ivec2 o = ivec2(k % 2, k / 2);
-		vec2 tx = texelFetch(mapa_fabrica, clamp(i0 + o, ivec2(0), ivec2(33)), 0).rg;
+		vec3 tx = texelFetch(mapa_fabrica, clamp(i0 + o, ivec2(0), ivec2(33)), 0).rgb;
 		float w = (o.x == 1 ? f.x : 1.0 - f.x) * (o.y == 1 ? f.y : 1.0 - f.y);
-		s += tx.r * w;
-		if (tx.r > melhor) { melhor = tx.r; alvo = (floor(tx.g * 255.0 + 0.5) - 8.0) * alt_nivel; }
+		s += tx.b * w;                                   // B = aplainar (construção ou Terraplenagem)
+		if (tx.b > melhor) { melhor = tx.b; alvo = (floor(tx.g * 255.0 + 0.5) - 8.0) * alt_nivel; }
 	}
 	return s;
 }
@@ -52,7 +52,7 @@ void vertex() {
 	mundo = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	vec3 n = NORMAL;
 	float alvo;
-	float plano = smoothstep(0.05, 0.5, aplainar(vec2(mundo.x, -mundo.z), alvo));
+	float plano = smoothstep(0.0, 0.75, aplainar(vec2(mundo.x, -mundo.z), alvo));
 	oclusao = UV.x * (1.0 - plano);
 	if (plano > 0.0) {
 		VERTEX.y = mix(VERTEX.y, alvo, plano);

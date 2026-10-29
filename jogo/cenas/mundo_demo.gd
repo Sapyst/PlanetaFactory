@@ -33,6 +33,7 @@ var _desenho_poluicao: DesenhoPoluicao
 var _visao: VisaoRecursos
 var _fluxo: DesenhoFluxo
 var animar_tudo := false             ## mostruário (vídeos): toda máquina e braço mexendo
+var _no_nucleo: Node3D
 var _rotulos: Dictionary = {}       ## id da estação → Label3D
 var _t_hud := 0.0
 var _sel := {}                       ## selecionado: {trem: id} ou {estrutura: id}
@@ -70,6 +71,8 @@ func _ready() -> void:
 		Engine.time_scale = float(args[ac + 1])
 	# modo da partida: o menu decide (Sessao); rodando a cena direto (testes), é a demonstração
 	modo = Sessao.modo
+	if args.has("novo"):
+		modo = "novo"                         # testes/fotos: jogo novo direto (com abertura)
 	var dados := {}
 	if modo == "continuar":
 		dados = Salvamento.ler()
@@ -114,6 +117,15 @@ func _ready() -> void:
 	_salvar_em = float(Sessao.config.autosalvar_s)
 	Sessao.aplicar.call_deferred()
 	Som.musica(true)
+	# jogo novo: o núcleo chega do espaço (abertura; um toque pula)
+	if modo == "novo" and dados.is_empty() and _no_nucleo != null and (not args.has("roteiro") or args.has("abertura")):
+		var ab := Abertura.new()
+		ab.nucleo = _no_nucleo
+		ab.camera_jogo = camera
+		ab.barra = controle.barra
+		controle.process_mode = Node.PROCESS_MODE_DISABLED
+		ab.terminou.connect(func(): controle.process_mode = Node.PROCESS_MODE_INHERIT)
+		add_child(ab)
 	var ci := args.find("clima")
 	if ci >= 0 and args.size() > ci + 1:
 		clima.forcar(args[ci + 1], true)
@@ -131,7 +143,7 @@ func _comecar_novo() -> void:
 	for x in range(-4, 3):
 		for y in range(-4, 3):
 			mapa.limpar_obstaculo(NUCLEO_EM + Vector2i(x, y))
-	_instanciar("nucleo", NUCLEO_EM, 0)
+	_no_nucleo = _instanciar("nucleo", NUCLEO_EM, 0)
 	inventario.merge(Registro.progressao.get("kit_inicial", {}))
 	fabrica.reconstruir()
 	camera.alvo = Grade.ponto_mundo(Vector2(NUCLEO_EM) + Vector2(1.5, 1.5))
@@ -155,7 +167,7 @@ func salvar() -> void:
 	var ok := Salvamento.gravar({"modo": modo, "semente": semente, "tempo": _tempo,
 			"camera": [camera.alvo, camera.distancia, camera.angulo],
 			"mapa": {"estruturas": mapa.estruturas, "limpos": mapa.limpos.keys(), "prox": mapa._prox_id},
-			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores, "clima": clima.estado(),
+			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores, "clima": clima.estado(), "aplainado": gerador.aplainados(),
 			"estoques": estoques, "inventario": inventario, "pesquisa": pesquisa.estado(),
 			"trens": trens.map(func(t: Trem): return t.para_salvar()), "prox_trem": _prox_trem})
 	if ok and is_instance_valid(controle):
@@ -171,6 +183,8 @@ func _carregar(d: Dictionary) -> void:
 	poluicao.valores = d.poluicao
 	if d.has("clima"):
 		clima.restaurar(d.clima)
+	for t in d.get("aplainado", {}):
+		gerador.aplainar(t, d.aplainado[t])
 	colonia.restaurar(d.colonia)
 	for id in mapa.estruturas:
 		var nome: String = mapa.estruturas[id].nome
@@ -380,6 +394,9 @@ func sincronizar(rel: Dictionary) -> void:
 		for t in Grade.tiles_da_area(e.minimo, Registro.area(e.nome), e.rot):
 			for d in [Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(1, 1)]:
 				tocados[Grade.chunk_de(t + d)] = true
+	for ap in rel.get("aplainados", []):
+		for d in [Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(1, 1)]:
+			tocados[Grade.chunk_de(ap[0] + d)] = true
 	for k in tocados:
 		if chunks.has(k) and not redesenhar.has(k):
 			chunks[k].atualizar(mapa)

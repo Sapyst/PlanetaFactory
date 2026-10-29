@@ -164,6 +164,42 @@ def nucleo():
         boca(p, m, lado, 1, 'ENT')
     return m
 
+def terraplenagem():
+    m = Modelo('terraplenagem', M, 3, 3, descricao='Terraplenagem: unidade de modelagem do terreno da IA. Enquanto existir, libera '
+               'Aplainar em qualquer lugar do mapa. Partes: antena (anel de sensores gira), cristal (núcleo pulsa), bloco (rocha suspensa).')
+    p = m.parte()
+    v = p.caixa(-1.45, 1.45, -1.45, 1.45, 0.0, 0.10, 'P_Escuro'); p.chanfrar(v, 0.05)
+    # base octogonal blindada com veios de luz
+    v = p.cil((0, 0, 0.30), 1.05, 0.40, 'P_Metal', lados=8, rot=PI/8, r2=0.92); p.chanfrar(v, 0.04)
+    p.cil((0, 0, 0.52), 0.94, 0.05, 'P_Cristal', lados=8, rot=PI/8)
+    v = p.cil((0, 0, 0.66), 0.88, 0.22, 'P_Escuro', lados=8, rot=PI/8, r2=0.70); p.chanfrar(v, 0.03)
+    # coluna emissora
+    p.cil((0, 0, 1.25), 0.22, 1.00, 'P_Aco', lados=8, rot=PI/8, r2=0.16)
+    for z in (0.95, 1.30, 1.65):
+        p.cil((0, 0, z), 0.25, 0.04, 'P_Cristal', lados=8, rot=PI/8)
+    # três emissores nos cantos, inclinados para o campo
+    for a in (PI/4, PI/4 + 2*PI/3, PI/4 + 4*PI/3):
+        x, y = math.cos(a) * 1.18, math.sin(a) * 1.18
+        v = p.cil((x, y, 0.22), 0.20, 0.24, 'P_Escuro', lados=6); p.chanfrar(v, 0.03)
+        p.barra((x, y, 0.32), (x * 0.78, y * 0.78, 0.95), 0.08, 0.08, 'P_Metal')
+        p.cil((x * 0.76, y * 0.76, 0.98), 0.07, 0.10, 'P_Cristal', lados=6)
+    # anel de sensores (gira)
+    an = m.parte('antena', pai='corpo', pivo=(0, 0, 1.48))
+    for k in range(10):
+        a = k * 2 * PI / 10
+        an.caixa_c(math.cos(a) * 0.62, math.sin(a) * 0.62, 1.48, 0.16, 0.10, 0.06, 'P_Metal', rot=a)
+        if k % 2 == 0:
+            an.cil((math.cos(a) * 0.62, math.sin(a) * 0.62, 1.53), 0.03, 0.04, 'P_Cristal', lados=6)
+    # núcleo de cristal no topo (pulsa)
+    cr = m.parte('cristal', pai='corpo', pivo=(0, 0, 1.80))
+    cr.cil((0, 0, 2.02), 0.24, 0.42, 'P_Cristal', lados=6, r2=0.0)
+    cr.cil((0, 0, 1.84), 0.26, 0.10, 'P_Cristal', lados=6, r2=0.24)
+    # bloco de rocha compactada suspenso no campo (sobe e desce: "cabecote")
+    bl = m.parte('cabecote', pai='corpo', pivo=(-0.92, -0.92, 1.25))
+    v = bl.caixa_c(-0.92, -0.92, 1.30, 0.38, 0.34, 0.30, 'P_Rocha', rot=0.35); bl.chanfrar(v, 0.04)
+    bl.cil((-0.92, -0.92, 1.10), 0.10, 0.03, 'P_Cristal', lados=6)
+    return m
+
 # ---------------------------------------------------------------- energia
 def gerador():
     m = Modelo('gerador', EN, 2, 2, descricao='Gerador a combustão (carvão/biomassa). Combustível entra pelo sul. Energia vai por postes.')
@@ -240,7 +276,7 @@ def muro_lado():
     p.caixa(-0.24, 0.24, 0.30, 0.50, 1.20, 1.26, 'P_Escuro')
     return m
 
-TODOS = [nucleo, extrator_cristal, broca_minerio, fornalha, montadora, refinador, laboratorio,
+TODOS = [nucleo, extrator_cristal, broca_minerio, fornalha, montadora, refinador, laboratorio, terraplenagem,
          gerador, poste_energia, torre_sem_fio, tanque, torre_defesa, muro_centro, muro_lado]
 
 if __name__ == '__main__':

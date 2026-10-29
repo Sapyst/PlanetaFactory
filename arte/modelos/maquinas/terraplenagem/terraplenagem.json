@@ -1,0 +1,64 @@
+{
+ "nome": "terraplenagem",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Terraplenagem: unidade de modelagem do terreno da IA. Enquanto existir, libera Aplainar em qualquer lugar do mapa. Partes: antena (anel de sensores gira), cristal (núcleo pulsa), bloco (rocha suspensa).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "antena",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.0,
+    1.48
+   ]
+  },
+  {
+   "nome": "cristal",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.0,
+    1.8
+   ]
+  },
+  {
+   "nome": "cabecote",
+   "pai": "corpo",
+   "pivo": [
+    -0.92,
+    -0.92,
+    1.25
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 950,
+ "dims": [
+  2.9,
+  2.9,
+  2.23
+ ],
+ "materiais": [
+  "P_Aco",
+  "P_Concreto",
+  "P_Cristal",
+  "P_Escuro",
+  "P_Metal",
+  "P_Rocha"
+ ]
+}

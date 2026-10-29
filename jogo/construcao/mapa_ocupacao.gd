@@ -117,6 +117,22 @@ func remover(id: int) -> void:
 	estruturas.erase(id)
 
 
+var _terra_versao := -1
+var _terra := false
+
+
+## Há uma Terraplenagem construída (libera Aplainar em qualquer lugar do mapa).
+func tem_terraplenagem() -> bool:
+	if _terra_versao != versao:
+		_terra_versao = versao
+		_terra = false
+		for id in estruturas:
+			if estruturas[id].nome == "terraplenagem":
+				_terra = true
+				break
+	return _terra
+
+
 func limpar_obstaculo(tile: Vector2i) -> Dictionary:
 	var o := gerador.distribuicao.obstaculo(tile)
 	if o.is_empty() or limpos.has(tile):
