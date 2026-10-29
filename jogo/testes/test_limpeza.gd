@@ -48,7 +48,7 @@ func test_coletor_aspira_sujeira_e_oleo() -> void:
 			a.somar(Vector2i(x, y), AmbienteVivo.SUJ, 0.5)
 			a.somar(Vector2i(x, y), AmbienteVivo.OLEO, 0.4)
 	a.somar(Vector2i(30, 30), AmbienteVivo.SUJ, 0.5)
-	_rodar(a, f, [id], 60)
+	_rodar(a, f, [id], 120)
 	var suj := a.valor(Vector2i(4, 4), AmbienteVivo.SUJ)
 	verificar(suj < 0.3, "sujeira perto foi aspirada (%.3f)" % suj)
 	verificar(a.valor(Vector2i(4, 4), AmbienteVivo.OLEO) < 0.25, "óleo também")

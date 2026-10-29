@@ -193,7 +193,7 @@
   "filtro_agua": "Encostado na água: limpa a água suja em volta (raio 7).",
   "viveiro": "Com seiva pelo cano, planta mudas em volta (raio 8) que viram árvores e limpam o ar e o chão.",
   "gerador": "Queima carvão e gera energia.",
-  "painel_solar": "Energia do sol, sem combustível (rende menos nublado e com chuva).",
+  "painel_solar": "Energia do sol, sem combustível: nada à noite, menos com nuvem e chuva, mais no verão.",
   "turbina_eolica": "Energia do vento, sem combustível (rende mais com vento forte).",
   "acumulador": "Guarda a sobra de energia da rede e devolve quando falta.",
   "poste_energia": "Leva energia por cabo.",

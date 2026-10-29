@@ -92,8 +92,9 @@ func test_fogo_anda_e_apaga() -> void:
 func test_estacoes_e_tufao() -> void:
 	var c := Clima.new(3)
 	var vistas := {}
-	for i in 3000:
-		c.tick(1.0)
+	var passo := float(Registro.clima.estacao_s) / 50.0
+	for i in 250:
+		c.tick(passo)
 		vistas[c.nome_estacao()] = true
 	igual(vistas.size(), 4, "passa pelas 4 estações")
 	# poluição alta: tufão bem mais provável depois da tempestade

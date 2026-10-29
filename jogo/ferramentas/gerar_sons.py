@@ -1,5 +1,5 @@
 """Sons do jogo sintetizados por código (sem amostras de terceiros): efeitos curtos e uma trilha ambiente em loop.
-Saída: assets/sons/*.wav (mono 16 bits). Rodar: python3 ferramentas/gerar_sons.py"""
+Saída: assets/sons/*.wav (mono 16 bits). Rodar: python3 ferramentas/gerar_sons.py [nome ...] (sem nome = todos)"""
 import math, random, struct, wave, os
 
 TAXA = 22050
@@ -203,9 +203,29 @@ def fogo():
     return out
 
 
+def faisca():
+    """0,35 s: arco elétrico — estalos secos de alta frequência em rajada, zumbido de 120 Hz por baixo, cauda chiada."""
+    n = int(0.35 * TAXA)
+    rng = random.Random(11)
+    out = []
+    y_ant = 0.0
+    estalos = sorted(rng.uniform(0.0, 0.22) for _ in range(9))
+    for i in range(n):
+        t = i / TAXA
+        x = rng.uniform(-1, 1)
+        hp = x - y_ant; y_ant = x                                  # passa-alta grosseiro: chiado agudo
+        crep = sum(math.exp(-(t - e) / 0.004) for e in estalos if t >= e) * hp
+        zumbido = (1.0 if math.sin(2 * math.pi * 120 * t) > 0 else -1.0) * 0.18 * math.exp(-t / 0.12)
+        out.append(crep * 0.9 + zumbido + hp * 0.25 * math.exp(-t / 0.08))
+    return out
+
+
 os.makedirs(SAIDA, exist_ok=True)
 for nome, f in [('clique', clique), ('construir', construir), ('remover', remover), ('tiro', tiro),
                 ('aranha_morre', aranha_morre), ('alerta', alerta), ('pesquisa', pesquisa), ('apito_trem', apito_trem),
-                ('derrota', derrota), ('trilha', trilha), ('chuva', chuva), ('trovao', trovao), ('reentrada', reentrada), ('impacto', impacto), ('fogo', fogo)]:
+                ('derrota', derrota), ('trilha', trilha), ('chuva', chuva), ('trovao', trovao), ('reentrada', reentrada), ('impacto', impacto), ('fogo', fogo), ('faisca', faisca)]:
+    import sys
+    if len(sys.argv) > 1 and nome not in sys.argv[1:]:
+        continue
     gravar(nome, f())
     print('SOM', nome)

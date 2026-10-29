@@ -40,6 +40,16 @@ func _ready() -> void:
 		"canal": _roteiro_canal()
 		"limpeza": _roteiro_limpeza()
 		"energia": _roteiro_energia()
+		"faiscas":                                     # acumulador carregado de perto (use com -- hora 0.0)
+			_roteiro_energia()
+			em(180, func():                            # depois do roteiro de energia mexer na câmera
+				var ac: int = _ids.acumulador
+				cena.fabrica.acumulado[ac] = 60.0
+				cena.fabrica.reconstruir()
+				var cam: CameraJogo = cena.camera
+				cam.alvo = Grade.ponto_mundo(Vector2(_ids_o) + Vector2(4.0, 1.0))
+				cam.distancia = 6.5
+				cam.posicionar())
 		"filtro": _roteiro_filtro()
 		"interface": _roteiro_interface()
 		"grama": _roteiro_grama()

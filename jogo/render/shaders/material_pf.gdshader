@@ -6,6 +6,7 @@
 //   rolagem : lona da esteira andando (UV.y = distância percorrida)
 //   pulso   : brilho pulsando (cristais, luzes de status)
 //   boiar   : sobe e desce na água (vitória-régia)
+//   por_trabalho : cristal das construções — brilho fraco que acende com `trabalho` (por objeto: o Animador manda)
 shader_type spatial;
 render_mode cull_back, diffuse_lambert, specular_schlick_ggx;
 
@@ -21,6 +22,8 @@ uniform float boiar = 0.0;
 uniform sampler2D textura : source_color, filter_linear_mipmap;
 uniform bool tem_textura = false;
 uniform bool rolagem_uv2 = false;  // modelo texturizado: o UV da lona foi para o 2º canal
+uniform bool por_trabalho = false;
+instance uniform float trabalho = 1.0;   // 0 = parada (cristal quase apagado) .. 1 = trabalhando
 #include "res://render/shaders/clima.gdshaderinc"
 global uniform sampler2D fogo_mapa : filter_linear, hint_default_transparent;   // 96×96 tiles em volta da câmera: B queimando, A queimado
 global uniform vec2 fogo_origem;
@@ -78,5 +81,8 @@ void fragment() {
 	if (pulso > 0.0) {
 		e *= 0.65 + 0.35 * sin(TIME * 2.4 + NODE_POSITION_WORLD.x);
 	}
-	EMISSION = cor_emissao.rgb * e * 0.25;
+	if (por_trabalho) {
+		e *= mix(0.1, 0.55, trabalho);
+	}
+	EMISSION += cor_emissao.rgb * e * 0.25;
 }

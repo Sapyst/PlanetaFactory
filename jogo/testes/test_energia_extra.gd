@@ -70,14 +70,14 @@ func test_solar_e_eolica_seguem_o_clima() -> void:
 	f.sol = 1.0
 	f.vento = 1.0
 	f.tick(1.0)
-	perto(f.kw_de(p), -160.0, 1e-3, "sol pleno: 160 kW")
-	perto(f.kw_de(t), -280.0, 1e-3, "vento forte: 280 kW")
-	perto(f.rede.satisfacao(mq), 1.0, 1e-3, "440 kW para 150 kW")
+	perto(f.kw_de(p), -300.0, 1e-3, "sol pleno: 300 kW")
+	perto(f.kw_de(t), -200.0, 1e-3, "vento forte: 200 kW")
+	perto(f.rede.satisfacao(mq), 1.0, 1e-3, "500 kW para 150 kW")
 	verificar(not f.combustivel.has(p) and not f.combustivel.has(t), "renovável não usa combustível")
 	f.sol = 0.0
 	f.vento = 0.15
 	f.tick(1.0)
-	perto(f.rede.satisfacao(mq), 42.0 / 150.0, 1e-3, "sem sol e quase sem vento: 42 de 150 kW")
+	perto(f.rede.satisfacao(mq), 30.0 / 150.0, 1e-3, "sem sol e quase sem vento: 30 de 150 kW")
 
 
 func test_desligar_e_modos() -> void:
@@ -144,7 +144,7 @@ func test_acumulador_salva() -> void:
 	f.reconstruir()
 	for i in 30:
 		f.tick(1.0)
-	perto(f.acumulado[a], 160.0 * 30.0 / 1000.0, 1e-3, "guardou a sobra do painel (sem consumo)")
+	perto(f.acumulado[a], 300.0 * 30.0 / 1000.0, 1e-3, "guardou a sobra do painel (sem consumo)")
 	var f2 := Fabrica.new(m)
 	f2.restaurar(f.estado())
 	perto(f2.acumulado[a], f.acumulado[a], 1e-6, "volta do save")

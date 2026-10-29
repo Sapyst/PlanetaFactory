@@ -13,8 +13,11 @@ var pocas := 0.0          ## 0..1: quanto as baixadas já encheram (enche devaga
 var deslocamento := Vector2.ZERO
 var direcao_vento := Vector2(1, 0.35).normalized()
 var restante := 120.0
+var tempo_real := false             ## jogo: estação pelo relógio de verdade (7 dias reais cada); testes usam o tempo simulado
 var estacao := 0                    ## índice em clima.json "estacoes"
 var t_estacao := 0.0
+var ciclo := true                    ## false = relógio parado (fotos)
+var hora := 0.3                     ## 0..1 do dia (0 = meia-noite, 0,5 = meio-dia); ciclo de clima.json "dia_s"
 var poluicao_total := 0.0            ## vem do mundo: ar sujo deixa tufão mais provável
 var eventos: Array[String] = []     ## acumula ("raio"); quem desenha consome e limpa
 var _rng := RandomNumberGenerator.new()
@@ -63,9 +66,51 @@ func eh_tufao() -> bool:
 	return bool(_d.estados[atual].get("tufao", false)) and ativo
 
 
+## Altura do sol: −1 meia-noite … +1,2 meio-dia (o dia é um pouco mais longo que a noite); o verão alonga o dia,
+## o inverno encurta (estação "dia_extra", passando suave da anterior no primeiro quarto da estação).
+func altura_sol() -> float:
+	return -cos(hora * TAU) + 0.2 + dia_extra()
+
+
+func dia_extra() -> float:
+	var es: Array = _d.get("estacoes", [])
+	if es.is_empty():
+		return 0.0
+	var antes := float(es[(estacao + es.size() - 1) % es.size()].get("dia_extra", 0.0))
+	var agora := float(es[estacao].get("dia_extra", 0.0))
+	return lerpf(antes, agora, smoothstep(0.0, 0.25, t_estacao / float(_d.get("estacao_s", 604800))))
+
+
+## 0 = noite, 1 = dia claro; amanhecer e entardecer no meio. Rende o painel solar e acende o mundo.
+func luz_dia() -> float:
+	return smoothstep(-0.15, 0.35, altura_sol())
+
+
+## "06:40" no relógio do planeta.
+func relogio() -> String:
+	var m := int(hora * 1440.0)
+	return "%02d:%02d" % [m / 60, m % 60]
+
+
+func periodo() -> String:
+	var a := altura_sol()
+	if a > 0.35:
+		return "Dia"
+	if a < -0.15:
+		return "Noite"
+	return "Amanhecer" if hora < 0.5 else "Entardecer"
+
+
 func tick(dt: float) -> void:
-	t_estacao += dt
-	var dur_e: float = _d.get("estacao_s", 360)
+	if ciclo:
+		hora = fposmod(hora + dt / float(_d.get("dia_s", 720)), 1.0)
+	var dur_e: float = _d.get("estacao_s", 604800)
+	if tempo_real and not _d.get("estacoes", []).is_empty():
+		var agora := Time.get_unix_time_from_system()
+		estacao = int(floor(agora / dur_e)) % _d.estacoes.size()
+		t_estacao = fmod(agora, dur_e)
+	else:
+		t_estacao += dt
 	if t_estacao >= dur_e and not _d.get("estacoes", []).is_empty():
 		t_estacao -= dur_e
 		estacao = (estacao + 1) % _d.estacoes.size()
@@ -116,7 +161,7 @@ func _sortear(pesos: Dictionary) -> String:
 
 func estado() -> Dictionary:
 	return {"atual": atual, "valores": valores, "molhado": molhado, "pocas": pocas, "deslocamento": deslocamento, "restante": restante,
-			"vento": direcao_vento, "rng": _rng.state, "estacao": estacao, "t_estacao": t_estacao}
+			"vento": direcao_vento, "rng": _rng.state, "estacao": estacao, "t_estacao": t_estacao, "hora": hora}
 
 
 func restaurar(d: Dictionary) -> void:
@@ -130,3 +175,4 @@ func restaurar(d: Dictionary) -> void:
 	_rng.state = d.rng
 	estacao = d.get("estacao", 0)
 	t_estacao = d.get("t_estacao", 0.0)
+	hora = d.get("hora", 0.3)

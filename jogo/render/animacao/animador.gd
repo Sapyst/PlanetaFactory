@@ -10,6 +10,7 @@ extends Node
 ##   _giro/_braco1/_braco2/_garra           braço mecânico (pega atrás, solta na frente)
 ##   _giro/_canhao                          torre (mira `alvo`)
 ##   _helice   gira no eixo norte–sul (turbina eólica; `ritmo` = vento)
+## Cristais (P_Cristal) brilham fraco pelo `brilho` (0..1; negativo = segue `ativo`), suavizado.
 
 @export var ativo := true
 @export var ritmo := 1.0
@@ -24,6 +25,10 @@ var _ik := {}
 var alvo: Node3D = null
 var ponto_alvo := Vector3.INF      ## alternativa a `alvo`: mira um ponto do mundo
 var tempo := 0.0
+var brilho := -1.0
+var _brilho := -1.0
+var _brilho_posto := -1.0
+var _malhas: Array[GeometryInstance3D] = []
 var _partes: Dictionary = {}
 var _base: Dictionary = {}
 
@@ -37,6 +42,8 @@ func _ready() -> void:
 			var parte := nome.substr(i + 1)
 			_partes[parte] = n
 			_base[parte] = (n as Node3D).transform
+	for g in dono.find_children("*", "GeometryInstance3D", true, false):
+		_malhas.append(g)
 
 
 func tem(parte: String) -> bool:
@@ -46,6 +53,13 @@ func tem(parte: String) -> bool:
 func _process(delta: float) -> void:
 	if ativo:
 		tempo += delta * ritmo
+	var alvo_b := brilho if brilho >= 0.0 else (1.0 if ativo else 0.0)
+	_brilho = alvo_b if _brilho < 0.0 else move_toward(_brilho, alvo_b, delta * 1.2)
+	if absf(_brilho - _brilho_posto) > 0.01:
+		_brilho_posto = _brilho
+		for g in _malhas:
+			if is_instance_valid(g):
+				g.set_instance_shader_parameter("trabalho", _brilho)
 	var t := tempo
 	if tem("hastes"):
 		_desloca("hastes", Vector3(0, (sin(t * 6.0) * 0.5 + 0.5) * 0.18 if ativo else 0.0, 0))

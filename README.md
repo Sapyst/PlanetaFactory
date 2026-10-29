@@ -23,6 +23,8 @@ sistema de construção. O jogo começa com o núcleo caindo do espaço.
 | Visão de recursos (tecla V): cada jazida com nome, quantidade e máquina | Modo construção: setas mostram o sentido de cada esteira (cor por nível) |
 | ![Céu nublado](docs/midia/nublado.jpg) | ![Rio com margem natural](docs/midia/rio.jpg) |
 | Nuvens altas: luz parcial e passagens diretas de sol | O mundo é natural (margens redondas); só as construções seguem a grade 1×1 |
+| ![Dia, entardecer e noite](docs/midia/dia_noite.jpg) | ![Estruturas novas](docs/midia/estruturas_novas.jpg) |
+| Dia, entardecer e noite: à noite o painel solar para e os cristais das máquinas se destacam | Coletor de lixo, filtro de água, viveiro, painel solar, turbina eólica, acumulador e baú grande |
 
 ## Pastas
 - `jogo/` — projeto Godot 4.7 (código, dados, testes). Ver `jogo/README.md`.
@@ -36,7 +38,7 @@ sistema de construção. O jogo começa com o núcleo caindo do espaço.
 2. `jogo/ferramentas/testar.sh` — importa e roda todos os testes do jogo sem janela.
 3. `godot --path jogo --write-movie /tmp/q.png --fixed-fps 30 --quit-after 70 -- camera X Z DIST` — foto real.
 4. `python3 jogo/ferramentas/gerar_sons.py` — sintetiza os sons; `python3 jogo/ferramentas/gerar_nuvens.py` — mapa das nuvens.
-5. `godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.8.3.apk` — APK.
+5. `godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.9.0.apk` — APK.
 6. `... -- camera -3 2 11 roteiro construir` (ou `roteiro toque`) — teste visual da construção com cliques/toques injetados.
 7. `godot --path jogo --write-movie /tmp/v/q.png --fixed-fps 30 -- roteiro mostruario voo` — regrava o voo do mostruário
    (sem `voo` e com `camera X Z DIST` tira prints; `visao`/`setas` ligam a visão de recursos/as setas).
@@ -64,6 +66,8 @@ sistema de construção. O jogo começa com o núcleo caindo do espaço.
   soltam feixes de sol); neblina de chão com corpo (fatias, abre em volta de máquinas e trens); chuva em volta da
   câmera com chão molhado e poças; tempestade com relâmpago e trovão. A chuva lava a poluição. Pode desligar nas
   configurações.
+- Dia e noite (12 min por dia): sol anda e se põe alaranjado, noite azulada com lua; estações seguem o calendário
+  real (7 dias de verdade cada) e mudam a duração do dia, a secura e o clima mais provável.
 
 ## Arte
 - `arte/FICHA_DE_ESTILO.md` — regras de grade, portas, cantos livres, esteira elevada, paleta e orçamento.
@@ -73,6 +77,6 @@ sistema de construção. O jogo começa com o núcleo caindo do espaço.
 - `arte/icones/` — ícones da barra de construção (renderizados dos .glb por `icones.py`, fundo transparente).
 - `arte/_obsoleto/` — versões antigas, só para referência.
 
-## Modelos (95), texturas (13) e ícones (37)
+## Modelos (114), texturas (13) e ícones (60)
 Itens 25 · logística 20 · máquinas/energia/defesa 12 · transporte 8 · inimigos 5 · mapa 25 (vegetação 10, rochas 6,
 jazidas 8, água 1) · texturas de chão: 7 biomas + jazida + praia + 2 águas + ruído de detalhe.

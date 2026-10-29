@@ -26,7 +26,7 @@
   "refinador": {"barra_aco": 5, "tubo": 10, "circuito": 5},
   "laboratorio": {"placa_ferro": 10, "placa_cobre": 10, "engrenagem": 5},
   "gerador": {"placa_ferro": 10, "tubo": 5, "pedra": 10},
-  "painel_solar": {"placa_ferro": 6, "vidro": 10, "circuito": 4},
+  "painel_solar": {"placa_ferro": 6, "vidro": 8, "circuito": 3},
   "turbina_eolica": {"placa_ferro": 14, "engrenagem": 10, "motor": 2},
   "acumulador": {"placa_ferro": 10, "bateria": 8, "circuito": 4},
   "poste_energia": {"placa_ferro": 1, "placa_cobre": 1},

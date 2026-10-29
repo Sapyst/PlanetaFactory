@@ -32,6 +32,36 @@ poste ↔ gerador e máquina até 5 m da borda. Máquina já ligada não troca d
 fontes". Remover um poste religa quem ficou sem. Fantasma do poste mostra os fios que vai criar e o anel de 9 m.
 **Torre sem fio** (pesquisa "Energia sem fio"): liga torres até 40 m e máquinas até 14 m, feixe ciano em vez de cabo.
 
+## Fontes, acumulador e opções das peças
+- `energia/rede_energia.gd`: em cada rede as fontes **grátis** (núcleo, painel solar, turbina eólica) entram primeiro;
+  o gerador só queima carvão para cobrir o que falta. Sobra carrega os **acumuladores** (até `acumula_kw`), falta
+  descarrega. `estat` por rede: pode gerar, gera, demanda, consumo, carga (+ carregando / − descarregando), acumulado.
+- Painel solar: `energia_kw × luz do dia × luz do clima` (nada à noite). Turbina: `energia_kw × (0,05 + 0,95 × vento)`.
+- Peça no mapa guarda as opções: `desligada`, `modo` (`eco`/`normal`/`turbo` → `Fabrica.MODOS`: velocidade, energia,
+  poluição) e `limite` do baú (fração de `capacidade_itens`). **Reparar** custa 1 placa de ferro por 25 de integridade.
+- Ficha técnica (`BarraConstrucao.ficha`) no botão da peça; painel da peça mostra integridade, armazenamento, geração
+  e a rede. Tabela completa: `docs/RECURSOS.md` (gerado de `dados/`).
+- Acumulador: o cristal do meio acende com a carga e as bobinas soltam faíscas (`render/arcos_eletricos.gd`: fitas em
+  cruz, sem virar para a câmera), mais ainda carregando ou descarregando. Cristais das máquinas brilham fraco só
+  trabalhando (`instance uniform trabalho` no `material_pf.gdshader`, comandado pelo `Animador`).
+
+## Dia, noite e estações
+- `Clima.hora` (0 = meia-noite) anda num ciclo de `dia_s` (720 s). `luz_dia()` rende o painel solar; `DesenhoClima`
+  anda o sol de leste a oeste, deixa a luz alaranjada no fim da tarde e à noite troca para lua azulada fraca (a troca
+  acontece com as duas apagadas no horizonte); céu, ambiente e névoa escurecem para azul-noite. HUD mostra período e hora.
+- **Estações pelo calendário real** (`tempo_real`): 7 dias reais cada (`estacao_s`), passam com o jogo fechado.
+  Cada uma muda a duração do dia (`dia_extra`), a secura (fogo) e os pesos do clima.
+- Fotos: roteiros param o relógio ao meio da manhã; `-- hora 0.0` fotografa à meia-noite; `-- ciclo` deixa andar.
+
+## Sujeira, consequências e limpeza
+- `ambiente/ambiente_vivo.gd`: máquinas sujam o chão em volta, vazam óleo, despejam na água; enxurrada leva a sujeira
+  para rios e lagos. **Consequências:** bomba de seiva com poça contaminada rende menos e se desgasta; chão sujo perto
+  do ninho deixa as aranhas furiosas (nascem mais rápido, atacam em grupos menores, mais longe, mais fortes; olhos
+  mais vermelhos).
+- **Limpeza** (pesquisas Limpeza e Reflorestamento): coletor de lixo aspira sujeira e óleo num raio de 6; filtro de
+  água (encostado na água) limpa a água suja; viveiro transforma seiva em mudas plantadas em volta (a 3+ tiles de
+  construção), que crescem até árvore e limpam o chão e o ar.
+
 ## Chão de fábrica
 Em volta de cada construção o chão vira piso de concreto (espalha 2 tiles, borda irregular e suave); zona de
 minério nunca vira piso. Cristais, grama e seixos debaixo de construção (ou no piso) não aparecem.

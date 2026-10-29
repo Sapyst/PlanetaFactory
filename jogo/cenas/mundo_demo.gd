@@ -91,6 +91,7 @@ func _ready() -> void:
 	DesenhoChunk.aquecer()
 	poluicao = Poluicao.new(gerador)
 	clima = Clima.new(semente)
+	clima.tempo_real = true                    # estações: 7 dias reais cada
 	colonia = Colonia.new(mapa, poluicao, semente)
 	pesquisa = Pesquisa.new(modo == "demo")
 	fabrica = Fabrica.new(mapa)
@@ -136,6 +137,14 @@ func _ready() -> void:
 	var ci := args.find("clima")
 	if ci >= 0 and args.size() > ci + 1:
 		clima.forcar(args[ci + 1], true)
+	# fotos: relógio parado (de dia, ou -- hora 0.0 meia-noite … 0.5 meio-dia); -- ciclo deixa o dia andar
+	var hi := args.find("hora")
+	if args.has("roteiro") and not args.has("ciclo"):
+		clima.ciclo = false
+		clima.tempo_real = false
+		clima.hora = 0.45
+	if hi >= 0 and args.size() > hi + 1:
+		clima.hora = float(args[hi + 1])
 	_atualizar_chunks()
 	var r := args.find("roteiro")
 	if r >= 0 and args.size() > r + 1:
@@ -330,6 +339,7 @@ func _criar_desenhos() -> void:
 	var dpt := DesenhoPlantas.new()
 	dpt.ambiente = ambiente
 	add_child(dpt)
+	add_child(_arcos)
 
 
 func alternar_recursos() -> bool:
@@ -821,6 +831,7 @@ func _fontes_calor() -> Array:
 ## Animação segue a simulação: máquina mexe só trabalhando; braço pela fase do ciclo.
 var _versao_bracos := -1
 var _turbinas: Array = []
+var _arcos := ArcosEletricos.new()
 
 
 func _animar_estruturas() -> void:
@@ -835,10 +846,19 @@ func _animar_estruturas() -> void:
 		var a := _animador(id)
 		if a != null:
 			a.ativo = animar_tudo or fabrica.maquinas[id].estado == Maquina.Estado.TRABALHANDO
+	# acumulador: cristal acende com a carga; faíscas entre as bobinas (mais ainda carregando/descarregando)
+	_arcos.fontes.clear()
 	for id in fabrica.acumulado:
 		var a := _animador(id)
-		if a != null:
-			a.ativo = animar_tudo or fabrica.ligada(id)
+		if a == null or not mapa.estruturas.has(id):
+			continue
+		a.ativo = animar_tudo or fabrica.ligada(id)
+		var cap := float(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("acumula_mj", 1.0))
+		var cheio: float = 1.0 if animar_tudo else clampf(float(fabrica.acumulado[id]) / cap, 0.0, 1.0)
+		var fluxo := absf(float(fabrica.rede.estat_de(id).get("carga", 0.0))) > 1.0
+		a.brilho = cheio if a.ativo else 0.0
+		if a.ativo and (cheio > 0.02 or fluxo):
+			_arcos.fontes[id] = {"no": _nos[id], "forca": clampf(cheio * 0.7 + (0.5 if fluxo else 0.0), 0.0, 1.0)}
 	for id in _turbinas:
 		if mapa.estruturas.has(id):
 			var a := _animador(id)
@@ -864,8 +884,8 @@ func _animador(id: int) -> Animador:
 ## Poluição, aranhas e trens (rodam mesmo se a mini-fábrica parar).
 func _tick_mundo(dt: float) -> void:
 	# renováveis: sol (luz, menos nuvem e chuva) e vento do clima de agora
-	fabrica.sol = clampf(float(clima.valores.luz) * (1.0 - 0.5 * float(clima.valores.nuvens)) * (1.0 - 0.6 * float(clima.valores.chuva)), 0.0, 1.0)
-	fabrica.vento = clampf(0.15 + 0.85 * float(clima.valores.vento), 0.0, 1.0)
+	fabrica.sol = clampf(clima.luz_dia() * float(clima.valores.luz) * (1.0 - 0.5 * float(clima.valores.nuvens)) * (1.0 - 0.6 * float(clima.valores.chuva)), 0.0, 1.0)
+	fabrica.vento = clampf(0.05 + 0.95 * float(clima.valores.vento), 0.0, 1.0)
 	if _fabrica_suja:
 		fabrica.reconstruir()
 		_fabrica_suja = false
@@ -1203,8 +1223,8 @@ func _hud() -> void:
 	for t in colonia.torres.values():
 		municao += t.municao
 	var aqui := poluicao.em(Grade.tile_de_mundo(camera.alvo))
-	var texto := "%s · Clima: %s\nPoluição aqui: %.1f   ·   total: %.0f\nNinhos: %d   ·   aranhas: %d\nMunição nas torres: %d   ·   trens: %d" % [
-			clima.nome_estacao(), clima.nome(), aqui, poluicao.total(), colonia.ninhos.size(), colonia.aranhas.size(), municao, trens.size()]
+	var texto := "%s %s · %s · Clima: %s\nPoluição aqui: %.1f   ·   total: %.0f\nNinhos: %d   ·   aranhas: %d\nMunição nas torres: %d   ·   trens: %d" % [
+			clima.periodo(), clima.relogio(), clima.nome_estacao(), clima.nome(), aqui, poluicao.total(), colonia.ninhos.size(), colonia.aranhas.size(), municao, trens.size()]
 	if modo != "demo":
 		var principais: Array[String] = []
 		for k in ["placa_ferro", "engrenagem", "placa_cobre", "pedra"]:

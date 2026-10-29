@@ -3,6 +3,9 @@ extends Node3D
 ## Desenha o Clima (só lê a lógica):
 ##  - parâmetros globais de shader: sombra das nuvens (correndo com o vento) e chão molhado — ver clima.gdshaderinc;
 ##  - luz: sol e céu baixam com as nuvens; relâmpago acende tudo por um instante e o trovão vem depois;
+##  - dia e noite (Clima.hora): o sol anda de leste a oeste e baixa, fica alaranjado no fim da tarde, some; à noite a
+##    mesma luz vira lua (azulada, fraca, vinda de outro lado — a troca acontece com as duas apagadas no horizonte),
+##    céu e ambiente escurecem para azul-noite e os cristais das máquinas passam a se destacar;
 ##  - neblina: existe no mundo, não é filtro — pilha de fatias finas rente ao chão (ver neblina.gdshader), com corpo,
 ##    andando com o vento, abrindo onde há calor (`fontes_calor`); a névoa do ambiente só dá a distância;
 ##  - raios de sol: feixes descendo pelos buracos das nuvens (ver raios_sol.gdshader) — com céu parcialmente
@@ -24,6 +27,11 @@ const FATIAS_RAIOS_CELULAR := 3
 const TOPO_RAIOS := 18.0
 const COR_NEBLINA := Color(0.72, 0.74, 0.76)
 const COR_TEMPESTADE := Color(0.36, 0.39, 0.43)
+const COR_POENTE := Color(1.0, 0.56, 0.32)
+const COR_LUA := Color(0.58, 0.68, 1.0)
+const LUA := 0.24                       ## força da lua em relação ao sol
+const CEU_NOITE := [Color(0.025, 0.04, 0.10), Color(0.08, 0.10, 0.18)]   ## topo, horizonte
+const CEU_POENTE := Color(0.85, 0.52, 0.36)
 
 var clima: Clima
 var camera: CameraJogo
@@ -54,12 +62,22 @@ var _base := {}
 var _flash := 0.0
 var _vida_raio := 0.0
 var _trovoes: Array[float] = []      ## segundos até cada trovão pendente
+var _ceu: ProceduralSkyMaterial
+var _preenche: DirectionalLight3D
 
 
 func _ready() -> void:
 	var env := ambiente.environment
 	_base = {"sol": sol.light_energy, "ceu": env.ambient_light_energy, "neblina": env.fog_light_color,
-			"saturacao": env.adjustment_saturation}
+			"saturacao": env.adjustment_saturation, "cor_sol": sol.light_color, "dir": sol.global_transform.basis.z.normalized()}
+	if env.sky != null and env.sky.sky_material is ProceduralSkyMaterial:
+		_ceu = env.sky.sky_material
+		_base.ceu_topo = _ceu.sky_top_color
+		_base.ceu_horizonte = _ceu.sky_horizon_color
+		_base.chao_horizonte = _ceu.ground_horizon_color
+	_preenche = sol.get_parent().get_node_or_null("Preenchimento") as DirectionalLight3D
+	if _preenche != null:
+		_base.preenche = _preenche.light_energy
 	_criar_chuva()
 	_criar_neblina()
 	_criar_raios_sol()
@@ -80,21 +98,57 @@ func _process(delta: float) -> void:
 	RenderingServer.global_shader_parameter_set("pocas", clima.pocas)
 	RenderingServer.global_shader_parameter_set("chuva_agora", v.chuva)
 	RenderingServer.global_shader_parameter_set("vento_dir", clima.direcao_vento * (0.4 + v.vento))
-	RenderingServer.global_shader_parameter_set("sol_dir", sol.global_transform.basis.z.normalized())
 	_relampagos(delta)
+	var dia := _dia_e_noite()
+	RenderingServer.global_shader_parameter_set("sol_dir", sol.global_transform.basis.z.normalized())
 	# luz e névoa do ambiente
 	var env := ambiente.environment
-	sol.light_energy = _base.sol * v.luz + _flash * 2.6
+	sol.light_energy = sol.light_energy * v.luz + _flash * 2.6
 	sol.shadow_opacity = 1.0 - 0.55 * v.nuvens      # céu fechado: luz difusa, sombra fraca
-	env.ambient_light_energy = _base.ceu * (0.7 + 0.3 * v.luz) + _flash * 1.2
+	env.ambient_light_energy = _base.ceu * (0.7 + 0.3 * v.luz) * lerpf(0.4, 1.0, dia) + _flash * 1.2
 	var cor: Color = (_base.neblina as Color).lerp(COR_NEBLINA, v.neblina * 0.7).lerp(COR_TEMPESTADE, v.chuva * 0.65)
-	env.fog_light_color = cor
+	env.fog_light_color = cor.lerp(Color(0.10, 0.13, 0.22), 0.85 * (1.0 - dia))
 	# névoa mais rala quanto mais longe a câmera (de longe o mapa não desbota); neblina engrossa em qualquer zoom
 	env.fog_density = (0.055 + 0.05 * v.neblina + 0.06 * v.chuva) / camera.distancia
 	env.adjustment_saturation = _base.saturacao - 0.18 * v.chuva - 0.10 * v.neblina
 	_atualizar_neblina(delta, v.neblina, v.luz)
 	_atualizar_raios_sol(v)
 	_atualizar_chuva(v.chuva, v.vento)
+
+
+# ------------------------------------------------------------------ dia e noite
+## Posição e cor do sol (ou da lua), céu e luz de preenchimento pela hora. Devolve a luz do dia 0..1.
+func _dia_e_noite() -> float:
+	var alt := clima.altura_sol()
+	var dia := clima.luz_dia()
+	var f_sol := smoothstep(-0.05, 0.3, alt)
+	var f_lua := smoothstep(0.0, -0.3, alt)
+	var d0: Vector3 = _base.dir
+	var el0 := asin(clampf(d0.y, -1.0, 1.0))
+	var az0 := atan2(d0.x, d0.z)
+	var el: float
+	var az: float
+	if alt > -0.025:                     # sol: nasce a leste, meio-dia na pose original, se põe a oeste
+		el = lerpf(0.10, el0, smoothstep(0.0, 1.0, alt))
+		az = az0 + (clima.hora - 0.5) * PI * 1.2
+		sol.light_color = COR_POENTE.lerp(_base.cor_sol, smoothstep(0.0, 0.7, alt))
+		sol.light_energy = _base.sol * f_sol
+	else:                                # lua: alta, de outro lado, azulada
+		el = deg_to_rad(52.0)
+		az = az0 + PI * 0.65
+		sol.light_color = COR_LUA
+		sol.light_energy = _base.sol * LUA * f_lua
+	var dir := Vector3(cos(el) * sin(az), sin(el), cos(el) * cos(az))
+	sol.global_basis = Basis.looking_at(-dir, Vector3.UP if absf(dir.y) < 0.99 else Vector3.FORWARD)
+	if _preenche != null:
+		_preenche.light_energy = _base.preenche * lerpf(0.55, 1.0, dia)
+	if _ceu != null:
+		var poente := clampf(1.0 - absf(alt - 0.1) / 0.35, 0.0, 1.0)        # céu alaranjado perto do horizonte
+		var hz: Color = (_base.ceu_horizonte as Color).lerp(CEU_POENTE, poente * 0.6)
+		_ceu.sky_top_color = (CEU_NOITE[0] as Color).lerp(_base.ceu_topo, dia)
+		_ceu.sky_horizon_color = (CEU_NOITE[1] as Color).lerp(hz, dia)
+		_ceu.ground_horizon_color = (CEU_NOITE[1] as Color).lerp(_base.chao_horizonte, dia)
+	return dia
 
 
 # ------------------------------------------------------------------ chuva
@@ -360,7 +414,7 @@ func _atualizar_raios_sol(v: Dictionary) -> void:
 	# (céu aberto = sol em tudo = nenhum feixe); ar úmido (depois da chuva, neblina) deixa o feixe mais visível
 	var buracos: float = smoothstep(0.68, 0.8, v.nuvens) * (1.0 - smoothstep(0.93, 0.99, v.nuvens))
 	var umidade: float = 0.45 + 0.35 * clima.molhado + 0.5 * v.neblina
-	var f: float = buracos * smoothstep(0.45, 0.7, v.luz) * umidade
+	var f: float = buracos * smoothstep(0.45, 0.7, v.luz) * umidade * smoothstep(0.1, 0.5, clima.altura_sol())
 	_raios_sol.visible = f > (0.08 if OS.has_feature("mobile") else 0.02)
 	if not _raios_sol.visible:
 		return
@@ -377,10 +431,9 @@ func _criar_raio() -> void:
 	_raio = MeshInstance3D.new()
 	_raio.mesh = _malha_raio
 	_raio.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.albedo_color = Color(0.92, 0.95, 1.0)
-	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var m := ShaderMaterial.new()                 # aditivo acima de 1: o bloom pega; halo em malha para o celular
+	m.shader = preload("res://render/shaders/raio.gdshader")
+	m.set_shader_parameter("forca", 8.0)
 	_raio.material_override = m
 	add_child(_raio)
 
@@ -422,12 +475,14 @@ func _desenhar_raio() -> void:
 		pts.append(p)
 	_malha_raio.clear_surfaces()
 	_malha_raio.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
-	for i in n:
-		var a := pts[i]
-		var b := pts[i + 1]
-		var olho := (camera.global_position - a).normalized()
-		var lado := (b - a).normalized().cross(olho).normalized() * 0.18
-		var q := [a - lado, a + lado, b + lado, b - lado]
-		for k in [0, 1, 2, 0, 2, 3]:
-			_malha_raio.surface_add_vertex(q[k])
+	for camada in [[1.4, Color(0.55, 0.65, 1.0, 0.10)], [0.18, Color(0.95, 0.97, 1.0, 1.0)]]:
+		_malha_raio.surface_set_color(camada[1])
+		for i in n:
+			var a := pts[i]
+			var b := pts[i + 1]
+			var olho := (camera.global_position - a).normalized()
+			var lado := (b - a).normalized().cross(olho).normalized() * float(camada[0])
+			var q := [a - lado, a + lado, b + lado, b - lado]
+			for k in [0, 1, 2, 0, 2, 3]:
+				_malha_raio.surface_add_vertex(q[k])
 	_malha_raio.surface_end()
