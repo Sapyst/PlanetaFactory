@@ -40,28 +40,46 @@ func _desenhar() -> void:
 	var indice := {}
 	if cam == null or cam.distancia <= DIST_ESCONDE:
 		var vista := _area_vista(cam)
-		for c in fabrica.caminhos:
+		var vel := float(Registro.estruturas["esteira_reta"].velocidade)
+		for ci in fabrica.caminhos.size():
+			var c: Dictionary = fabrica.caminhos[ci]
 			if vista.has_area() and not vista.intersects(c.caixa):
 				continue
 			var est: EsteiraCaminho = c.esteira
 			var n: int = c.tiles.size()
+			var oculto: Array = c.get("oculto", [])
+			var papel: Array = c.get("papel", [])
+			var lat := _laterais(ci, vel)
 			var acum := 0.0
 			for i in est.itens.size():
 				acum += est.espacos[i]
-				var s := clampf(float(n) - acum - EsteiraCaminho.ESPACO * 0.5, 0.0, float(n) - 1e-4)
+				var bruto := est.comprimento - acum - EsteiraCaminho.ESPACO * 0.5
+				var s := clampf(bruto, 0.0, float(n) - 1e-4)
 				var k := int(s)
 				var f := s - k
+				if not oculto.is_empty() and (oculto[k] or (papel[k] == "entrada" and f > 0.52) or (papel[k] == "saida" and f < 0.48)):
+					continue                                  # debaixo da terra (ou dentro do pórtico)
 				var t: Vector2i = c.tiles[k]
 				var entra: int = c.entra[k]
 				var sai: int = c.sai[k]
 				var p: Vector2
-				if sai < 0:
+				var sobe := 0.0
+				if bruto > float(n):
+					# rampa de junção: passa da borda, sobe por cima do trilho da vizinha e deita nela
+					var e := bruto - float(n)
+					p = Vector2(t.x + 0.5, t.y + 0.5) + Vector2(Grade.DIRECOES[sai]) * (0.5 + e)
+					sobe = Fabrica.altura_calha(e)
+				elif sai < 0:
 					# fim de linha: o item para encostado no para-choque (lado de dentro), não por cima dele
 					p = Vector2(t.x + 0.5, t.y + 0.5) + Vector2(Grade.DIRECOES[entra]) * (f * 0.74 - 0.5)
 				elif sai == entra:
 					p = Vector2(t.x + 0.5, t.y + 0.5) + Vector2(Grade.DIRECOES[entra]) * (f - 0.5)
 				else:
 					p = Fabrica.ponto_no_tile(t, entra, sai, f)
+				for j in lat:
+					if absf(acum - j.x) < 0.12:
+						p += j.dir * j.y                          # acabou de entrar pela lateral: termina de deslizar
+						break
 				var nv: Vector2i = c.niveis[k]
 				var item: String = est.itens[i]
 				if not indice.has(item):
@@ -69,7 +87,7 @@ func _desenhar() -> void:
 					tipos.append(item)
 				tipo.append(indice[item])
 				pos.append(p.x)
-				pos.append(0.16 + lerpf(nv.x, nv.y, f) * 0.5 + Grade.altura_chao(t))
+				pos.append(0.16 + sobe + lerpf(nv.x, nv.y, f) * 0.5 + Grade.altura_chao(t))
 				pos.append(-p.y)
 		for id in fabrica.bracos:
 			var b: Braco = fabrica.bracos[id]
@@ -118,6 +136,20 @@ func _desenhar() -> void:
 			w += 12
 		mm.buffer = buf
 		mm.visible_instance_count = n
+
+
+## Itens que entraram pela lateral deste caminho há pouco: (posição esperada agora, recuo lateral restante) + direção.
+## O item foi posto no eixo da esteira, mas o desenho o mostra ainda vindo da rampa e desliza até o eixo em ~0,13 s.
+func _laterais(ci: int, vel: float) -> Array:
+	var out := []
+	for j in fabrica.juncoes:
+		if j.caminho != ci:
+			continue
+		var dt := float(fabrica.passos - int(j.passo)) / 30.0
+		var resto := 0.25 - vel * dt
+		if resto > 0.0:
+			out.append({"x": float(j.pos) - vel * dt, "y": resto, "dir": -(j.lado as Vector2)})
+	return out
 
 
 ## Quadrado (plano da grade) que cobre o que a câmera vê, com folga.

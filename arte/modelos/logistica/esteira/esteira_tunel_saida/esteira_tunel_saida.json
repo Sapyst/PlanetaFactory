@@ -1,0 +1,52 @@
+{
+ "nome": "esteira_tunel_saida",
+ "categoria": "logistica/esteira",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Passagem subterrânea (saída): o item volta à superfície e segue para o norte.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_SAI_N0",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    0.5,
+    0.16
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  }
+ ],
+ "tris": 132,
+ "dims": [
+  0.92,
+  0.96,
+  0.475
+ ],
+ "materiais": [
+  "P_Aco",
+  "P_Cristal",
+  "P_Escuro",
+  "P_Esteira",
+  "P_Faixa"
+ ]
+}

@@ -45,6 +45,9 @@ var _no_tile: Dictionary = {}          ## tile → [caminho, índice do tile no 
 var _no_nivel: Dictionary = {}         ## Vector3i(x, y, nível de entrada) → [caminho, índice]
 var _saidas_portas: Array[Dictionary] = []   ## {origem: Object, tile: Vector2i}
 var _membros: Dictionary = {}          ## id → membro da rede (dict)
+var juncoes: Array[Dictionary] = []    ## itens que acabaram de entrar pela lateral: {caminho, pos, lado, passo} (desenho desliza)
+
+const EXTRA_JUNCAO := 0.375            ## m além da borda na rampa de junção (o item para a 0,25 m do eixo da vizinha)
 
 
 func _init(p_mapa: MapaOcupacao) -> void:
@@ -60,6 +63,7 @@ func reconstruir() -> void:
 	_no_nivel.clear()
 	_saidas_portas.clear()
 	_membros.clear()
+	juncoes.clear()
 	rede = RedeEnergia.new()
 	var vivos := {}
 	for id in mapa.estruturas:
@@ -89,15 +93,25 @@ func _montar_esteiras() -> void:
 		if no.is_empty():
 			continue
 		no["tile"] = e.minimo
+		no["nome"] = e.nome
 		no["chao"] = e.get("nivel", 0) == 0
 		cinta[Vector3i(e.minimo.x, e.minimo.y, no.n_in)] = no
 	var proximo := func(k: Vector3i) -> Vector3i:
 		var no: Dictionary = cinta[k]
 		if no.sai < 0:
 			return Vector3i(0, 0, -1)
+		if no.get("tunel", "") == "entrada":
+			# passagem subterrânea: liga na primeira saída alinhada à frente, até `alcance` tiles
+			for i in range(1, int(Registro.estruturas["esteira_tunel_entrada"].get("alcance", 5)) + 1):
+				var tt: Vector2i = no.tile + Grade.DIRECOES[no.sai] * i
+				var kk := Vector3i(tt.x, tt.y, no.n_out)
+				if cinta.has(kk) and cinta[kk].get("tunel", "") == "saida" and cinta[kk].entra == no.sai:
+					return kk
+			return Vector3i(0, 0, -1)
 		var t: Vector2i = no.tile + Grade.DIRECOES[no.sai]
 		var n := Vector3i(t.x, t.y, no.n_out)
-		if cinta.has(n) and cinta[n].entra == no.sai and mapa.gerador.nivel(t) == mapa.gerador.nivel(no.tile):
+		if cinta.has(n) and cinta[n].entra == no.sai and cinta[n].get("tunel", "") != "saida" \
+				and mapa.gerador.nivel(t) == mapa.gerador.nivel(no.tile):
 			return n
 		return Vector3i(0, 0, -1)
 	var tem_antes := {}
@@ -115,6 +129,8 @@ func _montar_esteiras() -> void:
 			var sai: Array[int] = []
 			var niveis: Array[Vector2i] = []
 			var chao: Array[bool] = []
+			var oculto: Array[bool] = []
+			var papel: Array[String] = []          # "entrada"/"saida" nas pontas da passagem subterrânea
 			var k: Vector3i = k0
 			var fechada := false
 			while true:
@@ -125,21 +141,40 @@ func _montar_esteiras() -> void:
 				sai.append(no.sai)
 				niveis.append(Vector2i(no.n_in, no.n_out))
 				chao.append(no.chao)
+				oculto.append(false)
+				papel.append(no.get("tunel", ""))
 				var n: Vector3i = proximo.call(k)
 				if n.z < 0:
 					break
+				if no.get("tunel", "") == "entrada":
+					# trecho debaixo da terra: tiles de passagem que só contam distância (não aparecem, braço não alcança)
+					var dist := absi(n.x - no.tile.x) + absi(n.y - no.tile.y)
+					for i in range(1, dist):
+						tiles.append(no.tile + Grade.DIRECOES[no.sai] * i)
+						entra.append(no.sai)
+						sai.append(no.sai)
+						niveis.append(Vector2i(no.n_out, no.n_out))
+						chao.append(false)
+						oculto.append(true)
+						papel.append("")
 				if visto.has(n):
 					fechada = n == k0
 					break
 				k = n
-			var est := EsteiraCaminho.new(float(tiles.size()), float(Registro.estruturas["esteira_reta"].velocidade))
+			# rampa de junção: o caminho segue EXTRA_JUNCAO além da borda, por cima do trilho da vizinha
+			var lateral: bool = cinta[k].nome == "esteira_juncao"
+			var est := EsteiraCaminho.new(float(tiles.size()) + (EXTRA_JUNCAO if lateral else 0.0),
+					float(Registro.estruturas["esteira_reta"].velocidade))
 			var caixa := Rect2(Vector2(tiles[0]), Vector2.ONE)
 			for t in tiles:
 				caixa = caixa.expand(Vector2(t)).expand(Vector2(t) + Vector2.ONE)
-			var c := {"esteira": est, "tiles": tiles, "entra": entra, "sai": sai, "niveis": niveis, "caixa": caixa}
+			var c := {"esteira": est, "tiles": tiles, "entra": entra, "sai": sai, "niveis": niveis, "caixa": caixa,
+					"oculto": oculto, "papel": papel, "lateral": lateral}
 			if fechada:
 				est.proximo = est
 			for i in tiles.size():
+				if oculto[i]:
+					continue
 				if chao[i]:
 					_no_tile[tiles[i]] = [caminhos.size(), i]
 				_no_nivel[Vector3i(tiles[i].x, tiles[i].y, niveis[i].x)] = [caminhos.size(), i]
@@ -239,9 +274,17 @@ func _ligar_pontas() -> void:
 			var c2: Dictionary = caminhos[alvo[0]]
 			if c2.entra[alvo[1]] == posmod(d + 2, 4):
 				continue                                   # de frente: não passa
-			var pos: float = c2.tiles.size() - alvo[1] - 0.5
+			if Construtor.TUNEIS.has(mapa.estruturas[mapa.tiles.get(n, -1)].nome if mapa.tiles.has(n) else ""):
+				continue                                   # passagem subterrânea só recebe por trás
 			var e2: EsteiraCaminho = c2.esteira
-			est.saida = func(item: String) -> bool: return e2.inserir_em(item, pos)
+			var pos: float = e2.comprimento - alvo[1] - 0.5
+			var ic: int = alvo[0]
+			var lado := Vector2(Grade.DIRECOES[d])
+			est.saida = func(item: String) -> bool:
+				if not e2.inserir_em(item, pos):
+					return false
+				juncoes.append({"caminho": ic, "pos": pos, "lado": lado, "passo": passos})
+				return true
 			continue
 		# esteira não enfia item em construção (o fim para o item; um braço pega dali) — só em peça de esteira
 		# (divisor/junção), que é esteira também
@@ -322,7 +365,7 @@ func escolher_receita(id: int, receita: String) -> void:
 func origem_em(t: Vector2i) -> Object:
 	if _no_tile.has(t):
 		var a: Array = _no_tile[t]
-		return _NaEsteira.new(caminhos[a[0]].esteira, caminhos[a[0]].tiles.size() - a[1] - 0.5)
+		return _NaEsteira.new(caminhos[a[0]].esteira, caminhos[a[0]].esteira.comprimento - a[1] - 0.5)
 	var id: int = mapa.tiles.get(t, -1)
 	if id < 0:
 		return null
@@ -338,7 +381,7 @@ func origem_em(t: Vector2i) -> Object:
 func destino_em(t: Vector2i) -> Object:
 	if _no_tile.has(t):
 		var a: Array = _no_tile[t]
-		return _NaEsteira.new(caminhos[a[0]].esteira, caminhos[a[0]].tiles.size() - a[1] - 0.5)
+		return _NaEsteira.new(caminhos[a[0]].esteira, caminhos[a[0]].esteira.comprimento - a[1] - 0.5)
 	var id: int = mapa.tiles.get(t, -1)
 	if id < 0:
 		return null
@@ -369,6 +412,8 @@ static func valor_combustivel(item: String) -> float:
 # ------------------------------------------------------------------ tick
 func tick(dt: float) -> void:
 	passos += 1
+	while not juncoes.is_empty() and passos - int(juncoes[0].passo) > 6:
+		juncoes.pop_front()
 	emissao.clear()
 	for id in _membros:
 		if _membros[id].kw < 0.0:
@@ -407,7 +452,7 @@ func tick(dt: float) -> void:
 		for tentativa in saidas.size():
 			var s: Dictionary = saidas[(d.vez + tentativa) % saidas.size()]
 			var est: EsteiraCaminho = s.caminho.esteira
-			var ok := est.inserir_na_entrada(d.buffer[0]) if s.idx == 0 else est.inserir_em(d.buffer[0], s.caminho.tiles.size() - s.idx - 0.5)
+			var ok := est.inserir_na_entrada(d.buffer[0]) if s.idx == 0 else est.inserir_em(d.buffer[0], s.caminho.esteira.comprimento - s.idx - 0.5)
 			if ok:
 				d.buffer.pop_front()
 				d.vez = (d.vez + tentativa + 1) % saidas.size()
@@ -423,7 +468,7 @@ func tick(dt: float) -> void:
 		var item: String = s.origem.pegar_para_braco("")
 		if item == "":
 			continue
-		var ok := est.inserir_na_entrada(item) if a[1] == 0 else est.inserir_em(item, c.tiles.size() - a[1] - 0.5)
+		var ok := est.inserir_na_entrada(item) if a[1] == 0 else est.inserir_em(item, est.comprimento - a[1] - 0.5)
 		if not ok:
 			s.origem.devolver(item)
 	concluidas.clear()
@@ -455,7 +500,7 @@ func _emitir(id: int, segundos: float) -> void:
 ## Ponto do mundo (plano da grade) de um item na esteira: `pos` = distância da saída do caminho.
 func ponto_do_item(c: Dictionary, pos: float) -> Vector2:
 	var n: int = c.tiles.size()
-	var s := clampf(float(n) - pos, 0.0, float(n) - 1e-4)
+	var s := clampf(c.esteira.comprimento - pos, 0.0, float(n) - 1e-4)
 	var k := int(s)
 	return ponto_no_tile(c.tiles[k], c.entra[k], c.sai[k], s - k)
 
@@ -463,7 +508,7 @@ func ponto_do_item(c: Dictionary, pos: float) -> Vector2:
 ## Altura (m) do item na esteira: segue o nível de cada tile (rampa sobe/desce no meio do tile).
 func altura_do_item(c: Dictionary, pos: float) -> float:
 	var n: int = c.tiles.size()
-	var s := clampf(float(n) - pos, 0.0, float(n) - 1e-4)
+	var s := clampf(c.esteira.comprimento - pos, 0.0, float(n) - 1e-4)
 	var k := int(s)
 	var nv: Vector2i = c.niveis[k]
 	return lerpf(nv.x, nv.y, s - k) * 0.5
@@ -482,6 +527,15 @@ static func ponto_no_tile(t: Vector2i, entra: int, sai: int, f: float) -> Vector
 	var ang0 := (a - canto).angle()
 	var ang1 := (b - canto).angle()
 	return canto + Vector2.from_angle(ang0 + angle_difference(ang0, ang1) * f) * 0.5
+
+
+## Altura extra do item na calha da rampa de junção, `e` m além da borda (mesmo perfil do modelo esteira_juncao):
+## sobe por cima do trilho da vizinha e desce até a lona dela.
+static func altura_calha(e: float) -> float:
+	var y := 0.5 + e
+	if y < 0.57:
+		return maxf(0.0, (y - 0.42) / 0.15 * 0.085)
+	return maxf(0.0, 0.085 - (y - 0.57) / 0.18 * 0.075)
 
 
 # ------------------------------------------------------------------ fluidos
@@ -649,8 +703,10 @@ func _guardar_itens() -> Array[Dictionary]:
 		var ps := est.posicoes()
 		var n: int = c.tiles.size()
 		for i in ps.size():
-			var s := float(n) - ps[i]
+			var s := est.comprimento - ps[i]
 			var k := clampi(int(s), 0, n - 1)
+			while k > 0 and c.oculto[k]:
+				k -= 1                                    # debaixo da terra: guarda a partir da entrada da passagem
 			out.append({"tile": Vector3i(c.tiles[k].x, c.tiles[k].y, c.niveis[k].x), "f": s - k, "item": est.itens[i]})
 	return out
 
@@ -661,7 +717,7 @@ func _restaurar_itens(guardados: Array[Dictionary]) -> void:
 			continue
 		var a: Array = _no_nivel[g.tile]
 		var c: Dictionary = caminhos[a[0]]
-		c.esteira.inserir_em(g.item, float(c.tiles.size()) - (a[1] + g.f))
+		c.esteira.inserir_em(g.item, c.esteira.comprimento - (a[1] + g.f))
 
 
 # ------------------------------------------------------------------ interfaces

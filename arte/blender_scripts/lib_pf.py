@@ -343,7 +343,7 @@ class Modelo:
             if lo.x < -0.13-e or hi.x > 0.13+e or lo.y < -0.13-e or hi.y > 0.13+e: self.erros.append(f'item mais largo que 0,26 m: {lo} {hi}')
             if abs(lo.z) > e or hi.z > 0.26+e: self.erros.append(f'item fora da altura 0..0,26: z {lo.z:.3f}..{hi.z:.3f}')
         else:
-            if lo.x < -self.w/2-e or hi.x > self.w/2+e or lo.y < -self.d/2-e or hi.y > self.d/2+e:
+            if lo.x < -self.w/2-e or hi.x > self.w/2+e or lo.y < -self.d/2-e or hi.y > self.d/2+e + getattr(self, 'alem_norte', 0.0):
                 self.erros.append(f'sai da área {self.w}×{self.d}: x {lo.x:.3f}..{hi.x:.3f} y {lo.y:.3f}..{hi.y:.3f}')
             if lo.z < -e: self.erros.append(f'abaixo do chão: z {lo.z:.3f}')
             if not getattr(self, 'ocupa_canto', False):

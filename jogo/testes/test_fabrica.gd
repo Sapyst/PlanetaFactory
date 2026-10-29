@@ -385,3 +385,69 @@ func test_braco_filtro_e_alcance() -> void:
 		f.tick(1.0 / 30.0)
 	verificar(int(f.baus[bau].get("carvao", 0)) > 3, "pegou carvão passando (no meio da esteira) (%s)" % f.baus[bau])
 	igual(int(f.baus[bau].get("pedra", 0)), 0, "filtro: pedra passa reto")
+
+
+func test_rampa_de_juncao() -> void:
+	var c := _c()
+	var f := Fabrica.new(c.mapa)
+	c.executar(c.plano_linha("esteira", Vector2i(-4, 0), Vector2i(-1, 0), 0))   # leste: ponta vira fim
+	igual(c.mapa.estruturas[c.mapa.tiles[Vector2i(-1, 0)]].nome, "esteira_fim")
+	c.executar(c.plano_linha("esteira", Vector2i(0, -3), Vector2i(0, 4), 0))    # norte, passa na frente
+	igual(c.mapa.estruturas[c.mapa.tiles[Vector2i(-1, 0)]].nome, "esteira_juncao", "ponta na lateral vira rampa de junção")
+	f.reconstruir()
+	var cl: Dictionary = f.caminhos[f._no_tile[Vector2i(-4, 0)][0]]
+	verificar(cl.lateral, "caminho marcado como lateral")
+	verificar(absf(cl.esteira.comprimento - 4.0 - Fabrica.EXTRA_JUNCAO) < 1e-4, "caminho avança além da borda pela calha")
+	var norte: EsteiraCaminho = f.caminhos[f._no_tile[Vector2i(0, 4)][0]].esteira
+	for i in 6:
+		cl.esteira.inserir_na_entrada("pedra")
+		_rodar(f, 0.2)
+	_rodar(f, 3.0)
+	verificar(norte.itens.count("pedra") >= 4, "itens passaram pela rampa (%d)" % norte.itens.count("pedra"))
+	verificar(Fabrica.altura_calha(0.07) > 0.07 and Fabrica.altura_calha(0.25) < 0.02, "calha sobe sobre o trilho e deita na vizinha")
+	# tirar a esteira da frente fecha a ponta de novo
+	c.executar(c.plano_remocao(Vector2i(0, -3), Vector2i(0, 4)))
+	igual(c.mapa.estruturas[c.mapa.tiles[Vector2i(-1, 0)]].nome, "esteira_fim", "sem vizinha a rampa volta a ser fim")
+
+
+func test_passagem_subterranea() -> void:
+	var c := _c()
+	var f := Fabrica.new(c.mapa)
+	var leste := Construtor.rot_do_fluxo(1)
+	c.executar(c.plano_linha("esteira", Vector2i(-5, 0), Vector2i(-2, 0), 0))
+	c.executar(c.plano_peca("esteira_tunel_entrada", Vector2i(-1, 0), leste))
+	c.executar(c.plano_linha("esteira", Vector2i(0, -3), Vector2i(0, 4), 0))    # obstáculo: esteira cruzando
+	_por(c, "bau", Vector2i(1, 0))                                                 # e um baú
+	c.executar(c.plano_peca("esteira_tunel_saida", Vector2i(2, 0), leste))
+	c.executar(c.plano_linha("esteira", Vector2i(3, 0), Vector2i(6, 0), 0))
+	igual(c.mapa.estruturas[c.mapa.tiles[Vector2i(-2, 0)]].nome, "esteira_reta", "esteira antes da entrada continua reta")
+	igual(c.mapa.estruturas[c.mapa.tiles[Vector2i(-5, 0)]].nome, "esteira_inicio")
+	igual(c.mapa.estruturas[c.mapa.tiles[Vector2i(6, 0)]].nome, "esteira_fim")
+	f.reconstruir()
+	var a: Array = f._no_tile[Vector2i(-5, 0)]
+	var cam: Dictionary = f.caminhos[a[0]]
+	igual(cam.tiles.size(), 12, "um caminho só: 4 + entrada + 2 por baixo + saída + 4")
+	igual(f._no_tile[Vector2i(6, 0)][0], a[0], "a saída continua o mesmo caminho")
+	verificar(f._no_tile[Vector2i(0, 0)][0] != a[0], "a esteira cruzando é outro caminho")
+	igual(cam.oculto.count(true), 2, "2 tiles debaixo da terra")
+	var cruz: EsteiraCaminho = f.caminhos[f._no_tile[Vector2i(0, 0)][0]].esteira
+	for i in 5:
+		cam.esteira.inserir_na_entrada("pedra")
+		_rodar(f, 0.3)
+	_rodar(f, 8.0)
+	igual(cam.esteira.itens.size(), 5, "nada se perdeu no túnel")
+	igual(cruz.itens.size(), 0, "nada caiu na esteira de cima")
+	var ps: PackedFloat32Array = (cam.esteira as EsteiraCaminho).posicoes()
+	verificar(ps[0] < 0.01, "o primeiro chegou ao fim, do outro lado")
+	# itens debaixo da terra sobrevivem à remontagem
+	var e: EsteiraCaminho = cam.esteira as EsteiraCaminho
+	e.retirar_perto(0.0, 9.0); e.retirar_perto(0.0, 9.0); e.retirar_perto(0.0, 9.0); e.retirar_perto(0.0, 9.0); e.retirar_perto(0.0, 9.0)
+	e.inserir_em("pedra", e.comprimento - 5.5)                                     # no meio da passagem
+	f.reconstruir()
+	var cam2: Dictionary = f.caminhos[f._no_tile[Vector2i(-5, 0)][0]]
+	igual(cam2.esteira.itens.size(), 1, "item debaixo da terra continua lá depois de remontar")
+	# saída longe demais (6 tiles livres) não liga
+	c.executar(c.plano_peca("esteira_tunel_entrada", Vector2i(-1, 5), leste))
+	c.executar(c.plano_peca("esteira_tunel_saida", Vector2i(6, 5), leste))
+	f.reconstruir()
+	verificar(f._no_tile[Vector2i(-1, 5)][0] != f._no_tile[Vector2i(6, 5)][0], "alcance máximo de 5 tiles")

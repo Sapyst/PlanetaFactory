@@ -35,6 +35,7 @@ func _ready() -> void:
 		"aranha": _roteiro_aranha()
 		"montagem": _roteiro_montagem()
 		"bracos": _roteiro_bracos()
+		"passagem": _roteiro_passagem()
 		"filtro": _roteiro_filtro()
 		"interface": _roteiro_interface()
 		"grama": _roteiro_grama()
@@ -393,6 +394,40 @@ func _roteiro_bracos() -> void:
 				f.baus[id].merge({"minerio_ferro": 40, "carvao": 20})
 		for id in f.combustivel:
 			f.combustivel[id] = 500.0)
+
+
+## Rampa de junção (esteira leste entrega na lateral de uma norte) e passagem subterrânea (esteira leste passa
+## por baixo de uma esteira norte e de um baú). Itens entram sem parar nas cabeceiras.
+func _roteiro_passagem() -> void:
+	var leste := Construtor.rot_do_fluxo(1)
+	em(2, func():
+		cena.controle.barra.visible = false
+		Sessao.config.fps = false
+		var con: Construtor = cena.construtor
+		for x in range(-12, 4):
+			for y in range(-17, -5):
+				cena.mapa.limpar_obstaculo(Vector2i(x, y))
+		var p := func(pl: Array[Dictionary]) -> void: cena.sincronizar(con.executar(pl))
+		p.call(con.plano_linha("esteira", Vector2i(-6, -11), Vector2i(-6, -6), 0))
+		p.call(con.plano_linha("esteira", Vector2i(-10, -8), Vector2i(-7, -8), 0))
+		p.call(con.plano_linha("esteira", Vector2i(-3, -16), Vector2i(-3, -10), 0))
+		p.call(con.plano_peca("bau", Vector2i(-2, -13), 0))
+		p.call(con.plano_linha("esteira", Vector2i(-9, -13), Vector2i(-5, -13), 0))
+		p.call(con.plano_peca("esteira_tunel_entrada", Vector2i(-4, -13), leste))
+		p.call(con.plano_peca("esteira_tunel_saida", Vector2i(-1, -13), leste))
+		p.call(con.plano_linha("esteira", Vector2i(0, -13), Vector2i(2, -13), 0))
+		var perto := OS.get_cmdline_user_args().has("juncao")   # foco só na rampa de junção
+		var tunel := OS.get_cmdline_user_args().has("tunel")    # foco só na passagem subterrânea
+		cena.camera.alvo = Grade.ponto_mundo(Vector2(-6.0, -7.5) if perto else (Vector2(-2.5, -12.5) if tunel else Vector2(-4.5, -10.5)))
+		cena.camera.distancia = 4.5 if perto else (6.5 if tunel else 10.0)
+		cena.camera.posicionar())
+	var itens := ["minerio_ferro", "pedra", "carvao", "minerio_cobre"]
+	for q in range(8, 900, 7):
+		em(q, func():
+			var f: Fabrica = cena.fabrica
+			for t in [Vector2i(-10, -8), Vector2i(-6, -11), Vector2i(-9, -13), Vector2i(-3, -16)]:
+				if f._no_tile.has(t):
+					(f.caminhos[f._no_tile[t][0]].esteira as EsteiraCaminho).inserir_na_entrada(itens[(q / 7 + t.x) % itens.size()]))
 
 
 ## Interface B: abre Produção (painel com explicações), escolhe a fornalha, toca no mapa (holograma + ações),

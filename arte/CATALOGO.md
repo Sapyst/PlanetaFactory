@@ -1,6 +1,6 @@
 # Catálogo de modelos
 
-102 modelos. Gerado por `blender_scripts/catalogo.py` — não editar à mão.
+105 modelos. Gerado por `blender_scripts/catalogo.py` — não editar à mão.
 
 Portas: `ITEM`/`FLUIDO`/`TRILHO`, `ENT`/`SAI`, lado (S/N/L/O) e índice do tile na borda. Ficam no .glb como nós `PORTA_*`.
 Partes: peças móveis exportadas separadas (o jogo anima pelo nome — ver jogo/render/animacao/animador.gd).
@@ -55,8 +55,11 @@ Texturas de chão em `texturas/` (loop sem emenda; relatório em `texturas/_emen
 | `esteira_curva_esq` | 1×1 | 300 | 0,96 × 0,96 × 0,23 | ITEM_ENT_S0, ITEM_SAI_O0 | Entra pelo sul e vira à esquerda (sai a oeste). |
 | `esteira_fim` | 1×1 | 100 | 0,92 × 0,96 × 0,24 | ITEM_ENT_S0 | Para-choque no norte. Itens param aqui para braços pegarem. |
 | `esteira_inicio` | 1×1 | 110 | 0,92 × 0,96 × 0,38 | ITEM_SAI_N0 | Cabeceira com motor no sul. Recebe itens por braço ou pela lateral. |
+| `esteira_juncao` | 1×1 | 108 | 0,92 × 1,25 × 0,32 | ITEM_ENT_S0, ITEM_SAI_N0 | Rampa de junção: ponta de esteira que entrega na lateral de outra. Uma calha passa por cima do trilho vizinho e deita o item na outra esteira (0,25 m além da borda norte). |
 | `esteira_rampa` | 1×1 | 48 | 0,92 × 1,00 × 0,69 | ITEM_ENT_S0, ITEM_SAI_N0 | Sobe 0.5 m em 1 tile (~26,6°, abaixo do ângulo de escorregar). Girada 180° vira descida. Apoio por pilares de canto. |
 | `esteira_reta` | 1×1 | 48 | 0,92 × 1,00 × 0,23 | ITEM_ENT_S0, ITEM_SAI_N0 | Esteira reta. Também serve elevada, apoiada em pilares de canto. |
+| `esteira_tunel_entrada` | 1×1 | 132 | 0,92 × 0,96 × 0,47 | ITEM_ENT_S0 | Passagem subterrânea (entrada): a esteira mergulha no pórtico e o item segue por baixo até a saída alinhada à frente (até 4 tiles livres no meio). |
+| `esteira_tunel_saida` | 1×1 | 132 | 0,92 × 0,96 × 0,47 | ITEM_SAI_N0 | Passagem subterrânea (saída): o item volta à superfície e segue para o norte. |
 | `juncao` | 1×1 | 260 | 1,00 × 1,00 × 0,61 | ITEM_ENT_S0, ITEM_ENT_L0, ITEM_ENT_O0, ITEM_SAI_N0 | Junta até 3 entradas (sul, leste, oeste) numa saída ao norte. |
 | `pilar_base` | canto | 12 | 0,06 × 0,06 × 0,04 | — | Sapata do pilar (vai por baixo do primeiro segmento, sem altura extra). |
 | `pilar_segmento` | canto | 12 | 0,06 × 0,06 × 0,50 | — | Fuste de 0.5 m. Fica no canto da grade (vértice entre 4 tiles). |

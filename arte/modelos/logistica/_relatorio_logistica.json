@@ -373,6 +373,179 @@
   "erros": []
  },
  {
+  "nome": "esteira_juncao",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Rampa de junção: ponta de esteira que entrega na lateral de outra. Uma calha passa por cima do trilho vizinho e deita o item na outra esteira (0,25 m além da borda norte).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 108,
+  "dims": [
+   0.92,
+   1.25,
+   0.315
+  ],
+  "materiais": [
+   "P_Escuro",
+   "P_Esteira",
+   "P_Faixa",
+   "P_Metal"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "esteira_tunel_entrada",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Passagem subterrânea (entrada): a esteira mergulha no pórtico e o item segue por baixo até a saída alinhada à frente (até 4 tiles livres no meio).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 132,
+  "dims": [
+   0.92,
+   0.96,
+   0.475
+  ],
+  "materiais": [
+   "P_Aco",
+   "P_Cristal",
+   "P_Escuro",
+   "P_Esteira",
+   "P_Faixa"
+  ],
+  "erros": []
+ },
+ {
+  "nome": "esteira_tunel_saida",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Passagem subterrânea (saída): o item volta à superfície e segue para o norte.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 132,
+  "dims": [
+   0.92,
+   0.96,
+   0.475
+  ],
+  "materiais": [
+   "P_Aco",
+   "P_Cristal",
+   "P_Escuro",
+   "P_Esteira",
+   "P_Faixa"
+  ],
+  "erros": []
+ },
+ {
   "nome": "divisor",
   "categoria": "logistica/esteira",
   "tipo": "estrutura",

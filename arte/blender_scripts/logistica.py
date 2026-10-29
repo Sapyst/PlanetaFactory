@@ -44,6 +44,47 @@ def esteira_fim():
     p.cil((0, 0.38, 0.13), 0.035, 0.80, 'P_Metal', eixo='X')
     m.porta('ITEM', 'ENT', 'S', perfil='esteira'); return m
 
+def esteira_juncao():
+    m = Modelo('esteira_juncao', E, descricao='Rampa de junção: ponta de esteira que entrega na lateral de outra. Uma calha '
+               'passa por cima do trilho vizinho e deita o item na outra esteira (0,25 m além da borda norte).')
+    m.alem_norte = 0.26                               # a calha avança sobre a esteira vizinha (só visual, sem ocupar)
+    p = m.parte(); esteira_trecho(p, reto((0, -0.5, 0), (0, 0.5, 0)))
+    # calha: sobe do fim da lona por cima do trilho da vizinha e desce até a lona dela (uma varredura só)
+    cam = [(Vector((0, 0.42, 0.13)), Vector((0, 1, 0))), (Vector((0, 0.57, 0.215)), Vector((0, 1, 0))),
+           (Vector((0, 0.75, 0.14)), Vector((0, 1, 0)))]
+    p.varrer(cam, (-0.25, 0.25, 0.0, 0.03), 'P_Metal', tampa=(True, True))
+    for lado in ((0.25, 0.29), (-0.29, -0.25)):       # abas laterais que guiam o item
+        p.varrer(cam, (lado[0], lado[1], 0.0, 0.10), 'P_Escuro', tampa=(True, True))
+    m.porta('ITEM', 'ENT', 'S', perfil='esteira'); m.porta('ITEM', 'SAI', 'N', perfil='esteira'); return m
+
+def _portal(p, y0, y1, frente):
+    """Pórtico da passagem subterrânea: bloco blindado com a boca escura virada para `frente` (y da face)."""
+    v = p.caixa(-0.45, 0.45, y0, y1, 0.0, 0.10, 'P_Escuro'); p.chanfrar(v, 0.02)
+    lado_boca = 1 if frente < (y0 + y1)/2 else -1      # +1: boca na face sul do bloco
+    yb0, yb1 = (frente, frente + 0.10) if lado_boca == 1 else (frente - 0.10, frente)
+    yf0, yf1 = (yb1, y1) if lado_boca == 1 else (y0, yb0)
+    v = p.caixa(-0.45, 0.45, yf0, yf1, 0.10, 0.46, 'P_Escuro'); p.chanfrar(v, 0.03)      # fundo
+    for x0, x1 in ((-0.45, -0.30), (0.30, 0.45)):                                         # batentes
+        v = p.caixa(x0, x1, yb0, yb1, 0.10, 0.46, 'P_Aco'); p.chanfrar(v, 0.015)
+    v = p.caixa(-0.30, 0.30, yb0, yb1, 0.32, 0.46, 'P_Aco'); p.chanfrar(v, 0.015)        # verga
+    yl = (frente - 0.012, frente) if lado_boca == 1 else (frente, frente + 0.012)
+    p.caixa(-0.26, 0.26, yl[0], yl[1], 0.36, 0.40, 'P_Cristal')                            # luz da boca
+    p.caixa(-0.38, 0.38, yf0 + 0.06, yf1 - 0.06, 0.46, 0.475, 'P_Cristal')                # veio no topo
+    p.caixa(-0.30, 0.30, yb0, yb1, 0.10, 0.13, 'P_Escuro')                                  # piso da boca
+
+def esteira_tunel_entrada():
+    m = Modelo('esteira_tunel_entrada', E, descricao='Passagem subterrânea (entrada): a esteira mergulha no pórtico e o '
+               'item segue por baixo até a saída alinhada à frente (até 4 tiles livres no meio).')
+    p = m.parte(); esteira_trecho(p, reto((0, -0.5, 0), (0, -0.02, 0)), travessa=False)
+    _portal(p, -0.02, 0.46, -0.02)
+    m.porta('ITEM', 'ENT', 'S', perfil='esteira'); return m
+
+def esteira_tunel_saida():
+    m = Modelo('esteira_tunel_saida', E, descricao='Passagem subterrânea (saída): o item volta à superfície e segue para o norte.')
+    p = m.parte(); esteira_trecho(p, reto((0, 0.02, 0), (0, 0.5, 0)), travessa=False)
+    _portal(p, -0.46, 0.02, 0.02)
+    m.porta('ITEM', 'SAI', 'N', perfil='esteira'); return m
+
 def esteira_rampa():
     m = Modelo('esteira_rampa', E, descricao=f'Sobe {RAMPA_SOBE} m em 1 tile (~26,6°, abaixo do ângulo de escorregar). '
                                              'Girada 180° vira descida. Apoio por pilares de canto.')
@@ -176,6 +217,7 @@ def bomba():
     m.porta('FLUIDO', 'SAI', 'N', perfil='cano'); return m
 
 TODOS = [esteira_reta, esteira_curva_dir, esteira_curva_esq, esteira_inicio, esteira_fim, esteira_rampa,
+         esteira_juncao, esteira_tunel_entrada, esteira_tunel_saida,
          divisor, juncao, pilar_base, pilar_segmento, pilar_topo,
          braco, braco_longo, braco_rapido, bau,
          cano_reto, cano_curva, cano_t, cano_cruz, bomba]

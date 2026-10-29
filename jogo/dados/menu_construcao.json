@@ -7,6 +7,8 @@
     "esteira",
     "esteira_rampa",
     "rampa_desce",
+    "esteira_tunel_entrada",
+    "esteira_tunel_saida",
     "divisor",
     "juncao"
    ]
@@ -79,6 +81,8 @@
   "esteira": "Esteira",
   "esteira_rampa": "Rampa sobe",
   "rampa_desce": "Rampa desce",
+  "esteira_tunel_entrada": "Passagem: entrada",
+  "esteira_tunel_saida": "Passagem: saída",
   "divisor": "Divisor",
   "juncao": "Junção",
   "braco": "Braço",
@@ -144,6 +148,8 @@
   "esteira": "Leva itens. Arraste para traçar o caminho.",
   "esteira_rampa": "Sobe a esteira 0,5 m (passa por cima).",
   "rampa_desce": "Desce a esteira 0,5 m.",
+  "esteira_tunel_entrada": "Leva a esteira por baixo do chão. Ponha a saída alinhada à frente, até 4 tiles livres no meio.",
+  "esteira_tunel_saida": "Onde a passagem subterrânea volta à superfície (mesma direção da entrada).",
   "divisor": "Reparte itens em até 3 saídas.",
   "juncao": "Junta até 3 esteiras em uma.",
   "braco": "Pega atrás e solta na frente, um item por vez.",

@@ -11,7 +11,8 @@ extends RefCounted
 ## tile e termina virado para quem recebe ao lado do último; ponta "fim" encostada no começo vira curva para o traço,
 ## e "início" encostado de lado no fim vira curva para receber dele.
 
-const FAMILIA_ESTEIRA := ["esteira_reta", "esteira_curva_dir", "esteira_curva_esq", "esteira_inicio", "esteira_fim"]
+const FAMILIA_ESTEIRA := ["esteira_reta", "esteira_curva_dir", "esteira_curva_esq", "esteira_inicio", "esteira_fim", "esteira_juncao"]
+const TUNEIS := ["esteira_tunel_entrada", "esteira_tunel_saida"]
 const FAMILIA_CANO := ["cano_reto", "cano_curva"]
 ## Peças que se arrastam em linha reta (uma por tile, mesma rotação).
 const LINHA_RETA := ["muro_centro", "trilho_reto", "poste_energia"]
@@ -635,14 +636,15 @@ func _recalcular_pontas(rel: Dictionary) -> void:
 	for t in tiles:
 		for id in mapa.ids_no_tile(t):
 			var e: Dictionary = mapa.estruturas[id]
-			if not e.nome in ["esteira_reta", "esteira_inicio", "esteira_fim"]:
+			if not e.nome in ["esteira_reta", "esteira_inicio", "esteira_fim", "esteira_juncao"]:
 				continue
 			var d := fluxo_da_rot(e.rot)
 			var n: int = e.get("nivel", 0)
 			var alimentado := _alimenta(t, d, n)
 			var escoa := _recebe(t, d, n)
 			var certo: String = e.nome
-			if alimentado and escoa: certo = "esteira_reta"
+			if escoa and _lateral(t, d, n): certo = "esteira_juncao"
+			elif alimentado and escoa: certo = "esteira_reta"
 			elif alimentado: certo = "esteira_fim"
 			elif escoa: certo = "esteira_inicio"
 			if certo != e.nome:
@@ -676,6 +678,8 @@ func _peca_esteira(cam: Array[Vector2i], dirs: Array[int], i: int, n := 0, d_ini
 	var ultimo := i == cam.size() - 1
 	var alimentado := not primeiro or d_ini >= 0 or _alimenta(cam[i], d_in, n)
 	var escoa := not ultimo or liga_fim or _recebe(cam[i], d_out, n)
+	if ultimo and _recebe(cam[i], d_out, n) and _lateral(cam[i], d_out, n):
+		return {"nome": "esteira_juncao", "rot": r}
 	if not alimentado and escoa:
 		return {"nome": "esteira_inicio", "rot": r}
 	if alimentado and not escoa:
@@ -702,7 +706,7 @@ static func _peca_cano(d_in: int, d_out: int) -> Dictionary:
 ## {} se não é esteira. Rampa guarda o nível de baixo; sobe (entra em n, sai em n+1) ou desce (o contrário).
 static func no_esteira(e: Dictionary) -> Dictionary:
 	var nome: String = e.nome
-	if not (nome in FAMILIA_ESTEIRA or nome == "esteira_rampa"):
+	if not (nome in FAMILIA_ESTEIRA or nome == "esteira_rampa" or nome in TUNEIS):
 		return {}
 	var d := fluxo_da_rot(e.rot)
 	var s := d
@@ -716,7 +720,10 @@ static func no_esteira(e: Dictionary) -> Dictionary:
 	if nome == "esteira_rampa":
 		if e.get("desce", false): n_in = n + 1
 		else: n_out = n + 1
-	return {"entra": d, "sai": s, "n_in": n_in, "n_out": n_out}
+	var no := {"entra": d, "sai": s, "n_in": n_in, "n_out": n_out}
+	if nome in TUNEIS:
+		no["tunel"] = "entrada" if nome == "esteira_tunel_entrada" else "saida"
+	return no
 
 
 ## Alguma coisa entrega itens neste tile (no nível n) vindo de trás (fluxo d)? Esteira/rampa ou porta de máquina.
@@ -725,8 +732,8 @@ func _alimenta(tile: Vector2i, d: int, n := 0) -> bool:
 	for id in mapa.ids_no_tile(t_atras):
 		var e: Dictionary = mapa.estruturas[id]
 		var no := no_esteira(e)
-		if no.is_empty() or no.n_out != n:
-			continue
+		if no.is_empty() or no.n_out != n or no.get("tunel", "") == "entrada":
+			continue                              # entrada de passagem entrega por baixo, não para o vizinho
 		if no.sai == d or (e.nome == "esteira_fim" and no.entra == d):
 			return true                           # fim apontando para cá vira reta no recálculo
 	if n > 0:
@@ -746,6 +753,8 @@ func _recebe(tile: Vector2i, d: int, n := 0) -> bool:
 	var t_frente := tile + Grade.DIRECOES[d]
 	for id in mapa.ids_no_tile(t_frente):
 		var no := no_esteira(mapa.estruturas[id])
+		if no.has("tunel") and (no.tunel == "saida" or no.entra != d):
+			continue                              # passagem só recebe por trás, na entrada
 		if not no.is_empty() and no.n_in == n and no.entra != posmod(d + 2, 4):
 			return true
 	if n > 0:
@@ -755,6 +764,15 @@ func _recebe(tile: Vector2i, d: int, n := 0) -> bool:
 		return false
 	for p in _portas(frente):
 		if p.io == "ENT" and p.tipo == "ITEM" and p.tile_fora == tile and p.dir == -Grade.DIRECOES[d]:
+			return true
+	return false
+
+
+## A esteira da frente corre de lado (carga lateral)? Então a ponta vira rampa de junção.
+func _lateral(tile: Vector2i, d: int, n := 0) -> bool:
+	for id in mapa.ids_no_tile(tile + Grade.DIRECOES[d]):
+		var no := no_esteira(mapa.estruturas[id])
+		if not no.is_empty() and not no.has("tunel") and no.n_in == n and no.entra != d and no.entra != posmod(d + 2, 4):
 			return true
 	return false
 

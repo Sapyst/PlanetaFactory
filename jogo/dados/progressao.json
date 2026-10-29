@@ -5,6 +5,8 @@
  "custos": {
   "esteira": {"placa_ferro": 1},
   "esteira_rampa": {"placa_ferro": 2, "engrenagem": 1},
+  "esteira_tunel_entrada": {"placa_ferro": 5, "engrenagem": 2},
+  "esteira_tunel_saida": {"placa_ferro": 5, "engrenagem": 2},
   "divisor": {"placa_ferro": 4, "circuito": 2},
   "juncao": {"placa_ferro": 4, "circuito": 2},
   "braco": {"placa_ferro": 2, "engrenagem": 1},
@@ -44,7 +46,7 @@
  "receitas_inicio": ["fundir_ferro", "fundir_cobre", "cozer_tijolo", "fundir_vidro", "fio", "engrenagem", "tubo", "lapidar", "pesquisa"],
  "pesquisas": {
   "defesa":      {"nome": "Defesa",            "pacotes": 8,  "tempo": 4, "requer": [], "libera": ["torre_defesa"], "receitas": ["municao"]},
-  "logistica":   {"nome": "Logística 2",       "pacotes": 12, "tempo": 4, "requer": [], "libera": ["esteira_rampa", "rampa_desce", "braco_longo"], "receitas": ["circuito"]},
+  "logistica":   {"nome": "Logística 2",       "pacotes": 12, "tempo": 4, "requer": [], "libera": ["esteira_rampa", "rampa_desce", "esteira_tunel_entrada", "esteira_tunel_saida", "braco_longo"], "receitas": ["circuito"]},
   "eletronica":  {"nome": "Eletrônica",        "pacotes": 20, "tempo": 5, "requer": ["logistica"], "libera": ["divisor", "juncao", "braco_rapido"], "receitas": ["motor"]},
   "fluidos":     {"nome": "Fluidos",           "pacotes": 20, "tempo": 5, "requer": [], "libera": ["cano", "cano_t", "cano_cruz", "bomba", "tanque"], "receitas": []},
   "aco":         {"nome": "Aço",               "pacotes": 20, "tempo": 5, "requer": [], "libera": [], "receitas": ["fundir_aco"]},
