@@ -5,6 +5,7 @@ extends Node3D
 
 const CAMADAS_AGUA := ["jazida", "piso_fabrica", "praia", "agua_rasa", "agua_funda"]   ## agua_* sempre por último (shader)
 const CAMADA_MAR := 250    ## mar/oceano no mapa de camadas: o desenho do mar vem do campo contínuo (UV2), não do tile
+const CAMADA_RIO := 251    ## rio e lago idem: o desenho vem do traçado do rio e da forma contínua do lago
 
 static var _texturas: Texture2DArray
 static var _material_chao: ShaderMaterial
@@ -59,14 +60,14 @@ static func preparar_dados(k: Vector2i, gerador: GeradorMundo) -> Dictionary:
 	for t in c.obstaculos:
 		var o: Dictionary = c.obstaculos[t]
 		var centro := Grade.centro_da_area(o.ancora, o.area, 0)
-		d.obst.append([o.nome, Transform3D(Basis(Vector3.UP, Grade.angulo(o.rot)), Grade.ponto_mundo(centro)), t])
+		d.obst.append([o.nome, Transform3D(Basis(Vector3.UP, Grade.angulo(o.rot)), Grade.ponto_mundo(centro, gerador.micro_em(centro - Vector2(0.5, 0.5)))), t])
 	for t in c.jazidas:
 		var j: Dictionary = c.jazidas[t]
 		# manchas contínuas: cada tile maior que o tile (encosta nos vizinhos), giro e deslocamento próprios
 		var r := Distribuicao.h(t.x, t.y, 77) * TAU
 		var esc := 1.15 + 0.25 * Distribuicao.h(t.x, t.y, 78)
 		var off := Vector3(Distribuicao.h(t.x, t.y, 79) - 0.5, 0, Distribuicao.h(t.x, t.y, 80) - 0.5) * 0.3
-		_add(d.grupos, j.tipo, Transform3D(Basis(Vector3.UP, r).scaled(Vector3(esc, 1.0, esc)), Grade.centro_mundo(t) + off))
+		_add(d.grupos, j.tipo, Transform3D(Basis(Vector3.UP, r).scaled(Vector3(esc, 1.0, esc)), Grade.centro_mundo(t, gerador.micro_em(Vector2(t))) + off))
 		_add(d.tiles, j.tipo, t)
 	for dc in c.decos:
 		var tt := Vector2i(dc.pos.floor())
@@ -76,7 +77,7 @@ static func preparar_dados(k: Vector2i, gerador: GeradorMundo) -> Dictionary:
 			barranco = barranco or gerador.nivel(tt + dd) != nv0
 		if barranco:
 			continue                                   # enfeite não fica pendurado na encosta
-		_add(d.grupos, dc.nome, Transform3D(Basis(Vector3.UP, dc.rot), Grade.ponto_mundo(dc.pos, 0.0 if dc.nome != "vitoria_regia" else -0.12)))
+		_add(d.grupos, dc.nome, Transform3D(Basis(Vector3.UP, dc.rot), Grade.ponto_mundo(dc.pos, gerador.micro_em(dc.pos - Vector2(0.5, 0.5)) if dc.nome != "vitoria_regia" else -0.12)))
 		_add(d.tiles, dc.nome, Vector2i(dc.pos.floor()))
 	# já no formato do MultiMesh (12 floats por instância): a linha principal só entrega o buffer
 	var bufs := {}
@@ -137,12 +138,14 @@ func atualizar_fabrica() -> void:
 	var n := Grade.TAM_CHUNK
 	var base: Vector2i = _dados.coord * n
 	if _img_fabrica == null:
-		_img_fabrica = Image.create(n + 2, n + 2, false, Image.FORMAT_R8)
+		_img_fabrica = Image.create(n + 2, n + 2, false, Image.FORMAT_RG8)    # R = piso, G = nível da construção
 	_img_fabrica.fill(Color(0, 0, 0))
 	if _mapa != null:
 		# espalha 2 tiles em volta de cada construção, enfraquecendo com a distância (o shader deforma a borda)
 		var valor := PackedFloat32Array()
 		valor.resize((n + 2) * (n + 2))
+		var alvo := PackedInt32Array()
+		alvo.resize((n + 2) * (n + 2))
 		for j in range(-ESPALHA, n + 2 + ESPALHA):
 			for i in range(-ESPALHA, n + 2 + ESPALHA):
 				var id: int = _mapa.tiles.get(base + Vector2i(i - 1, j - 1), -1)
@@ -151,6 +154,7 @@ func atualizar_fabrica() -> void:
 				var nome: String = _mapa.estruturas[id].nome
 				if nome == "ninho_aranha" or Registro.estruturas.get(nome, {}).has("requer_jazida"):
 					continue
+				var nv_e := _mapa.gerador.nivel(base + Vector2i(i - 1, j - 1))
 				for dj in range(-ESPALHA, ESPALHA + 1):
 					for di in range(-ESPALHA, ESPALHA + 1):
 						var x := i + di
@@ -161,11 +165,12 @@ func atualizar_fabrica() -> void:
 						var k := y * (n + 2) + x
 						if v > valor[k]:
 							valor[k] = v
+							alvo[k] = nv_e
 		for j in n + 2:
 			for i in n + 2:
 				var v := valor[j * (n + 2) + i]
 				if v > 0.0:
-					_img_fabrica.set_pixel(i, j, Color(v, 0, 0))
+					_img_fabrica.set_pixel(i, j, Color(v, (alvo[j * (n + 2) + i] + 8) / 255.0, 0))
 	if _tex_fabrica == null:
 		_tex_fabrica = ImageTexture.create_from_image(_img_fabrica)
 		(get_node("chao") as MeshInstance3D).material_override.set_shader_parameter("mapa_fabrica", _tex_fabrica)
@@ -253,6 +258,7 @@ static func camada_de(t: Vector2i, gerador: GeradorMundo) -> int:
 	match gerador.terreno(t):
 		GeradorMundo.Terreno.PRAIA: return _camadas.find("praia")
 		GeradorMundo.Terreno.OCEANO, GeradorMundo.Terreno.MAR: return CAMADA_MAR
+		GeradorMundo.Terreno.RIO, GeradorMundo.Terreno.LAGO, GeradorMundo.Terreno.LAGOA: return CAMADA_RIO
 		GeradorMundo.Terreno.TERRA:
 			if not gerador.distribuicao.jazida(t).is_empty():
 				return _camadas.find("jazida")
@@ -282,32 +288,29 @@ static func _chao_dados(c: ChunkDados, gerador: GeradorMundo) -> Dictionary:
 			else:
 				cam = camada_de(base + Vector2i(i - 1, j - 1), gerador)
 			img.set_pixel(i, j, Color(cam / 255.0, 0, 0))
-	# níveis e água dos tiles do chunk + 3 de margem (as leituras deslocadas passam da borda)
-	var mg := 3
-	var lado := n + 2 * mg
-	var nv := PackedInt32Array()
-	nv.resize(lado * lado)
-	var ag := PackedFloat32Array()
-	ag.resize(lado * lado)
-	var rio := {}
-	for j in lado:
-		for i in lado:
-			var t := base + Vector2i(i - mg, j - mg)
-			nv[j * lado + i] = gerador.nivel(t)
-			var dentro := i >= mg and j >= mg and i < n + mg and j < n + mg
-			var ter: int = c.terreno[(j - mg) * n + (i - mg)] if dentro else gerador.terreno(t)
-			# rio e lago pelo tile; mar pelo campo contínuo (costa natural, praia em rampa)
-			ag[j * lado + i] = 1.0 if gerador.eh_agua(ter) and ter != GeradorMundo.Terreno.MAR and ter != GeradorMundo.Terreno.OCEANO else 0.0
-			if ter == GeradorMundo.Terreno.RIO:
-				rio[t] = gerador.direcao_rio(t)
+	# lagos: forma contínua (Hidrologia.dist_lago), nada de tile
+	var lagos: Array = gerador.hidro.lagos(base - Vector2i(3, 3), base + Vector2i(n + 3, n + 3)) if gerador.relevo_ativo else []
+	# rio: traçado contínuo (pontos com meia largura) separado em baldes de 3×3 tiles para a busca por vértice
+	var baldes := {}
+	if gerador.relevo_ativo:
+		for pt in gerador.hidro.trechos(base - Vector2i(3, 3), base + Vector2i(n + 3, n + 3)):
+			var b := Vector2i((pt[0] as Vector2 / 3.0).floor())
+			if not baldes.has(b):
+				baldes[b] = []
+			baldes[b].append(pt)
+	var rio_v := PackedVector4Array()           # por vértice: (fração de rio, direção x, direção y, nível do leito)
 	# relevo e elevação contínuos: variam devagar (ruídos de baixa frequência) — calculados uma vez por canto de
 	# tile e interpolados nos vértices (igual ao cálculo direto a olho, ~9× menos ruído)
 	var lc := n + 5
 	var campo := PackedVector2Array()
 	campo.resize(lc * lc)
+	var micro := PackedFloat32Array()
+	micro.resize(lc * lc)
 	for j in lc:
 		for i in lc:
-			campo[j * lc + i] = gerador.campos_em(Vector2(base + Vector2i(i - 2, j - 2)))
+			var pq := Vector2(base + Vector2i(i - 2, j - 2))
+			campo[j * lc + i] = gerador.campos_em(pq)
+			micro[j * lc + i] = gerador.micro_em(pq)
 	var v := n * SUB + 1
 	var alt := PackedFloat32Array()            # (v + 2)²: uma volta a mais para as normais
 	alt.resize((v + 2) * (v + 2))
@@ -316,6 +319,7 @@ static func _chao_dados(c: ChunkDados, gerador: GeradorMundo) -> Dictionary:
 	var mar_v := PackedVector2Array()           # (fração de mar, fração de fundo) por vértice
 	mar_v.resize((v + 2) * (v + 2))
 	var relevo := gerador.relevo_ativo
+	rio_v.resize((v + 2) * (v + 2))
 	for vj in v + 2:
 		for vi in v + 2:
 			var g := Vector2(base) + Vector2(vi - 1, vj - 1) / float(SUB)
@@ -328,29 +332,35 @@ static func _chao_dados(c: ChunkDados, gerador: GeradorMundo) -> Dictionary:
 			var cp := campo[cj * lc + ci].lerp(campo[cj * lc + ci + 1], fx).lerp(campo[(cj + 1) * lc + ci].lerp(campo[(cj + 1) * lc + ci + 1], fx), fy)
 			var h := GeradorMundo.patamar(cp.x)
 			var e := cp.y
-			# água de rio/lago pelo tile: fração bilinear (suavizada) dos 4 centros em volta
-			var q := g - Vector2(0.5, 0.5) - Vector2(base) + Vector2(mg, mg)
-			var i0 := clampi(floori(q.x), 0, lado - 2)
-			var j0 := clampi(floori(q.y), 0, lado - 2)
-			var ux := clampf(q.x - i0, 0.0, 1.0)
-			var uy := clampf(q.y - j0, 0.0, 1.0)
-			ux = ux * ux * (3.0 - 2.0 * ux)
-			uy = uy * uy * (3.0 - 2.0 * uy)
-			var k00 := j0 * lado + i0
-			var a0 := ag[k00]
-			var a1 := ag[k00 + 1]
-			var a2 := ag[k00 + lado]
-			var a3 := ag[k00 + lado + 1]
+			var mc := lerpf(lerpf(micro[cj * lc + ci], micro[cj * lc + ci + 1], fx), lerpf(micro[(cj + 1) * lc + ci], micro[(cj + 1) * lc + ci + 1], fx), fy)
 			var wa := 0.0
-			if a0 + a1 + a2 + a3 > 0.0:
-				var w0 := (1.0 - ux) * (1.0 - uy) * a0
-				var w1 := ux * (1.0 - uy) * a1
-				var w2 := (1.0 - ux) * uy * a2
-				var w3 := ux * uy * a3
-				wa = w0 + w1 + w2 + w3
-				# superfície = nível dos tiles de água em volta (leito do rio, fundo do lago)
-				var sl := w0 * nv[k00] + w1 * nv[k00 + 1] + w2 * nv[k00 + lado] + w3 * nv[k00 + lado + 1]
-				h = lerpf(h, sl / wa, smoothstep(0.0, 0.6, wa))
+			# lago: dentro do contorno contínuo e no nível do fundo
+			for lg in lagos:
+				var cl: Vector2 = lg.centro
+				var ql := g - Vector2(0.5, 0.5)
+				if ql.distance_squared_to(cl) > pow(float(lg.raio) * 1.1 + 1.0, 2.0):
+					continue
+				var lf := smoothstep(0.35, -0.35, gerador.hidro.dist_lago(lg, ql, cp.x))
+				if lf > 0.0:
+					h = lerpf(h, float(lg.nivel), smoothstep(0.0, 0.7, lf))
+					wa = maxf(wa, lf)
+			# rio: distância ao traçado (borda = meia largura), contínua — nada de forma de tile
+			if not baldes.is_empty():
+				var bc := Vector2i((g / 3.0).floor())
+				var dmin := 9.0
+				var melhor: Array = []
+				for by in range(bc.y - 1, bc.y + 2):
+					for bx in range(bc.x - 1, bc.x + 2):
+						for pt in baldes.get(Vector2i(bx, by), []):
+							var dd: float = g.distance_to(pt[0]) - float(pt[1])
+							if dd < dmin:
+								dmin = dd
+								melhor = pt
+				if dmin < 0.5:
+					var rf := smoothstep(0.35, -0.35, dmin)
+					rio_v[vj * (v + 2) + vi] = Vector4(rf, melhor[3].x, melhor[3].y, float(melhor[2]))
+					h = lerpf(h, float(melhor[2]), smoothstep(0.0, 0.7, rf))
+					wa = maxf(wa, rf)
 			# mar: costa pela elevação contínua (e baixada abaixo do nível do mar perto da costa); praia em rampa
 			var baixada := 0.0
 			if e < 0.02 and relevo:
@@ -360,10 +370,11 @@ static func _chao_dados(c: ChunkDados, gerador: GeradorMundo) -> Dictionary:
 			if rampa > 0.0 and relevo:
 				h = lerpf(h, float(GeradorMundo.NIVEL_MAR), rampa)
 			var kk := vj * (v + 2) + vi
-			mar_v[kk] = Vector2(mar, smoothstep(-0.27, -0.36, e))
+			mar_v[kk] = Vector2(maxf(mar, wa), smoothstep(-0.27, -0.36, e))     # toda água: campo contínuo
 			wa = maxf(wa, mar)
 			agua_v[kk] = wa
-			alt[kk] = h * Grade.ALT_NIVEL - 0.12 * wa * sqrt(wa)
+			# ondulação natural só em terra (some na água e na rampa da praia)
+			alt[kk] = h * Grade.ALT_NIVEL - 0.12 * wa * sqrt(wa) + mc * (1.0 - smoothstep(0.0, 0.5, wa)) * (1.0 - rampa)
 	var verts := PackedVector3Array()
 	var normais := PackedVector3Array()
 	var cores := PackedColorArray()
@@ -392,9 +403,8 @@ static func _chao_dados(c: ChunkDados, gerador: GeradorMundo) -> Dictionary:
 			var oc := maxf(0.0, alt[l2] - hk) + maxf(0.0, alt[r2] - hk) + maxf(0.0, alt[d2] - hk) + maxf(0.0, alt[u2] - hk)
 			oclusao[vj * v + vi] = Vector2(clampf(oc * 0.42, 0.0, 1.0), 0.0)
 			mar_out[vj * v + vi] = mar_v[k]
-			var t := Vector2i(floori(g.x - 0.001 if vi == v - 1 else g.x), floori(g.y - 0.001 if vj == v - 1 else g.y))
-			var fl: Vector2 = rio.get(t, Vector2.ZERO)
-			cores[vj * v + vi] = Color(agua_v[k], 0.5 + 0.5 * fl.x, 0.5 + 0.5 * fl.y, 1.0 if rio.has(t) else 0.0)
+			var rv := rio_v[k]
+			cores[vj * v + vi] = Color(agua_v[k], 0.5 + 0.5 * rv.y, 0.5 + 0.5 * rv.z, 1.0 if rv.x > 0.01 else 0.0)
 	var idx := PackedInt32Array()
 	idx.resize((v - 1) * (v - 1) * 6)
 	var w := 0
@@ -434,5 +444,6 @@ static func _camada_local(c: ChunkDados, k: int, t: Vector2i) -> int:
 	match c.terreno[k]:
 		GeradorMundo.Terreno.PRAIA: return _camadas.find("praia")
 		GeradorMundo.Terreno.OCEANO, GeradorMundo.Terreno.MAR: return CAMADA_MAR
+		GeradorMundo.Terreno.RIO, GeradorMundo.Terreno.LAGO, GeradorMundo.Terreno.LAGOA: return CAMADA_RIO
 		GeradorMundo.Terreno.TERRA: return _camadas.find("jazida") if c.jazidas.has(t) else c.bioma[k]
 	return _camadas.find("agua_rasa")

@@ -171,6 +171,14 @@ func campos_em(p: Vector2) -> Vector2:
 	return Vector2(clampf(r * smoothstep(42.0, 95.0, p.length()) * 2.4, -3.49, 3.49), e)
 
 
+## Ondulação natural do chão (metros, ±~0,25): o mundo nunca é plano perfeito; não muda o nível dos tiles.
+## Onde se constrói, o desenho aplaina (mapa da fábrica no shader). `q` em coordenadas de relevo.
+func micro_em(q: Vector2) -> float:
+	if not relevo_ativo or q.length() < 30.0:
+		return 0.0 if not relevo_ativo else (_distorcao.get_noise_2d(q.x * 4.0, q.y * 4.0) * 0.12)
+	return _distorcao.get_noise_2d(q.x * 4.0, q.y * 4.0) * 0.20 + _lagoa.get_noise_2d(q.x * 7.0 + 31.0, q.y * 7.0 - 5.0) * 0.08
+
+
 ## Altura desenhada (em níveis) a partir do relevo contínuo: patamar plano e encosta curta onde cruza um meio nível.
 static func patamar(x: float) -> float:
 	var k := floorf(x)

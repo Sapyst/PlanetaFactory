@@ -28,7 +28,7 @@
   "agua": "Não dá para construir na água",
   "obstaculo": "Obstáculo no caminho — use Remover para limpar",
   "sem_jazida": "Precisa ficar sobre a jazida certa",
-  "desnivel": "O chão precisa ser plano (há um barranco aqui)",
+  "desnivel": "A peça ficaria em dois níveis do terreno",
   "pilar_no_canto": "Um pilar de esteira ocupa o canto",
   "estrutura desconhecida": "Peça desconhecida",
   "inimigo": "Ninho de aranha: só cai com tiro de torre",

@@ -13,12 +13,13 @@ uniform sampler2DArray texturas : source_color, filter_linear_mipmap, repeat_ena
 uniform sampler2D detalhe : filter_linear_mipmap, repeat_enable;
 uniform sampler2D mapa_camadas : filter_nearest;
 uniform vec2 origem_mapa;          // tile (grade) do pixel (0, 0) do mapa de camadas
-uniform sampler2D mapa_fabrica : filter_nearest;   // 1 = tile com construção (mesma grade do mapa de camadas)
+uniform sampler2D mapa_fabrica : filter_nearest, hint_default_black;   // 1 = tile com construção (mesma grade do mapa de camadas)
 uniform float camada_piso = 9.0;
 uniform float camada_jazida = 7.0;  // zona de minério nunca vira piso
 uniform float primeira_agua = 8.0;
 uniform float escala = 0.25;
-uniform float camada_rocha = 3.0;   // barranco (encosta íngreme) mostra pedra
+uniform float camada_rocha = 3.0;
+uniform float alt_nivel = 1.0;      // metros por nível de relevo   // barranco (encosta íngreme) mostra pedra
 #include "res://render/shaders/clima.gdshaderinc"
 
 varying vec3 fluxo;                // xy = direção da correnteza (grade), z = 1 se rio
@@ -27,11 +28,39 @@ varying vec3 normal_mundo;
 varying float oclusao;            // pé de barranco (UV.x da malha)
 varying vec2 mar_v;               // (fração de mar, fração de fundo) do campo contínuo (UV2)
 
+// Construção molda o chão: onde o mapa da fábrica tem piso, o vértice vai para o nível da construção (R = força,
+// G = nível + 8), aplainando ondulação e encosta — some quando a construção sai.
+float aplainar(vec2 grade, out float alvo) {
+	vec2 p = grade - origem_mapa - 0.5;
+	ivec2 i0 = ivec2(floor(p));
+	vec2 f = fract(p);
+	float melhor = 0.0;
+	alvo = 0.0;
+	float s = 0.0;
+	for (int k = 0; k < 4; k++) {
+		ivec2 o = ivec2(k % 2, k / 2);
+		vec2 tx = texelFetch(mapa_fabrica, clamp(i0 + o, ivec2(0), ivec2(33)), 0).rg;
+		float w = (o.x == 1 ? f.x : 1.0 - f.x) * (o.y == 1 ? f.y : 1.0 - f.y);
+		s += tx.r * w;
+		if (tx.r > melhor) { melhor = tx.r; alvo = (floor(tx.g * 255.0 + 0.5) - 8.0) * alt_nivel; }
+	}
+	return s;
+}
+
 void vertex() {
 	fluxo = vec3(COLOR.g * 2.0 - 1.0, COLOR.b * 2.0 - 1.0, COLOR.a);
 	mundo = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-	normal_mundo = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
-	oclusao = UV.x;
+	vec3 n = NORMAL;
+	float alvo;
+	float plano = smoothstep(0.05, 0.5, aplainar(vec2(mundo.x, -mundo.z), alvo));
+	oclusao = UV.x * (1.0 - plano);
+	if (plano > 0.0) {
+		VERTEX.y = mix(VERTEX.y, alvo, plano);
+		n = normalize(mix(n, vec3(0.0, 1.0, 0.0), plano));
+		NORMAL = n;
+		mundo.y = VERTEX.y;
+	}
+	normal_mundo = normalize((MODEL_MATRIX * vec4(n, 0.0)).xyz);
 	mar_v = UV2;
 	// onda só onde há água (COLOR.r = fração de água no vértice; cantos compartilhados mexem igual)
 	VERTEX.y += sin(TIME * 0.9 + mundo.x * 0.7 + mundo.z * 0.5) * 0.02 * COLOR.r;
@@ -45,28 +74,6 @@ float fabrica_em(vec2 grade) {
 float camada_em(vec2 grade) {
 	ivec2 px = clamp(ivec2(floor(grade - origem_mapa)), ivec2(0), ivec2(33));
 	return floor(texelFetch(mapa_camadas, px, 0).r * 255.0 + 0.5);
-}
-
-// 1 = água no tile da posição g.
-float agua_em(vec2 g) {
-	float c = camada_em(g);
-	return (c >= primeira_agua && c < 200.0) ? 1.0 : 0.0;        // rio e lago (o mar vem do campo contínuo)
-}
-
-float fundo_em(vec2 g) {
-	return camada_em(g) > primeira_agua + 0.5 ? 1.0 : 0.0;
-}
-
-// Campo contínuo: interpola os 4 centros de tile em volta (suavizado) — a borda 0,5 vira curva, não degrau.
-float campo(vec2 g, bool fundo) {
-	vec2 p = g - 0.5;
-	vec2 i = floor(p);
-	vec2 f = fract(p);
-	f = f * f * (3.0 - 2.0 * f);
-	vec4 v = fundo
-		? vec4(fundo_em(i + vec2(0.5)), fundo_em(i + vec2(1.5, 0.5)), fundo_em(i + vec2(0.5, 1.5)), fundo_em(i + vec2(1.5)))
-		: vec4(agua_em(i + vec2(0.5)), agua_em(i + vec2(1.5, 0.5)), agua_em(i + vec2(0.5, 1.5)), agua_em(i + vec2(1.5)));
-	return mix(mix(v.x, v.y, f.x), mix(v.z, v.w, f.x), f.y);
 }
 
 // Camada de terra mais perto (para a parte seca de um tile de água); sem nenhuma, praia.
@@ -88,22 +95,35 @@ void fragment() {
 	vec2 w1 = vec2(texture(detalhe, grade * 0.06).r, texture(detalhe, grade * 0.06 + vec2(0.37, 0.71)).r) - 0.5;
 	vec2 w2 = vec2(texture(detalhe, grade * 0.17 + vec2(0.53, 0.19)).r, texture(detalhe, grade * 0.17 + vec2(0.11, 0.83)).r) - 0.5;
 	// quanto deste pixel é água (borda suave, antisserrilhada)
-	float wf = max(campo(grade + w1 * 0.9 + w2 * 0.4, false), mar_v.x + (d - 0.5) * 0.12);
+	// toda água (mar, rio, lago) vem do campo contínuo da malha — o mundo não é feito de tiles
+	float wf = mar_v.x + (d - 0.5) * 0.12;
 	float aa = max(fwidth(wf), 0.02);
 	float agua = smoothstep(0.5 - aa, 0.5 + aa, wf);
 	float beira = smoothstep(0.12, 0.5, wf) * (1.0 - agua);        // terra molhada na margem
 	vec3 c_terra = vec3(0.0);
 	float a = camada;
 	if (agua < 1.0) {
-		// duas leituras deformadas (ruído) do mapa de camadas; água vizinha não invade a terra
+		// bioma/jazida/praia: mistura suave das 4 camadas em volta de um ponto deformado por ruído (sem franja de
+		// tile); o peso afina perto do centro de cada tile e a troca vira degradê orgânico. Água vira a terra vizinha.
 		float base = camada >= primeira_agua ? terra_perto(grade) : camada;
-		a = camada_em(grade + w1 * 2.6 + w2 * 0.6);
-		float b = camada_em(grade + w2 * 1.6);
-		if (a >= primeira_agua) { a = base; }
-		if (b >= primeira_agua) { b = base; }
-		vec3 ca = texture(texturas, vec3(uv, a)).rgb;
-		vec3 cb = texture(texturas, vec3(uv, b)).rgb;
-		c_terra = mix(ca, cb, 0.45);
+		vec2 pw = grade + w1 * 2.2 + w2 * 0.7 - 0.5;
+		vec2 i0 = floor(pw);
+		vec2 fr = fract(pw);
+		fr = smoothstep(0.15, 0.85, fr);
+		float soma = 0.0;
+		float melhor = -1.0;
+		for (int k = 0; k < 4; k++) {
+			vec2 o = vec2(float(k % 2), float(k / 2));
+			float lk = camada_em(i0 + o + 0.5);
+			if (lk >= primeira_agua) { lk = base; }
+			float wk = (o.x > 0.5 ? fr.x : 1.0 - fr.x) * (o.y > 0.5 ? fr.y : 1.0 - fr.y);
+			if (wk > 0.001) {
+				c_terra += texture(texturas, vec3(uv, lk)).rgb * wk;
+				soma += wk;
+			}
+			if (wk > melhor) { melhor = wk; a = lk; }
+		}
+		c_terra /= max(soma, 1e-4);
 		// piso de fábrica: o mapa já vem espalhado 2 tiles em volta das construções (forte perto, fraco longe);
 		// 4 leituras deformadas dão a borda irregular e suave. Jazida nunca vira piso.
 		float f = fabrica_em(grade + w1 * 1.3) + fabrica_em(grade + w2 * 1.0)

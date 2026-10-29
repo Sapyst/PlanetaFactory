@@ -36,8 +36,8 @@ func motivo_bloqueio(nome: String, minimo: Vector2i, rot: int) -> String:
 	var achou_jazida := precisa.is_empty()
 	var nivel0 := gerador.nivel(minimo)
 	for t in Grade.tiles_da_area(minimo, area, rot):
-		if gerador.nivel(t) != nivel0 or gerador.em_encosta(t):
-			return "desnivel"
+		if gerador.nivel(t) != nivel0:
+			return "desnivel"                          # (encosta pode: a construção aplaina o chão)
 		if tiles.has(t):
 			return "ocupado"
 		var ter := gerador.terreno(t)

@@ -30,6 +30,7 @@ func _ready() -> void:
 		"fios": _roteiro_fios()
 		"rota": _roteiro_rota()
 		"mostruario": _roteiro_mostruario()
+		"encosta": _roteiro_encosta()
 		"recursos":
 			em(4, func(): cena.controle.alternar_recursos())
 			em(6, func(): mover(tela(Vector2i(-15, -9))))
@@ -291,6 +292,23 @@ func _encher_esteiras() -> void:
 			e.inserir_em(itens[k % itens.size()], pos)
 			pos += 0.85
 			k += 1
+
+
+## Construção numa encosta longe do início: o chão em volta é aplainado no nível de cada peça (foto ~40).
+func _roteiro_encosta() -> void:
+	em(3, func():
+		var con: Construtor = cena.construtor
+		var c := Grade.tile_de_mundo(cena.camera.alvo)
+		for x in range(c.x - 10, c.x + 11):
+			for y in range(c.y - 8, c.y + 9):
+				cena.mapa.limpar_obstaculo(Vector2i(x, y))
+		var postos := 0
+		for x in range(c.x - 8, c.x + 9, 3):
+			for y in range(c.y - 6, c.y + 7, 3):
+				var rel := con.executar(con.plano_peca("fornalha", Vector2i(x, y), 0))
+				postos += rel.colocados.size()
+				cena.sincronizar(rel)
+		print("ENCOSTA %d fornalhas postas" % postos))
 
 
 ## Traço inteligente: fornalha no caminho → o fantasma contorna (foto ~30); põe; um traço novo começando ao lado
