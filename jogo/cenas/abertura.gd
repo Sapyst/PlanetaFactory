@@ -1,18 +1,26 @@
 class_name Abertura
 extends Node3D
-## Abertura do jogo novo (~13 s; qualquer toque/tecla pula): o núcleo — a unidade semeadora da IA — chega do
-## espaço. Preso sob uma nave, desacopla, cai atravessando as nuvens com rastro de calor, bate no chão (estrondo,
-## poeira, tremor), se acomoda; poucas linhas de sistema aparecem e a câmera desce até a visão de jogo.
-## Só referência, sem história longa: a IA é um erro que segue a diretriz de proliferar.
+## Abertura do jogo novo (~14 s; qualquer toque/tecla pula): o núcleo — a unidade semeadora da IA — chega do
+## espaço. Só referência, sem história longa: a IA é um erro que segue a diretriz de proliferar.
+##  1. Espaço escuro: o planeta curvo embaixo (atmosfera brilhando na borda), o sol ofuscando atrás dele, a nave
+##     só em silhueta com poucos veios de luz; o núcleo se solta e despenca rumo ao planeta, esquentando.
+##  2. Nuvens densas: a tela fecha em branco — é aí que a cena troca para o mapa de verdade (o limite do mapa
+##     carregado nunca aparece).
+##  3. Abaixo das nuvens: o núcleo vem perto do chão, bate (estrondo, poeira, tremor), se acomoda; linhas de
+##     sistema; a câmera desce até a visão de jogo.
+## A cena do espaço fica a 6 km de altura (longe do mapa) e usa um ambiente próprio na câmera.
 
 signal terminou
 
-const ALTURA := 140.0
-const T_SOLTA := 2.4
-const T_QUEDA := 5.0
-const T_TEXTO := 8.0
-const T_CAMERA := 11.6
-const T_FIM := 13.6
+const ESPACO := Vector3(0, 6000, 0)
+const T_SOLTA := 2.6
+const T_BRANCO := 4.9        ## começa a fechar em nuvem
+const T_TROCA := 5.5         ## tela toda branca: troca espaço → mapa
+const T_CHAO := 7.6          ## impacto
+const T_TEXTO := 8.2
+const T_CAMERA := 11.8
+const T_FIM := 13.8
+const ALT_NUVEM := 40.0      ## de onde o núcleo sai das nuvens, acima do chão
 const LINHAS := ["UNIDADE SEMEADORA 7 · CHEGADA CONFIRMADA", "DIRETRIZ: PROLIFERAR",
 		"ERRO 0x1F · limite da diretriz não encontrado", "…prosseguindo."]
 
@@ -23,47 +31,47 @@ var barra: Node             ## barra de construção (escondida durante a abertu
 var _t := 0.0
 var _final := Vector3.ZERO
 var _cam: Camera3D
+var _espaco: Node3D
+var _amb_espaco: Environment
+var _copia: Node3D           ## núcleo de enfeite na cena do espaço
 var _nave: Node3D
+var _calor: Sprite3D
+var _rastro_e: CPUParticles3D
 var _rastro: CPUParticles3D
-var _luz: OmniLight3D
 var _poeira: CPUParticles3D
 var _nuvens: Array[Sprite3D] = []
 var _texto: Label
 var _veu: ColorRect
+var _no_mapa := false
 var _impacto := false
 var _som_queda := false
 var _tremor := 0.0
 var _pulando := false
-var _cam_segura := Transform3D()
 var _env: Environment
-var _ceu: ProceduralSkyMaterial
 var _guardado := {}
+var _tex_macia: Texture2D
+var _raios: Sprite3D
 
 
 func _ready() -> void:
 	_final = nucleo.position
+	_tex_macia = _textura_macia()
 	_cam = Camera3D.new()
 	_cam.fov = 50.0
-	_cam.far = 900.0
+	_cam.far = 9000.0
 	add_child(_cam)
 	_cam.make_current()
 	if barra != null:
 		barra.set("visible", false)
-	_criar_nave()
-	_criar_nuvens()
-	_criar_efeitos()
-	_criar_tela()
-	# lá do alto, o que ainda não carregou some na névoa de altitude (céu "de baixo" com a cor da névoa)
 	var amb := get_tree().current_scene.get_node_or_null("Ambiente") as WorldEnvironment
 	if amb != null:
 		_env = amb.environment
-		_ceu = _env.sky.sky_material as ProceduralSkyMaterial if _env.sky != null else null
-		_guardado = {"densidade": _env.fog_density, "cor": _env.fog_light_color}
-		if _ceu != null:
-			_guardado["chao"] = _ceu.ground_bottom_color
-			_guardado["horizonte"] = _ceu.ground_horizon_color
-			_ceu.ground_bottom_color = Color(0.62, 0.67, 0.72)
-			_ceu.ground_horizon_color = Color(0.70, 0.74, 0.78)
+		_guardado = {"densidade": _env.fog_density}
+	_criar_espaco()
+	_criar_mapa()
+	_criar_tela()
+	nucleo.visible = false
+	_cam.environment = _amb_espaco
 	_posicionar(0.0)
 
 
@@ -74,6 +82,7 @@ func _input(e: InputEvent) -> void:
 	if aperto:
 		_pulando = true                                    # pula: núcleo no lugar e a câmera desce rápido
 		_t = maxf(_t, T_CAMERA + 1.4)
+		_ir_para_mapa()
 		get_viewport().set_input_as_handled()
 
 
@@ -86,79 +95,102 @@ func _process(delta: float) -> void:
 
 func _posicionar(delta: float) -> void:
 	var t := _t
-	var u := clampf((t - T_SOLTA) / T_QUEDA, 0.0, 1.0)
-	var deriva := Vector3(-30.0 + 6.0 * t, 0, -6.0)            # a nave passa devagar
-	var nave_pos := _final + Vector3(0, ALTURA, 0) + deriva
-	_nave.position = nave_pos + Vector3(0, maxf(0.0, t - T_SOLTA) * maxf(0.0, t - T_SOLTA) * 1.2, 0)
-	# núcleo: preso sob a nave, depois cai acelerando e se endireita antes do chão
-	var solto := nave_pos + Vector3(0, -3.6, 0)
-	if t < T_SOLTA or _pulando and u < 1.0 and false:
-		nucleo.position = solto
-		nucleo.rotation = Vector3.ZERO
-	elif u < 1.0 and not _pulando:
-		var y := lerpf(solto.y, _final.y, pow(u, 1.8))
-		var xz := Vector2(solto.x, solto.z).lerp(Vector2(_final.x, _final.z), 1.0 - pow(1.0 - u, 2.2))
-		nucleo.position = Vector3(xz.x, y, xz.y)
-		var gira := (1.0 - smoothstep(0.7, 0.95, u))
-		nucleo.rotation = Vector3(sin(t * 1.7) * 0.25, t * 0.9, cos(t * 1.3) * 0.2) * gira
-		_rastro.emitting = u > 0.12 and u < 0.97
-		_luz.light_energy = 6.0 * smoothstep(0.15, 0.4, u) * (1.0 - smoothstep(0.85, 0.98, u))
-		if not _som_queda:
-			_som_queda = true
-			Som.tocar("reentrada", Vector3.INF, -2.0)
+	if t < T_TROCA and not _pulando:
+		_fase_espaco(t, delta)
+	else:
+		if not _no_mapa:
+			_ir_para_mapa()
+		_fase_mapa(t, delta)
+	_tela(t)
+	if _tremor > 0.0:
+		_tremor = maxf(0.0, _tremor - delta * 1.6)
+		_cam.global_position += Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)) * 0.35 * _tremor
+
+
+# ------------------------------------------------------------------ 1. espaço
+func _fase_espaco(t: float, delta: float) -> void:
+	var preso := ESPACO + Vector3(0, -4.2, 0)
+	var s := maxf(0.0, t - T_SOLTA)
+	# solto: despenca rumo ao planeta, acelerando (e um pouco para a frente)
+	var pos := preso + Vector3(0, -s * s * 110.0, -s * s * 70.0)
+	_copia.global_position = pos
+	_copia.rotation = Vector3(s * 0.35, s * 0.6, s * 0.25)
+	_nave.global_position = ESPACO + Vector3(-8.0 + t * 1.6, 0, 0) + Vector3(0, s * s * 0.6, 0)
+	if _raios != null:
+		_raios.rotation.z = t * 0.05                       # raios do sol girando devagar
+	var quente := smoothstep(T_SOLTA + 0.9, T_BRANCO, t)
+	_calor.global_position = pos + Vector3(0, -1.6, 0)
+	_calor.modulate = Color(1.0, 0.55, 0.25, 0.85 * quente)
+	_calor.pixel_size = 0.05 + 0.06 * quente
+	_rastro_e.global_position = pos + Vector3(0, 1.0, 0)
+	_rastro_e.emitting = quente > 0.15
+	if s > 0.0 and not _som_queda:
+		_som_queda = true
+		Som.tocar("reentrada", Vector3.INF, -2.0)
+	if t < T_SOLTA + 0.4:
+		# perto e de baixo: a nave só em parte, em silhueta, com o planeta e o sol ao fundo
+		_cam.global_position = ESPACO + Vector3(9.0 - t * 0.5, -3.0, 15.0)
+		_cam.look_at(preso + Vector3(-2.0, -7.5, -10.0))           # borda do planeta embaixo, nave em cima
+	else:
+		# segue a queda de trás; o planeta cresce e a curva do horizonte desce na tela
+		var olho := pos + Vector3(3.0, 5.0, 12.0)
+		_cam.global_position = _cam.global_position.lerp(olho, 1.0 - exp(-4.0 * delta)) if delta > 0.0 else olho
+		_cam.look_at(pos + Vector3(0, -8.0 - s * 6.0, -14.0))
+
+
+# ------------------------------------------------------------------ 2/3. mapa
+func _ir_para_mapa() -> void:
+	_no_mapa = true
+	_espaco.visible = false
+	_cam.environment = null
+	nucleo.visible = true
+	for n in _nuvens:
+		n.visible = true
+
+
+func _fase_mapa(t: float, delta: float) -> void:
+	var u := clampf((t - T_TROCA) / (T_CHAO - T_TROCA), 0.0, 1.0)
+	if _pulando:
+		u = 1.0
+	if u < 1.0:
+		nucleo.position = _final + Vector3(0, ALT_NUVEM * (1.0 - pow(u, 1.5)), 0)
+		var gira := 1.0 - smoothstep(0.55, 0.9, u)
+		nucleo.rotation = Vector3(sin(t * 1.7) * 0.2, t * 0.7, cos(t * 1.3) * 0.15) * gira
+		_rastro.emitting = u < 0.93
 	else:
 		nucleo.position = _final
 		nucleo.rotation = Vector3.ZERO
 		_rastro.emitting = false
-		_luz.light_energy = 0.0
 		if not _impacto:
 			_impacto = true
 			if not _pulando:
 				_bater()
 	_rastro.global_position = nucleo.global_position + Vector3(0, 1.2, 0)
-	_luz.global_position = nucleo.global_position + Vector3(0, 1.0, 0)
-	# acomodar: quica de leve
-	var tq := t - (T_SOLTA + T_QUEDA)
+	var tq := t - T_CHAO
 	if tq > 0.0 and tq < 1.4 and not _pulando:
 		var s := 1.0 + sin(tq * 9.0) * 0.08 * exp(-tq * 3.0)
 		nucleo.scale = Vector3(1.0 / s, s, 1.0 / s)
 	else:
 		nucleo.scale = Vector3.ONE
-	_camera(t, u, delta)
-	_tela(t)
-	if _env != null:
-		var alto := clampf((_cam.global_position.y - _final.y) / 120.0, 0.0, 1.0)
-		var volta := smoothstep(T_SOLTA + T_QUEDA, T_CAMERA, t_atual())       # perto do chão volta à névoa do jogo
-		_env.fog_density = lerpf(lerpf(0.004, 0.022, alto), float(_guardado.densidade), volta)
-		_env.fog_light_color = Color(0.66, 0.72, 0.78)
-
-
-func _camera(t: float, u: float, delta: float) -> void:
+	# câmera olhando para baixo (o horizonte não aparece): segue a queda e para num ponto fixo antes do chão
 	var olho: Vector3
 	var mira: Vector3
-	if t < T_SOLTA + 0.3:
-		olho = _nave.position + Vector3(26, 3, 20)
-		mira = nucleo.position + Vector3(0, 1.5, 0)
-	elif u < 0.86:
-		var ang := t * 0.25
-		olho = nucleo.position + Vector3(cos(ang) * 16.0, 7.0, sin(ang) * 16.0)
-		mira = nucleo.position
+	if u < 0.75:
+		olho = nucleo.position + Vector3(5.0, 9.0, 6.0)
+		mira = nucleo.position + Vector3(0, -4.0, 0)
 	else:
-		if _cam_segura == Transform3D():
-			_cam_segura = _cam.global_transform
-		olho = _final + Vector3(15, 9, 17)                  # espera o impacto de um ponto fixo
-		mira = _final + Vector3(0, 1.0, 0)
+		olho = _final + Vector3(9.0, 12.0, 11.0)
+		mira = _final + Vector3(0, 0.8, 0)
 	if t > T_CAMERA:
 		var k := smoothstep(T_CAMERA, T_FIM - 0.3, t)
-		var alvo := camera_jogo.global_transform
 		var de := Transform3D(Basis.looking_at(mira - olho), olho)
-		_cam.global_transform = de.interpolate_with(alvo, k)
+		_cam.global_transform = de.interpolate_with(camera_jogo.global_transform, k)
 	else:
-		_cam.global_position = _cam.global_position.lerp(olho, 1.0 - exp(-6.0 * delta)) if delta > 0.0 and t > T_SOLTA + 0.3 else olho
+		_cam.global_position = _cam.global_position.lerp(olho, 1.0 - exp(-7.0 * delta)) if delta > 0.0 and t > T_TROCA + 0.1 else olho
 		_cam.look_at(mira)
-	if _tremor > 0.0:
-		_tremor = maxf(0.0, _tremor - delta * 1.6)
-		_cam.global_position += Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)) * 0.35 * _tremor
+	if _env != null:
+		# névoa grossa logo abaixo das nuvens, voltando à do jogo perto do chão
+		_env.fog_density = lerpf(0.03, float(_guardado.densidade), smoothstep(T_TROCA, T_CHAO + 1.5, t))
 
 
 func _bater() -> void:
@@ -167,21 +199,23 @@ func _bater() -> void:
 	_poeira.global_position = _final + Vector3(0, 0.3, 0)
 	_poeira.restart()
 	_poeira.emitting = true
-	_veu.color = Color(1, 0.95, 0.85, 0.55)
 
 
+# ------------------------------------------------------------------ tela (véu e texto)
 func _tela(t: float) -> void:
-	# entra do preto; clarão do impacto some rápido
-	if t < 0.8:
-		_veu.color = Color(0, 0, 0, 1.0 - t / 0.8)
-	elif _veu.color.a > 0.0 and _veu.color.r > 0.5:
-		_veu.color.a = maxf(0.0, _veu.color.a - get_process_delta_time() * 2.5)
-	elif t >= 0.8 and _veu.color.r < 0.5:
-		_veu.color.a = 0.0
-	# linhas de sistema digitadas
+	var a := 0.0
+	var cor := Color(0.92, 0.94, 0.96)
+	if t < 0.9:
+		cor = Color.BLACK
+		a = 1.0 - t / 0.9
+	elif not _pulando and t >= T_BRANCO and t < T_TROCA + 1.0:
+		a = smoothstep(T_BRANCO, T_TROCA - 0.1, t) * (1.0 - smoothstep(T_TROCA + 0.15, T_TROCA + 1.0, t))
+	elif not _pulando and t >= T_CHAO and t < T_CHAO + 0.4:
+		cor = Color(1, 0.95, 0.85)
+		a = 0.5 * (1.0 - (t - T_CHAO) / 0.4)                    # clarão do impacto
+	_veu.color = Color(cor, a)
 	if t > T_TEXTO and not _pulando:
-		var cps := 38.0
-		var total := int((t - T_TEXTO) * cps)
+		var total := int((t - T_TEXTO) * 38.0)
 		var txt := ""
 		for l in LINHAS:
 			if total <= 0:
@@ -192,20 +226,13 @@ func _tela(t: float) -> void:
 		_texto.modulate.a = 1.0 - smoothstep(T_CAMERA + 0.8, T_FIM - 0.2, t)
 
 
-func t_atual() -> float:
-	return _t
-
-
 func _acabar() -> void:
 	if _env != null:
 		_env.fog_density = _guardado.densidade
-		_env.fog_light_color = _guardado.cor
-		if _ceu != null:
-			_ceu.ground_bottom_color = _guardado.chao
-			_ceu.ground_horizon_color = _guardado.horizonte
 	nucleo.position = _final
 	nucleo.rotation = Vector3.ZERO
 	nucleo.scale = Vector3.ONE
+	nucleo.visible = true
 	camera_jogo.make_current()
 	if barra != null:
 		barra.set("visible", true)
@@ -213,109 +240,134 @@ func _acabar() -> void:
 	queue_free()
 
 
-# ------------------------------------------------------------------ peças da cena
-func _metal(cor: Color, brilho := Color.BLACK) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
-	m.albedo_color = cor
-	m.metallic = 0.6
-	m.roughness = 0.45
-	if brilho != Color.BLACK:
-		m.emission_enabled = true
-		m.emission = brilho
-		m.emission_energy_multiplier = 2.5
-	return m
-
-
-func _caixa(pai: Node3D, tam: Vector3, pos: Vector3, mat: Material, rot := Vector3.ZERO) -> void:
-	var b := BoxMesh.new()
-	b.size = tam
-	var mi := MeshInstance3D.new()
-	mi.mesh = b
-	mi.material_override = mat
-	mi.position = pos
-	mi.rotation = rot
-	pai.add_child(mi)
-
-
-## Nave-mãe: casco escuro alongado, naceles, veios de luz e o berço do núcleo embaixo.
-func _criar_nave() -> void:
+# ------------------------------------------------------------------ cena do espaço
+func _criar_espaco() -> void:
+	_espaco = Node3D.new()
+	add_child(_espaco)
+	_amb_espaco = Environment.new()
+	_amb_espaco.background_mode = Environment.BG_COLOR
+	_amb_espaco.background_color = Color(0.004, 0.005, 0.01)
+	_amb_espaco.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	_amb_espaco.ambient_light_color = Color(0.08, 0.10, 0.14)
+	_amb_espaco.ambient_light_energy = 0.2
+	_amb_espaco.tonemap_mode = Environment.TONE_MAPPER_AGX
+	_amb_espaco.glow_enabled = true
+	_amb_espaco.glow_intensity = 0.9
+	_amb_espaco.glow_bloom = 0.15
+	_amb_espaco.glow_hdr_threshold = 0.9
+	var sol_dir := Vector3(0.25, 0.30, -0.92).normalized()
+	# planeta curvo bem embaixo, enchendo a parte de baixo da tela; halo da atmosfera
+	var raio := 2400.0
+	var centro := ESPACO + Vector3(0, -raio - 1500.0, -1700.0)     # alto o bastante para não ver tudo de raspão     # longe: o horizonte curvo aparece com o escuro em cima
+	# superfície, nuvens (girando devagar) e halo da atmosfera
+	for k in 3:
+		var esf := SphereMesh.new()
+		esf.radius = raio * [1.0, 1.008, 1.025][k]
+		esf.height = esf.radius * 2.0
+		esf.radial_segments = 128
+		esf.rings = 64
+		var mi := MeshInstance3D.new()
+		mi.mesh = esf
+		var mat := ShaderMaterial.new()
+		mat.shader = load("res://cenas/halo_abertura.gdshader" if k == 2 else "res://cenas/planeta_abertura.gdshader")
+		mat.set_shader_parameter("sol_dir", sol_dir)
+		if k < 2:
+			mat.set_shader_parameter("mapa", load("res://assets/texturas/planeta.png" if k == 0 else "res://assets/texturas/planeta_nuvens.png"))
+			mat.set_shader_parameter("nuvens", k == 1)
+			mat.set_shader_parameter("gira", 0.0 if k == 0 else 0.0025)
+			if k == 1:
+				mat.render_priority = 1
+				# nuvens precisam de transparência
+				mat.shader = load("res://cenas/nuvens_abertura.gdshader")
+				mat.set_shader_parameter("mapa", load("res://assets/texturas/planeta_nuvens.png"))
+				mat.set_shader_parameter("sol_dir", sol_dir)
+				mat.set_shader_parameter("gira", 0.0025)
+		mi.material_override = mat
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_espaco.add_child(mi)
+		mi.global_position = centro
+	# sol amarelo forte atrás da borda do planeta, com halo e raios (giram devagar)
+	var pos_sol := centro + sol_dir * (raio + 1400.0) + Vector3(0, 380, 0)
+	for k in 3:
+		var sp := Sprite3D.new()
+		sp.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		sp.shaded = false
+		sp.texture = load("res://assets/texturas/sol_raios.png" if k == 2 else "res://assets/texturas/sol.png")
+		sp.pixel_size = [3.2, 9.0, 7.5][k]
+		sp.modulate = [Color(2.2, 2.0, 1.4), Color(1.4, 1.1, 0.55, 0.55), Color(1.6, 1.35, 0.8, 0.85)][k]
+		sp.render_priority = k
+		_espaco.add_child(sp)
+		sp.global_position = pos_sol
+		if k == 2:
+			_raios = sp
+	# estrelas
+	var estrelas := MultiMeshInstance3D.new()
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
+	var q := QuadMesh.new()
+	q.size = Vector2(1.6, 1.6)
+	var me := StandardMaterial3D.new()
+	me.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	me.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	me.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	me.albedo_texture = _tex_macia
+	me.vertex_color_use_as_albedo = true
+	q.material = me
+	mm.mesh = q
+	mm.instance_count = 600
+	for i in 600:
+		var d := Vector3(randf_range(-1, 1), randf_range(-0.15, 1), randf_range(-1, 1)).normalized()
+		mm.set_instance_transform(i, Transform3D(Basis().scaled(Vector3.ONE * randf_range(0.5, 1.6)), d * 1500.0))
+		mm.set_instance_color(i, Color(1, 1, 1, randf_range(0.3, 1.0)))
+	estrelas.multimesh = mm
+	_espaco.add_child(estrelas)
+	estrelas.global_position = ESPACO
+	# nave: só silhueta, quase sem luz, veios ciano
 	_nave = Node3D.new()
-	add_child(_nave)
-	var casco := _metal(Color(0.12, 0.13, 0.15))
-	var veio := _metal(Color(0.1, 0.3, 0.3), Color(0.3, 0.95, 0.9))
-	_caixa(_nave, Vector3(30, 3.2, 8), Vector3(0, 0, 0), casco)
-	_caixa(_nave, Vector3(10, 2.4, 6), Vector3(18, -0.2, 0), casco, Vector3(0, 0, 0.12))
-	_caixa(_nave, Vector3(22, 1.6, 12), Vector3(-2, 1.6, 0), casco)
-	for z in [-6.2, 6.2]:
-		_caixa(_nave, Vector3(14, 2.2, 2.2), Vector3(-8, -0.6, z), casco)
-		_caixa(_nave, Vector3(0.6, 1.6, 1.6), Vector3(-15.3, -0.6, z), _metal(Color(0.4, 0.2, 0.1), Color(1.0, 0.55, 0.2)))
-	_caixa(_nave, Vector3(28, 0.15, 0.3), Vector3(0, 1.66, 4.1), veio)
-	_caixa(_nave, Vector3(28, 0.15, 0.3), Vector3(0, 1.66, -4.1), veio)
-	for x in [-2.2, 2.2]:                                     # garras do berço
-		_caixa(_nave, Vector3(0.5, 2.4, 0.5), Vector3(x, -2.6, 0), casco)
-	var luz := OmniLight3D.new()
-	luz.light_color = Color(0.4, 1.0, 0.95)
-	luz.light_energy = 3.0
-	luz.omni_range = 12.0
-	luz.position = Vector3(0, -2.5, 0)
-	_nave.add_child(luz)
+	_espaco.add_child(_nave)
+	var casco := _metal(Color(0.035, 0.037, 0.045))
+	var veio := _metal(Color(0.05, 0.2, 0.2), Color(0.3, 0.95, 0.9))
+	_caixa(_nave, Vector3(34, 3.6, 9), Vector3(0, 0, 0), casco)
+	_caixa(_nave, Vector3(26, 1.8, 14), Vector3(-3, 1.8, 0), casco)
+	_caixa(_nave, Vector3(12, 2.6, 7), Vector3(20, -0.2, 0), casco, Vector3(0, 0, 0.12))
+	for z in [-7.0, 7.0]:
+		_caixa(_nave, Vector3(16, 2.4, 2.4), Vector3(-9, -0.8, z), casco)
+		_caixa(_nave, Vector3(0.5, 1.8, 1.8), Vector3(-17.2, -0.8, z), _metal(Color(0.3, 0.15, 0.08), Color(1.0, 0.5, 0.2)))
+	for z in [-4.6, 4.6]:
+		_caixa(_nave, Vector3(9, 0.05, 0.08), Vector3(4, -1.82, z), veio)
+	for x in [-2.4, 2.4]:
+		_caixa(_nave, Vector3(0.5, 2.6, 0.5), Vector3(x, -2.9, 0), casco)
+	# núcleo de enfeite (cópia do modelo do jogo) preso sob a nave
+	_copia = nucleo.duplicate() as Node3D
+	_copia.visible = true
+	_espaco.add_child(_copia)
+	# calor da reentrada: brilho e rastro
+	_calor = Sprite3D.new()
+	_calor.texture = _tex_macia
+	_calor.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_calor.shaded = false
+	_espaco.add_child(_calor)
+	_rastro_e = _particulas_rastro()
+	_espaco.add_child(_rastro_e)
 
 
-func _criar_nuvens() -> void:
-	var tex := _textura_macia()
-	for i in 16:
+# ------------------------------------------------------------------ peças do mapa (abaixo das nuvens)
+func _criar_mapa() -> void:
+	for i in 18:                                               # nuvens que ficam para trás logo após a troca
 		var s := Sprite3D.new()
-		s.texture = tex
+		s.texture = _tex_macia
 		s.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		s.pixel_size = randf_range(0.7, 1.3)
-		s.modulate = Color(0.92, 0.94, 0.97, randf_range(0.55, 0.8))
-		s.shaded = true
+		s.pixel_size = randf_range(0.8, 1.5)
+		s.modulate = Color(0.93, 0.95, 0.97, randf_range(0.6, 0.85))
 		var a := randf() * TAU
-		var r := randf_range(4.0, 34.0)
-		s.position = _final + Vector3(cos(a) * r, randf_range(44.0, 62.0), sin(a) * r)
+		var r := randf_range(6.0, 30.0)
+		s.position = _final + Vector3(cos(a) * r, randf_range(ALT_NUVEM + 4.0, ALT_NUVEM + 16.0), sin(a) * r)
+		s.visible = false
 		add_child(s)
 		_nuvens.append(s)
-
-
-func _criar_efeitos() -> void:
-	var tex := _textura_macia()
-	_rastro = CPUParticles3D.new()
-	_rastro.amount = 320
-	_rastro.lifetime = 1.4
-	_rastro.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
-	_rastro.emission_sphere_radius = 0.9
-	_rastro.local_coords = false
-	_rastro.direction = Vector3.UP
-	_rastro.spread = 12.0
-	_rastro.initial_velocity_min = 2.0
-	_rastro.initial_velocity_max = 5.0
-	_rastro.gravity = Vector3.ZERO
-	_rastro.scale_amount_min = 1.4
-	_rastro.scale_amount_max = 3.0
-	var cresce := Curve.new()
-	cresce.add_point(Vector2(0, 0.6))
-	cresce.add_point(Vector2(1, 2.2))
-	_rastro.scale_amount_curve = cresce
-	var grad := Gradient.new()
-	grad.set_color(0, Color(1.0, 0.75, 0.35, 0.9))
-	grad.set_color(1, Color(0.35, 0.33, 0.33, 0.0))
-	_rastro.color_ramp = grad
-	var q := QuadMesh.new()
-	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
-	m.vertex_color_use_as_albedo = true
-	m.albedo_texture = tex
-	q.material = m
-	_rastro.mesh = q
-	_rastro.emitting = false
+	_rastro = _particulas_rastro()
 	add_child(_rastro)
-	_luz = OmniLight3D.new()
-	_luz.light_color = Color(1.0, 0.6, 0.3)
-	_luz.omni_range = 14.0
-	_luz.light_energy = 0.0
-	add_child(_luz)
 	_poeira = CPUParticles3D.new()
 	_poeira.amount = 260
 	_poeira.lifetime = 2.4
@@ -335,15 +387,38 @@ func _criar_efeitos() -> void:
 	_poeira.damping_min = 4.0
 	_poeira.damping_max = 6.0
 	_poeira.gravity = Vector3(0, 0.6, 0)
-	_poeira.scale_amount_min = 2.0
-	_poeira.scale_amount_max = 4.2
-	var gp := Gradient.new()
-	gp.set_color(0, Color(0.55, 0.5, 0.44, 0.75))
-	gp.set_color(1, Color(0.6, 0.57, 0.52, 0.0))
-	_poeira.color_ramp = gp
-	_poeira.mesh = q
+	Fumaca.configurar(_poeira, [Color(0.52, 0.47, 0.40, 0.85), Color(0.55, 0.50, 0.44, 0.7), Color(0.62, 0.58, 0.52, 0.0)], 2.4, 4.6, 2.2)
 	_poeira.emitting = false
 	add_child(_poeira)
+
+
+func _particulas_rastro() -> CPUParticles3D:
+	var r := CPUParticles3D.new()
+	r.amount = 260
+	r.lifetime = 1.6
+	r.local_coords = false
+	r.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	r.emission_sphere_radius = 0.9
+	r.direction = Vector3.UP
+	r.spread = 14.0
+	r.initial_velocity_min = 2.0
+	r.initial_velocity_max = 5.0
+	r.gravity = Vector3.ZERO
+	Fumaca.configurar(r, [Color(1.0, 0.72, 0.38, 0.9), Color(0.55, 0.45, 0.40, 0.75), Color(0.40, 0.39, 0.40, 0.0)], 1.8, 3.4, 2.8)
+	r.emitting = false
+	return r
+
+
+func _quad_macio() -> QuadMesh:
+	var q := QuadMesh.new()
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	m.vertex_color_use_as_albedo = true
+	m.albedo_texture = _tex_macia
+	q.material = m
+	return q
 
 
 func _criar_tela() -> void:
@@ -371,6 +446,29 @@ func _criar_tela() -> void:
 	dica.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	dica.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	camada.add_child(dica)
+
+
+func _metal(cor: Color, brilho := Color.BLACK) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = cor
+	m.metallic = 0.7
+	m.roughness = 0.4
+	if brilho != Color.BLACK:
+		m.emission_enabled = true
+		m.emission = brilho
+		m.emission_energy_multiplier = 1.2
+	return m
+
+
+func _caixa(pai: Node3D, tam: Vector3, pos: Vector3, mat: Material, rot := Vector3.ZERO) -> void:
+	var b := BoxMesh.new()
+	b.size = tam
+	var mi := MeshInstance3D.new()
+	mi.mesh = b
+	mi.material_override = mat
+	mi.position = pos
+	mi.rotation = rot
+	pai.add_child(mi)
 
 
 func _textura_macia() -> Texture2D:

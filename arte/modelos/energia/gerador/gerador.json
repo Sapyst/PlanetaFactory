@@ -6,7 +6,7 @@
   2,
   2
  ],
- "descricao": "Gerador a combustão (carvão/biomassa). Combustível entra pelo sul. Energia vai por postes.",
+ "descricao": "gerador: câmara de reação vertical com anéis de contenção e núcleo luminoso; combustível entra pelo sul. Energia vai por postes.",
  "ocupa_canto": false,
  "partes": [
   {
@@ -16,6 +16,15 @@
     0.0,
     0.0,
     0.0
+   ]
+  },
+  {
+   "nome": "antena",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.08,
+    1.8
    ]
   }
  ],
@@ -36,18 +45,36 @@
    ]
   }
  ],
- "tris": 260,
+ "terminais": [
+  [
+   -0.85,
+   -0.85,
+   0.372
+  ],
+  [
+   -0.85,
+   0.85,
+   0.372
+  ],
+  [
+   0.85,
+   0.85,
+   0.372
+  ]
+ ],
+ "tris": 980,
  "dims": [
   1.9,
   1.95,
-  2.15
+  1.84
  ],
  "materiais": [
+  "P_Aco",
   "P_Cobre",
   "P_Concreto",
   "P_Cristal",
   "P_Escuro",
-  "P_Faixa",
+  "P_Fogo",
   "P_Metal"
  ]
 }

@@ -35,7 +35,7 @@ def estacao():
                                               'esteiras entram e saem a leste.')
     p = m.parte()
     v = p.caixa(-0.95, 0.95, -1.45, 1.45, 0, 0.30, 'P_Concreto'); p.chanfrar(v, 0.03)
-    p.caixa(-0.97, -0.90, -1.45, 1.45, 0.24, 0.30, 'P_Faixa')                         # borda da plataforma (lado do trem)
+    p.caixa(-0.97, -0.90, -1.44, 1.44, 0.24, 0.306, 'P_Faixa')                         # borda da plataforma (lado do trem)
     for y in (-1.25, 1.25):
         for x in (-0.75, 0.75): p.caixa_c(x, y, 0.30, 0.10, 0.10, 1.30, 'P_Metal')
     v = p.caixa(-0.95, 0.95, -1.45, 1.45, 1.60, 1.70, 'P_Escuro'); p.chanfrar(v, 0.03)
@@ -82,7 +82,7 @@ def vagao_carga():
     c = m.parte('corpo', pivo=(0, 0, 0.12))
     c.caixa(-0.36, 0.36, -1.45, 1.45, 0.16, 0.28, 'P_Escuro')
     v = c.caixa(-0.36, 0.36, -1.35, 1.35, 0.28, 0.80, 'P_Cobre'); c.chanfrar(v, 0.03)
-    for y in (-0.9, -0.3, 0.3, 0.9): c.caixa(-0.37, 0.37, y - 0.03, y + 0.03, 0.28, 0.80, 'P_Escuro')
+    for y in (-0.9, -0.3, 0.3, 0.9): c.caixa(-0.37, 0.37, y - 0.03, y + 0.03, 0.285, 0.806, 'P_Escuro')
     c.caixa(-0.30, 0.30, -1.28, 1.28, 0.80, 0.84, 'P_Escuro')
     _truques(m, 'corpo', (-0.85, 0.85)); return m
 

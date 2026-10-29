@@ -6,7 +6,7 @@
   3,
   3
  ],
- "descricao": "Montadora: monta peças por receita. Entra pelo sul, sai pelo norte (meio).",
+ "descricao": "montadora: câmara blindada octogonal, anel manipulador suspenso que gira e prisma de montagem de cristal. Entra pelo sul, sai pelo norte (meio).",
  "ocupa_canto": false,
  "partes": [
   {
@@ -19,12 +19,21 @@
    ]
   },
   {
-   "nome": "braco",
+   "nome": "antena",
    "pai": "corpo",
    "pivo": [
     0.0,
     0.0,
-    1.55
+    1.62
+   ]
+  },
+  {
+   "nome": "cristal",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.0,
+    1.4
    ]
   }
  ],
@@ -60,19 +69,41 @@
    ]
   }
  ],
- "tris": 220,
+ "terminais": [
+  [
+   -1.35,
+   -1.35,
+   0.372
+  ],
+  [
+   -1.35,
+   1.35,
+   0.372
+  ],
+  [
+   1.35,
+   -1.35,
+   0.372
+  ],
+  [
+   1.35,
+   1.35,
+   0.372
+  ]
+ ],
+ "tris": 1026,
  "dims": [
   2.9,
   3.0,
-  2.425
+  1.83
  ],
  "materiais": [
+  "P_Aco",
   "P_Cobre",
   "P_Concreto",
   "P_Cristal",
   "P_Escuro",
-  "P_Faixa",
-  "P_Metal",
-  "P_Vidro"
+  "P_Fogo",
+  "P_Metal"
  ]
 }

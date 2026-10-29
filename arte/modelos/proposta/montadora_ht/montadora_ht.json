@@ -1,0 +1,86 @@
+{
+ "nome": "montadora_ht",
+ "categoria": "proposta",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "PROPOSTA — montadora: câmara blindada octogonal, anel manipulador suspenso que gira e prisma de montagem de cristal. Entra pelo sul, sai pelo norte (meio).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "antena",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.0,
+    1.62
+   ]
+  },
+  {
+   "nome": "cristal",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.0,
+    1.4
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -1.5,
+    0.16
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_N1",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    1.5,
+    0.16
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  }
+ ],
+ "tris": 754,
+ "dims": [
+  2.9,
+  3.0,
+  1.83
+ ],
+ "materiais": [
+  "P_Aco",
+  "P_Concreto",
+  "P_Cristal",
+  "P_Escuro",
+  "P_Fogo",
+  "P_Metal"
+ ]
+}

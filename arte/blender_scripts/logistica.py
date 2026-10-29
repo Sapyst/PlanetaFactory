@@ -4,7 +4,7 @@ Uso: blender --background --python logistica.py
 import sys, os, math
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import importlib, lib_pf; importlib.reload(lib_pf)
-from lib_pf import (Modelo, rodar, esteira_trecho, cano_trecho, reto, curva_canto, girar_cam,
+from lib_pf import (terminal, Modelo, rodar, esteira_trecho, cano_trecho, reto, curva_canto, girar_cam,
                     LONA, TRILHO, FRISO, CANO_Z, CANO_R, FLANGE_R, CANTO, NIVEL, RAMPA_SOBE)
 from mathutils import Vector
 
@@ -57,9 +57,10 @@ def _cubo_distribuidor(nome, desc, cor_topo, entradas, saidas):
     for ang in (0, PI/2, PI, -PI/2):
         cam = girar_cam(reto((0, 0.40, 0), (0, 0.5, 0)), ang)
         p.varrer(cam, LONA, 'P_Esteira', uv=True)
+        cam_t = girar_cam(reto((0, 0.46, 0), (0, 0.5, 0)), ang)   # trilhos começam depois do canto (não cruzam o vizinho)
         for s in (-1, 1):
-            p.varrer(cam, (s*TRILHO[0], s*TRILHO[1], TRILHO[2], TRILHO[3]), 'P_Escuro')
-            p.varrer(cam, (s*FRISO[0], s*FRISO[1], FRISO[2], FRISO[3]), 'P_Faixa')
+            p.varrer(cam_t, (s*TRILHO[0], s*TRILHO[1], TRILHO[2], TRILHO[3]), 'P_Escuro')
+            p.varrer(cam_t, (s*FRISO[0], s*FRISO[1], FRISO[2], FRISO[3]), 'P_Faixa')
     for x in (-0.40, 0.40):                                                       # pórtico
         for y in (-0.40, 0.40): p.caixa_c(x, y, 0.16, 0.06, 0.06, 0.32, 'P_Escuro')
     p.caixa(-0.43, 0.43, -0.43, 0.43, 0.48, 0.53, cor_topo)
@@ -99,6 +100,7 @@ def _braco(nome, desc, l1, l2, cor, cristal=False):
     base = m.parte('base')
     base.cil((0, 0, 0.04), 0.30, 0.08, 'P_Escuro', lados=8, rot=PI/8)
     base.cil((0, 0, 0.15), 0.13, 0.14, 'P_Metal', lados=8)
+    terminal(m, base, 0.33, -0.33, 0.0, baixo=True)
     giro = m.parte('giro', pai='base', pivo=(0, 0, 0.22))
     giro.caixa_c(0, 0, 0.22, 0.24, 0.24, 0.10, cor)
     giro.cil((0, 0, 0.36), 0.06, 0.16, 'P_Escuro', eixo='X')
@@ -165,6 +167,7 @@ def bomba():
     c = m.parte('cabecote', pai='corpo', pivo=(0, -0.07, 0.58))        # sobe e desce (bombeando)
     c.cil((0, -0.07, 0.68), 0.16, 0.20, 'P_Escuro', lados=8)
     c.cil((0, -0.07, 0.80), 0.08, 0.04, 'P_Faixa', lados=8)
+    terminal(m, p, 0.30, -0.30, 0.12, baixo=True)
     p.caixa(-0.29, 0.29, -0.31, 0.17, 0.30, 0.36, 'P_Faixa')
     cano_trecho(p, reto((0, 0.16, 0), (0, 0.5, 0)), flange_ini=False)
     m.porta('FLUIDO', 'SAI', 'N', perfil='cano'); return m

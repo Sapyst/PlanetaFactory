@@ -249,3 +249,26 @@ func test_sem_poluicao_nao_expande() -> void:
 	for i in 30 * 30:
 		c.tick(1.0 / 30.0, [] as Array[Dictionary])
 	igual(c.ninhos.size(), 1, "ninho sem poluição não manda construtoras")
+
+
+func test_aranha_nunca_entra_em_construcao() -> void:
+	var s := _cenario()
+	var m: MapaOcupacao = s[0]
+	var c: Colonia = s[2]
+	var fonte: int = s[3]
+	# obstáculos no caminho: máquinas e um muro com fresta
+	for y in [-4, -1, 2, 5]:
+		m.colocar("fornalha", Vector2i(-18, y), 0)
+	for k in 6:
+		var a := c._nova_aranha(s[4])
+		c.aranhas[a].estado = Colonia.E.ATACANDO
+		c.aranhas[a].alvo = fonte
+	var fontes: Array[Dictionary] = [{"id": fonte, "pos": Vector2(-33, 1)}]
+	var dentro := 0
+	for i in 30 * 90:
+		c.tick(1.0 / 30.0, fontes)
+		for id in c.aranhas:
+			var p: Vector2 = c.aranhas[id].pos
+			if c._bloqueio(Vector2i(p.floor())) >= 0:
+				dentro += 1
+	igual(dentro, 0, "o centro de uma aranha nunca está dentro de construção")

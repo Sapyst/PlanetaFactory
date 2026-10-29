@@ -250,19 +250,33 @@ func _mover(ar: Dictionary, para: Vector2, dt: float, ritmo: float) -> void:
 		ar.preso += dt
 	var dir := d.normalized()
 	var passo: float = minf(float(_a.get("velocidade", 1.4)) * ritmo * dt, d.length())
-	for ang in [0.0, 0.6, -0.6, 1.2, -1.2, 1.9, -1.9]:
+	for ang in [0.0, 0.6, -0.6, 1.2, -1.2, 1.9, -1.9, 2.6, -2.6]:
 		var tent := dir.rotated(ang)
-		var frente := Vector2i((ar.pos + tent * 0.7).floor())
-		if mapa.gerador.eh_agua(mapa.gerador.terreno(frente)):
+		var novo: Vector2 = ar.pos + tent * passo
+		if mapa.gerador.eh_agua(mapa.gerador.terreno(Vector2i((ar.pos + tent * 0.7).floor()))):
 			continue
-		var bloq := _bloqueio(frente)
-		if bloq >= 0 and ar.estado == E.ATACANDO and bloq != ar.alvo:
-			_morder(ar, bloq, dt)                        # está no caminho: abre passagem
+		# corpo com raio: nenhuma parte da aranha entra numa construção (nem no alvo: morde pela borda)
+		var bloq := _corpo_bloqueado(novo)
+		if bloq >= 0 and ar.estado == E.ATACANDO and ang == 0.0:
+			_morder(ar, bloq, dt)                        # no caminho (ou é o alvo): morde dali
 			return
-		if bloq >= 0 and ar.estado != E.ATACANDO:
+		if bloq >= 0:
 			continue
-		ar.pos += tent * passo
+		ar.pos = novo
 		return
+
+
+const RAIO_CORPO := 0.55     ## aranha + pernas no chão: distância mínima de qualquer construção que barra
+
+
+## Construção que o corpo da aranha tocaria nesta posição (−1 = livre).
+func _corpo_bloqueado(p: Vector2) -> int:
+	for o in [Vector2.ZERO, Vector2(RAIO_CORPO, 0), Vector2(-RAIO_CORPO, 0), Vector2(0, RAIO_CORPO), Vector2(0, -RAIO_CORPO),
+			Vector2(0.39, 0.39), Vector2(-0.39, 0.39), Vector2(0.39, -0.39), Vector2(-0.39, -0.39)]:
+		var b := _bloqueio(Vector2i((p + o).floor()))
+		if b >= 0:
+			return b
+	return -1
 
 
 ## Estrutura que barra a passagem neste tile (alta o bastante); ninho não barra aranha.
@@ -325,8 +339,11 @@ func _separar() -> void:
 			var l := d.length()
 			if l < 1.4 and l > 1e-4:
 				var em := d / l * (1.4 - l) * 0.25
-				lista[i].pos -= em
-				lista[j].pos += em
+				# o empurrão nunca joga uma aranha para dentro de uma construção
+				if _corpo_bloqueado(lista[i].pos - em) < 0:
+					lista[i].pos -= em
+				if _corpo_bloqueado(lista[j].pos + em) < 0:
+					lista[j].pos += em
 
 
 # ------------------------------------------------------------------ torres

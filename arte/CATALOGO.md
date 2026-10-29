@@ -1,6 +1,6 @@
 # Catálogo de modelos
 
-98 modelos. Gerado por `blender_scripts/catalogo.py` — não editar à mão.
+102 modelos. Gerado por `blender_scripts/catalogo.py` — não editar à mão.
 
 Portas: `ITEM`/`FLUIDO`/`TRILHO`, `ENT`/`SAI`, lado (S/N/L/O) e índice do tile na borda. Ficam no .glb como nós `PORTA_*`.
 Partes: peças móveis exportadas separadas (o jogo anima pelo nome — ver jogo/render/animacao/animador.gd).
@@ -66,9 +66,9 @@ Texturas de chão em `texturas/` (loop sem emenda; relatório em `texturas/_emen
 
 | Modelo | Área | Tri | Dimensões (m) | Portas | Descrição |
 |---|---|---|---|---|---|
-| `braco` | 1×1 | 184 | 0,55 × 0,66 × 0,71 | ITEM_ENT_S0, ITEM_SAI_N0 · partes: giro, braco1, braco2, garra | Braço mecânico: pega do tile ao sul e solta no tile ao norte. Alcance 1 tile. |
-| `braco_longo` | 1×1 | 184 | 0,55 × 0,74 × 0,79 | ITEM_ENT_S0, ITEM_SAI_N0 · partes: giro, braco1, braco2, garra | Braço longo: alcance 2 tiles (pula um tile). Em repouso fica dentro do próprio tile. |
-| `braco_rapido` | 1×1 | 204 | 0,55 × 0,66 × 0,71 | ITEM_ENT_S0, ITEM_SAI_N0 · partes: giro, braco1, braco2, garra | Braço rápido: alcance 1 tile, 2× mais rápido, consome mais energia. |
+| `braco` | 1×1 | 252 | 0,68 × 0,78 × 0,71 | ITEM_ENT_S0, ITEM_SAI_N0 · partes: giro, braco1, braco2, garra | Braço mecânico: pega do tile ao sul e solta no tile ao norte. Alcance 1 tile. |
+| `braco_longo` | 1×1 | 252 | 0,68 × 0,86 × 0,79 | ITEM_ENT_S0, ITEM_SAI_N0 · partes: giro, braco1, braco2, garra | Braço longo: alcance 2 tiles (pula um tile). Em repouso fica dentro do próprio tile. |
+| `braco_rapido` | 1×1 | 272 | 0,68 × 0,78 × 0,71 | ITEM_ENT_S0, ITEM_SAI_N0 · partes: giro, braco1, braco2, garra | Braço rápido: alcance 1 tile, 2× mais rápido, consome mais energia. |
 
 ## Armazenagem
 
@@ -80,7 +80,7 @@ Texturas de chão em `texturas/` (loop sem emenda; relatório em `texturas/_emen
 
 | Modelo | Área | Tri | Dimensões (m) | Portas | Descrição |
 |---|---|---|---|---|---|
-| `bomba` | 1×1 | 136 | 0,76 × 0,88 × 0,82 | FLUIDO_SAI_N0 · partes: cabecote | Bomba sobre poça de seiva/água: empurra fluido pela saída ao norte. |
+| `bomba` | 1×1 | 204 | 0,76 × 0,88 × 0,82 | FLUIDO_SAI_N0 · partes: cabecote | Bomba sobre poça de seiva/água: empurra fluido pela saída ao norte. |
 | `cano_cruz` | 1×1 | 232 | 1,00 × 1,00 × 0,52 | FLUIDO_SAI_S0, FLUIDO_SAI_N0, FLUIDO_SAI_L0, FLUIDO_SAI_O0 | Cano em cruz (4 lados). |
 | `cano_curva` | 1×1 | 196 | 0,64 × 0,64 × 0,49 | FLUIDO_ENT_S0, FLUIDO_SAI_L0 | Cano em curva (sul–leste), uma malha só. |
 | `cano_reto` | 1×1 | 84 | 0,28 × 1,00 × 0,49 | FLUIDO_ENT_S0, FLUIDO_SAI_N0 | Cano reto (norte–sul). |
@@ -90,20 +90,20 @@ Texturas de chão em `texturas/` (loop sem emenda; relatório em `texturas/_emen
 
 | Modelo | Área | Tri | Dimensões (m) | Portas | Descrição |
 |---|---|---|---|---|---|
-| `broca_minerio` | 2×2 | 276 | 1,90 × 1,95 × 1,85 | ITEM_SAI_S0 · partes: rotor | Broca de minério (ferro, cobre, pedra, carvão, sílex). Saída sul (tile da esquerda). |
-| `extrator_cristal` | 3×3 | 568 | 2,90 × 2,95 × 3,20 | ITEM_SAI_S1 · partes: cristal, hastes | Extrator de Cristal: vai sobre jazida de cristal. Saída no meio da borda sul. |
-| `fornalha` | 2×2 | 164 | 1,90 × 2,00 × 2,26 | ITEM_ENT_S1, ITEM_SAI_N0 | Fornalha: funde minério em placa/barra. Entra pelo sul, sai pelo norte. |
-| `laboratorio` | 3×3 | 400 | 2,90 × 2,95 × 2,79 | ITEM_ENT_S1 · partes: antena | Laboratório: consome pacotes de pesquisa. Entra pelo sul (meio). |
-| `montadora` | 3×3 | 220 | 2,90 × 3,00 × 2,42 | ITEM_ENT_S1, ITEM_SAI_N1 · partes: braco | Montadora: monta peças por receita. Entra pelo sul, sai pelo norte (meio). |
-| `nucleo` | 3×3 | 366 | 3,00 × 3,00 × 2,20 | ITEM_ENT_S1, ITEM_ENT_N1, ITEM_ENT_L1, ITEM_ENT_O1 · partes: cristal | Núcleo: a base do jogador. Tudo que entra (esteira nas 4 bocas ou braço) vira estoque para construir. |
-| `refinador` | 3×3 | 488 | 3,00 × 2,95 × 3,20 | FLUIDO_ENT_O1, FLUIDO_SAI_L1, ITEM_SAI_N0 | Refinador: processa fluidos (seiva, óleo). Fluido entra a oeste, sai a leste; item ao norte. |
+| `broca_minerio` | 2×2 | 480 | 1,90 × 1,95 × 1,85 | ITEM_SAI_S0 · partes: rotor | Broca de minério (ferro, cobre, pedra, carvão, sílex). Saída sul (tile da esquerda). |
+| `extrator_cristal` | 3×3 | 840 | 2,90 × 2,95 × 3,20 | ITEM_SAI_S1 · partes: cristal, hastes | Extrator de Cristal: vai sobre jazida de cristal. Saída no meio da borda sul. |
+| `fornalha` | 2×2 | 628 | 1,90 × 2,00 × 1,19 | ITEM_ENT_S1, ITEM_SAI_N0 | fornalha de indução: cadinho octogonal, núcleo incandescente visto por frestas, bobinas de cobre e aletas de calor. Entra pelo sul, sai pelo norte. |
+| `laboratorio` | 3×3 | 672 | 2,90 × 2,95 × 2,79 | ITEM_ENT_S1 · partes: antena | Laboratório: consome pacotes de pesquisa. Entra pelo sul (meio). |
+| `montadora` | 3×3 | 1026 | 2,90 × 3,00 × 1,83 | ITEM_ENT_S1, ITEM_SAI_N1 · partes: antena, cristal | montadora: câmara blindada octogonal, anel manipulador suspenso que gira e prisma de montagem de cristal. Entra pelo sul, sai pelo norte (meio). |
+| `nucleo` | 3×3 | 738 | 3,00 × 3,00 × 2,56 | ITEM_ENT_S1, ITEM_ENT_N1, ITEM_ENT_L1, ITEM_ENT_O1 · partes: cristal, antena | Núcleo: a unidade semeadora da IA. Tudo que entra (esteira nas 4 bocas ou braço) vira estoque para construir. Partes: cristal (monólito pulsa), antena (anel gira). |
+| `refinador` | 3×3 | 692 | 3,00 × 2,95 × 3,20 | FLUIDO_ENT_O1, FLUIDO_SAI_L1, ITEM_SAI_N0 | Refinador: processa fluidos (seiva, óleo). Fluido entra a oeste, sai a leste; item ao norte. |
 | `terraplenagem` | 3×3 | 950 | 2,90 × 2,90 × 2,23 | — · partes: antena, cristal, cabecote | Terraplenagem: unidade de modelagem do terreno da IA. Enquanto existir, libera Aplainar em qualquer lugar do mapa. Partes: antena (anel de sensores gira), cristal (núcleo pulsa), bloco (rocha suspensa). |
 
 ## Energia e fluidos
 
 | Modelo | Área | Tri | Dimensões (m) | Portas | Descrição |
 |---|---|---|---|---|---|
-| `gerador` | 2×2 | 260 | 1,90 × 1,95 × 2,15 | ITEM_ENT_S1 | Gerador a combustão (carvão/biomassa). Combustível entra pelo sul. Energia vai por postes. |
+| `gerador` | 2×2 | 980 | 1,90 × 1,95 × 1,84 | ITEM_ENT_S1 · partes: antena | gerador: câmara de reação vertical com anéis de contenção e núcleo luminoso; combustível entra pelo sul. Energia vai por postes. |
 | `poste_energia` | 1×1 | 94 | 0,70 × 0,40 × 2,30 | — | Poste de energia: liga máquinas num raio. Ocupa só o centro do tile. |
 | `tanque` | 2×2 | 322 | 2,00 × 2,00 × 1,70 | FLUIDO_SAI_S0, FLUIDO_SAI_N0, FLUIDO_SAI_L0, FLUIDO_SAI_O0 | Tanque de fluido. Canos nos 4 lados (tile da esquerda de cada lado). |
 | `torre_sem_fio` | 1×1 | 250 | 0,80 × 0,80 × 2,90 | — · partes: cristal | Torre de energia sem fio: liga postes/torres e máquinas a distância, sem cabo. |

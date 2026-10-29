@@ -22,12 +22,6 @@ var _mat_marca: StandardMaterial3D
 
 
 func _ready() -> void:
-	_mat_fumaca = StandardMaterial3D.new()
-	_mat_fumaca.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_mat_fumaca.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_mat_fumaca.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
-	_mat_fumaca.vertex_color_use_as_albedo = true
-	_mat_fumaca.albedo_texture = _textura_fumaca()
 	_mat_marca = StandardMaterial3D.new()
 	_mat_marca.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_mat_marca.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -94,27 +88,16 @@ func _criar_fumaca(id: int) -> CPUParticles3D:
 	var e: Dictionary = mapa.estruturas[id]
 	var dims: Array = Registro.modelos.get(e.nome, {}).get("dims", [1, 1, 1])
 	var p := CPUParticles3D.new()
-	p.amount = 14
-	p.lifetime = 3.2
+	p.amount = 22
+	p.lifetime = 4.2
 	p.direction = Vector3(0.25, 1, 0.1)
-	p.spread = 12.0
-	p.initial_velocity_min = 0.5
-	p.initial_velocity_max = 0.9
-	p.gravity = Vector3(0.15, 0.25, 0.0)
-	p.scale_amount_min = 0.25
-	p.scale_amount_max = 0.45
-	var curva := Curve.new()
-	curva.add_point(Vector2(0, 0.5))
-	curva.add_point(Vector2(1, 1.8))
-	p.scale_amount_curve = curva
-	var grad := Gradient.new()
-	grad.set_color(0, Color(0.32, 0.30, 0.34, 0.55))
-	grad.set_color(1, Color(0.55, 0.50, 0.60, 0.0))
-	p.color_ramp = grad
-	var q := QuadMesh.new()
-	q.size = Vector2.ONE
-	q.material = _mat_fumaca
-	p.mesh = q
+	p.spread = 16.0
+	p.initial_velocity_min = 0.35
+	p.initial_velocity_max = 0.7
+	p.gravity = Vector3(0.18, 0.10, 0.04)          # sobe devagar e é levada pela brisa
+	p.damping_min = 0.05
+	p.damping_max = 0.15
+	Fumaca.configurar(p, [Color(0.36, 0.34, 0.33, 0.0), Color(0.40, 0.38, 0.37, 0.62), Color(0.62, 0.60, 0.59, 0.0)], 0.7, 1.2, 3.0)
 	p.position = Grade.ponto_mundo(Grade.centro_da_area(e.minimo, e.area, e.rot), float(dims[2]) + 0.1)
 	add_child(p)
 	return p

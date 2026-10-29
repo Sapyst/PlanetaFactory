@@ -387,6 +387,25 @@ class Modelo:
     def esconder(self):
         self.col.hide_render = True; self.col.hide_viewport = True
 
+def terminal(m, p, x, y, z, baixo=False):
+    """Terminal de energia: isolador escuro com ponta de cobre; o fio do poste prende exatamente na ponta
+    (gravado em m.info['terminal'] → o jogo usa esse ponto, girado com a peça)."""
+    h = 0.10 if baixo else 0.18
+    p.cil((x, y, z + h/2), 0.045, h, 'P_Escuro', lados=6)
+    p.cil((x, y, z + h + 0.02), 0.07, 0.04, 'P_Cobre', lados=8)
+    p.cil((x, y, z + h + 0.065), 0.035, 0.05, 'P_Cobre', lados=6)
+    m.info.setdefault('terminais', []).append([round(x, 3), round(y, 3), round(z + h + 0.08, 3)])
+
+def terminais_cantos(m, p, z, recuo=0.15):
+    """Um terminal em cada canto da área: o fio sempre chega pelo canto virado para o poste (nunca atravessa a peça).
+    Chamar depois das portas: canto encostado numa boca/cano fica sem terminal."""
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            x, y = sx*(m.w/2 - recuo), sy*(m.d/2 - recuo)
+            if any((Vector((x, y, 0)) - Vector((pt['pos'][0], pt['pos'][1], 0))).length < 0.62 for pt in m.portas):
+                continue
+            terminal(m, p, x, y, z)
+
 def perfil_na_borda(objs, pos, d):
     """(|lateral|, z) dos vértices no plano da borda, até 0,5 m de lado da porta."""
     lat_v = Vector((-d.y, d.x, 0)); s = set()

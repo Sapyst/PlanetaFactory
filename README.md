@@ -36,7 +36,7 @@ sistema de construção. O jogo começa com o núcleo caindo do espaço.
 2. `jogo/ferramentas/testar.sh` — importa e roda todos os testes do jogo sem janela.
 3. `godot --path jogo --write-movie /tmp/q.png --fixed-fps 30 --quit-after 70 -- camera X Z DIST` — foto real.
 4. `python3 jogo/ferramentas/gerar_sons.py` — sintetiza os sons; `python3 jogo/ferramentas/gerar_nuvens.py` — mapa das nuvens.
-5. `godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.6.0.apk` — APK.
+5. `godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.7.0.apk` — APK.
 6. `... -- camera -3 2 11 roteiro construir` (ou `roteiro toque`) — teste visual da construção com cliques/toques injetados.
 7. `godot --path jogo --write-movie /tmp/v/q.png --fixed-fps 30 -- roteiro mostruario voo` — regrava o voo do mostruário
    (sem `voo` e com `camera X Z DIST` tira prints; `visao`/`setas` ligam a visão de recursos/as setas).

@@ -32,6 +32,7 @@ func _ready() -> void:
 		"mostruario": _roteiro_mostruario()
 		"encosta": _roteiro_encosta()
 		"aplainar": _roteiro_aplainar()
+		"aranha": _roteiro_aranha()
 		"recursos":
 			em(4, func(): cena.controle.alternar_recursos())
 			em(6, func(): mover(tela(Vector2i(-15, -9))))
@@ -44,6 +45,17 @@ func _process(_d: float) -> void:
 	_quadro += 1
 	if _voo_ini > 0 and _quadro >= _voo_ini:
 		_voar((_quadro - _voo_ini) / 30.0)
+	if _aranha != null:
+		# anda em volta de um ponto (curvas e reta), a câmera acompanha de perto
+		var t := _quadro / 30.0
+		var c := Vector2(-6.0, -10.0)          # área livre (sem construção no caminho)
+		var p := c + Vector2(cos(t * 0.45), sin(t * 0.45)) * 4.5
+		_aranha.ir_para(Grade.ponto_mundo(p))
+		var cam: CameraJogo = cena.camera
+		cam.alvo = cam.alvo.lerp(_aranha.global_position, 0.08)
+		cam.distancia = 8.5
+		cam.angulo = 0.6 + t * 0.12
+		cam.posicionar()
 	for p in _passos:
 		if p[0] == _quadro:
 			p[1].call()
@@ -325,6 +337,20 @@ func _roteiro_aplainar() -> void:
 		for x in [-6, -3, 3, 6]:
 			cena.sincronizar(con.executar(con.plano_peca("fornalha", c + Vector2i(x, 3), 0)))
 		print("APLAINAR ok, central: ", cena.mapa.tem_terraplenagem()))
+
+
+## Aranha andando de perto (GIF da animação): uma aranha solta circulando no chão plano do início.
+var _aranha: Aranha = null
+
+
+func _roteiro_aranha() -> void:
+	em(2, func():
+		cena.controle.barra.visible = false
+		Sessao.config.fps = false
+		_aranha = Aranha.new()
+		_aranha.position = Grade.ponto_mundo(Vector2(-1.5, -10.0))
+		cena.add_child(_aranha)
+		cena.camera.alvo = _aranha.position)
 
 
 ## Traço inteligente: fornalha no caminho → o fantasma contorna (foto ~30); põe; um traço novo começando ao lado

@@ -6,7 +6,7 @@
   2,
   2
  ],
- "descricao": "Fornalha: funde minério em placa/barra. Entra pelo sul, sai pelo norte.",
+ "descricao": "fornalha de indução: cadinho octogonal, núcleo incandescente visto por frestas, bobinas de cobre e aletas de calor. Entra pelo sul, sai pelo norte.",
  "ocupa_canto": false,
  "partes": [
   {
@@ -51,18 +51,18 @@
    ]
   }
  ],
- "tris": 164,
+ "tris": 628,
  "dims": [
   1.9,
   2.0,
-  2.26
+  1.185
  ],
  "materiais": [
+  "P_Aco",
+  "P_Cobre",
   "P_Concreto",
   "P_Cristal",
   "P_Escuro",
-  "P_Faixa",
-  "P_Fogo",
-  "P_Tijolo"
+  "P_Fogo"
  ]
 }

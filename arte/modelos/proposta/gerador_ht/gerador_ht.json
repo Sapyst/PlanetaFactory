@@ -1,0 +1,63 @@
+{
+ "nome": "gerador_ht",
+ "categoria": "proposta",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "PROPOSTA — gerador: câmara de reação vertical com anéis de contenção e núcleo luminoso; combustível entra pelo sul. Energia vai por postes.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "antena",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.08,
+    1.8
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.5,
+    -1.0,
+    0.16
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  }
+ ],
+ "tris": 776,
+ "dims": [
+  1.9,
+  1.95,
+  1.84
+ ],
+ "materiais": [
+  "P_Aco",
+  "P_Cobre",
+  "P_Concreto",
+  "P_Cristal",
+  "P_Escuro",
+  "P_Fogo",
+  "P_Metal"
+ ]
+}

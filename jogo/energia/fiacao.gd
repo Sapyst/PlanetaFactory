@@ -199,6 +199,19 @@ static func ponto_fio(e: Dictionary, para: Vector2) -> Vector3:
 	var dims: Array = Registro.modelos.get(e.nome, {}).get("dims", [1, 1, 1])
 	if papel(e.nome) == "poste":
 		return Grade.ponto_mundo(centro(e), float(dims[2]) - 0.12)
+	var terms: Array = Registro.modelos.get(e.nome, {}).get("terminais", [])
+	if not terms.is_empty():
+		# terminais do modelo (x, y no plano da peça, z altura), girados com a peça: o fio prende na ponta de cobre do
+		# terminal virado para o outro lado do fio (nunca atravessa o corpo da máquina)
+		var melhor := Vector3.ZERO
+		var md := INF
+		for term in terms:
+			var q := centro(e) + Grade.girar(Vector2(float(term[0]), float(term[1])), e.rot)
+			var d := q.distance_squared_to(para)
+			if d < md:
+				md = d
+				melhor = Grade.ponto_mundo(q, float(term[2]))
+		return melhor
 	var c := centro(e)
 	var meia := Vector2(Grade.area_girada(e.area, e.rot)) * 0.25
 	var q := Vector2(clampf(para.x, c.x - meia.x, c.x + meia.x), clampf(para.y, c.y - meia.y, c.y + meia.y))
