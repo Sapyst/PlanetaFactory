@@ -361,9 +361,11 @@ func plano_remocao(a: Vector2i, b: Vector2i) -> Array[Dictionary]:
 ## Aplainar (Terraplenagem): o retângulo vira patamar no nível do tile onde o arraste começou. Sem obra no local;
 ## corta/aterra e limpa a vegetação. Água não; construção em outro nível bloqueia aquele tile.
 ## Itens: {acao: "aplainar", tile, nivel, motivo, muda (o nível muda?)}.
-func plano_aplainar(a: Vector2i, b: Vector2i) -> Array[Dictionary]:
+## `fundo` > 0 = Escavar: o patamar fica `fundo` nível(is) abaixo de onde o arraste começou (buraco/canal; perto de
+## rio ou lago, enche d'água — ver AguaJogo).
+func plano_aplainar(a: Vector2i, b: Vector2i, fundo := 0) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	var alvo := mapa.gerador.nivel(a)
+	var alvo := maxi(mapa.gerador.nivel(a) - fundo, -3)
 	var sem := not mapa.tem_terraplenagem()
 	for x in range(mini(a.x, b.x), maxi(a.x, b.x) + 1):
 		for y in range(mini(a.y, b.y), maxi(a.y, b.y) + 1):
@@ -373,6 +375,8 @@ func plano_aplainar(a: Vector2i, b: Vector2i) -> Array[Dictionary]:
 				motivo = "sem_terraplenagem"
 			elif mapa.gerador.eh_agua(mapa.gerador.terreno(t)):
 				motivo = "agua"
+			elif fundo > 0 and mapa.gerador.superficie_em(t) != null:
+				motivo = "agua"                      # já está cheio: escavar debaixo d'água não
 			elif mapa.tiles.has(t) and mapa.gerador.nivel(t) != alvo:
 				motivo = "ocupado"
 			out.append({"acao": "aplainar", "tile": t, "minimo": t, "nome": "aplainar", "rot": 0, "nivel": alvo, "motivo": motivo,

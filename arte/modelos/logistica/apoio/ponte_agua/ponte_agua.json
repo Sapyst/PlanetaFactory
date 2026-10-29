@@ -1,0 +1,34 @@
+{
+ "nome": "ponte_agua",
+ "categoria": "logistica/apoio",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Ponte de esteira/cano sobre a água: vão estreito no sentido do fluxo (sul–norte) e 2 pilares nas laterais. Erguida 1,9 m como a plataforma.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 150,
+ "dims": [
+  0.988,
+  1.0,
+  1.9
+ ],
+ "materiais": [
+  "P_Aco",
+  "P_Cristal",
+  "P_Escuro"
+ ]
+}

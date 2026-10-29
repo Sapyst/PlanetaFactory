@@ -37,6 +37,7 @@ func _ready() -> void:
 		"bracos": _roteiro_bracos()
 		"passagem": _roteiro_passagem()
 		"enxurrada": _roteiro_enxurrada()
+		"canal": _roteiro_canal()
 		"filtro": _roteiro_filtro()
 		"interface": _roteiro_interface()
 		"grama": _roteiro_grama()
@@ -458,6 +459,66 @@ func _roteiro_enxurrada() -> void:
 		cena.camera.alvo = Grade.centro_mundo(rio)
 		cena.camera.distancia = 7.0
 		cena.camera.posicionar())
+
+
+var _canal := Vector2i.ZERO
+
+
+## Água em jogo: acha uma margem de rio/lago, põe a Terraplenagem, escava um canal em L (enche aos poucos),
+## faz um dique num ramo, uma ponte de esteira atravessando o canal e uma montadora sobre o rio (plataforma).
+func _roteiro_canal() -> void:
+	em(2, func():
+		var w := Vector2i(9999, 0)
+		cena.controle.barra.visible = false
+		Sessao.config.fps = false
+		var g := Grade.gerador
+		for r in range(6, 200, 2):
+			for k in 48:
+				var c := Vector2i((Vector2.from_angle(k * TAU / 48.0) * r).round())
+				if w.x != 9999 or not g.terreno(c) in [GeradorMundo.Terreno.RIO, GeradorMundo.Terreno.LAGO]:
+					continue
+				var ok := true
+				for i in range(1, 11):
+					for j in range(-3, 7):
+						var t := c + Vector2i(i, j)
+						if g.terreno(t) != GeradorMundo.Terreno.TERRA or g.nivel(t) != g.nivel(c + Vector2i(1, 0)) or g.em_encosta(t):
+							ok = false
+				if ok and g.nivel(c + Vector2i(1, 0)) >= g.nivel(c):
+					w = c
+		print("CANAL margem ", w)
+		_canal = w
+		var con: Construtor = cena.construtor
+		for i in range(1, 12):
+			for j in range(-5, 6):
+				cena.mapa.limpar_obstaculo(w + Vector2i(i, j))
+		var p := func(pl: Array[Dictionary]) -> void: cena.sincronizar(con.executar(pl))
+		p.call(con.plano_peca("terraplenagem", w + Vector2i(9, 5), 0))
+		cena.camera.alvo = Grade.centro_mundo(w + Vector2i(4, 0))
+		cena.camera.distancia = 9.0
+		cena.camera.posicionar())
+	em(20, func():
+		var w := _canal
+		var con: Construtor = cena.construtor
+		var p := func(pl: Array[Dictionary]) -> void: cena.sincronizar(con.executar(pl))
+		# o arraste começa na margem (nível da terra): o canal fica 1 nível abaixo — abaixo da água do rio
+		var pl := con.plano_aplainar(w + Vector2i(1, 0), w + Vector2i(6, 0), 1)
+		print("ESCAVA ", Construtor.contar(pl))
+		p.call(pl)
+		p.call(con.plano_aplainar(w + Vector2i(6, -1), w + Vector2i(6, -3), 1))
+		# dique (muro no seco) e um ramo escavado atrás dele: fica seco
+		p.call(con.plano_aplainar(w + Vector2i(4, 1), w + Vector2i(4, 2), 1))
+		p.call(con.plano_peca("muro_centro", w + Vector2i(4, 1), 0)))
+	em(80, func():
+		var w := _canal
+		var con: Construtor = cena.construtor
+		var p := func(pl: Array[Dictionary]) -> void: cena.sincronizar(con.executar(pl))
+		p.call(con.plano_linha("esteira", w + Vector2i(3, -3), w + Vector2i(3, 3), 0))   # atravessa o canal: ponte
+		p.call(con.plano_peca("bau", w + Vector2i(0, -2), 0))                             # no rio: plataforma
+		if OS.get_cmdline_user_args().has("perto"):
+			cena.camera.alvo = Grade.centro_mundo(w + Vector2i(3, 0))
+			cena.camera.distancia = 3.2
+			cena.camera.angulo = 0.9
+			cena.camera.posicionar())
 
 
 ## Interface B: abre Produção (painel com explicações), escolhe a fornalha, toca no mapa (holograma + ações),

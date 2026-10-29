@@ -25,6 +25,7 @@ var _relevo := FastNoiseLite.new()
 var relevo_ativo := true
 var hidro: Hidrologia
 var _aplainado := {}                 ## tile → nível imposto pela Terraplenagem (sobrepõe o relevo)
+var _superficie := {}                ## tile escavado e cheio d'água → nível da superfície (AguaJogo)
 const NIVEL_MAR := -2                ## superfície do mar (em níveis de relevo)            ## falso = mundo todo plano (testes de desempenho com fábricas enormes)
 var _niveis := {}                 ## chunk → PackedByteArray (nível + 8)
 var _trava := Mutex.new()
@@ -103,6 +104,12 @@ func eh_agua(t: int) -> bool:
 ## Cache por chunk: 1 byte por tile = nível + 8 (bits 0–3) | encosta (bit 4) | terreno (bits 5–7). Ruído de relevo + a elevação continental, quantizado em
 ## terraços; plano em volta do início (some suave entre 42 e 95 tiles). Guardado por chunk (seguro entre threads).
 func nivel(tile: Vector2i) -> int:
+	if not _superficie.is_empty():
+		_trava.lock()
+		var s: Variant = _superficie.get(tile)
+		_trava.unlock()
+		if s != null:
+			return s                                    # buraco cheio d'água: constrói em cima, na superfície
 	if not _aplainado.is_empty():
 		_trava.lock()
 		var a: Variant = _aplainado.get(tile)
@@ -110,6 +117,25 @@ func nivel(tile: Vector2i) -> int:
 		if a != null:
 			return a
 	return (_info(tile) & 15) - 8
+
+
+## Água de jogo (AguaJogo): o tile escavado encheu até o nível `s` da água vizinha (null = secou).
+func inundar(tile: Vector2i, s: Variant) -> void:
+	_trava.lock()
+	if s == null:
+		_superficie.erase(tile)
+	else:
+		_superficie[tile] = int(s)
+	_trava.unlock()
+
+
+func superficie_em(tile: Vector2i) -> Variant:
+	if _superficie.is_empty():
+		return null
+	_trava.lock()
+	var s: Variant = _superficie.get(tile)
+	_trava.unlock()
+	return s
 
 
 ## Terraplenagem: impõe um nível ao tile (−1 = volta ao relevo natural).

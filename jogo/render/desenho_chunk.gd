@@ -272,7 +272,7 @@ func _compor_crescer() -> void:
 			var k := clampf((r - dmin) / 1.5 + 0.5, 0.0, 1.0)
 			var a := _img_antiga.get_pixel(i, j)
 			var b := _img_final.get_pixel(i, j)
-			_img_fabrica.set_pixel(i, j, Color(lerpf(a.r, b.r, k), b.g if k > 0.5 else a.g, lerpf(a.b, b.b, k)))
+			_img_fabrica.set_pixel(i, j, Color(lerpf(a.r, b.r, k), b.g if k > 0.5 else a.g, lerpf(a.b, b.b, k), b.a))
 	_tex_fabrica.update(_img_fabrica)
 
 
@@ -282,8 +282,8 @@ func atualizar_fabrica() -> void:
 	var n := Grade.TAM_CHUNK
 	var base: Vector2i = _dados.coord * n
 	if _img_fabrica == null:
-		_img_fabrica = Image.create(n + 2, n + 2, false, Image.FORMAT_RGB8)   # R = piso, G = nível alvo, B = aplainar
-	_img_fabrica.fill(Color(0, 0, 0))
+		_img_fabrica = Image.create(n + 2, n + 2, false, Image.FORMAT_RGBA8)   # R = piso, G = nível alvo, B = aplainar, A = água de jogo
+	_img_fabrica.fill(Color(0, 0, 0, 0))
 	if _mapa != null:
 		# espalha 2 tiles em volta de cada construção, enfraquecendo com a distância (o shader deforma a borda)
 		var valor := PackedFloat32Array()
@@ -292,6 +292,10 @@ func atualizar_fabrica() -> void:
 		alvo.resize((n + 2) * (n + 2))
 		var plano := PackedFloat32Array()
 		plano.resize((n + 2) * (n + 2))
+		var proprio := PackedByteArray()             # 1 = o próprio tile foi aplainado/escavado: o patamar dele manda
+		proprio.resize((n + 2) * (n + 2))
+		var cheio := PackedByteArray()               # 1 = buraco escavado cheio d'água (AguaJogo): o chão vira água ali
+		cheio.resize((n + 2) * (n + 2))
 		# Terraplenagem: tiles aplainados viram patamar (sem piso de concreto); a borda desce em rampa de ~3 tiles
 		# (aterro/corte suave, não faca)
 		for j in range(-3, n + 5):
@@ -300,6 +304,25 @@ func atualizar_fabrica() -> void:
 				var ap: Variant = _mapa.gerador.aplainado_em(t)
 				if ap == null:
 					continue
+				var sup: Variant = _mapa.gerador.superficie_em(t)
+				if sup != null:
+					ap = sup                              # cheio: o chão sobe até a superfície da água (e vira água)
+				if i >= 0 and j >= 0 and i <= n + 1 and j <= n + 1:
+					proprio[j * (n + 2) + i] = 1
+					if sup != null:
+						cheio[j * (n + 2) + i] = 1
+				if sup != null:
+					# a fonte: água natural encostada (até 2 tiles) também vira água desenhada — o tile de rio/lago da
+					# margem às vezes é desenhado como barranco, e o canal pareceria nascer do nada
+					for dj in range(-2, 3):
+						for di in range(-2, 3):
+							var x := i + di
+							var y := j + dj
+							if x < 0 or y < 0 or x > n + 1 or y > n + 1 or absi(di) + absi(dj) > 2:
+								continue
+							var tw := t + Vector2i(di, dj)
+							if _mapa.gerador.eh_agua(_mapa.gerador.terreno(tw)):
+								cheio[y * (n + 2) + x] = 1
 				for dj in range(-3, 4):
 					for di in range(-3, 4):
 						var x := i + di
@@ -320,8 +343,9 @@ func atualizar_fabrica() -> void:
 				if id < 0:
 					continue
 				var nome: String = _mapa.estruturas[id].nome
-				if nome == "ninho_aranha" or Registro.estruturas.get(nome, {}).has("requer_jazida"):
-					continue
+				if nome == "ninho_aranha" or Registro.estruturas.get(nome, {}).has("requer_jazida") \
+						or _mapa.estruturas[id].get("sobre_agua", false):
+					continue                              # sobre a água: plataforma com pilares, o leito fica como está
 				var nv_e := _mapa.gerador.nivel(base + Vector2i(i - 1, j - 1))
 				for dj in range(-ESPALHA, ESPALHA + 1):
 					for di in range(-ESPALHA, ESPALHA + 1):
@@ -331,6 +355,8 @@ func atualizar_fabrica() -> void:
 							continue
 						var v := 1.0 - Vector2(di, dj).length() / (ESPALHA + 1.0)
 						var k := y * (n + 2) + x
+						if proprio[k] == 1 and (di != 0 or dj != 0):
+							continue                      # canal/buraco escavado ao lado: o piso da construção não o aterra
 						if v > valor[k]:
 							valor[k] = v
 							alvo[k] = nv_e
@@ -339,8 +365,9 @@ func atualizar_fabrica() -> void:
 			for i in n + 2:
 				var v := valor[j * (n + 2) + i]
 				var pl := plano[j * (n + 2) + i]
-				if v > 0.0 or pl > 0.0:
-					_img_fabrica.set_pixel(i, j, Color(v, (alvo[j * (n + 2) + i] + 8) / 255.0, pl))
+				var aj := float(cheio[j * (n + 2) + i])
+				if v > 0.0 or pl > 0.0 or aj > 0.0:
+					_img_fabrica.set_pixel(i, j, Color(v, (alvo[j * (n + 2) + i] + 8) / 255.0, pl, aj))
 	if _tex_fabrica == null:
 		_tex_fabrica = ImageTexture.create_from_image(_img_fabrica)
 		(get_node("chao") as MeshInstance3D).material_override.set_shader_parameter("mapa_fabrica", _tex_fabrica)
@@ -372,8 +399,8 @@ func refazer_objetos() -> void:
 				var lista: Array = []
 				for i in ts.size():
 					var t: Vector2i = ts[i]
-					if mapa.tiles.has(t):
-						continue
+					if mapa.tiles.has(t) or mapa.gerador.aplainado_em(t) != null:
+						continue                          # terraplenado/escavado: o chão foi refeito, nada fica solto
 					# grama/flor/seixo não ficam em cima do piso de fábrica
 					if enfeite and _img_fabrica != null and maxf(_img_fabrica.get_pixel(t.x - base.x + 1, t.y - base.y + 1).r, _img_fabrica.get_pixel(t.x - base.x + 1, t.y - base.y + 1).b) > 0.45:
 						continue

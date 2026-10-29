@@ -180,7 +180,7 @@ func _ready() -> void:
 	_ferr = HFlowContainer.new() if false else HBoxContainer.new()
 	_ferr.add_theme_constant_override("separation", 4)
 	ferr_painel.add_child(_ferr)
-	for f in [["nivel", "⇡ chão", "N"], ["remover", "✕ Remover", "X"], ["aplainar", "▭ Aplainar", "L"], ["desfazer", "↶", "Ctrl+Z"],
+	for f in [["nivel", "⇡ chão", "N"], ["remover", "✕ Remover", "X"], ["aplainar", "▭ Aplainar", "L"], ["escavar", "⌄ Escavar", "K"], ["desfazer", "↶", "Ctrl+Z"],
 			["recursos", "◈ Recursos", "V"], ["poluicao", "☁", "P"], ["pesquisa", "⚗", "T"], ["menu", "☰", "Esc"]]:
 		var b := Button.new()
 		b.text = f[1]
@@ -313,6 +313,7 @@ func marcar(nome: String, removendo: bool) -> void:
 		_destacar(_botoes_peca[k], k == nome, COR_CIANO)
 	_destacar(_botoes_ferr["remover"], removendo, COR_PERIGO)
 	_destacar(_botoes_ferr["aplainar"], nome == "#aplainar", Color(0.35, 0.85, 0.8))
+	_destacar(_botoes_ferr["escavar"], nome == "#escavar", Color(0.35, 0.65, 0.95))
 	var ativo := nome != "" or removendo
 	_botoes_ferr["cancelar"].disabled = not ativo
 	_botoes_ferr["girar"].disabled = nome == "" or nome.begins_with("#")

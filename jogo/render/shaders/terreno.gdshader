@@ -14,7 +14,7 @@ uniform sampler2D detalhe : filter_linear_mipmap, repeat_enable;
 uniform sampler2D mapa_camadas : filter_nearest;
 uniform vec2 origem_mapa;          // tile (grade) do pixel (0, 0) do mapa de camadas
 uniform sampler2D mapa_ambiente : filter_linear, hint_default_transparent;   // R sujeira, G óleo, B água suja (0..0,45) ou brasa (0,5..1), A queimado
-uniform sampler2D mapa_fabrica : filter_nearest, hint_default_black;   // 1 = tile com construção (mesma grade do mapa de camadas)
+uniform sampler2D mapa_fabrica : filter_nearest, hint_default_transparent;   // R piso, G nível alvo, B aplainar, A água de jogo (buraco cheio)
 uniform float camada_piso = 9.0;
 uniform float camada_jazida = 7.0;  // zona de minério nunca vira piso
 uniform float primeira_agua = 8.0;
@@ -31,21 +31,24 @@ varying vec3 normal_mundo;
 varying float oclusao;            // pé de barranco (UV.x da malha)
 varying float baixa;              // baixada (UV.y da malha): onde a chuva junta poça; aplainado = 0
 varying vec2 mar_v;               // (fração de mar, fração de fundo) do campo contínuo (UV2)
+varying float agua_jogo;          // buraco/canal escavado que encheu (AguaJogo), interpolado entre tiles
 
 // Construção molda o chão: onde o mapa da fábrica tem piso, o vértice vai para o nível da construção (R = força,
 // G = nível + 8), aplainando ondulação e encosta — some quando a construção sai.
-float aplainar(vec2 grade, out float alvo) {
+float aplainar(vec2 grade, out float alvo, out float cheio) {
 	vec2 p = grade - origem_mapa - 0.5;
 	ivec2 i0 = ivec2(floor(p));
 	vec2 f = fract(p);
 	float melhor = 0.0;
 	alvo = 0.0;
+	cheio = 0.0;
 	float s = 0.0;
 	for (int k = 0; k < 4; k++) {
 		ivec2 o = ivec2(k % 2, k / 2);
-		vec3 tx = texelFetch(mapa_fabrica, clamp(i0 + o, ivec2(0), ivec2(33)), 0).rgb;
+		vec4 tx = texelFetch(mapa_fabrica, clamp(i0 + o, ivec2(0), ivec2(33)), 0);
 		float w = (o.x == 1 ? f.x : 1.0 - f.x) * (o.y == 1 ? f.y : 1.0 - f.y);
 		s += tx.b * w;                                   // B = aplainar (construção ou Terraplenagem)
+		cheio += tx.a * w;
 		if (tx.b > melhor) { melhor = tx.b; alvo = (floor(tx.g * 255.0 + 0.5) - 8.0) * alt_nivel; }
 	}
 	return s;
@@ -56,7 +59,9 @@ void vertex() {
 	mundo = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	vec3 n = NORMAL;
 	float alvo;
-	float plano = smoothstep(0.0, 0.75, aplainar(vec2(mundo.x, -mundo.z), alvo));
+	float cheio;
+	float plano = smoothstep(0.0, 0.75, aplainar(vec2(mundo.x, -mundo.z), alvo, cheio));
+	agua_jogo = cheio;
 	oclusao = UV.x * (1.0 - plano);
 	baixa = UV.y * (1.0 - plano);
 	if (plano > 0.0) {
@@ -68,7 +73,9 @@ void vertex() {
 	normal_mundo = normalize((MODEL_MATRIX * vec4(n, 0.0)).xyz);
 	mar_v = UV2;
 	// onda só onde há água (COLOR.r = fração de água no vértice; cantos compartilhados mexem igual)
-	VERTEX.y += sin(TIME * 0.9 + mundo.x * 0.7 + mundo.z * 0.5) * 0.02 * COLOR.r;
+	// buraco cheio: a superfície fica 0,12 m abaixo do nível, como a água natural
+	VERTEX.y -= 0.12 * agua_jogo;
+	VERTEX.y += sin(TIME * 0.9 + mundo.x * 0.7 + mundo.z * 0.5) * 0.02 * max(COLOR.r, agua_jogo);
 }
 
 float fabrica_em(vec2 grade) {
@@ -110,7 +117,7 @@ void fragment() {
 	vec2 w2 = vec2(texture(detalhe, grade * 0.17 + vec2(0.53, 0.19)).r, texture(detalhe, grade * 0.17 + vec2(0.11, 0.83)).r) - 0.5;
 	// quanto deste pixel é água (borda suave, antisserrilhada)
 	// toda água (mar, rio, lago) vem do campo contínuo da malha — o mundo não é feito de tiles
-	float wf = mar_v.x + (d - 0.5) * 0.12;
+	float wf = max(mar_v.x, agua_jogo) + (d - 0.5) * 0.12;
 	float aa = max(fwidth(wf), 0.02);
 	float agua = smoothstep(0.5 - aa, 0.5 + aa, wf);
 	float beira = smoothstep(0.12, 0.5, wf) * (1.0 - agua);        // terra molhada na margem

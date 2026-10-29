@@ -21,6 +21,7 @@ var _fabrica_suja := false
 var poluicao: Poluicao
 var clima: Clima
 var ambiente: AmbienteVivo
+var agua: AguaJogo                     ## buracos/canais escavados que enchem a partir de rio/lago
 var colonia: Colonia
 var grafo := GrafoTrilhos.new()
 var trens: Array[Trem] = []
@@ -94,6 +95,7 @@ func _ready() -> void:
 	pesquisa = Pesquisa.new(modo == "demo")
 	fabrica = Fabrica.new(mapa)
 	ambiente = AmbienteVivo.new(gerador, mapa, semente)
+	agua = AguaJogo.new(gerador, mapa)
 	ambiente.dano = func(id: int, pontos: float) -> void: _danificar(id, pontos)
 	fabrica.estoques = estoques
 	fabrica.estoque_nucleo = inventario
@@ -187,7 +189,7 @@ func salvar() -> void:
 	var ok := Salvamento.gravar({"modo": modo, "semente": semente, "tempo": _tempo,
 			"camera": [camera.alvo, camera.distancia, camera.angulo],
 			"mapa": {"estruturas": mapa.estruturas, "limpos": mapa.limpos.keys(), "prox": mapa._prox_id},
-			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores, "clima": clima.estado(), "aplainado": gerador.aplainados(), "ambiente": ambiente.estado(),
+			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores, "clima": clima.estado(), "aplainado": gerador.aplainados(), "ambiente": ambiente.estado(), "agua": agua.estado(),
 			"estoques": estoques, "inventario": inventario, "pesquisa": pesquisa.estado(),
 			"trens": trens.map(func(t: Trem): return t.para_salvar()), "prox_trem": _prox_trem})
 	if ok and is_instance_valid(controle):
@@ -207,6 +209,9 @@ func _carregar(d: Dictionary) -> void:
 		ambiente.restaurar(d.ambiente)
 	for t in d.get("aplainado", {}):
 		gerador.aplainar(t, d.aplainado[t])
+	agua.restaurar(d.get("agua", {}))
+	agua.recalcular()
+	agua.encher_tudo()
 	colonia.restaurar(d.colonia)
 	for id in mapa.estruturas:
 		var nome: String = mapa.estruturas[id].nome
@@ -292,6 +297,10 @@ func _criar_desenhos() -> void:
 	dc.fontes_calor = _fontes_calor
 	dc.mapa = mapa
 	add_child(dc)
+	var dpl := DesenhoPlataformas.new()
+	dpl.mapa = mapa
+	dpl.agua = agua
+	add_child(dpl)
 
 
 func alternar_recursos() -> bool:
@@ -397,7 +406,24 @@ func _exit_tree() -> void:
 
 # ------------------------------------------------------------------ construção → desenho
 ## Desenha o que o Construtor mudou no mapa (relatório de executar/desfazer).
+## Tiles que encheram ou secaram: o chão daqueles chunks refaz o mapa da fábrica (canal A = água de jogo).
+func _redesenhar_agua() -> void:
+	if agua.mudados.is_empty():
+		return
+	var ks := {}
+	for t in agua.mudados:
+		for d in [Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(1, 1)]:
+			ks[Grade.chunk_de(t + d)] = true
+	agua.mudados.clear()
+	for k in ks:
+		if chunks.has(k):
+			(chunks[k] as DesenhoChunk).atualizar_fabrica()
+
+
 func sincronizar(rel: Dictionary) -> void:
+	if not rel.get("aplainados", []).is_empty() or not rel.removidos.is_empty() or not rel.colocados.is_empty():
+		agua.recalcular()                    # escavou, aterrou, fez ou desfez dique: a água refaz o caminho
+		_redesenhar_agua()
 	var muros := {}
 	for e in rel.removidos:
 		if _nos.has(e.id):
@@ -820,6 +846,8 @@ func _tick_mundo(dt: float) -> void:
 	clima.tick(dt)
 	poluicao.chuva = clima.valores.chuva
 	ambiente.tick(dt, fabrica, clima)
+	agua.tick(dt)
+	_redesenhar_agua()
 	for ev in ambiente.eventos:
 		if ev.tipo == "fogo_inicio" and is_instance_valid(controle):
 			controle._avisar("Incêndio! A vegetação seca pegou fogo perto de uma máquina quente")

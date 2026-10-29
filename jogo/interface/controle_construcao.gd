@@ -20,6 +20,7 @@ var mundo: Node                     ## precisa de sincronizar(rel: Dictionary)
 var peca := ""                      ## "" = mão vazia
 var removendo := false
 const APLAINAR := "#aplainar"       ## ferramenta da Terraplenagem (peça "na mão" que planeja um retângulo)
+const ESCAVAR := "#escavar"         ## Terraplenagem para baixo: buraco/canal 1 nível abaixo de onde o arraste começou
 var rot := 0
 
 var _plano: Array[Dictionary] = []
@@ -63,7 +64,7 @@ func configurar(p_construtor: Construtor, p_camera: CameraJogo, p_barra: BarraCo
 
 # ------------------------------------------------------------------ ações
 func _usa_pendente() -> bool:
-	return peca != "" and not removendo and peca != APLAINAR and not Construtor.arrastavel(peca)
+	return peca != "" and not removendo and peca != APLAINAR and peca != ESCAVAR and not Construtor.arrastavel(peca)
 
 
 func _acao_pendente(a: String) -> void:
@@ -137,6 +138,10 @@ func alternar_aplainar() -> void:
 	escolher(APLAINAR)
 
 
+func alternar_escavar() -> void:
+	escolher(ESCAVAR)
+
+
 func alternar_remover() -> void:
 	removendo = not removendo
 	peca = ""
@@ -196,6 +201,7 @@ func _ferramenta(nome: String) -> void:
 		"poluicao": alternar_poluicao()
 		"recursos": alternar_recursos()
 		"aplainar": alternar_aplainar()
+		"escavar": alternar_escavar()
 		"nivel": mudar_nivel(1, true)
 		"pesquisa": mundo.abrir_pesquisa()
 		"menu": mundo.abrir_pausa()
@@ -218,10 +224,11 @@ func _confirmar() -> void:
 	if removendo:
 		_avisar("Removido: %d" % _plano.size())
 		Som.tocar("remover")
-	elif peca == APLAINAR:
+	elif peca == APLAINAR or peca == ESCAVAR:
 		if n.ok > 0:
 			Som.tocar("construir")
-		_avisar("Aplainado: %d tile(s)%s" % [n.ok, "  ·  %d bloqueado(s)" % n.bloqueados if n.bloqueados > 0 else ""])
+		_avisar("%s: %d tile(s)%s" % ["Escavado" if peca == ESCAVAR else "Aplainado", n.ok,
+				"  ·  %d bloqueado(s)" % n.bloqueados if n.bloqueados > 0 else ""])
 	elif n.ok > 0:
 		Som.tocar("construir")
 		_avisar("Construído: %d%s" % [n.ok, "  ·  %d bloqueada(s)" % n.bloqueados if n.bloqueados > 0 else ""])
@@ -267,6 +274,7 @@ func _tecla(e: InputEventKey) -> void:
 		KEY_P: alternar_poluicao()
 		KEY_V: alternar_recursos()
 		KEY_L: alternar_aplainar()
+		KEY_K: alternar_escavar()
 		KEY_N: mudar_nivel(1, true)
 		KEY_PAGEUP: mudar_nivel(1)
 		KEY_PAGEDOWN: mudar_nivel(-1)
@@ -456,6 +464,8 @@ func _atualizar() -> void:
 			_plano = construtor.plano_remocao(a, _cursor)
 		elif peca == APLAINAR:
 			_plano = construtor.plano_aplainar(a, _cursor)
+		elif peca == ESCAVAR:
+			_plano = construtor.plano_aplainar(a, _cursor, 1)
 		elif Construtor.arrastavel(peca):
 			_plano = construtor.plano_linha(peca, a, _cursor, rot)
 		else:
@@ -513,13 +523,17 @@ func _dica_parada() -> String:
 		if not construtor.mapa.tem_terraplenagem():
 			return "Aplainar — construa uma Terraplenagem primeiro (aba Produção)"
 		return "Aplainar — arraste uma área em qualquer lugar: vira patamar no nível de onde começou · 1 pedra por tile alterado"
+	if peca == ESCAVAR:
+		if not construtor.mapa.tem_terraplenagem():
+			return "Escavar — construa uma Terraplenagem primeiro (aba Produção)"
+		return "Escavar — arraste um buraco ou canal 1 nível abaixo de onde começou · ligado a rio ou lago, enche d'água"
 	if peca == "":
 		return ""
 	return _dica_peca()
 
 
 func _dica_peca() -> String:
-	if peca == APLAINAR:
+	if peca == APLAINAR or peca == ESCAVAR:
 		return _dica_parada()
 	var acao := "toque" if _por_toque else "clique"
 	var t := "%s — %s para pôr" % [barra.rotulo(peca), acao]

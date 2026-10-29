@@ -216,11 +216,47 @@ def bomba():
     cano_trecho(p, reto((0, 0.16, 0), (0, 0.5, 0)), flange_ini=False)
     m.porta('FLUIDO', 'SAI', 'N', perfil='cano'); return m
 
+APOIO = 'logistica/apoio'
+ALT_APOIO = 1.9                                       # o jogo desce o modelo 1,9 m: o topo do deque fica no chão da peça
+
+def plataforma_agua():
+    m = Modelo('plataforma_agua', APOIO, descricao='Plataforma sobre a água: deque blindado de 1 tile e 4 pilares que '
+               'descem até o leito. O jogo põe uma debaixo de cada tile de construção sobre rio, lago ou buraco cheio '
+               '(modelo erguido 1,9 m: o topo do deque é o chão da construção).')
+    m.ocupa_canto = True                               # o deque cobre o tile todo (não há pilar de esteira na água)
+    p = m.parte()
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            x, y = sx*0.38, sy*0.38
+            p.cil((x, y, 0.88), 0.075, 1.76, 'P_Escuro', lados=8, rot=PI/8)
+            p.cil((x, y, 1.60), 0.085, 0.04, 'P_Cristal', lados=8, rot=PI/8)   # anel de luz rente à água
+    for a, b in (((-0.38, -0.38), (0.38, -0.38)), ((-0.38, 0.38), (0.38, 0.38))):
+        p.barra((a[0], a[1], 1.15), (b[0], b[1], 1.15), 0.06, 0.08, 'P_Aco')
+    for a, b in (((-0.38, -0.38), (-0.38, 0.38)), ((0.38, -0.38), (0.38, 0.38))):
+        p.barra((a[0], a[1], 0.95), (b[0], b[1], 0.95), 0.06, 0.08, 'P_Aco')
+    v = p.caixa(-0.48, 0.48, -0.48, 0.48, 1.76, 1.90, 'P_Escuro'); p.chanfrar(v, 0.02)
+    for s in (-1, 1):                                  # veio de luz na borda do deque (por fora da face)
+        p.caixa(-0.40, 0.40, 0.48 if s > 0 else -0.492, 0.492 if s > 0 else -0.48, 1.80, 1.83, 'P_Cristal')
+    return m
+
+def ponte_agua():
+    m = Modelo('ponte_agua', APOIO, descricao='Ponte de esteira/cano sobre a água: vão estreito no sentido do fluxo '
+               '(sul–norte) e 2 pilares nas laterais. Erguida 1,9 m como a plataforma.')
+    p = m.parte()
+    for sx in (-1, 1):
+        x = sx*0.42
+        p.cil((x, 0, 0.90), 0.07, 1.80, 'P_Escuro', lados=8, rot=PI/8)
+        p.cil((x, 0, 1.60), 0.08, 0.04, 'P_Cristal', lados=8, rot=PI/8)
+        p.barra((x, -0.40, 1.80), (x, 0.40, 1.80), 0.07, 0.06, 'P_Aco')
+    p.barra((-0.42, 0, 1.0), (0.42, 0, 1.0), 0.06, 0.08, 'P_Aco')
+    v = p.caixa(-0.47, 0.47, -0.5, 0.5, 1.83, 1.90, 'P_Escuro'); p.chanfrar(v, 0.015)
+    return m
+
 TODOS = [esteira_reta, esteira_curva_dir, esteira_curva_esq, esteira_inicio, esteira_fim, esteira_rampa,
          esteira_juncao, esteira_tunel_entrada, esteira_tunel_saida,
          divisor, juncao, pilar_base, pilar_segmento, pilar_topo,
          braco, braco_longo, braco_rapido, bau,
-         cano_reto, cano_curva, cano_t, cano_cruz, bomba]
+         cano_reto, cano_curva, cano_t, cano_cruz, bomba, plataforma_agua, ponte_agua]
 
 if __name__ == '__main__':
     rodar(TODOS, os.path.join(lib_pf.RAIZ, 'logistica', '_relatorio_logistica.json'))

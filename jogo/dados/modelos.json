@@ -1291,6 +1291,66 @@
   ],
   "modelo": "res://assets/modelos/itens/recursos/silex.glb"
  },
+ "plataforma_agua": {
+  "nome": "plataforma_agua",
+  "categoria": "logistica/apoio",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Plataforma sobre a água: deque blindado de 1 tile e 4 pilares que descem até o leito. O jogo põe uma debaixo de cada tile de construção sobre rio, lago ou buraco cheio (modelo erguido 1,9 m: o topo do deque é o chão da construção).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 284,
+  "dims": [
+   0.96,
+   0.984,
+   1.9
+  ],
+  "modelo": "res://assets/modelos/logistica/apoio/plataforma_agua.glb"
+ },
+ "ponte_agua": {
+  "nome": "ponte_agua",
+  "categoria": "logistica/apoio",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Ponte de esteira/cano sobre a água: vão estreito no sentido do fluxo (sul–norte) e 2 pilares nas laterais. Erguida 1,9 m como a plataforma.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 150,
+  "dims": [
+   0.988,
+   1.0,
+   1.9
+  ],
+  "modelo": "res://assets/modelos/logistica/apoio/ponte_agua.glb"
+ },
  "bau": {
   "nome": "bau",
   "categoria": "logistica/armazenagem",

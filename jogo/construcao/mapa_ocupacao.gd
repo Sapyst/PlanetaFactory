@@ -18,6 +18,7 @@ var altos: Dictionary = {}          ## Vector3i(x, y, nível 1..2) → id (estei
 const NIVEIS := 2                   ## até 1,0 m
 const FOLGA := 0.25
 var _prox_id := 1
+const AGUA_RASA := [GeradorMundo.Terreno.RIO, GeradorMundo.Terreno.LAGO, GeradorMundo.Terreno.LAGOA]   ## dá para construir em cima (plataforma)
 var versao := 0                     ## muda a cada colocar/remover (quem guarda listas sabe quando refazer)
 
 
@@ -41,8 +42,8 @@ func motivo_bloqueio(nome: String, minimo: Vector2i, rot: int) -> String:
 		if tiles.has(t):
 			return "ocupado"
 		var ter := gerador.terreno(t)
-		if gerador.eh_agua(ter):
-			return "agua"
+		if gerador.eh_agua(ter) and (nome == "ninho_aranha" or not ter in AGUA_RASA):
+			return "agua"                              # mar/oceano: fundo demais para pilar
 		if not limpos.has(t) and not gerador.distribuicao.obstaculo(t).is_empty():
 			return "obstaculo"
 		if not achou_jazida:
@@ -61,6 +62,14 @@ func motivo_bloqueio(nome: String, minimo: Vector2i, rot: int) -> String:
 			if cantos.has(c) and estruturas[cantos[c]].nome.begins_with("pilar"):
 				return "pilar_no_canto"
 	return ""
+
+
+## Algum tile da área é água (rio, lago ou buraco cheio)? Então a construção vai sobre plataforma com pilares.
+func sobre_agua(minimo: Vector2i, area: Vector2i, rot: int) -> bool:
+	for t in Grade.tiles_da_area(minimo, area, rot):
+		if gerador.eh_agua(gerador.terreno(t)) or gerador.superficie_em(t) != null:
+			return true
+	return false
 
 
 ## Esteira/rampa no nível n ≥ 1 (só peças 1×1 de esteira): livre naquele nível, estrutura de baixo mais baixa.
@@ -86,6 +95,8 @@ func colocar(nome: String, minimo: Vector2i, rot: int, extras := {}) -> int:
 	var area: Vector2i = registro.area(nome)
 	estruturas[id] = {"nome": nome, "minimo": minimo, "rot": rot, "area": area}
 	estruturas[id].merge(extras)
+	if n == 0 and not extras.has("sobre_agua") and sobre_agua(minimo, area, rot):
+		estruturas[id]["sobre_agua"] = true            # plataforma/ponte com pilares (não barra a água)
 	if n > 0:
 		altos[Vector3i(minimo.x, minimo.y, n)] = id
 		return id
