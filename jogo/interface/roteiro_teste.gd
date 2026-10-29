@@ -34,6 +34,7 @@ func _ready() -> void:
 		"aplainar": _roteiro_aplainar()
 		"aranha": _roteiro_aranha()
 		"montagem": _roteiro_montagem()
+		"grama": _roteiro_grama()
 		"recursos":
 			em(4, func(): cena.controle.alternar_recursos())
 			em(6, func(): mover(tela(Vector2i(-15, -9))))
@@ -46,6 +47,22 @@ func _process(_d: float) -> void:
 	_quadro += 1
 	if _voo_ini > 0 and _quadro >= _voo_ini:
 		_voar((_quadro - _voo_ini) / 30.0)
+	if _grama_ini >= 0:
+		var tg := (_quadro - _grama_ini) / 30.0
+		var cg: CameraJogo = cena.camera
+		cg.alvo = Grade.ponto_mundo(Vector2(-14.0, -14.0))
+		cg.distancia = 11.0
+		cg.angulo = 0.4 + tg * 0.08
+		cg.posicionar()
+		if _quadro - _grama_ini == 60:
+			_t_ant = Time.get_ticks_usec()
+		elif _quadro - _grama_ini > 60:
+			var ag := Time.get_ticks_usec()
+			_tempos.append((ag - _t_ant) / 1000.0)
+			_t_ant = ag
+			if _tempos.size() == 300:
+				_relatorio_tempos("grama 52 mil tufos")
+				get_tree().quit()
 	if _aranha != null:
 		# anda em volta de um ponto (curvas e reta), a câmera acompanha de perto
 		var t := _quadro / 30.0
@@ -355,6 +372,19 @@ func _roteiro_montagem() -> void:
 		em(20 + i * 45, func():
 			var con: Construtor = cena.construtor
 			cena.sincronizar(con.executar(con.plano_peca(p[0], p[1], 0))))
+
+
+## Bloco de grama em massa (teste isolado): campo 24×24 m ao lado do início, câmera girando devagar em volta.
+func _roteiro_grama() -> void:
+	em(2, func():
+		cena.controle.barra.visible = false
+		var g := Grama.new()
+		g.position = Grade.ponto_mundo(Vector2(-14.0, -14.0))
+		cena.add_child(g)
+		_grama_ini = _quadro)
+
+
+var _grama_ini := -1
 
 
 ## Aranha andando de perto (GIF da animação): uma aranha solta circulando no chão plano do início.

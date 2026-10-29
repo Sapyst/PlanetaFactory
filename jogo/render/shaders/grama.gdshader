@@ -1,0 +1,37 @@
+// Grama em massa (uma MultiMesh = uma chamada de desenho): cada instância é um tufo de folhas finas. O vento é todo
+// na GPU: uma onda rítmica que atravessa o campo (rajadas em faixas) + tremor fino por folha; dobra mais na ponta.
+// Cor: base escura (sombra do tufo) → ponta clara, variando por instância (COLOR do MultiMesh).
+shader_type spatial;
+render_mode cull_disabled, diffuse_lambert, specular_disabled;
+
+uniform vec3 cor_base : source_color = vec3(0.16, 0.24, 0.10);
+uniform vec3 cor_ponta : source_color = vec3(0.47, 0.58, 0.28);
+uniform vec2 vento_dir = vec2(0.8, 0.6);
+uniform float forca = 0.35;
+
+varying float altura;
+varying vec3 tom;
+
+void vertex() {
+	altura = UV.y;                                        // 0 = pé, 1 = ponta
+	tom = COLOR.rgb;
+	vec3 mundo = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	vec2 d = normalize(vento_dir);
+	float fase = dot(mundo.xz, d) * 0.35 - TIME * 1.9;
+	// rajada: faixas que passam pelo campo; respiração lenta por cima
+	float rajada = pow(0.5 + 0.5 * sin(fase), 3.0) * (0.75 + 0.25 * sin(TIME * 0.37 + mundo.x * 0.05));
+	float tremor = sin(TIME * 7.0 + mundo.x * 3.1 + mundo.z * 2.3) * 0.08;
+	float curva = altura * altura;
+	vec2 empurra = d * (rajada * forca + 0.06) * curva + vec2(tremor, -tremor) * curva * 0.5;
+	VERTEX.x += (inverse(mat3(MODEL_MATRIX)) * vec3(empurra.x, 0.0, empurra.y)).x;
+	VERTEX.z += (inverse(mat3(MODEL_MATRIX)) * vec3(empurra.x, 0.0, empurra.y)).z;
+	VERTEX.y -= length(empurra) * 0.35 * curva;           // dobra: a ponta abaixa
+	NORMAL = normalize(mix(NORMAL, vec3(0.0, 1.0, 0.0), 0.65));
+}
+
+void fragment() {
+	vec3 c = mix(cor_base, cor_ponta, smoothstep(0.0, 1.0, altura)) * tom;
+	ALBEDO = c;
+	ROUGHNESS = 0.9;
+	BACKLIGHT = vec3(0.25, 0.32, 0.12) * altura;          // luz atravessando a folha
+}
