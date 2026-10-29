@@ -256,6 +256,8 @@ func _criar_desenhos() -> void:
 	_desenho_itens = DesenhoItens.new()
 	_desenho_itens.fabrica = fabrica
 	_desenho_itens.mapa = mapa
+	_desenho_itens.garra = ponto_garra
+	_desenho_itens.process_priority = 100          # depois dos Animadores: o item usa a pose deste quadro
 	add_child(_desenho_itens)
 	_fios = DesenhoFios.new()
 	_fios.mapa = mapa
@@ -468,7 +470,7 @@ func _criar_no(id: int, nova := false) -> Node3D:
 	# rampa de descida: o mesmo modelo virado (a ponta alta fica atrás, de onde vem o item)
 	var ang := Grade.angulo(e.rot) + (PI if e.get("desce", false) else 0.0)
 	if DesenhoLotes.aceita(e.nome):
-		_lotes.adicionar(id, e.nome, Transform3D(Basis(Vector3.UP, ang), pos))
+		_lotes.adicionar(id, e.nome + ("#desce" if e.get("desce", false) else ""), Transform3D(Basis(Vector3.UP, ang), pos))
 		return null
 	var cena: PackedScene = load(Registro.modelos[e.nome].modelo)
 	var n: Node3D = cena.instantiate()
@@ -480,6 +482,9 @@ func _criar_no(id: int, nova := false) -> Node3D:
 	if Registro.modelos[e.nome].get("partes", []).size() > 1:      # só quem tem peça móvel (esteira não)
 		a = Animador.new()
 		a.ativo = not nova
+		a.modelo = e.nome
+		if e.nome.begins_with("braco"):
+			_posar_braco(a, e)
 		n.add_child(a)
 	_nos[id] = n
 	if nova:
@@ -722,6 +727,26 @@ func _process(delta: float) -> void:
 	_atualizar_chunks()
 
 
+## Distância e altura do pulso nas duas pontas do braço: esteira/chão baixo; baú/máquina mais alto e um pouco antes
+## do centro (a garra para em cima da borda, não dentro do corpo).
+func _posar_braco(a: Animador, e: Dictionary) -> void:
+	var alc := float(Registro.estruturas.get(e.nome, {}).get("alcance", 1))
+	var fr := Grade.DIRECOES[Construtor.fluxo_da_rot(e.rot)] * int(alc)
+	var ponta := func(t: Vector2i) -> Vector2:
+		var id: int = mapa.tiles.get(t, -1)
+		if id < 0 or Construtor.no_esteira(mapa.estruturas[id]).size() > 0:
+			return Vector2(alc, 0.42)
+		var dims: Array = Registro.modelos.get(mapa.estruturas[id].nome, {}).get("dims", [1, 1, 0.6])
+		return Vector2(alc - 0.22, minf(float(dims[2]) + 0.1, 0.9))
+	a.pega = ponta.call(e.minimo - fr)
+	a.solta = ponta.call(e.minimo + fr)
+
+
+func ponto_garra(id: int) -> Vector3:
+	var a := _animador(id)
+	return a.ponto_garra() if a != null else Vector3.INF
+
+
 ## Onde a neblina abre: máquinas queimando/trabalhando (as que poluíram neste passo) e trens. (x, z do mundo, raio)
 func _fontes_calor() -> Array:
 	var r: Array = []
@@ -738,7 +763,16 @@ func _fontes_calor() -> Array:
 
 
 ## Animação segue a simulação: máquina mexe só trabalhando; braço pela fase do ciclo.
+var _versao_bracos := -1
+
+
 func _animar_estruturas() -> void:
+	if _versao_bracos != mapa.versao:              # vizinho mudou: refaz onde cada braço pega/solta
+		_versao_bracos = mapa.versao
+		for id in fabrica.bracos:
+			var ab := _animador(id)
+			if ab != null and mapa.estruturas.has(id):
+				_posar_braco(ab, mapa.estruturas[id])
 	for id in fabrica.maquinas:
 		var a := _animador(id)
 		if a != null:

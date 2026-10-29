@@ -106,7 +106,7 @@ def _braco(nome, desc, l1, l2, cor, cristal=False):
     giro.cil((0, 0, 0.36), 0.06, 0.16, 'P_Escuro', eixo='X')
     sh = Vector((0, 0, 0.36))
     el = sh + Vector((0, 0.10, l1))                                    # repouso: braço 1 quase em pé
-    wr = el + Vector((0, l2*0.80, -l2*0.60))                           # braço 2 descendo para a frente
+    wr = el + Vector((0, l2*0.30, -l2*0.95))                           # braço 2 pendendo (o jogo posa por IK)
     b1 = m.parte('braco1', pai='giro', pivo=tuple(sh))
     b1.barra(sh, el, 0.07, 0.07, 'P_Metal'); b1.cil(tuple(el), 0.05, 0.12, 'P_Escuro', eixo='X')
     b2 = m.parte('braco2', pai='braco1', pivo=tuple(el))
@@ -118,11 +118,12 @@ def _braco(nome, desc, l1, l2, cor, cristal=False):
     m.porta('ITEM', 'ENT', 'S'); m.porta('ITEM', 'SAI', 'N')
     return m
 
-def braco():        return _braco('braco', 'Braço mecânico: pega do tile ao sul e solta no tile ao norte. Alcance 1 tile.', 0.30, 0.30, 'P_Faixa')
+# braços com comprimento de verdade: a garra alcança o centro do tile vizinho (ou o segundo, no longo)
+def braco():        return _braco('braco', 'Braço mecânico: pega do tile ao sul e solta no tile ao norte. Alcance 1 tile.', 0.55, 0.62, 'P_Faixa')
 def braco_longo():  return _braco('braco_longo', 'Braço longo: alcance 2 tiles (pula um tile). Em repouso fica dentro do próprio tile.',
-                                  0.38, 0.40, 'P_Cobre')
+                                  1.05, 1.12, 'P_Cobre')
 def braco_rapido(): return _braco('braco_rapido', 'Braço rápido: alcance 1 tile, 2× mais rápido, consome mais energia.',
-                                  0.30, 0.30, 'P_Metal', cristal=True)
+                                  0.55, 0.62, 'P_Metal', cristal=True)
 
 # ---------------------------------------------------------------- armazenagem
 def bau():

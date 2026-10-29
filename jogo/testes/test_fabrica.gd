@@ -80,7 +80,8 @@ func test_fornalha_escolhe_receita_e_queima() -> void:
 	_por(c, "poste_energia", Vector2i(-2, -1))
 	_por(c, "poste_energia", Vector2i(4, 2))
 	_por(c, "poste_energia", Vector2i(10, 2))
-	c.executar(c.plano_linha("esteira", Vector2i(1, 2), Vector2i(1, 6), 0))   # saída N0 da fornalha
+	_por(c, "braco", Vector2i(0, 2), 0)                      # braço tira da fornalha (sul) e põe na esteira (norte)
+	c.executar(c.plano_linha("esteira", Vector2i(-2, 3), Vector2i(3, 3), 0))
 	f.reconstruir()
 	f.combustivel[g] = 30.0
 	f.baus[bau].merge({"minerio_ferro": 10, "carvao": 3})   # o braço já aponta para este baú
@@ -89,7 +90,7 @@ func test_fornalha_escolhe_receita_e_queima() -> void:
 	var placas := 0
 	for cm in f.caminhos:
 		placas += (cm.esteira as EsteiraCaminho).itens.count("placa_ferro")
-	verificar(placas >= 5, "placas saíram pela porta para a esteira (%d)" % placas)
+	verificar(placas >= 5, "placas saíram pelo braço para a esteira (%d)" % placas)
 	verificar(f.maquinas[forn].produzidos >= 5)
 
 
@@ -183,8 +184,9 @@ func test_nucleo_custos_e_pesquisa() -> void:
 	c.inventario["placa_ferro"] = 100
 	c.inventario["placa_cobre"] = 100
 	c.inventario["engrenagem"] = 100
-	var nuc := c.mapa.colocar("nucleo", Vector2i(10, -6), 0)        # boca oeste no tile (10, −5) → esteira em (9, −5)
-	c.executar(c.plano_linha("esteira", Vector2i(4, -5), Vector2i(9, -5), 0))
+	var nuc := c.mapa.colocar("nucleo", Vector2i(10, -6), 0)
+	c.executar(c.plano_linha("esteira", Vector2i(4, -5), Vector2i(8, -5), 0))
+	_por(c, "braco", Vector2i(9, -5), Construtor.rot_do_fluxo(1))   # braço tira da esteira (oeste) e põe no núcleo
 	var lab := c.mapa.colocar("laboratorio", Vector2i(-4, -6), 0)
 	_energia(c, f)
 	_por(c, "poste_energia", Vector2i(-3, -3))       # cobre o laboratório (centro a 2 tiles)
@@ -194,9 +196,9 @@ func test_nucleo_custos_e_pesquisa() -> void:
 	for id in f.combustivel: f.combustivel[id] = 30.0
 	var e: EsteiraCaminho = f.caminhos[f._no_tile[Vector2i(4, -5)][0]].esteira
 	for i in 4:
-		e.inserir_em("pedra", 5.5 - i * 0.5)
-	_rodar(f, 6.0)
-	igual(int(c.inventario.get("pedra", 0)), 4, "4 pedras entraram no núcleo pela boca oeste")
+		e.inserir_em("pedra", 4.5 - i * 0.5)
+	_rodar(f, 10.0)
+	igual(int(c.inventario.get("pedra", 0)), 4, "4 pedras entraram no núcleo pelo braço")
 	p.escolher("defesa")
 	f.laboratorios[lab].pacotes = 8
 	var feito := false

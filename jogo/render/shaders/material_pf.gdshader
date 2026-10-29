@@ -50,7 +50,8 @@ void fragment() {
 	vec3 base = tem_textura ? texture(textura, UV).rgb : cor.rgb;
 	if (rolagem != 0.0) {
 		// ranhuras transversais andando no sentido do fluxo (4 por metro)
-		float r = fract((v_dist - TIME * rolagem) * 4.0);
+		// o glTF vira o V do UV (cresce da saída para a entrada): somar o tempo leva as ranhuras rumo à saída
+		float r = fract((v_dist + TIME * rolagem) * 4.0);
 		base *= mix(1.0, 1.9, step(0.82, r));
 	}
 	// molhado: superfícies de cima escurecem e brilham (água parada); sombra de nuvem tira o sol

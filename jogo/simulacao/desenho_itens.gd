@@ -11,6 +11,7 @@ const DIST_ESCONDE := 50.0
 
 var fabrica: Fabrica
 var mapa: MapaOcupacao
+var garra: Callable              ## id do braço → ponto da garra no mundo (o item segue o modelo animado)
 var _mm: Dictionary = {}          ## item → MultiMeshInstance3D
 var custo_us := 0                 ## tempo do último quadro (medição)
 var _ultimo := ""                 ## passo da simulação + câmera do último desenho
@@ -18,7 +19,8 @@ var _ultimo := ""                 ## passo da simulação + câmera do último d
 
 func _process(_d: float) -> void:
 	var cam := get_viewport().get_camera_3d() as CameraJogo
-	var chave := "%d|%s|%s" % [fabrica.passos if fabrica != null else 0, cam.alvo if cam else "", cam.distancia if cam else ""]
+	var chave := "%d|%s|%s|%d" % [fabrica.passos if fabrica != null else 0, cam.alvo if cam else "", cam.distancia if cam else "",
+			Engine.get_process_frames() if fabrica != null and not fabrica.bracos.is_empty() else 0]   # garra anda a cada quadro
 	if chave == _ultimo:
 		return
 	_ultimo = chave
@@ -53,7 +55,10 @@ func _desenhar() -> void:
 				var entra: int = c.entra[k]
 				var sai: int = c.sai[k]
 				var p: Vector2
-				if sai < 0 or sai == entra:
+				if sai < 0:
+					# fim de linha: o item para encostado no para-choque (lado de dentro), não por cima dele
+					p = Vector2(t.x + 0.5, t.y + 0.5) + Vector2(Grade.DIRECOES[entra]) * (f * 0.74 - 0.5)
+				elif sai == entra:
 					p = Vector2(t.x + 0.5, t.y + 0.5) + Vector2(Grade.DIRECOES[entra]) * (f - 0.5)
 				else:
 					p = Fabrica.ponto_no_tile(t, entra, sai, f)
@@ -71,17 +76,21 @@ func _desenhar() -> void:
 			if b.segurando == "" or not mapa.estruturas.has(id):
 				continue
 			var e: Dictionary = mapa.estruturas[id]
-			var fr := Vector2(Grade.DIRECOES[Construtor.fluxo_da_rot(e.rot)])
-			var cc := Vector2(e.minimo) + Vector2(0.5, 0.5)
-			var a := clampf(b.fase() * 2.0, 0.0, 1.0)
-			var p := (cc - fr * 0.75).lerp(cc + fr * 0.75, a)
+			# o item vai preso na garra (posição real do modelo animado)
+			var g: Vector3 = garra.call(id) if garra.is_valid() else Vector3.INF
+			if g == Vector3.INF:
+				var fr := Vector2(Grade.DIRECOES[Construtor.fluxo_da_rot(e.rot)])
+				var cc := Vector2(e.minimo) + Vector2(0.5, 0.5)
+				var a := clampf(b.fase() * 2.0, 0.0, 1.0)
+				var p := (cc - fr * 0.75).lerp(cc + fr * 0.75, a)
+				g = Grade.ponto_mundo(p, 0.55 + 0.25 * sin(a * PI))
 			if not indice.has(b.segurando):
 				indice[b.segurando] = tipos.size()
 				tipos.append(b.segurando)
 			tipo.append(indice[b.segurando])
-			pos.append(p.x)
-			pos.append(0.55 + 0.25 * sin(a * PI) + Grade.altura_chao(e.minimo))
-			pos.append(-p.y)
+			pos.append(g.x)
+			pos.append(g.y - 0.11)
+			pos.append(g.z)
 	# 2ª passada: um buffer por tipo
 	for item in _mm:
 		if not indice.has(item):

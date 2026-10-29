@@ -24,12 +24,32 @@ func adicionar(id: int, nome: String, t: Transform3D) -> void:
 		var mmi := MultiMeshInstance3D.new()
 		mmi.multimesh = MultiMesh.new()
 		mmi.multimesh.transform_format = MultiMesh.TRANSFORM_3D
-		mmi.multimesh.mesh = DesenhoChunk.malha(nome)
+		mmi.multimesh.mesh = _malha(nome)
 		add_child(mmi)
 		_lotes[chave] = {"ids": {}, "mmi": mmi, "sujo": true}
 	_lotes[chave].ids[id] = t
 	_lotes[chave].sujo = true
 	_por_id[id] = chave
+
+
+## "nome#desce": a rampa usada de descida é o modelo girado 180° — a lona tem de andar ao contrário.
+static var _invertidas := {}
+
+
+static func _malha(nome: String) -> Mesh:
+	if not nome.ends_with("#desce"):
+		return DesenhoChunk.malha(nome)
+	if not _invertidas.has(nome):
+		var base: Mesh = DesenhoChunk.malha(nome.trim_suffix("#desce"))
+		var m := base.duplicate() as ArrayMesh
+		for s in m.get_surface_count():
+			var mat := m.surface_get_material(s)
+			if mat is ShaderMaterial and float((mat as ShaderMaterial).get_shader_parameter("rolagem")) != 0.0:
+				var c := (mat as ShaderMaterial).duplicate() as ShaderMaterial
+				c.set_shader_parameter("rolagem", -float(c.get_shader_parameter("rolagem")))
+				m.surface_set_material(s, c)
+		_invertidas[nome] = m
+	return _invertidas[nome]
 
 
 ## false se o id não estava num lote (então é nó comum).

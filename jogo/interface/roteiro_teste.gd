@@ -34,6 +34,7 @@ func _ready() -> void:
 		"aplainar": _roteiro_aplainar()
 		"aranha": _roteiro_aranha()
 		"montagem": _roteiro_montagem()
+		"bracos": _roteiro_bracos()
 		"grama": _roteiro_grama()
 		"ambiente": _roteiro_ambiente()
 		"recursos":
@@ -356,6 +357,40 @@ func _roteiro_aplainar() -> void:
 		for x in [-6, -3, 3, 6]:
 			cena.sincronizar(con.executar(con.plano_peca("fornalha", c + Vector2i(x, 3), 0)))
 		print("APLAINAR ok, central: ", cena.mapa.tem_terraplenagem()))
+
+
+## Braços de perto: baú com minério → braço → esteira → braço → fornalha → braço → baú. Tudo item a item.
+func _roteiro_bracos() -> void:
+	em(2, func():
+		cena.controle.barra.visible = false
+		Sessao.config.fps = false
+		var con: Construtor = cena.construtor
+		for x in range(-12, 2):
+			for y in range(-16, -6):
+				cena.mapa.limpar_obstaculo(Vector2i(x, y))
+		var p := func(pl: Array[Dictionary]) -> void: cena.sincronizar(con.executar(pl))
+		p.call(con.plano_peca("bau", Vector2i(-10, -12), 0))
+		p.call(con.plano_peca("braco", Vector2i(-9, -12), Construtor.rot_do_fluxo(1)))
+		p.call(con.plano_linha("esteira", Vector2i(-8, -12), Vector2i(-5, -12), 0))
+		p.call(con.plano_peca("braco", Vector2i(-4, -12), Construtor.rot_do_fluxo(1)))
+		p.call(con.plano_peca("fornalha", Vector2i(-3, -13), 0))
+		p.call(con.plano_peca("braco", Vector2i(-1, -12), Construtor.rot_do_fluxo(1)))
+		p.call(con.plano_peca("bau", Vector2i(0, -12), 0))
+		p.call(con.plano_peca("gerador", Vector2i(-7, -16), 0))
+		p.call(con.plano_peca("poste_energia", Vector2i(-7, -14), 0))
+		p.call(con.plano_peca("poste_energia", Vector2i(-2, -10), 0))
+		cena.camera.alvo = Grade.ponto_mundo(Vector2(-4.0, -11.5))
+		cena.camera.distancia = 9.0
+		cena.camera.posicionar())
+	em(6, func():
+		var f: Fabrica = cena.fabrica
+		f.reconstruir()
+		for id in f.baus:
+			var e: Dictionary = cena.mapa.estruturas[id]
+			if e.minimo == Vector2i(-10, -12):
+				f.baus[id].merge({"minerio_ferro": 40, "carvao": 20})
+		for id in f.combustivel:
+			f.combustivel[id] = 500.0)
 
 
 ## Animação de construção: três máquinas postas uma depois da outra num chão vazio (a montagem e o piso crescendo).

@@ -217,6 +217,11 @@ func _montar_energia() -> void:
 
 
 ## Ponta de caminho: lateral de outra esteira (carga lateral) ou porta de entrada de máquina/estação/torre.
+## Só extratores (broca, extrator de cristal) despejam direto na esteira em frente — como uma broca de verdade.
+## Toda outra construção recebe e entrega itens um a um pelas mãos de um braço (nada entra ou sai sozinho).
+const DESPEJA_NA_ESTEIRA := ["broca_minerio", "extrator_cristal"]
+
+
 func _ligar_pontas() -> void:
 	for c in caminhos:
 		var est: EsteiraCaminho = c.esteira
@@ -238,10 +243,10 @@ func _ligar_pontas() -> void:
 			var e2: EsteiraCaminho = c2.esteira
 			est.saida = func(item: String) -> bool: return e2.inserir_em(item, pos)
 			continue
-		if nv > 0:
-			continue                                       # no alto só liga em esteira
+		# esteira não enfia item em construção (o fim para o item; um braço pega dali) — só em peça de esteira
+		# (divisor/junção), que é esteira também
 		var id: int = mapa.tiles.get(n, -1)
-		if id < 0:
+		if nv > 0 or id < 0 or not distribuidores.has(id):
 			continue
 		for p in _portas(id):
 			if p.io == "ENT" and p.tipo == "ITEM" and p.tile_fora == t and p.dir == -Grade.DIRECOES[d]:
@@ -264,6 +269,8 @@ func _montar_portas() -> void:
 	for id in mapa.estruturas:
 		var e: Dictionary = mapa.estruturas[id]
 		if not (maquinas.has(id) or e.nome == "estacao"):
+			continue
+		if not e.nome in DESPEJA_NA_ESTEIRA:
 			continue
 		for p in _portas(id):
 			if p.io == "SAI" and p.tipo == "ITEM" and _no_tile.has(p.tile_fora):

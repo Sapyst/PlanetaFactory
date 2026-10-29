@@ -13,6 +13,13 @@ extends Node
 @export var ativo := true
 @export var ritmo := 1.0
 var fase_braco := 0.0
+## Braço: modelo (para ler os pivôs do braço em modelos.json) e onde pegar/soltar — distância (m) e altura do
+## pulso em cada ponta (esteira baixa; máquina/baú mais alto). O mundo preenche.
+var modelo := ""
+var alcance := 1.0
+var pega := Vector2(1.0, 0.42)        ## (distância, altura do pulso) na origem
+var solta := Vector2(1.0, 0.42)       ## idem no destino
+var _ik := {}
 var alvo: Node3D = null
 var ponto_alvo := Vector3.INF      ## alternativa a `alvo`: mira um ponto do mundo
 var tempo := 0.0
@@ -74,16 +81,64 @@ func _gira(parte: String, ang: float) -> void:
 	(_partes[parte] as Node3D).transform = Transform3D(Basis(Vector3.UP, ang) * b.basis, b.origin)
 
 
-## fase 0 = garra no tile de trás (sul = +Z local), 0,5 = no da frente (norte = −Z local), 1 = volta.
+## Braço mecânico com cinemática inversa de 2 elos: a garra vai de verdade até o item — desce, pega, sobe, gira
+## meia volta, desce e solta no destino, sobe e volta. fase 0 = garra na origem (atrás), 0,5 = no destino.
 func _braco_mecanico() -> void:
+	if _ik.is_empty():
+		_preparar_ik()
 	var f := fase_braco
-	var giro := PI * (1.0 - absf(1.0 - 2.0 * f))     # 0 → π → 0 (meia-volta e retorno)
-	_gira("giro", giro + PI)                           # repouso virado para trás (onde pega)
-	var mergulho := pow(cos(f * TAU), 8.0)             # desce a garra nos extremos (pegar/soltar)
+	var ida := f < 0.5
+	var x := (f if ida else f - 0.5) * 2.0
+	var de: Vector2 = pega if ida else solta
+	var para: Vector2 = solta if ida else pega
+	var alto := maxf(de.y, para.y) + 0.2
+	var sobe := smoothstep(0.0, 0.2, x)
+	var desce := smoothstep(0.8, 1.0, x)
+	var gira := smoothstep(0.15, 0.85, x)
+	var h := lerpf(de.y, alto, sobe) if x < 0.5 else lerpf(alto, para.y, desce)
+	var r := lerpf(de.x, para.x, gira)
+	# giro: origem fica atrás (π), destino na frente (0); a volta desfaz o mesmo caminho
+	var ang := PI * (1.0 - gira) if ida else PI * gira
+	_gira("giro", ang)
+	var sol := _resolver(r, h)
 	var b1: Transform3D = _base["braco1"]
-	(_partes["braco1"] as Node3D).transform = Transform3D(Basis(Vector3.RIGHT, -0.35 * mergulho) * b1.basis, b1.origin)
+	(_partes["braco1"] as Node3D).transform = Transform3D(Basis(Vector3.RIGHT, sol.x) * b1.basis, b1.origin)
 	var b2: Transform3D = _base["braco2"]
-	(_partes["braco2"] as Node3D).transform = Transform3D(Basis(Vector3.RIGHT, -0.45 * mergulho) * b2.basis, b2.origin)
+	(_partes["braco2"] as Node3D).transform = Transform3D(Basis(Vector3.RIGHT, sol.y) * b2.basis, b2.origin)
+	if tem("garra"):
+		var bg: Transform3D = _base["garra"]
+		(_partes["garra"] as Node3D).transform = Transform3D(Basis(Vector3.RIGHT, -(sol.x + sol.y)) * bg.basis, bg.origin)
+
+
+## Pivôs do modelo (Blender: y = frente, z = cima): ombro, cotovelo, pulso → comprimentos e ângulos de repouso.
+func _preparar_ik() -> void:
+	var piv := {}
+	for p in Registro.modelos.get(modelo, {}).get("partes", []):
+		piv[p.nome] = Vector2(float(p.pivo[1]), float(p.pivo[2]))
+	var sh: Vector2 = piv.get("braco1", Vector2(0, 0.36))
+	var el: Vector2 = piv.get("braco2", Vector2(0.1, 0.66))
+	var wr: Vector2 = piv.get("garra", Vector2(0.3, 0.32))
+	_ik = {"ombro": sh, "l1": (el - sh).length(), "l2": (wr - el).length(), "f1": (el - sh).angle(), "f2": (wr - el).angle()}
+
+
+## Ângulos (rot. do elo 1, rot. relativa do elo 2) para o pulso ir a (distância, altura); cotovelo para cima.
+func _resolver(r: float, h: float) -> Vector2:
+	var t := Vector2(r, h) - (_ik.ombro as Vector2)
+	var l1: float = _ik.l1
+	var l2: float = _ik.l2
+	var d := clampf(t.length(), absf(l1 - l2) + 0.01, l1 + l2 - 0.005)
+	var a1 := t.angle() + acos(clampf((l1 * l1 + d * d - l2 * l2) / (2.0 * l1 * d), -1.0, 1.0))
+	var a2 := a1 - (PI - acos(clampf((l1 * l1 + l2 * l2 - d * d) / (2.0 * l1 * l2), -1.0, 1.0)))
+	var r1 := a1 - float(_ik.f1)
+	var r2abs := a2 - float(_ik.f2)
+	return Vector2(r1, r2abs - r1)
+
+
+## Onde o item fica preso: entre os dedos da garra (mundo). INF se não é braço.
+func ponto_garra() -> Vector3:
+	if not tem("garra"):
+		return Vector3.INF
+	return (_partes["garra"] as Node3D).global_transform * Vector3(0, -0.06, 0)
 
 
 func _mirar() -> void:
