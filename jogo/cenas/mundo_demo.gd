@@ -34,6 +34,7 @@ var _desenho_trens: DesenhoTrens
 var _desenho_poluicao: DesenhoPoluicao
 var _visao: VisaoRecursos
 var vento_local: VentoLocal
+var descoberta := Descoberta.new()
 var _fluxo: DesenhoFluxo
 var animar_tudo := false             ## mostruário (vídeos): toda máquina e braço mexendo
 var _no_nucleo: Node3D
@@ -234,7 +235,7 @@ func salvar() -> void:
 	var ok := Salvamento.gravar({"modo": modo, "semente": semente, "tempo": _tempo,
 			"camera": [camera.alvo, camera.distancia, camera.angulo],
 			"mapa": {"estruturas": mapa.estruturas, "limpos": mapa.limpos.keys(), "prox": mapa._prox_id, "arvores": mapa.arvores},
-			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores, "clima": clima.estado(), "aplainado": gerador.aplainados(), "ambiente": ambiente.estado(), "agua": agua.estado(),
+			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores, "clima": clima.estado(), "aplainado": gerador.aplainados(), "ambiente": ambiente.estado(), "agua": agua.estado(), "descoberta": descoberta.estado(),
 			"estoques": estoques, "inventario": inventario, "pesquisa": pesquisa.estado(),
 			"trens": trens.map(func(t: Trem): return t.para_salvar()), "prox_trem": _prox_trem})
 	if ok and is_instance_valid(controle):
@@ -252,6 +253,7 @@ func _carregar(d: Dictionary) -> void:
 		clima.restaurar(d.clima)
 	if d.has("ambiente"):
 		ambiente.restaurar(d.ambiente)
+	descoberta.restaurar(d.get("descoberta", {}))
 	for t in d.get("aplainado", {}):
 		gerador.aplainar(t, d.aplainado[t])
 	agua.restaurar(d.get("agua", {}))
@@ -352,6 +354,11 @@ func _criar_desenhos() -> void:
 	dpt.ambiente = ambiente
 	add_child(dpt)
 	add_child(_arcos)
+	var dv := DesenhoVisao.new()                  # oval de visão + névoa do não visto
+	dv.camera = camera
+	dv.descoberta = descoberta
+	dv.chunks = chunks
+	add_child(dv)
 
 
 func alternar_recursos() -> bool:
@@ -421,6 +428,7 @@ func _atualizar_chunks() -> void:
 			var d := DesenhoChunk.new()
 			add_child(d)
 			d.montar(dados, mapa)
+			d.ajustar_grama(Visao.centro, camera.distancia >= 80.0 or not bool(Sessao.config.get("grama", true)))
 			chunks[k] = d
 			if ambiente.dados.has(k) or ambiente.dados.has(k + Vector2i(1, 0)) or ambiente.dados.has(k - Vector2i(1, 0)) \
 					or ambiente.dados.has(k + Vector2i(0, 1)) or ambiente.dados.has(k - Vector2i(0, 1)):
@@ -809,15 +817,8 @@ func _process(delta: float) -> void:
 	_animar_estruturas()
 	# modo construção (peça na mão): caminho e sentido das esteiras em destaque
 	_fluxo.ligado = controle != null and controle.peca != ""
-	# grama: só de perto e só nos chunks em volta do ponto olhado (o resto nem vai para a GPU)
+	# grama: por quadrante, perto do ponto olhado e dentro do oval de visão (DesenhoVisao → DesenhoChunk.ajustar_grama)
 	RenderingServer.global_shader_parameter_set("alvo_camera", camera.alvo)
-	var ver_grama := camera.distancia < 80.0 and bool(Sessao.config.get("grama", true))
-	var ca := Vector2(camera.alvo.x, -camera.alvo.z)
-	for kc in chunks:
-		var ch: DesenhoChunk = chunks[kc]
-		if ch.grama != null:
-			var cc := Vector2(kc * Grade.TAM_CHUNK) + Vector2.ONE * Grade.TAM_CHUNK * 0.5
-			ch.grama.visible = ver_grama and maxf(absf(cc.x - ca.x), absf(cc.y - ca.y)) < Grade.TAM_CHUNK * 0.5 + 40.0
 	# letreiros só de perto (a névoa por zoom e clima fica no DesenhoClima)
 	($Sol as DirectionalLight3D).directional_shadow_max_distance = clampf(camera.distancia * 1.6, 30.0, 110.0)
 	for l in _rotulos.values():

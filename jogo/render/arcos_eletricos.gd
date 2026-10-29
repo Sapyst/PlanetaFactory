@@ -42,7 +42,7 @@ func _process(delta: float) -> void:
 	for id in fontes:
 		var f: Dictionary = fontes[id]
 		var no: Node3D = f.no
-		if not is_instance_valid(no) or not no.is_visible_in_tree():
+		if not is_instance_valid(no) or not no.is_visible_in_tree() or not Visao.dentro(Vector2(no.global_position.x, -no.global_position.z), 1.05):
 			continue
 		if _rng.randf() < delta * 7.0 * float(f.forca):
 			var i := _rng.randi() % 4

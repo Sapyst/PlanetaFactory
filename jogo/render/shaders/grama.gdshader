@@ -12,6 +12,9 @@ uniform sampler2D mapa_fabrica : filter_nearest, hint_default_black;   // do chu
 uniform vec2 origem_mapa;
 uniform sampler2D mapa_ambiente : filter_linear, hint_default_transparent;   // A = queimado, R = sujeira
 uniform float raio_vista = 38.0;
+uniform float raio_detalhe = 1.0e6;   // camada de detalhe: some em degradê a partir daqui
+uniform bool compensa = false;
+const float raio_detalhe_ref = 16.0;  // = DesenhoChunk.RAIO_DETALHE         // camada esparsa: tufos de longe um pouco maiores (o campo não fica ralo)
 global uniform vec3 alvo_camera;
 #include "res://render/shaders/clima.gdshaderinc"
 
@@ -34,7 +37,13 @@ void vertex() {
 	some = max(some, smoothstep(0.1, 0.7, q));
 	tom *= mix(vec3(1.0), vec3(0.18, 0.12, 0.08), smoothstep(0.0, 0.25, q));
 	tom *= mix(vec3(1.0), vec3(0.72, 0.62, 0.42), smoothstep(0.1, 0.6, amb.r));   // suja: amarelada
-	some = max(some, smoothstep(raio_vista - 6.0, raio_vista, distance(o.xz, alvo_camera.xz)));
+	float dist = distance(o.xz, alvo_camera.xz);
+	some = max(some, smoothstep(raio_vista - 6.0, raio_vista, dist));
+	some = max(some, smoothstep(raio_detalhe - 6.0, raio_detalhe, dist));
+	some = max(some, 1.0 - visao_dentro(o));                 // fora do oval de visão a grama some em degradê
+	if (compensa) {
+		VERTEX *= 1.0 + 0.45 * smoothstep(raio_detalhe_ref - 6.0, raio_detalhe_ref, dist);
+	}
 	some = max(some, visao_recursos);                       // visão de recursos/vento: o chão fica limpo para ler
 	VERTEX *= 1.0 - some;
 	vec3 mundo = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;

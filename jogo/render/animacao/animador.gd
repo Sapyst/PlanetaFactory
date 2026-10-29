@@ -54,6 +54,9 @@ func tem(parte: String) -> bool:
 
 
 func _process(delta: float) -> void:
+	var dono := get_parent() as Node3D
+	if dono != null and not Visao.dentro(Vector2(dono.global_position.x, -dono.global_position.z), 1.1):
+		return                                       # fora do oval de visão: parada (só desenho; a fábrica segue)
 	if ativo:
 		tempo += delta * ritmo
 	var alvo_b := brilho if brilho >= 0.0 else (1.0 if ativo else 0.0)

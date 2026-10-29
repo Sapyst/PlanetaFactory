@@ -105,6 +105,25 @@ func _ready() -> void:
 				cam.distancia = 60.0
 				cam.posicionar())
 			em(200, func(): _inventario())
+			em(205, func():
+				var a := Vector2(cena.camera.alvo.x, -cena.camera.alvo.z)
+				for k in cena.chunks:
+					var ch: DesenhoChunk = cena.chunks[k]
+					for g in ch._grama_q:
+						if g.rect.has_point(a) or (a - a.clamp(g.rect.position, g.rect.end)).length() < 20:
+							print("GQ ", k, " ", g.rect, " esp ", g.esparsa != null and g.esparsa.visible, " det ", g.detalhe != null and g.detalhe.visible, " n ", g.esparsa.multimesh.instance_count if g.esparsa else -1)
+				print("GQ alvo ", a))
+		"visao":                                       # oval de visão: zoom normal, zoom longe, depois de andar
+			em(2, func(): Sessao.config.fps = false)
+			em(100, func():
+				var cam: CameraJogo = cena.camera
+				cam.distancia = 75.0
+				cam.posicionar())
+			em(200, func():
+				var cam: CameraJogo = cena.camera
+				cam.alvo += Vector3(70, 0, 40)
+				cam.distancia = 70.0
+				cam.posicionar())
 		"faiscas":                                     # acumulador carregado de perto (use com -- hora 0.0)
 			_roteiro_energia()
 			em(180, func():                            # depois do roteiro de energia mexer na câmera
@@ -769,9 +788,7 @@ func _vegetacao(sim: bool) -> void:
 
 func _grama(sim: bool) -> void:
 	for k in cena.chunks:
-		var g: Node3D = cena.chunks[k].grama
-		if g != null:
-			g.visible = sim
+		cena.chunks[k].ajustar_grama(Vector2(cena.camera.alvo.x, -cena.camera.alvo.z), not sim)
 
 
 func _desenho_clima() -> DesenhoClima:

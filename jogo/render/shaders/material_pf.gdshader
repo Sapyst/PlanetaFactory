@@ -131,9 +131,11 @@ void fragment() {
 			discard;                                   // folhas caindo/queimando: a copa vai abrindo até sobrar o galho
 		}
 	}
-	ALBEDO = base;
-	ROUGHNESS = mix(aspereza, 0.45, m * 0.8);   // sem espelho: faceta molhada não pode estourar de branco
-	METALLIC = metal;
+	float vd = visao_dentro(v_mundo);
+	ALBEDO = aplicar_visao(base, v_mundo);         // fora do oval de visão: névoa escura (ambiente/visao.gd)
+	ROUGHNESS = mix(1.0, mix(aspereza, 0.45, m * 0.8), vd);   // sem espelho: faceta molhada não pode estourar de branco
+	METALLIC = metal * vd;
+	SPECULAR = 0.5 * mix(0.05, 1.0, vd);
 	float e = forca_emissao;
 	if (pulso > 0.0) {
 		e *= 0.65 + 0.35 * sin(TIME * 2.4 + NODE_POSITION_WORLD.x);
@@ -142,4 +144,5 @@ void fragment() {
 		e *= mix(0.1, 0.55, trabalho);
 	}
 	EMISSION += cor_emissao.rgb * e * 0.25;
+	EMISSION *= mix(0.08, 1.0, vd);
 }

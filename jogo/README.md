@@ -109,6 +109,21 @@ Medido arrastando a câmera 18 m/s (`-- modo demo roteiro panorama`): antes 71 q
 depois 0 quadros > 33 ms. Celular: 3D a 70% da resolução, sem sombra, sem brilho; aranhas só desenhadas perto da
 vista. Contador de FPS embutido (ligado por padrão na fase de testes; Configurações desliga).
 
+## Oval de visão, névoa e desempenho da grama
+- `ambiente/visao.gd` (Visao): a tela vista como um oval deitado no chão, centrado no ponto olhado e do tamanho do
+  zoom. Dentro, tudo desenha e anima; a borda é um degradê; fora, névoa escura (`aplicar_visao` em
+  `clima.gdshaderinc`: chão, estruturas, vegetação). Fora do oval: objetos dos chunks escondidos (árvores, pedras,
+  enfeites), grama some, Animador parado, fumaça das máquinas e chamas do fogo caladas, aranhas só na lógica, faíscas
+  do acumulador paradas. A simulação continua igual — é só desenho.
+- `ambiente/descoberta.gd`: o que já passou dentro do oval fica descoberto (células 2×2 tiles, no save); fora do oval,
+  o descoberto aparece escuro e sem cor, o nunca visto quase preto — mascara a borda do mapa carregado.
+- Grama em quadrantes de 16×16 m e duas camadas (`DesenhoChunk.ajustar_grama`): esparsa (1/3) até 40 m, detalhe
+  (2/3) até 16 m com degradê; quadrante longe ou fora do oval não vai para a GPU. Medido (`-- roteiro medir`, câmera
+  a 60 m, RTX): GPU 9,2 → 3,4 ms e 17,5 → 6,9 milhões de triângulos; densidade do celular 3,0 → 1,6 ms.
+  `-- roteiro inventario` lista quem soma os triângulos.
+- Céu: só recebe cor nova quando a diferença se vê, e o reflexo é refeito aos poucos (Sky incremental).
+- Sem música (só efeitos).
+
 ## Desempenho (medido: `testes/test_zdesempenho.gd` e `-- modo demo roteiro estresse`)
 2 140 peças, 4 400 itens, 60 aranhas, 20 torres: passo de simulação ≈ 0,1 ms (fábrica) + 0,7 ms (aranhas/torres);
 remontar a fábrica inteira ≈ 20 ms por construção. Desenho: esteiras/canos/trilhos em lote (MultiMesh por chunk:

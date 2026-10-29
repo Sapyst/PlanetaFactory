@@ -27,8 +27,8 @@ sistema de construção. O jogo começa com o núcleo caindo do espaço.
 | Dia, entardecer e noite: à noite o painel solar para e os cristais das máquinas se destacam | Coletor de lixo, filtro de água, viveiro, painel solar, turbina eólica, acumulador e baú grande |
 | ![Mapa do vento](docs/midia/vento.jpg) | ![Árvores nas quatro estações](docs/midia/arvores_estacoes.jpg) |
 | Visão de recursos, camada Vento: vento médio de cada lugar e a direção predominante | Mesmo bosque na primavera, verão, outono e inverno |
-| ![Árvores por receita](docs/midia/arvores.jpg) | |
-| Árvores por receita: carvalho, bétula, pinheiro, salgueiro, acácia e fungo-cristal (3 de 6 variações cada) | |
+| ![Árvores por receita](docs/midia/arvores.jpg) | ![Oval de visão](docs/midia/visao_oval.jpg) |
+| Árvores por receita: carvalho, bétula, pinheiro, salgueiro, acácia e fungo-cristal (3 de 6 variações cada) | Oval de visão: dentro desenha e anima; fora, névoa escura (quase preta no que nunca foi visto) |
 
 ## Pastas
 - `jogo/` — projeto Godot 4.7 (código, dados, testes). Ver `jogo/README.md`.
@@ -43,7 +43,7 @@ sistema de construção. O jogo começa com o núcleo caindo do espaço.
 2. `jogo/ferramentas/testar.sh` — importa e roda todos os testes do jogo sem janela.
 3. `godot --path jogo --write-movie /tmp/q.png --fixed-fps 30 --quit-after 70 -- camera X Z DIST` — foto real.
 4. `python3 jogo/ferramentas/gerar_sons.py` — sintetiza os sons; `python3 jogo/ferramentas/gerar_nuvens.py` — mapa das nuvens.
-5. `godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.11.0.apk` — APK.
+5. `godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.11.1.apk` — APK.
 6. `... -- camera -3 2 11 roteiro construir` (ou `roteiro toque`) — teste visual da construção com cliques/toques injetados.
 7. `godot --path jogo --write-movie /tmp/v/q.png --fixed-fps 30 -- roteiro mostruario voo` — regrava o voo do mostruário
    (sem `voo` e com `camera X Z DIST` tira prints; `visao`/`setas` ligam a visão de recursos/as setas).
@@ -76,6 +76,8 @@ sistema de construção. O jogo começa com o núcleo caindo do espaço.
 - Vento com rumo de cada estação e rajadas que atravessam o campo (grama e árvores se curvam); o lugar muda o vento
   (alto e aberto venta mais, mata e construção abrigam); turbinas giram a cabeça para o vento; a poluição do ar vai
   vento abaixo; a visão de recursos mostra o mapa do vento.
+- Oval de visão: a área da tela desenha e anima; fora dela o mundo escurece numa névoa (quase preta onde nunca foi
+  visto) e para de gastar com objetos, grama, animações e efeitos.
 - Árvores por receita (6 espécies × 6 variações) que mudam com a estação (outono colorido, inverno nu, broto na
   primavera); o fogo queima a copa, carboniza o tronco e, se durar, derruba a árvore vento abaixo.
 

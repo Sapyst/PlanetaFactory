@@ -256,11 +256,12 @@ void fragment() {
 	if (visao_recursos > 0.0) {
 		c = apagar_visao(c, (camada == camada_jazida && agua < 0.5) ? 0.0 : 0.85);
 	}
-	ALBEDO = c;
+	float vd = visao_dentro(mundo);
+	ALBEDO = aplicar_visao(c, mundo);                // fora do oval de visão: névoa escura (ambiente/visao.gd)
 	vec3 fogo_cor = mix(vec3(0.55, 0.05, 0.01), vec3(1.0, 0.33, 0.04), smoothstep(0.25, 0.7, brasa));
 	fogo_cor = mix(fogo_cor, vec3(1.0, 0.85, 0.45), smoothstep(0.7, 1.0, brasa));
-	EMISSION = fogo_cor * brasa * 1.3 * (1.0 - agua);
+	EMISSION = fogo_cor * brasa * 1.3 * (1.0 - agua) * vd;
 	float oleo_r = smoothstep(0.35, 0.55, ambiente_em(grade, w1, w2).g);
 	ROUGHNESS = mix(mix(mix(mix(0.92, 0.55, molhado), 0.06, poca), 0.15, oleo_r * (1.0 - agua)), mix(0.08, 0.45, suja), agua);
-	SPECULAR = mix(0.5 + 0.4 * poca, mix(0.8, 0.3, suja), agua);      // água suja é opaca: reflete menos o céu
+	SPECULAR = mix(0.5 + 0.4 * poca, mix(0.8, 0.3, suja), agua) * mix(0.05, 1.0, vd);   // água suja é opaca: reflete menos o céu
 }

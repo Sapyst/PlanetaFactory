@@ -65,6 +65,8 @@ func atualizar(eventos: Array[Dictionary], delta: float) -> void:
 
 ## Só ganha nó (marcha + IK a cada quadro) a aranha perto do que a câmera vê; as outras seguem só na lógica.
 func _perto_da_vista(p: Vector2) -> bool:
+	if Visao.ativa:
+		return Visao.dentro(p, 1.15)                 # fora do oval de visão a aranha segue só na lógica
 	var cam := get_viewport().get_camera_3d() as CameraJogo
 	if cam == null:
 		return true

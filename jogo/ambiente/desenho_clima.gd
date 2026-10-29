@@ -73,6 +73,7 @@ func _ready() -> void:
 			"saturacao": env.adjustment_saturation, "cor_sol": sol.light_color, "dir": sol.global_transform.basis.z.normalized()}
 	if env.sky != null and env.sky.sky_material is ProceduralSkyMaterial:
 		_ceu = env.sky.sky_material
+		env.sky.process_mode = Sky.PROCESS_MODE_INCREMENTAL      # reflexo do céu refeito aos poucos, não num quadro só
 		_base.ceu_topo = _ceu.sky_top_color
 		_base.ceu_horizonte = _ceu.sky_horizon_color
 		_base.chao_horizonte = _ceu.ground_horizon_color
@@ -149,10 +150,18 @@ func _dia_e_noite() -> float:
 	if _ceu != null and mexer_ceu:
 		var poente := clampf(1.0 - absf(alt - 0.1) / 0.35, 0.0, 1.0)        # céu alaranjado perto do horizonte
 		var hz: Color = (_base.ceu_horizonte as Color).lerp(CEU_POENTE, poente * 0.6)
-		_ceu.sky_top_color = (CEU_NOITE[0] as Color).lerp(_base.ceu_topo, dia)
-		_ceu.sky_horizon_color = (CEU_NOITE[1] as Color).lerp(hz, dia)
-		_ceu.ground_horizon_color = (CEU_NOITE[1] as Color).lerp(_base.chao_horizonte, dia)
+		# o céu refaz o reflexo do ambiente toda vez que muda: só passa a cor nova quando a diferença se vê
+		var topo := (CEU_NOITE[0] as Color).lerp(_base.ceu_topo, dia)
+		var horiz := (CEU_NOITE[1] as Color).lerp(hz, dia)
+		if _dif_cor(topo, _ceu.sky_top_color) > 0.006 or _dif_cor(horiz, _ceu.sky_horizon_color) > 0.006:
+			_ceu.sky_top_color = topo
+			_ceu.sky_horizon_color = horiz
+			_ceu.ground_horizon_color = (CEU_NOITE[1] as Color).lerp(_base.chao_horizonte, dia)
 	return dia
+
+
+static func _dif_cor(a: Color, b: Color) -> float:
+	return maxf(absf(a.r - b.r), maxf(absf(a.g - b.g), absf(a.b - b.b)))
 
 
 # ------------------------------------------------------------------ chuva

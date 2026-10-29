@@ -109,12 +109,18 @@ static var densidade_grama := 70.0     ## tufos por m² (o celular usa menos: Se
 const BIOMAS_GRAMA := ["campina"]
 
 
-static func _grama_dados(c: ChunkDados, gerador: GeradorMundo) -> PackedFloat32Array:
-	var b := PackedFloat32Array()
-	if densidade_grama <= 0.0 or not gerador.relevo_ativo and false:
-		return b
+## Gramado denso (campina): tufos espalhados por tile em terra plana sem jazida, água ou encosta, na altura do chão
+## desenhado. Já sai separado (linha de fundo) em 4 quadrantes × 2 camadas: [quadrante·2 + camada], camada 0 = esparsa
+## (1 a cada 3 tufos), 1 = detalhe. Buffer de MultiMesh com cor (16 floats/instância).
+static func _grama_dados(c: ChunkDados, gerador: GeradorMundo) -> Array:
+	var bufs := []
+	for k in 8:
+		bufs.append(PackedFloat32Array())
+	if densidade_grama <= 0.0:
+		return bufs
 	var n := Grade.TAM_CHUNK
 	var base := c.coord * n
+	var meio := n / 2
 	var idx: Array[int] = []
 	for nome in BIOMAS_GRAMA:
 		idx.append(gerador.indice_bioma(nome))
@@ -129,60 +135,130 @@ static func _grama_dados(c: ChunkDados, gerador: GeradorMundo) -> PackedFloat32A
 				continue
 			tiles.append(t)
 	if tiles.is_empty():
-		return b
+		return bufs
 	var por_tile := int(densidade_grama)
-	b.resize(tiles.size() * por_tile * 16)
-	var w := 0
+	var esp := (por_tile + 2) / 3                     # tufos da camada esparsa por tile (o resto é detalhe)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(c.coord)
-	for t in tiles:
-		var h0 := float(gerador.nivel(t)) * Grade.ALT_NIVEL
-		for q in por_tile:
-			var p := Vector2(t) + Vector2(rng.randf(), rng.randf())
-			var y := h0 + gerador.micro_em(p - Vector2(0.5, 0.5)) if q % 6 == 0 else h0 + gerador.micro_em(Vector2(t))
-			var s := rng.randf_range(0.7, 1.35)
-			var sy := s * rng.randf_range(0.85, 1.3)
-			var a := rng.randf() * TAU
-			var ca := cos(a)
-			var sa := sin(a)
-			b[w] = ca * s; b[w + 1] = 0.0; b[w + 2] = sa * s; b[w + 3] = p.x
-			b[w + 4] = 0.0; b[w + 5] = sy; b[w + 6] = 0.0; b[w + 7] = y
-			b[w + 8] = -sa * s; b[w + 9] = 0.0; b[w + 10] = ca * s; b[w + 11] = -p.y
-			var tom := rng.randf_range(0.82, 1.12)
-			b[w + 12] = tom * rng.randf_range(0.95, 1.05); b[w + 13] = tom; b[w + 14] = tom * rng.randf_range(0.9, 1.0); b[w + 15] = 1.0
-			w += 16
-	return b
+	for q in 4:                                       # um quadrante por vez, com buffers locais (sem cópia)
+		var meus: Array[Vector2i] = []
+		for t in tiles:
+			if (1 if t.x - base.x >= meio else 0) + (2 if t.y - base.y >= meio else 0) == q:
+				meus.append(t)
+		var b0 := PackedFloat32Array()
+		var b1 := PackedFloat32Array()
+		b0.resize(meus.size() * esp * 16)
+		b1.resize(meus.size() * (por_tile - esp) * 16)
+		var w0 := 0
+		var w1 := 0
+		for t in meus:
+			var h0 := float(gerador.nivel(t)) * Grade.ALT_NIVEL
+			for qq in por_tile:
+				var p := Vector2(t) + Vector2(rng.randf(), rng.randf())
+				var y := h0 + gerador.micro_em(p - Vector2(0.5, 0.5)) if qq % 6 == 0 else h0 + gerador.micro_em(Vector2(t))
+				var s := rng.randf_range(0.7, 1.35)
+				var sy := s * rng.randf_range(0.85, 1.3)
+				var a := rng.randf() * TAU
+				var ca := cos(a)
+				var sa := sin(a)
+				var tom := rng.randf_range(0.82, 1.12)
+				var v := [ca * s, 0.0, sa * s, p.x, 0.0, sy, 0.0, y, -sa * s, 0.0, ca * s, -p.y,
+						tom * rng.randf_range(0.95, 1.05), tom, tom * rng.randf_range(0.9, 1.0), 1.0]
+				if qq % 3 == 0:
+					for j in 16:
+						b0[w0 + j] = v[j]
+					w0 += 16
+				else:
+					for j in 16:
+						b1[w1 + j] = v[j]
+					w1 += 16
+		bufs[q * 2] = b0
+		bufs[q * 2 + 1] = b1
+	return bufs
 
 
 static var _malha_tufo: Mesh
 static var _mat_grama: ShaderMaterial
 
 
-func _montar_grama(buf: PackedFloat32Array) -> void:
-	if buf.is_empty():
+## Grama em quadrantes de 16×16 m, cada um em duas camadas (o mundo liga por distância ao ponto olhado, ajustar_grama):
+##  - esparsa: 1/3 dos tufos, até RAIO_GRAMA; os de longe crescem um pouco para o campo não parecer ralo;
+##  - detalhe: os outros 2/3, só perto (RAIO_DETALHE), encolhendo em degradê na borda.
+## Quadrante longe não vai para a GPU (antes o chunk inteiro mandava todos os tufos e o shader só os encolhia).
+const RAIO_GRAMA := 40.0
+const RAIO_DETALHE := 16.0
+
+
+func _montar_grama(bufs: Array) -> void:
+	if bufs.size() != 8:
 		return
 	if _malha_tufo == null:
 		_malha_tufo = Grama.tufo()
 		_mat_grama = ShaderMaterial.new()
 		_mat_grama.shader = load("res://render/shaders/grama.gdshader")
-	var mm := MultiMesh.new()
-	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.use_colors = true
-	mm.mesh = _malha_tufo
-	mm.instance_count = buf.size() / 16
-	mm.buffer = buf
-	var mi := MultiMeshInstance3D.new()
-	mi.name = "grama"
-	mi.multimesh = mm
+	var n := Grade.TAM_CHUNK
+	var base: Vector2 = Vector2(_dados.coord * n)
+	var meio := n / 2
 	var mat := _mat_grama.duplicate() as ShaderMaterial
 	mat.set_shader_parameter("mapa_fabrica", _tex_fabrica)
 	mat.set_shader_parameter("origem_mapa", _dados.chao.origem)
-	mi.material_override = mat
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(mi)
-	grama = mi
+	mat.set_shader_parameter("compensa", true)
+	var mat_det := mat.duplicate() as ShaderMaterial
+	mat_det.set_shader_parameter("compensa", false)
+	mat_det.set_shader_parameter("raio_detalhe", RAIO_DETALHE)
+	for q in 4:
+		var r := Rect2(base + Vector2((q % 2) * meio, (q / 2) * meio), Vector2(meio, meio))
+		var par: Array = [null, null]
+		for camada in 2:
+			var b: PackedFloat32Array = bufs[q * 2 + camada]
+			if b.is_empty():
+				continue
+			var mm := MultiMesh.new()
+			mm.transform_format = MultiMesh.TRANSFORM_3D
+			mm.use_colors = true
+			mm.mesh = _malha_tufo
+			mm.instance_count = b.size() / 16
+			mm.buffer = b
+			var mi := MultiMeshInstance3D.new()
+			mi.name = "grama"
+			mi.multimesh = mm
+			mi.material_override = mat if camada == 0 else mat_det
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			mi.visible = false
+			add_child(mi)
+			par[camada] = mi
+		_grama_q.append({"rect": r, "esparsa": par[0], "detalhe": par[1]})
+	if not _grama_q.is_empty():
+		grama = _grama_q[0].esparsa if _grama_q[0].esparsa != null else _grama_q[0].detalhe
+	_mats_grama = [mat, mat_det]
 
 
+## Liga cada quadrante de grama pela distância (na grade) do ponto olhado e pelo oval de visão; `sem` = nenhuma.
+func ajustar_grama(alvo: Vector2, sem := false) -> void:
+	for g in _grama_q:
+		var r: Rect2 = g.rect
+		var d := (alvo - alvo.clamp(r.position, r.end)).length()
+		var ve := not sem and Visao.toca(r, Visao.BORDA_FIM)
+		if g.esparsa != null:
+			g.esparsa.visible = ve and d < RAIO_GRAMA
+		if g.detalhe != null:
+			g.detalhe.visible = ve and d < RAIO_DETALHE
+
+
+## Objetos do chunk (árvores, pedras, enfeites) só perto do oval de visão; fora, só o chão (escurecido).
+var _objetos_visiveis := true
+
+
+func mostrar_objetos(sim: bool) -> void:
+	if sim == _objetos_visiveis:
+		return
+	_objetos_visiveis = sim
+	for o in _objetos:
+		(o as Node3D).visible = sim
+
+
+var _grama_q: Array = []
+var _mats_grama: Array = []
 var grama: MultiMeshInstance3D
 var _tex_amb: ImageTexture
 
@@ -192,8 +268,8 @@ func atualizar_ambiente(img: Image) -> void:
 	if _tex_amb == null:
 		_tex_amb = ImageTexture.create_from_image(img)
 		(get_node("chao") as MeshInstance3D).material_override.set_shader_parameter("mapa_ambiente", _tex_amb)
-		if grama != null:
-			grama.material_override.set_shader_parameter("mapa_ambiente", _tex_amb)
+		for m in _mats_grama:
+			(m as ShaderMaterial).set_shader_parameter("mapa_ambiente", _tex_amb)
 	else:
 		_tex_amb.update(img)
 
@@ -232,7 +308,7 @@ func montar(d: Dictionary, mapa: MapaOcupacao = null) -> void:
 	_mapa = mapa
 	_montar_chao(d.chao)
 	atualizar_fabrica()
-	_montar_grama(d.get("grama", PackedFloat32Array()))
+	_montar_grama(d.get("grama", []))
 	refazer_objetos()
 
 
@@ -385,6 +461,8 @@ func atualizar_fabrica() -> void:
 	if _tex_fabrica == null:
 		_tex_fabrica = ImageTexture.create_from_image(_img_fabrica)
 		(get_node("chao") as MeshInstance3D).material_override.set_shader_parameter("mapa_fabrica", _tex_fabrica)
+		for m in _mats_grama:
+			(m as ShaderMaterial).set_shader_parameter("mapa_fabrica", _tex_fabrica)
 	else:
 		_tex_fabrica.update(_img_fabrica)
 
@@ -448,6 +526,7 @@ func refazer_objetos() -> void:
 		mmi.name = nome
 		mmi.multimesh = mm
 		_objetos.append(mmi)
+		mmi.visible = _objetos_visiveis
 		if Registro.modelos.get(nome.get_slice("#", 0), {}).get("tipo", "") == "deco":
 			# enfeite miúdo (grama, seixo, flor) some com a câmera longe: vira só ruído e custa desenho
 			mmi.visibility_range_end = 80.0

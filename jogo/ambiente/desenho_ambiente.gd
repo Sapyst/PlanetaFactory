@@ -194,7 +194,7 @@ func _atualizar_fogo() -> void:
 	var lista: Array = ambiente.fogo.keys()
 	lista.sort_custom(func(a, b): return Vector2(a).distance_squared_to(olho) < Vector2(b).distance_squared_to(olho))
 	for i in MAX_CHAMAS:
-		var ligar := i < lista.size() and Vector2(lista[i]).distance_to(olho) < camera.distancia * 1.4
+		var ligar := i < lista.size() and Vector2(lista[i]).distance_to(olho) < camera.distancia * 1.4 and Visao.dentro(Vector2(lista[i]), 1.1)
 		_chamas[i].emitting = false            # fogo é desenhado no chão e na grama (sem sprite)
 		_fumacas[i].emitting = false
 		if ligar:

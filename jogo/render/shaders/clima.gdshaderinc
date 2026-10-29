@@ -72,3 +72,35 @@ vec2 vento_mundo() {
 
 // Estação para a folhagem: índice (0 primavera, 1 verão, 2 outono, 3 inverno) + fração já passada dela.
 global uniform float estacao_atual;
+
+// Oval de visão (ambiente/visao.gd): dentro desenha normal; borda em degradê; fora, névoa escura — quase preta onde
+// nunca foi visto, escurecida e sem cor onde já foi descoberto (visao_mapa, 1 pixel = 2×2 tiles).
+global uniform vec4 visao_oval;          // centro (grade), eixo horizontal da tela (grade)
+global uniform vec2 visao_raios;
+global uniform sampler2D visao_mapa : filter_linear, hint_default_black;
+global uniform vec3 visao_mapa_origem;   // origem (grade, tiles), lado (tiles)
+const vec3 COR_NEVOA = vec3(0.012, 0.014, 0.02);
+float visao_dentro(vec3 p_mundo) {
+	vec2 d = vec2(p_mundo.x, -p_mundo.z) - visao_oval.xy;
+	vec2 ex = visao_oval.zw;
+	float e = length(vec2(dot(d, ex) / visao_raios.x, dot(d, vec2(-ex.y, ex.x)) / visao_raios.y));
+	return 1.0 - smoothstep(0.78, 1.05, e);
+}
+float visao_descoberto(vec3 p_mundo) {
+	vec2 uv = (vec2(p_mundo.x, -p_mundo.z) - visao_mapa_origem.xy) / visao_mapa_origem.z;
+	if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) {
+		return 0.0;
+	}
+	return texture(visao_mapa, uv).r;
+}
+vec3 aplicar_visao(vec3 cor_in, vec3 p_mundo) {
+	float dentro = visao_dentro(p_mundo);
+	if (dentro >= 0.999) {
+		return cor_in;
+	}
+	float desc = visao_descoberto(p_mundo);
+	float cinza = dot(cor_in, vec3(0.3, 0.5, 0.2));
+	vec3 lembrada = mix(vec3(cinza), cor_in, 0.35) * 0.32;          // já visto: escuro e quase sem cor
+	vec3 fora = mix(COR_NEVOA, lembrada, desc);
+	return mix(fora, cor_in, dentro);
+}

@@ -89,6 +89,22 @@ estacao_atual={
 "type": "float",
 "value": 0.5
 }
+visao_oval={
+"type": "vec4",
+"value": Vector4(0, 0, 1, 0)
+}
+visao_raios={
+"type": "vec2",
+"value": Vector2(1e+06, 1e+06)
+}
+visao_mapa={
+"type": "sampler2D",
+"value": ""
+}
+visao_mapa_origem={
+"type": "vec3",
+"value": Vector3(0, 0, 256)
+}
 fogo_mapa={
 "type": "sampler2D",
 "value": ""

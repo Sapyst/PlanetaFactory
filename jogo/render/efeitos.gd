@@ -81,7 +81,7 @@ func _atualizar_fumaca() -> void:
 			p.queue_free()
 			_fumaca.erase(id)
 			continue
-		p.emitting = fabrica.emissao.has(id)
+		p.emitting = fabrica.emissao.has(id) and Visao.dentro(Vector2(p.position.x, -p.position.z), 1.1)   # fora da visão: calado
 
 
 func _criar_fumaca(id: int) -> CPUParticles3D:
