@@ -203,8 +203,12 @@ func _montar_energia() -> void:
 		var papel := Fiacao.papel(e.nome)
 		if papel == "":
 			continue
-		var kw := float(Registro.estruturas.get(e.nome, {}).get("energia_kw", 0.0))
-		_membros[id] = rede.adicionar(id, kw, float(combustivel.get(id, 0.0)) if papel == "fonte" else 0.0)
+		var regra: Dictionary = Registro.estruturas.get(e.nome, {})
+		var kw := float(regra.get("energia_kw", 0.0))
+		var mj := float(combustivel.get(id, 0.0)) if papel == "fonte" else 0.0
+		if regra.get("inesgotavel", false):
+			mj = 1.0e12                      # núcleo: fonte própria (pouca potência, não acaba)
+		_membros[id] = rede.adicionar(id, kw, mj)
 	for id in _membros:
 		for o in mapa.estruturas[id].get("fios", []):
 			if o > id:

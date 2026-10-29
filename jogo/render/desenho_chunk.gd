@@ -170,6 +170,18 @@ func _montar_grama(buf: PackedFloat32Array) -> void:
 
 
 var grama: MultiMeshInstance3D
+var _tex_amb: ImageTexture
+
+
+## Mapa do ambiente vivo deste chunk (sujeira, óleo, água suja, queimado) → chão e grama.
+func atualizar_ambiente(img: Image) -> void:
+	if _tex_amb == null:
+		_tex_amb = ImageTexture.create_from_image(img)
+		(get_node("chao") as MeshInstance3D).material_override.set_shader_parameter("mapa_ambiente", _tex_amb)
+		if grama != null:
+			grama.material_override.set_shader_parameter("mapa_ambiente", _tex_amb)
+	else:
+		_tex_amb.update(img)
 
 
 static func _buffer(lista: Array) -> PackedFloat32Array:

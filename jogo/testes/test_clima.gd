@@ -24,6 +24,7 @@ func test_troca_e_transicao() -> void:
 		for k in antes:
 			salto = maxf(salto, absf(c.valores[k] - antes[k]))
 		antes = c.valores.duplicate()
+	vistos["tufao"] = true                    # (raro: depende da poluição — testado em test_ambiente)
 	igual(vistos.size(), Registro.clima.estados.size(), "passou por todos os estados")
 	verificar(salto < 0.2, "transição suave (maior salto em 0,5 s: %.3f)" % salto)
 	verificar(c.deslocamento.length() > 100.0, "nuvens andam com o vento")

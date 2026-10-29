@@ -35,6 +35,7 @@ func _ready() -> void:
 		"aranha": _roteiro_aranha()
 		"montagem": _roteiro_montagem()
 		"grama": _roteiro_grama()
+		"ambiente": _roteiro_ambiente()
 		"recursos":
 			em(4, func(): cena.controle.alternar_recursos())
 			em(6, func(): mover(tela(Vector2i(-15, -9))))
@@ -372,6 +373,25 @@ func _roteiro_montagem() -> void:
 		em(20 + i * 45, func():
 			var con: Construtor = cena.construtor
 			cena.sincronizar(con.executar(con.plano_peca(p[0], p[1], 0))))
+
+
+## Ambiente vivo acelerado: verão, 15 min de fábrica trabalhando (sujeira e óleo em volta), e um foco de fogo na
+## campina perto da câmera.
+func _roteiro_ambiente() -> void:
+	em(40, func():
+		var c: Clima = cena.clima
+		c.estacao = 1
+		var a: AmbienteVivo = cena.ambiente
+		for i in 900:
+			if cena.fabrica.emissao.is_empty():
+				cena.fabrica.tick(1.0)
+			a._passo(cena.fabrica, c)
+			# deixa a emissão da fábrica viva entre os passos acelerados
+		var alvo := Grade.tile_de_mundo(cena.camera.alvo) + Vector2i(-9, 6)
+		for d in [Vector2i.ZERO, Vector2i(1, 0), Vector2i(0, 1)]:
+			if a._inflamavel(alvo + d):
+				a._acender(alvo + d)
+		print("AMBIENTE chunks=%d fogo=%d" % [a.dados.size(), a.fogo.size()]))
 
 
 ## Bloco de grama em massa (teste isolado): campo 24×24 m ao lado do início, câmera girando devagar em volta.

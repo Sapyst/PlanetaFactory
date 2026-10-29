@@ -20,6 +20,7 @@ var _desenho_itens: DesenhoItens
 var _fabrica_suja := false
 var poluicao: Poluicao
 var clima: Clima
+var ambiente: AmbienteVivo
 var colonia: Colonia
 var grafo := GrafoTrilhos.new()
 var trens: Array[Trem] = []
@@ -92,6 +93,8 @@ func _ready() -> void:
 	colonia = Colonia.new(mapa, poluicao, semente)
 	pesquisa = Pesquisa.new(modo == "demo")
 	fabrica = Fabrica.new(mapa)
+	ambiente = AmbienteVivo.new(gerador, mapa, semente)
+	ambiente.dano = func(id: int, pontos: float) -> void: _danificar(id, pontos)
 	fabrica.estoques = estoques
 	fabrica.estoque_nucleo = inventario
 	fabrica.pesquisa = pesquisa
@@ -150,6 +153,23 @@ func _comecar_novo() -> void:
 	camera.posicionar()
 
 
+## Dano do ambiente (fogo, tufão) na mesma vida que as aranhas usam; zerou, cai.
+func _danificar(id: int, pontos: float) -> void:
+	if not mapa.estruturas.has(id):
+		return
+	var nome: String = mapa.estruturas[id].nome
+	if nome == "ninho_aranha":
+		return
+	var v: float = colonia.vida.get(id, float(Registro.estruturas.get(nome, {}).get("vida", 100)))
+	v -= pontos
+	colonia.vida[id] = v
+	if v <= 0.0:
+		colonia.vida.erase(id)
+		var e: Dictionary = mapa.estruturas[id]
+		_efeitos.marcar_destruicao(Grade.centro_da_area(e.minimo, e.area, e.rot), Registro.area(nome).x)
+		_destruido(id)
+
+
 ## Estrutura derrubada pelas aranhas. Núcleo caído = derrota.
 func _destruido(id: int) -> void:
 	var era_nucleo: bool = mapa.estruturas.has(id) and mapa.estruturas[id].nome == "nucleo"
@@ -167,7 +187,7 @@ func salvar() -> void:
 	var ok := Salvamento.gravar({"modo": modo, "semente": semente, "tempo": _tempo,
 			"camera": [camera.alvo, camera.distancia, camera.angulo],
 			"mapa": {"estruturas": mapa.estruturas, "limpos": mapa.limpos.keys(), "prox": mapa._prox_id},
-			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores, "clima": clima.estado(), "aplainado": gerador.aplainados(),
+			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores, "clima": clima.estado(), "aplainado": gerador.aplainados(), "ambiente": ambiente.estado(),
 			"estoques": estoques, "inventario": inventario, "pesquisa": pesquisa.estado(),
 			"trens": trens.map(func(t: Trem): return t.para_salvar()), "prox_trem": _prox_trem})
 	if ok and is_instance_valid(controle):
@@ -183,6 +203,8 @@ func _carregar(d: Dictionary) -> void:
 	poluicao.valores = d.poluicao
 	if d.has("clima"):
 		clima.restaurar(d.clima)
+	if d.has("ambiente"):
+		ambiente.restaurar(d.ambiente)
 	for t in d.get("aplainado", {}):
 		gerador.aplainar(t, d.aplainado[t])
 	colonia.restaurar(d.colonia)
@@ -254,6 +276,11 @@ func _criar_desenhos() -> void:
 	_visao.camera = camera
 	_visao.areas_interface = func() -> Array[Rect2]: return controle.barra.areas_ocupadas()
 	add_child(_visao)
+	var da := DesenhoAmbiente.new()
+	da.ambiente = ambiente
+	da.chunks = chunks
+	da.camera = camera
+	add_child(da)
 	var dc := DesenhoClima.new()
 	dc.clima = clima
 	dc.camera = camera
@@ -327,6 +354,9 @@ func _atualizar_chunks() -> void:
 			add_child(d)
 			d.montar(dados, mapa)
 			chunks[k] = d
+			if ambiente.dados.has(k) or ambiente.dados.has(k + Vector2i(1, 0)) or ambiente.dados.has(k - Vector2i(1, 0)) \
+					or ambiente.dados.has(k + Vector2i(0, 1)) or ambiente.dados.has(k - Vector2i(0, 1)):
+				ambiente.sujos[k] = true
 	# encomenda os que faltam, do centro para fora
 	if _em_preparo.size() >= TAREFAS:
 		return
@@ -750,8 +780,14 @@ func _tick_mundo(dt: float) -> void:
 			continue
 		var e: Dictionary = mapa.estruturas[id]
 		fontes_vivas.append({"id": id, "pos": Grade.centro_da_area(e.minimo, e.area, e.rot)})
+	clima.poluicao_total = poluicao.total()
 	clima.tick(dt)
 	poluicao.chuva = clima.valores.chuva
+	ambiente.tick(dt, fabrica, clima)
+	for ev in ambiente.eventos:
+		if ev.tipo == "fogo_inicio" and is_instance_valid(controle):
+			controle._avisar("Incêndio! A vegetação seca pegou fogo perto de uma máquina quente")
+	ambiente.eventos.clear()
 	poluicao.tick(dt)
 	colonia.tick(dt, fontes_vivas)
 	_eventos.append_array(colonia.eventos)
@@ -981,8 +1017,8 @@ func _hud() -> void:
 	for t in colonia.torres.values():
 		municao += t.municao
 	var aqui := poluicao.em(Grade.tile_de_mundo(camera.alvo))
-	var texto := "Clima: %s\nPoluição aqui: %.1f   ·   total: %.0f\nNinhos: %d   ·   aranhas: %d\nMunição nas torres: %d   ·   trens: %d" % [
-			clima.nome(), aqui, poluicao.total(), colonia.ninhos.size(), colonia.aranhas.size(), municao, trens.size()]
+	var texto := "%s · Clima: %s\nPoluição aqui: %.1f   ·   total: %.0f\nNinhos: %d   ·   aranhas: %d\nMunição nas torres: %d   ·   trens: %d" % [
+			clima.nome_estacao(), clima.nome(), aqui, poluicao.total(), colonia.ninhos.size(), colonia.aranhas.size(), municao, trens.size()]
 	if modo != "demo":
 		var principais: Array[String] = []
 		for k in ["placa_ferro", "engrenagem", "placa_cobre", "pedra"]:

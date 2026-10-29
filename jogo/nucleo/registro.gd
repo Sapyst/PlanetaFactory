@@ -13,6 +13,7 @@ var inimigos: Dictionary = {}     ## poluição, ninhos, aranhas, expansão
 var progressao: Dictionary = {}   ## custos, kit inicial, pesquisas
 var clima: Dictionary = {}        ## estados do clima dinâmico
 var recursos: Dictionary = {}     ## nomes e cores da visão de recursos
+var ambiente: Dictionary = {}     ## sujeira, óleo, despejo, fogo, tufão
 
 
 func _init() -> void:
@@ -28,6 +29,7 @@ func carregar(pasta := "res://dados") -> void:
 	progressao = _ler(pasta + "/progressao.json")
 	clima = _ler(pasta + "/clima.json")
 	recursos = _ler(pasta + "/recursos.json")
+	ambiente = _ler(pasta + "/ambiente.json")
 	var regras := _sem_notas(_ler(pasta + "/estruturas.json"))
 	estruturas.clear()
 	for nome in regras:

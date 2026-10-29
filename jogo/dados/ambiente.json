@@ -1,0 +1,18 @@
+{
+ "_nota": "Ambiente vivo (efeitos passivos da fábrica). Valores por tile em 0..1, passo de 1 s. sujeira: máquinas que poluem sujam o chão em volta; oleo: vazamentos ao acaso de máquinas trabalhando; agua_suja: despejo de máquinas perto de água, corre rio abaixo e se espalha no lago; queimado: chão depois de incêndio (some devagar).",
+ "sujeira_por_ponto": 0.0035,
+ "sujeira_raio": 3.5,
+ "sujeira_some": 0.00004,
+ "chuva_lava": 0.0004,
+ "oleo_chance": {"broca_minerio": 0.0012, "gerador": 0.0018, "refinador": 0.0025, "montadora": 0.0008, "extrator_cristal": 0.0008},
+ "oleo_some": 0.00015,
+ "despejo": {"fornalha": 0.004, "refinador": 0.008, "gerador": 0.003, "broca_minerio": 0.002},
+ "despejo_raio": 8,
+ "agua_corre": 0.12,
+ "agua_espalha": 0.04,
+ "agua_some": 0.0004,
+ "queimado_some": 0.0012,
+ "fogo": {"inflamavel": ["campina", "floresta_fungica", "pantano"], "chance_maquina": 0.0004, "maquinas_quentes": ["fornalha", "gerador", "refinador"],
+          "espalha": 0.10, "vento_mult": 1.8, "duracao_s": [7, 14], "chuva_apaga": 0.5, "dano_estrutura": 6.0, "max_focos": 400},
+ "tufao": {"dano": 4.0, "frageis": ["poste_energia", "torre_sem_fio", "esteira_rampa", "sinal_trem"], "espalha_sujeira": 0.02}
+}

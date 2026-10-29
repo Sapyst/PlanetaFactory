@@ -10,6 +10,7 @@ uniform vec2 vento_dir = vec2(0.8, 0.6);
 uniform float forca = 0.35;
 uniform sampler2D mapa_fabrica : filter_nearest, hint_default_black;   // do chunk: R = piso, B = aplainado
 uniform vec2 origem_mapa;
+uniform sampler2D mapa_ambiente : filter_linear, hint_default_transparent;   // A = queimado, R = sujeira
 uniform float raio_vista = 38.0;
 global uniform vec3 alvo_camera;
 
@@ -23,7 +24,13 @@ void vertex() {
 	vec3 o = MODEL_MATRIX[3].xyz;
 	ivec2 px = clamp(ivec2(floor(vec2(o.x, -o.z) - origem_mapa)), ivec2(0), ivec2(33));
 	vec3 fb = texelFetch(mapa_fabrica, px, 0).rgb;
+	vec4 amb = texelFetch(mapa_ambiente, px, 0);                      // o tile do próprio tufo (exato)
 	float some = smoothstep(0.12, 0.35, max(fb.r, fb.b));
+	// queima: só o tufo do tile que queima — escurece e encolhe enquanto o fogo come, some quando acaba
+	float q = amb.a;
+	some = max(some, smoothstep(0.1, 0.7, q));
+	tom *= mix(vec3(1.0), vec3(0.18, 0.12, 0.08), smoothstep(0.0, 0.25, q));
+	tom *= mix(vec3(1.0), vec3(0.72, 0.62, 0.42), smoothstep(0.1, 0.6, amb.r));   // suja: amarelada
 	some = max(some, smoothstep(raio_vista - 6.0, raio_vista, distance(o.xz, alvo_camera.xz)));
 	VERTEX *= 1.0 - some;
 	vec3 mundo = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;

@@ -2,12 +2,159 @@
  "_nota": "Clima dinâmico. Cada estado: nuvens (cobertura 0..1, sombra no chão), neblina (0..1), chuva (0..1), luz (multiplica o sol), vento (0..1). duracao_s = [mín, máx] de cada estado; transicao_s = tempo da troca suave. proximo = pesos do próximo estado.",
  "transicao_s": 25,
  "estados": {
-  "limpo":      {"nuvens": 0.15, "neblina": 0.0,  "chuva": 0.0, "luz": 1.0,  "vento": 0.35, "duracao_s": [150, 300], "proximo": {"nublado": 5, "neblina": 2}},
-  "nublado":    {"nuvens": 0.8,  "neblina": 0.15, "chuva": 0.0, "luz": 0.74, "vento": 0.6,  "duracao_s": [90, 200],  "proximo": {"limpo": 4, "chuva": 4, "neblina": 1}},
-  "neblina":    {"nuvens": 0.45, "neblina": 1.0,  "chuva": 0.0, "luz": 0.82, "vento": 0.15, "duracao_s": [80, 160],  "proximo": {"limpo": 3, "nublado": 3}},
-  "chuva":      {"nuvens": 0.86, "neblina": 0.35, "chuva": 0.7, "luz": 0.58, "vento": 0.8,  "duracao_s": [80, 180],  "proximo": {"nublado": 5, "tempestade": 2, "neblina": 1}},
-  "tempestade": {"nuvens": 1.0,  "neblina": 0.45, "chuva": 1.0, "luz": 0.5, "vento": 1.0,  "duracao_s": [50, 110],  "proximo": {"chuva": 5, "nublado": 2}, "raios": true}
+  "limpo": {
+   "nuvens": 0.15,
+   "neblina": 0.0,
+   "chuva": 0.0,
+   "luz": 1.0,
+   "vento": 0.35,
+   "duracao_s": [
+    150,
+    300
+   ],
+   "proximo": {
+    "nublado": 5,
+    "neblina": 2
+   }
+  },
+  "nublado": {
+   "nuvens": 0.8,
+   "neblina": 0.15,
+   "chuva": 0.0,
+   "luz": 0.74,
+   "vento": 0.6,
+   "duracao_s": [
+    90,
+    200
+   ],
+   "proximo": {
+    "limpo": 4,
+    "chuva": 4,
+    "neblina": 1
+   }
+  },
+  "neblina": {
+   "nuvens": 0.45,
+   "neblina": 1.0,
+   "chuva": 0.0,
+   "luz": 0.82,
+   "vento": 0.15,
+   "duracao_s": [
+    80,
+    160
+   ],
+   "proximo": {
+    "limpo": 3,
+    "nublado": 3
+   }
+  },
+  "chuva": {
+   "nuvens": 0.86,
+   "neblina": 0.35,
+   "chuva": 0.7,
+   "luz": 0.58,
+   "vento": 0.8,
+   "duracao_s": [
+    80,
+    180
+   ],
+   "proximo": {
+    "nublado": 5,
+    "tempestade": 2,
+    "neblina": 1
+   }
+  },
+  "tempestade": {
+   "nuvens": 1.0,
+   "neblina": 0.45,
+   "chuva": 1.0,
+   "luz": 0.5,
+   "vento": 1.0,
+   "duracao_s": [
+    50,
+    110
+   ],
+   "proximo": {
+    "chuva": 5,
+    "nublado": 2,
+    "tufao": 0.3
+   },
+   "raios": true
+  },
+  "tufao": {
+   "nuvens": 1.0,
+   "neblina": 0.3,
+   "chuva": 0.85,
+   "luz": 0.38,
+   "vento": 1.0,
+   "duracao_s": [
+    45,
+    90
+   ],
+   "proximo": {
+    "tempestade": 3,
+    "chuva": 3
+   },
+   "raios": true,
+   "tufao": true
+  }
  },
- "nomes": {"limpo": "Céu limpo", "nublado": "Nublado", "neblina": "Neblina", "chuva": "Chuva", "tempestade": "Tempestade"},
- "chuva_absorcao": 0.8
+ "nomes": {
+  "limpo": "Céu limpo",
+  "nublado": "Nublado",
+  "neblina": "Neblina",
+  "chuva": "Chuva",
+  "tempestade": "Tempestade",
+  "tufao": "Tufão"
+ },
+ "chuva_absorcao": 0.8,
+ "_nota_estacoes": "Estações: ciclo de duracao_s cada; 'pesos' multiplica o peso de ir para cada estado; 'secura' 0..1 (incêndio); 'grama' tom da grama.",
+ "estacao_s": 360,
+ "estacoes": [
+  {
+   "nome": "Primavera",
+   "pesos": {
+    "chuva": 1.4,
+    "nublado": 1.1,
+    "neblina": 0.9,
+    "tempestade": 0.8,
+    "limpo": 1.0
+   },
+   "secura": 0.2
+  },
+  {
+   "nome": "Verão",
+   "pesos": {
+    "limpo": 1.8,
+    "chuva": 0.5,
+    "tempestade": 1.3,
+    "neblina": 0.4,
+    "nublado": 0.8
+   },
+   "secura": 0.85
+  },
+  {
+   "nome": "Outono",
+   "pesos": {
+    "nublado": 1.4,
+    "tempestade": 1.4,
+    "chuva": 1.0,
+    "limpo": 0.8,
+    "neblina": 1.0
+   },
+   "secura": 0.5
+  },
+  {
+   "nome": "Inverno",
+   "pesos": {
+    "neblina": 2.2,
+    "nublado": 1.3,
+    "chuva": 0.8,
+    "limpo": 0.7,
+    "tempestade": 0.6
+   },
+   "secura": 0.1
+  }
+ ],
+ "tufao_poluicao": 0.004
 }

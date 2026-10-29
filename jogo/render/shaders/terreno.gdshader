@@ -13,6 +13,7 @@ uniform sampler2DArray texturas : source_color, filter_linear_mipmap, repeat_ena
 uniform sampler2D detalhe : filter_linear_mipmap, repeat_enable;
 uniform sampler2D mapa_camadas : filter_nearest;
 uniform vec2 origem_mapa;          // tile (grade) do pixel (0, 0) do mapa de camadas
+uniform sampler2D mapa_ambiente : filter_linear, hint_default_transparent;   // R sujeira, G óleo, B água suja, A queimado
 uniform sampler2D mapa_fabrica : filter_nearest, hint_default_black;   // 1 = tile com construção (mesma grade do mapa de camadas)
 uniform float camada_piso = 9.0;
 uniform float camada_jazida = 7.0;  // zona de minério nunca vira piso
@@ -88,6 +89,14 @@ float terra_perto(vec2 g) {
 	return primeira_agua - 1.0;
 }
 
+// Ambiente (sujeira, óleo, água suja, queimado) num ponto: leitura LINEAR do mapa do chunk (centros de tile) com o
+// ponto deformado por ruído e uma segunda leitura mais deformada — mancha orgânica, nunca quadrado de tile.
+vec4 ambiente_em(vec2 grade, vec2 w1, vec2 w2) {
+	vec2 a = (grade + w1 * 1.6 - origem_mapa) / 34.0;
+	vec2 b = (grade + w2 * 2.4 + vec2(w1.y, -w1.x) * 0.8 - origem_mapa) / 34.0;
+	return (texture(mapa_ambiente, a) + texture(mapa_ambiente, b)) * 0.5;
+}
+
 void fragment() {
 	vec2 grade = vec2(mundo.x, -mundo.z);
 	float camada = camada_em(grade);
@@ -161,6 +170,11 @@ void fragment() {
 		}
 		// espuma rala bem na linha da margem
 		c_agua = mix(c_agua, vec3(0.62, 0.66, 0.66), smoothstep(0.62, 0.5, wf) * 0.35 * smoothstep(0.4, 0.7, onda));
+		// água contaminada: turva (marrom-esverdeada) com espuma suja em manchas
+		vec4 amb_a = ambiente_em(grade, w1, w2);
+		float suja = smoothstep(0.02, 0.4, amb_a.b);
+		c_agua = mix(c_agua, vec3(0.20, 0.19, 0.11) * (0.8 + 0.4 * onda), suja * 0.85);
+		c_agua = mix(c_agua, vec3(0.42, 0.40, 0.30), suja * smoothstep(0.62, 0.8, onda) * 0.6);
 	}
 	// barranco: onde a encosta é íngreme aparece a pedra (com faixas horizontais de estrato)
 	float ingreme = 1.0 - smoothstep(0.55, 0.85, normal_mundo.y);
@@ -170,6 +184,17 @@ void fragment() {
 		c_terra = mix(c_terra, rocha * 0.85, ingreme);
 	}
 	c_terra *= 1.0 - 0.45 * oclusao;
+	// ambiente vivo: sujeira (terra escura e acinzentada), queimado (carvão com cinza), óleo (mancha preta brilhante)
+	vec4 amb = ambiente_em(grade, w1, w2);
+	float grao = texture(detalhe, mundo.xz * 0.21).r;
+	float suj = smoothstep(0.02, 0.5, amb.r) * (0.65 + 0.7 * grao);
+	c_terra = mix(c_terra, c_terra * vec3(0.55, 0.50, 0.46) + vec3(0.05, 0.045, 0.04), clamp(suj, 0.0, 0.9));
+	float queim = smoothstep(0.05, 0.6, amb.a);
+	vec3 carvao = mix(vec3(0.05, 0.045, 0.045), vec3(0.32, 0.30, 0.29), smoothstep(0.55, 0.85, grao));
+	c_terra = mix(c_terra, carvao, queim * 0.92);
+	float oleo = smoothstep(0.35, 0.55, amb.g + (grao - 0.5) * 0.35);
+	vec3 arco = 0.5 + 0.5 * cos(6.2832 * (vec3(0.0, 0.33, 0.67) + dot(mundo.xz, vec2(0.7, 0.4)) * 0.8 + TIME * 0.05));
+	c_terra = mix(c_terra, vec3(0.03, 0.03, 0.035) + arco * 0.06, oleo);
 	vec3 c = mix(c_terra, c_agua, agua);
 	c *= 0.88 + 0.24 * d;
 	float poca = 0.0;
@@ -183,6 +208,7 @@ void fragment() {
 		c = apagar_visao(c, (camada == camada_jazida && agua < 0.5) ? 0.0 : 0.85);
 	}
 	ALBEDO = c;
-	ROUGHNESS = mix(mix(mix(0.92, 0.55, molhado), 0.06, poca), 0.08, agua);
+	float oleo_r = smoothstep(0.35, 0.55, ambiente_em(grade, w1, w2).g);
+	ROUGHNESS = mix(mix(mix(mix(0.92, 0.55, molhado), 0.06, poca), 0.15, oleo_r * (1.0 - agua)), 0.08, agua);
 	SPECULAR = mix(0.5 + 0.4 * poca, 0.8, agua);
 }

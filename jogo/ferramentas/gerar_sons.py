@@ -191,9 +191,21 @@ def impacto():
     return out
 
 
+def fogo():
+    """2,5 s de fogo crepitando: chiado grave + estalos secos ao acaso."""
+    n = int(2.5 * TAXA)
+    base = ruido_filtrado(n, 500)
+    out = [b * 0.5 * (0.8 + 0.2 * math.sin(2 * math.pi * 1.3 * i / TAXA)) for i, b in enumerate(base)]
+    for _ in range(70):
+        ini = random.randint(0, n - 300); amp = random.uniform(0.2, 0.7)
+        for i in range(260):
+            out[ini + i] += random.uniform(-1, 1) * math.exp(-i / 25.0) * amp
+    return out
+
+
 os.makedirs(SAIDA, exist_ok=True)
 for nome, f in [('clique', clique), ('construir', construir), ('remover', remover), ('tiro', tiro),
                 ('aranha_morre', aranha_morre), ('alerta', alerta), ('pesquisa', pesquisa), ('apito_trem', apito_trem),
-                ('derrota', derrota), ('trilha', trilha), ('chuva', chuva), ('trovao', trovao), ('reentrada', reentrada), ('impacto', impacto)]:
+                ('derrota', derrota), ('trilha', trilha), ('chuva', chuva), ('trovao', trovao), ('reentrada', reentrada), ('impacto', impacto), ('fogo', fogo)]:
     gravar(nome, f())
     print('SOM', nome)

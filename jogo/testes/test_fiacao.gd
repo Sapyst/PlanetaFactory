@@ -78,3 +78,28 @@ func test_torre_sem_fio() -> void:
 	f.combustivel[g] = 20.0
 	f.tick(1.0 / 30.0)
 	perto(f.rede.satisfacao(maq), 1.0, 1e-3, "energia chegou a 42 m do gerador sem fio")
+
+
+func test_nucleo_alimenta_em_volta() -> void:
+	var m := MapaOcupacao.new(GeradorMundo.new(1337))
+	for x in range(-12, 12):
+		for y in range(-12, 12):
+			m.limpar_obstaculo(Vector2i(x, y))
+	var n := m.colocar("nucleo", Vector2i(-1, -1), 0)
+	Fiacao.ligar_novo(m, n)
+	var perto := m.colocar("montadora", Vector2i(3, -1), 0)
+	Fiacao.ligar_novo(m, perto)
+	var longe := m.colocar("montadora", Vector2i(-11, 8), 0)
+	Fiacao.ligar_novo(m, longe)
+	var f := Fabrica.new(m)
+	f.reconstruir()
+	f.rede.tick(1.0)
+	verificar(f.rede.satisfacao(perto) > 0.9, "montadora perto do núcleo tem energia sem cabo (%.2f)" % f.rede.satisfacao(perto))
+	igual(f.rede.satisfacao(longe), 0.0, "longe do núcleo: sem energia")
+	for i in 4:
+		var id := m.colocar("montadora", Vector2i(3 + (i % 2) * 4, -5 + (i / 2) * 9), 0)
+		if id >= 0:
+			Fiacao.ligar_novo(m, id)
+	f.reconstruir()
+	f.rede.tick(1.0)
+	verificar(f.rede.satisfacao(perto) < 1.0, "pouca potência: muitas máquinas dividem (%.2f)" % f.rede.satisfacao(perto))
