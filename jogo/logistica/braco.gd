@@ -13,6 +13,8 @@ var ciclo_s := 0.83
 var origem: Object
 var destino: Object
 var filtro := ""
+## Itens que o braço pega (vazio = Auto: o que vier). Sempre esperto: só pega o que o destino aceita agora.
+var filtros: Array = []
 var segurando := ""
 var estado := Estado.ESPERANDO_ITEM
 var t := 0.0
@@ -42,7 +44,7 @@ func tick(dt: float) -> void:
 			var item := ""
 			if origem.has_method("pegar_se"):
 				# origem escolhe um item que o destino aceita (não pega o que vai ficar preso na garra)
-				item = origem.pegar_se(func(i: String) -> bool: return (filtro == "" or i == filtro) and destino.aceita(i))
+				item = origem.pegar_se(func(i: String) -> bool: return passa(i) and destino.aceita(i))
 			elif destino.aceita(_previsto()):
 				item = origem.pegar_para_braco(filtro)
 			if item != "":
@@ -70,6 +72,10 @@ func _tentar_soltar() -> void:
 		entregues += 1
 		estado = Estado.VOLTANDO
 		t = 0.0
+
+
+func passa(i: String) -> bool:
+	return filtros.is_empty() or i in filtros
 
 
 func _previsto() -> String:

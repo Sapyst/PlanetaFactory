@@ -365,3 +365,23 @@ func test_esteira_elevada_com_rampas() -> void:
 	verificar(c.mapa.estruturas.size() < antes, "removeu esteira elevada (e pilares)")
 	c.desfazer()
 	igual(c.mapa.estruturas.size(), antes, "desfazer devolve esteira e pilares")
+
+
+func test_braco_filtro_e_alcance() -> void:
+	var c := _c()
+	var f := Fabrica.new(c.mapa)
+	_energia(c, f)
+	c.executar(c.plano_linha("esteira", Vector2i(-3, 0), Vector2i(4, 0), 0))     # leste, passa pelo braço
+	var b := _por(c, "braco", Vector2i(1, 1), 0)                                 # tira da esteira (sul) → baú (norte)
+	var bau := _por(c, "bau", Vector2i(1, 2), 0)
+	_por(c, "poste_energia", Vector2i(3, 2))
+	c.mapa.estruturas[b]["filtros"] = ["carvao"]
+	f.reconstruir()
+	for id in f.combustivel: f.combustivel[id] = 30.0
+	var e: EsteiraCaminho = f.caminhos[f._no_tile[Vector2i(-3, 0)][0]].esteira
+	for i in 30 * 20:
+		if i % 20 == 0:
+			e.inserir_na_entrada("pedra" if (i / 20) % 2 == 0 else "carvao")
+		f.tick(1.0 / 30.0)
+	verificar(int(f.baus[bau].get("carvao", 0)) > 3, "pegou carvão passando (no meio da esteira) (%s)" % f.baus[bau])
+	igual(int(f.baus[bau].get("pedra", 0)), 0, "filtro: pedra passa reto")

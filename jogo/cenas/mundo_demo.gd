@@ -994,6 +994,21 @@ func _detalhe() -> void:
 	elif fabrica.bracos.has(id):
 		var b: Braco = fabrica.bracos[id]
 		linhas.append("Segurando: %s\nEnergia: %d%%\nEntregues: %d" % [_nome_item(b.segurando) if b.segurando != "" else "nada", b.energia * 100, b.entregues])
+		var filtros: Array = e.get("filtros", [])
+		linhas.append("Pega: %s (só pega o que o destino aceitar)" % ("tudo (Auto)" if filtros.is_empty() else ", ".join(filtros.map(_nome_item))))
+		botoes.append({"texto": "Auto — pega o que vier", "ligado": filtros.is_empty(),
+				"acao": func(): e["filtros"] = []; b.filtros = []; b.filtro = ""; _detalhe()})
+		var itens_ord: Array = Registro.itens.keys()
+		itens_ord.sort_custom(func(a, c): return _nome_item(a) < _nome_item(c))
+		for it in itens_ord:
+			botoes.append({"texto": _nome_item(it), "ligado": filtros.has(it), "acao": func():
+				var lista: Array = e.get("filtros", []).duplicate()
+				if lista.has(it): lista.erase(it)
+				else: lista.append(it)
+				e["filtros"] = lista
+				b.filtros = lista
+				b.filtro = lista[0] if lista.size() == 1 else ""
+				_detalhe()})
 	match Fiacao.papel(e.nome):
 		"consumo":
 			var fontes := Fiacao.ligacoes(mapa, e)

@@ -288,6 +288,8 @@ func _montar_bracos() -> void:
 			b = Braco.new(float(r.ciclo_s))
 			bracos[id] = b
 		var f := Grade.DIRECOES[Construtor.fluxo_da_rot(e.rot)] * int(r.get("alcance", 1))
+		b.filtros = e.get("filtros", [])
+		b.filtro = b.filtros[0] if b.filtros.size() == 1 else ""
 		b.origem = origem_em(e.minimo - f)
 		b.destino = destino_em(e.minimo + f)
 		if b.destino == null and b.segurando == "":
@@ -671,9 +673,12 @@ class _NaEsteira:
 		pos = p_pos
 	func pegar_para_braco(_f: String) -> String: return e.retirar_perto(pos, 0.5)
 	func pegar_se(aceito: Callable) -> String:
+		# alcance: pega o primeiro que estiver dentro do tile em frente (passando ou parado), não só no fim
 		var ps := e.posicoes()
 		for i in ps.size():
-			if absf(ps[i] - pos) <= 0.5 and aceito.call(e.itens[i]):
+			# passando: só quando está bem embaixo da garra (não "teleporta"); parado no fim da linha: alcança
+			var perto := absf(ps[i] - pos) <= 0.3 or (ps[i] < 0.02 and absf(ps[i] - pos) <= 0.55)
+			if perto and aceito.call(e.itens[i]):
 				return e.retirar_perto(ps[i], 0.01)
 		return ""
 	func aceita(_i: String) -> bool: return true

@@ -35,6 +35,7 @@ func _ready() -> void:
 		"aranha": _roteiro_aranha()
 		"montagem": _roteiro_montagem()
 		"bracos": _roteiro_bracos()
+		"filtro": _roteiro_filtro()
 		"grama": _roteiro_grama()
 		"ambiente": _roteiro_ambiente()
 		"recursos":
@@ -391,6 +392,38 @@ func _roteiro_bracos() -> void:
 				f.baus[id].merge({"minerio_ferro": 40, "carvao": 20})
 		for id in f.combustivel:
 			f.combustivel[id] = 500.0)
+
+
+## Braço com filtro pegando do meio da esteira: pedra e carvão passando, só o carvão vai para o baú.
+func _roteiro_filtro() -> void:
+	em(2, func():
+		cena.controle.barra.visible = false
+		Sessao.config.fps = false
+		var con: Construtor = cena.construtor
+		for x in range(-14, 2):
+			for y in range(-16, -6):
+				cena.mapa.limpar_obstaculo(Vector2i(x, y))
+		var p := func(pl: Array[Dictionary]) -> void: cena.sincronizar(con.executar(pl))
+		p.call(con.plano_linha("esteira", Vector2i(-12, -12), Vector2i(-1, -12), 0))
+		p.call(con.plano_peca("braco", Vector2i(-6, -11), 0))
+		p.call(con.plano_peca("bau", Vector2i(-6, -10), 0))
+		p.call(con.plano_peca("gerador", Vector2i(-9, -9), 0))
+		p.call(con.plano_peca("poste_energia", Vector2i(-7, -10), 0))
+		for id in cena.mapa.estruturas:
+			if cena.mapa.estruturas[id].nome == "braco":
+				cena.mapa.estruturas[id]["filtros"] = ["carvao"]
+		cena.camera.alvo = Grade.ponto_mundo(Vector2(-5.5, -11.0))
+		cena.camera.distancia = 8.0
+		cena.camera.posicionar())
+	em(6, func():
+		cena.fabrica.reconstruir()
+		for id in cena.fabrica.combustivel:
+			cena.fabrica.combustivel[id] = 500.0)
+	for k in 20:
+		em(10 + k * 18, func():
+			var f: Fabrica = cena.fabrica
+			if f._no_tile.has(Vector2i(-12, -12)):
+				f.caminhos[f._no_tile[Vector2i(-12, -12)][0]].esteira.inserir_na_entrada("carvao" if k % 2 == 0 else "pedra"))
 
 
 ## Animação de construção: três máquinas postas uma depois da outra num chão vazio (a montagem e o piso crescendo).
