@@ -19,6 +19,24 @@
    ]
   },
   {
+   "nome": "pistao0",
+   "pai": "base",
+   "pivo": [
+    -0.66,
+    0.66,
+    0.4
+   ]
+  },
+  {
+   "nome": "pistao1",
+   "pai": "base",
+   "pivo": [
+    0.66,
+    0.66,
+    0.4
+   ]
+  },
+  {
    "nome": "giro",
    "pai": "base",
    "pivo": [
@@ -54,7 +72,7 @@
    ]
   }
  ],
- "tris": 480,
+ "tris": 688,
  "dims": [
   1.9,
   1.95,

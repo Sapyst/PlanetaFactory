@@ -35,11 +35,11 @@ def boca_ht(p, m, lado, k, io, larg=0.44):
     m.porta('ITEM', io, lado, k)
 
 
-def pistao(m, p, n, x, y, z, curso=0.16, h=0.34, r=0.075):
+def pistao(m, p, n, x, y, z, curso=0.16, h=0.34, r=0.075, pai='corpo'):
     """Pistão vertical: camisa escura fixa + haste de aço com cabeça de luz (parte 'pistaoN': comprime/descomprime)."""
     p.cil((x, y, z + h/2), r + 0.035, h, 'P_Escuro', lados=8)
     p.cil((x, y, z + h + 0.014), r + 0.045, 0.024, 'P_Aco', lados=8, rot=0.2)
-    hs = m.parte('pistao%d' % n, pai='corpo', pivo=(x, y, z + h))
+    hs = m.parte('pistao%d' % n, pai=pai, pivo=(x, y, z + h))
     hs.cil((x, y, z + h + curso/2 + 0.03), r*0.55, curso + 0.06, 'P_Metal', lados=6)
     hs.cil((x, y, z + h + curso + 0.08), r + 0.01, 0.05, 'P_Cristal', lados=8)
 
@@ -180,6 +180,9 @@ def montadora():
     cr = m.parte('cristal', pai='corpo', pivo=(0, 0, 1.40))   # prisma de montagem (pulsa)
     cr.cil((0, 0, 1.52), 0.16, 0.30, 'P_Cristal', lados=6, r2=0.0)
     cr.cil((0, 0, 1.30), 0.16, 0.14, 'P_Cristal', lados=6, r2=0.10)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            pistao(m, p, (sx + 1) + (sy + 1)//2, sx*1.05, sy*1.05, 0.10)
     boca_ht(p, m, 'S', 1, 'ENT'); boca_ht(p, m, 'N', 1, 'SAI')
     terminais_cantos(m, p, 0.112)
     return m
@@ -257,6 +260,9 @@ def nucleo():
     for k in range(12):
         a = k*PI/6
         an.caixa_c(math.cos(a)*0.62, math.sin(a)*0.62, 1.92, 0.20, 0.07, 0.05, 'P_Aco', rot=a + PI/2)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            pistao(m, p, (sx + 1) + (sy + 1)//2, sx*1.05, sy*1.05, 0.10, h=0.28)
     for lado in 'SNLO':
         boca_ht(p, m, lado, 1, 'ENT')
     terminais_cantos(m, p, 0.112)
@@ -296,6 +302,7 @@ def terraplenagem():
     bl = m.parte('cabecote', pai='corpo', pivo=(-0.92, -0.92, 1.25))
     v = bl.caixa_c(-0.92, -0.92, 1.30, 0.38, 0.34, 0.30, 'P_Rocha', rot=0.35); bl.chanfrar(v, 0.04)
     bl.cil((-0.92, -0.92, 1.10), 0.10, 0.03, 'P_Cristal', lados=6)
+    pistao(m, p, 0, -0.95, 1.05, 0.10); pistao(m, p, 1, 1.15, -0.55, 0.10)
     return m
 
 # ---------------------------------------------------------------- energia
@@ -317,6 +324,7 @@ def gerador():
     for k in range(6):
         a = k*PI/3
         an.caixa_c(math.cos(a)*0.36, 0.08 + math.sin(a)*0.36, 1.80, 0.18, 0.06, 0.04, 'P_Cristal', rot=a + PI/2)
+    pistao(m, p, 0, -0.66, 0.70, 0.10); pistao(m, p, 1, 0.66, 0.70, 0.10)
     boca_ht(p, m, 'S', 1, 'ENT')
     terminais_cantos(m, p, 0.112)
     return m
@@ -362,6 +370,7 @@ def torre_defesa():
     v = b.cil((0, 0, 0.42), 0.72, 0.64, 'P_Escuro', lados=8, rot=PI/8, r2=0.60); b.chanfrar(v, 0.05)
     b.cil((0, 0, 0.78), 0.61, 0.05, 'P_Cristal', lados=8, rot=PI/8)
     boca_ht(b, m, 'S', 1, 'ENT', larg=0.30)
+    pistao(m, b, 0, -0.66, 0.66, 0.10, h=0.30, pai='base'); pistao(m, b, 1, 0.66, 0.66, 0.10, h=0.30, pai='base')
     g = m.parte('giro', pai='base', pivo=(0, 0, 0.86))
     v = g.cil((0, 0, 0.96), 0.52, 0.20, 'P_Aco', lados=8, rot=PI/8, r2=0.46); g.chanfrar(v, 0.03)
     v = g.caixa_c(0, 0.02, 1.06, 0.62, 0.66, 0.32, 'P_Escuro'); g.chanfrar(v, 0.06)

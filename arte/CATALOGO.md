@@ -97,16 +97,16 @@ Texturas de chão em `texturas/` (loop sem emenda; relatório em `texturas/_emen
 | `extrator_cristal` | 3×3 | 1398 | 2,90 × 2,95 × 2,55 | ITEM_SAI_S1 · partes: hastes, cristal, pistao0, pistao1, pistao2, pistao3 | extrator de cristal: câmara octogonal sobre a jazida, quatro pilones que suspendem o prisma de ressonância, anel de extração que sobe e desce e calha de luz até a boca sul. |
 | `fornalha` | 2×2 | 836 | 1,90 × 2,00 × 1,19 | ITEM_ENT_S1, ITEM_SAI_N0 · partes: pistao0, pistao1 | fornalha de indução: cadinho octogonal, núcleo incandescente visto por frestas, bobinas de cobre e aletas de calor. Entra pelo sul, sai pelo norte. |
 | `laboratorio` | 3×3 | 1302 | 2,90 × 2,95 × 2,54 | ITEM_ENT_S1 · partes: antena, pistao0, pistao1, pistao2, pistao3 | laboratório: tambor octogonal, cúpula de sensores com pilares de dados de cristal e varredor que gira no topo. Entra pelo sul (meio). |
-| `montadora` | 3×3 | 1026 | 2,90 × 3,00 × 1,83 | ITEM_ENT_S1, ITEM_SAI_N1 · partes: antena, cristal | montadora: câmara blindada octogonal, anel manipulador suspenso que gira e prisma de montagem de cristal. Entra pelo sul, sai pelo norte (meio). |
-| `nucleo` | 3×3 | 1010 | 3,00 × 3,00 × 2,56 | ITEM_ENT_S1, ITEM_ENT_N1, ITEM_ENT_L1, ITEM_ENT_O1 · partes: cristal, antena | Núcleo: a unidade semeadora da IA. Tudo que entra (esteira nas 4 bocas ou braço) vira estoque para construir. Partes: cristal (monólito pulsa), antena (anel gira). |
+| `montadora` | 3×3 | 1442 | 2,90 × 3,00 × 1,83 | ITEM_ENT_S1, ITEM_SAI_N1 · partes: antena, cristal, pistao0, pistao1, pistao2, pistao3 | montadora: câmara blindada octogonal, anel manipulador suspenso que gira e prisma de montagem de cristal. Entra pelo sul, sai pelo norte (meio). |
+| `nucleo` | 3×3 | 1426 | 3,00 × 3,00 × 2,56 | ITEM_ENT_S1, ITEM_ENT_N1, ITEM_ENT_L1, ITEM_ENT_O1 · partes: cristal, antena, pistao0, pistao1, pistao2, pistao3 | Núcleo: a unidade semeadora da IA. Tudo que entra (esteira nas 4 bocas ou braço) vira estoque para construir. Partes: cristal (monólito pulsa), antena (anel gira). |
 | `refinador` | 3×3 | 1374 | 3,00 × 2,95 × 3,12 | FLUIDO_ENT_O1, FLUIDO_SAI_L1, ITEM_SAI_N0 · partes: antena, pistao0, pistao1 | refinador: dois reatores octogonais e torre de fracionamento com anel de campo que gira; fluido entra a oeste, sai a leste; item ao norte. |
-| `terraplenagem` | 3×3 | 950 | 2,90 × 2,90 × 2,23 | — · partes: antena, cristal, cabecote | Terraplenagem: unidade de modelagem do terreno da IA. Enquanto existir, libera Aplainar em qualquer lugar do mapa. Partes: antena (anel de sensores gira), cristal (núcleo pulsa), bloco (rocha suspensa). |
+| `terraplenagem` | 3×3 | 1158 | 2,90 × 2,90 × 2,23 | — · partes: antena, cristal, cabecote, pistao0, pistao1 | Terraplenagem: unidade de modelagem do terreno da IA. Enquanto existir, libera Aplainar em qualquer lugar do mapa. Partes: antena (anel de sensores gira), cristal (núcleo pulsa), bloco (rocha suspensa). |
 
 ## Energia e fluidos
 
 | Modelo | Área | Tri | Dimensões (m) | Portas | Descrição |
 |---|---|---|---|---|---|
-| `gerador` | 2×2 | 980 | 1,90 × 1,95 × 1,84 | ITEM_ENT_S1 · partes: antena | gerador: câmara de reação vertical com anéis de contenção e núcleo luminoso; combustível entra pelo sul. Energia vai por postes. |
+| `gerador` | 2×2 | 1188 | 1,90 × 1,95 × 1,84 | ITEM_ENT_S1 · partes: antena, pistao0, pistao1 | gerador: câmara de reação vertical com anéis de contenção e núcleo luminoso; combustível entra pelo sul. Energia vai por postes. |
 | `poste_energia` | 1×1 | 94 | 0,70 × 0,40 × 2,30 | — | Poste de energia: liga máquinas num raio. Ocupa só o centro do tile. |
 | `tanque` | 2×2 | 322 | 2,00 × 2,00 × 1,70 | FLUIDO_SAI_S0, FLUIDO_SAI_N0, FLUIDO_SAI_L0, FLUIDO_SAI_O0 | Tanque de fluido. Canos nos 4 lados (tile da esquerda de cada lado). |
 | `torre_sem_fio` | 1×1 | 250 | 0,80 × 0,80 × 2,90 | — · partes: cristal | Torre de energia sem fio: liga postes/torres e máquinas a distância, sem cabo. |
@@ -117,7 +117,7 @@ Texturas de chão em `texturas/` (loop sem emenda; relatório em `texturas/_emen
 |---|---|---|---|---|---|
 | `muro_centro` | 1×1 | 24 | 0,64 × 0,64 × 1,50 | — | Pilar do muro (centro do tile). O jogo junta muro_lado para cada vizinho com muro. |
 | `muro_lado` | 1×1 | 24 | 0,48 × 0,20 × 1,26 | — | Pano de muro do centro até a borda norte (girar para os outros lados). |
-| `torre_defesa` | 2×2 | 480 | 1,90 × 1,95 × 1,38 | ITEM_ENT_S1 · partes: giro, canhao | torre de defesa: pedestal octogonal, cabeça blindada com olho sensor e canhão de trilho duplo. Munição entra pelo sul. Partes: base, giro (gira em Z), canhao (inclina). |
+| `torre_defesa` | 2×2 | 688 | 1,90 × 1,95 × 1,38 | ITEM_ENT_S1 · partes: pistao0, pistao1, giro, canhao | torre de defesa: pedestal octogonal, cabeça blindada com olho sensor e canhão de trilho duplo. Munição entra pelo sul. Partes: base, giro (gira em Z), canhao (inclina). |
 
 ## Trilhos e estação
 
