@@ -14,6 +14,7 @@ var tiles: Dictionary = {}          ## Vector2i → id
 var cantos: Dictionary = {}         ## Vector2i (vértice) → id (estrutura que ocupa canto ou pilar)
 var estruturas: Dictionary = {}     ## id → {nome, minimo, rot, area}
 var limpos: Dictionary = {}         ## tiles cujo obstáculo natural já foi removido
+var arvores: Dictionary = {}        ## tile → {e: "queimada"} ou {e: "caida", dir: Vector2} (o fogo muda; some ao limpar)
 var altos: Dictionary = {}          ## Vector3i(x, y, nível 1..2) → id (esteira elevada / rampa de cima)
 const NIVEIS := 2                   ## até 1,0 m
 const FOLGA := 0.25
@@ -163,7 +164,20 @@ func limpar_obstaculo(tile: Vector2i) -> Dictionary:
 		return {}
 	for t in Grade.tiles_da_area(o.ancora, o.area, 0):
 		limpos[t] = true
+	if arvores.has(tile):                             # queimada/caída rende carvão, não biomassa
+		o = o.duplicate()
+		o["estado"] = arvores[tile].e
+		arvores.erase(tile)
 	return o
+
+
+## O que remover este obstáculo rende (árvore queimada/caída = carvão).
+static func drops_de(o: Dictionary) -> Dictionary:
+	var d: Dictionary = Registro.progressao.get("drops", {})
+	match o.get("estado", ""):
+		"queimada": return d.get("arvore_queimada", {})
+		"caida": return d.get("tronco_caido", {})
+	return d.get(o.nome, d.get(Distribuicao.especie(o.nome), {}))
 
 
 ## Canto livre para pilar: ninguém reivindica e nenhum tile em volta é obstáculo natural de pé.
@@ -215,7 +229,8 @@ func ids_no_tile(t: Vector2i) -> Array[int]:
 
 ## Recria o mapa de um salvamento: mesmas estruturas com os MESMOS ids (estações, trens, torres e máquinas
 ## guardam estado pelo id). Tiles e cantos são refeitos a partir das estruturas.
-func restaurar(p_estruturas: Dictionary, p_limpos: Array, prox_id: int) -> void:
+func restaurar(p_estruturas: Dictionary, p_limpos: Array, prox_id: int, p_arvores: Dictionary = {}) -> void:
+	arvores = p_arvores.duplicate()
 	estruturas.clear()
 	tiles.clear()
 	cantos.clear()

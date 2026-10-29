@@ -85,6 +85,10 @@ rajada={
 "type": "vec3",
 "value": Vector3(-1e+06, 0, 12)
 }
+estacao_atual={
+"type": "float",
+"value": 0.5
+}
 fogo_mapa={
 "type": "sampler2D",
 "value": ""

@@ -14,7 +14,8 @@
             "planalto_rochoso": "Planalto rochoso", "campo_cristal": "Campo de cristal", "pantano": "Pântano", "cinzal": "Cinzal"},
  "agua": {"RIO": "Rio", "LAGO": "Lago", "LAGOA": "Lagoa", "MAR": "Mar", "OCEANO": "Oceano", "PRAIA": "Praia"},
  "elementos": {"pedregulho": "Pedregulho", "rocha_grande": "Rocha grande", "montanha_3x3": "Morro", "montanha_5x5": "Montanha",
-               "arvore_campina_a": "Árvore", "arvore_campina_b": "Árvore", "arvore_morta": "Árvore morta", "arbusto": "Arbusto",
+               "arv_carvalho": "Carvalho", "arv_betula": "Bétula-prata", "arv_pinheiro": "Pinheiro", "arv_salgueiro": "Salgueiro", "arv_acacia": "Acácia", "arv_fungo_cristal": "Fungo-cristal",
+               "arvore_queimada": "Árvore queimada", "tronco_caido": "Tronco caído", "arvore_campina_a": "Árvore", "arvore_campina_b": "Árvore", "arvore_morta": "Árvore morta", "arbusto": "Arbusto",
                "cogumelo_gigante_a": "Cogumelo gigante", "cogumelo_gigante_b": "Cogumelo gigante", "cacto_cristal": "Cacto de cristal",
                "rocha_agua": "Rocha na água"}
 }

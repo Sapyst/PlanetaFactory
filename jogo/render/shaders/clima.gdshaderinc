@@ -69,3 +69,6 @@ vec2 vento_mundo() {
 	vec2 d = length(vento_dir) > 0.01 ? normalize(vento_dir) : vec2(1.0, 0.0);
 	return vec2(d.x, -d.y);
 }
+
+// Estação para a folhagem: índice (0 primavera, 1 verão, 2 outono, 3 inverno) + fração já passada dela.
+global uniform float estacao_atual;

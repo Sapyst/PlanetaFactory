@@ -1,0 +1,33 @@
+{
+ "nome": "arv_acacia_3",
+ "categoria": "mapa/vegetacao",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Acácia-seca (variação 3): copa achatada em guarda-chuva; perde metade no verão seco. Bloqueia 1 tile.",
+ "ocupa_canto": true,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 132,
+ "dims": [
+  0.796,
+  0.83,
+  1.875
+ ],
+ "materiais": [
+  "P_FolhaSeca",
+  "P_Tronco"
+ ]
+}

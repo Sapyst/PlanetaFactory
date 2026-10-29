@@ -1,6 +1,6 @@
 # Catálogo de modelos
 
-114 modelos. Gerado por `blender_scripts/catalogo.py` — não editar à mão.
+150 modelos. Gerado por `blender_scripts/catalogo.py` — não editar à mão.
 
 Portas: `ITEM`/`FLUIDO`/`TRILHO`, `ENT`/`SAI`, lado (S/N/L/O) e índice do tile na borda. Ficam no .glb como nós `PORTA_*`.
 Partes: peças móveis exportadas separadas (o jogo anima pelo nome — ver jogo/render/animacao/animador.gd).
@@ -159,6 +159,42 @@ Texturas de chão em `texturas/` (loop sem emenda; relatório em `texturas/_emen
 | Modelo | Área | Tri | Dimensões (m) | Portas | Descrição |
 |---|---|---|---|---|---|
 | `arbusto` | 1×1 | 80 | 0,62 × 0,57 × 0,43 | — | Arbusto da campina (bloqueia 1 tile, limpa rápido). |
+| `arv_acacia_1` | 1×1 | 132 | 0,79 × 0,81 × 1,88 | — | Acácia-seca (variação 1): copa achatada em guarda-chuva; perde metade no verão seco. Bloqueia 1 tile. |
+| `arv_acacia_2` | 1×1 | 132 | 0,82 × 0,82 × 1,61 | — | Acácia-seca (variação 2): copa achatada em guarda-chuva; perde metade no verão seco. Bloqueia 1 tile. |
+| `arv_acacia_3` | 1×1 | 132 | 0,80 × 0,83 × 1,88 | — | Acácia-seca (variação 3): copa achatada em guarda-chuva; perde metade no verão seco. Bloqueia 1 tile. |
+| `arv_acacia_4` | 1×1 | 132 | 0,82 × 0,74 × 1,67 | — | Acácia-seca (variação 4): copa achatada em guarda-chuva; perde metade no verão seco. Bloqueia 1 tile. |
+| `arv_acacia_5` | 1×1 | 132 | 0,83 × 0,80 × 1,92 | — | Acácia-seca (variação 5): copa achatada em guarda-chuva; perde metade no verão seco. Bloqueia 1 tile. |
+| `arv_acacia_6` | 1×1 | 132 | 0,84 × 0,71 × 1,65 | — | Acácia-seca (variação 6): copa achatada em guarda-chuva; perde metade no verão seco. Bloqueia 1 tile. |
+| `arv_betula_1` | 1×1 | 228 | 0,53 × 0,46 × 2,56 | — | Bétula-prata (variação 1): estreita, tronco claro; caduca: amarela no outono, nua no inverno. Bloqueia 1 tile. |
+| `arv_betula_2` | 1×1 | 228 | 0,38 × 0,46 × 2,60 | — | Bétula-prata (variação 2): estreita, tronco claro; caduca: amarela no outono, nua no inverno. Bloqueia 1 tile. |
+| `arv_betula_3` | 1×1 | 228 | 0,41 × 0,44 × 2,32 | — | Bétula-prata (variação 3): estreita, tronco claro; caduca: amarela no outono, nua no inverno. Bloqueia 1 tile. |
+| `arv_betula_4` | 1×1 | 196 | 0,48 × 0,41 × 2,50 | — | Bétula-prata (variação 4): estreita, tronco claro; caduca: amarela no outono, nua no inverno. Bloqueia 1 tile. |
+| `arv_betula_5` | 1×1 | 196 | 0,48 × 0,48 × 2,56 | — | Bétula-prata (variação 5): estreita, tronco claro; caduca: amarela no outono, nua no inverno. Bloqueia 1 tile. |
+| `arv_betula_6` | 1×1 | 228 | 0,48 × 0,53 × 2,70 | — | Bétula-prata (variação 6): estreita, tronco claro; caduca: amarela no outono, nua no inverno. Bloqueia 1 tile. |
+| `arv_carvalho_1` | 1×1 | 188 | 0,81 × 0,78 × 1,92 | — | Carvalho-de-campina (variação 1): copa redonda larga; caduca: amarela/laranja no outono, nua no inverno. Bloqueia 1 tile. |
+| `arv_carvalho_2` | 1×1 | 188 | 0,83 × 0,83 × 2,06 | — | Carvalho-de-campina (variação 2): copa redonda larga; caduca: amarela/laranja no outono, nua no inverno. Bloqueia 1 tile. |
+| `arv_carvalho_3` | 1×1 | 188 | 0,79 × 0,84 × 1,94 | — | Carvalho-de-campina (variação 3): copa redonda larga; caduca: amarela/laranja no outono, nua no inverno. Bloqueia 1 tile. |
+| `arv_carvalho_4` | 1×1 | 220 | 0,86 × 0,91 × 1,99 | — | Carvalho-de-campina (variação 4): copa redonda larga; caduca: amarela/laranja no outono, nua no inverno. Bloqueia 1 tile. |
+| `arv_carvalho_5` | 1×1 | 220 | 0,86 × 0,82 × 1,87 | — | Carvalho-de-campina (variação 5): copa redonda larga; caduca: amarela/laranja no outono, nua no inverno. Bloqueia 1 tile. |
+| `arv_carvalho_6` | 1×1 | 188 | 0,82 × 0,88 × 2,19 | — | Carvalho-de-campina (variação 6): copa redonda larga; caduca: amarela/laranja no outono, nua no inverno. Bloqueia 1 tile. |
+| `arv_fungo_cristal_1` | 1×1 | 92 | 0,78 × 0,75 × 2,02 | — | Fungo-cristal (variação 1): alienígena: chapéu com cristais que brilham; perene. Bloqueia 1 tile. |
+| `arv_fungo_cristal_2` | 1×1 | 92 | 0,77 × 0,75 × 1,66 | — | Fungo-cristal (variação 2): alienígena: chapéu com cristais que brilham; perene. Bloqueia 1 tile. |
+| `arv_fungo_cristal_3` | 1×1 | 92 | 0,77 × 0,79 × 1,93 | — | Fungo-cristal (variação 3): alienígena: chapéu com cristais que brilham; perene. Bloqueia 1 tile. |
+| `arv_fungo_cristal_4` | 1×1 | 92 | 0,81 × 0,83 × 1,80 | — | Fungo-cristal (variação 4): alienígena: chapéu com cristais que brilham; perene. Bloqueia 1 tile. |
+| `arv_fungo_cristal_5` | 1×1 | 92 | 0,82 × 0,79 × 2,07 | — | Fungo-cristal (variação 5): alienígena: chapéu com cristais que brilham; perene. Bloqueia 1 tile. |
+| `arv_fungo_cristal_6` | 1×1 | 92 | 0,80 × 0,76 × 1,92 | — | Fungo-cristal (variação 6): alienígena: chapéu com cristais que brilham; perene. Bloqueia 1 tile. |
+| `arv_pinheiro_1` | 1×1 | 112 | 0,87 × 0,89 × 2,66 | — | Pinheiro (variação 1): cone em camadas; perene (não muda). Bloqueia 1 tile. |
+| `arv_pinheiro_2` | 1×1 | 112 | 0,84 × 0,85 × 2,51 | — | Pinheiro (variação 2): cone em camadas; perene (não muda). Bloqueia 1 tile. |
+| `arv_pinheiro_3` | 1×1 | 112 | 0,84 × 0,85 × 2,89 | — | Pinheiro (variação 3): cone em camadas; perene (não muda). Bloqueia 1 tile. |
+| `arv_pinheiro_4` | 1×1 | 112 | 0,83 × 0,82 × 2,59 | — | Pinheiro (variação 4): cone em camadas; perene (não muda). Bloqueia 1 tile. |
+| `arv_pinheiro_5` | 1×1 | 112 | 0,82 × 0,84 × 2,71 | — | Pinheiro (variação 5): cone em camadas; perene (não muda). Bloqueia 1 tile. |
+| `arv_pinheiro_6` | 1×1 | 112 | 0,85 × 0,86 × 2,65 | — | Pinheiro (variação 6): cone em camadas; perene (não muda). Bloqueia 1 tile. |
+| `arv_salgueiro_1` | 1×1 | 212 | 0,87 × 0,86 × 1,54 | — | Salgueiro-do-pântano (variação 1): galhos caídos; amarelado no inverno. Bloqueia 1 tile. |
+| `arv_salgueiro_2` | 1×1 | 212 | 0,92 × 0,83 × 1,61 | — | Salgueiro-do-pântano (variação 2): galhos caídos; amarelado no inverno. Bloqueia 1 tile. |
+| `arv_salgueiro_3` | 1×1 | 212 | 0,88 × 0,89 × 1,52 | — | Salgueiro-do-pântano (variação 3): galhos caídos; amarelado no inverno. Bloqueia 1 tile. |
+| `arv_salgueiro_4` | 1×1 | 212 | 0,85 × 0,86 × 1,52 | — | Salgueiro-do-pântano (variação 4): galhos caídos; amarelado no inverno. Bloqueia 1 tile. |
+| `arv_salgueiro_5` | 1×1 | 212 | 0,91 × 0,89 × 1,45 | — | Salgueiro-do-pântano (variação 5): galhos caídos; amarelado no inverno. Bloqueia 1 tile. |
+| `arv_salgueiro_6` | 1×1 | 212 | 0,83 × 0,86 × 1,52 | — | Salgueiro-do-pântano (variação 6): galhos caídos; amarelado no inverno. Bloqueia 1 tile. |
 | `arvore_campina_a` | 1×1 | 80 | 0,67 × 0,78 × 1,49 | — | Árvore da campina (bloqueia 1 tile). |
 | `arvore_campina_b` | 1×1 | 80 | 0,68 × 0,59 × 1,75 | — | Árvore alta da campina (bloqueia 1 tile). |
 | `arvore_morta` | 1×1 | 56 | 0,58 × 0,47 × 1,32 | — | Árvore seca do cinzal. |

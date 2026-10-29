@@ -2,49 +2,49 @@
  "_nota": "Bioma = centro mais próximo no plano (temperatura, umidade), ambos 0..1. 'obstaculos' bloqueiam tile (chance por tile); 'deco' é enfeite sem colisão (por tile); 'jazidas' = peso de cada recurso nas manchas de minério deste bioma; 'grandes' = obstáculos multi-tile (chance por célula de 6×6).",
  "campina": {
   "centro": [0.55, 0.55], "textura": "campina", "cor_mapa": "#3f7a52",
-  "obstaculos": {"chance": 0.07, "tipos": {"arvore_campina_a": 4, "arvore_campina_b": 3, "arbusto": 4, "pedregulho": 1}},
+  "obstaculos": {"chance": 0.07, "tipos": {"arv_carvalho": 4, "arv_betula": 3, "arbusto": 4, "pedregulho": 1}},
   "deco": {"chance": 0.30, "tipos": {"grama_tufo": 8, "flor_luminosa": 1}},
   "grandes": {"chance": 0.05, "tipos": {"rocha_grande": 1}},
   "jazidas": {"jazida_ferro": 4, "jazida_cobre": 3, "jazida_pedra": 2, "jazida_carvao": 2}
  },
  "floresta_fungica": {
   "centro": [0.60, 0.85], "textura": "floresta_fungica", "cor_mapa": "#4a2a55",
-  "obstaculos": {"chance": 0.22, "tipos": {"cogumelo_gigante_a": 3, "cogumelo_gigante_b": 2}},
+  "obstaculos": {"chance": 0.22, "tipos": {"cogumelo_gigante_a": 3, "cogumelo_gigante_b": 2, "arv_fungo_cristal": 2, "arv_pinheiro": 1}},
   "deco": {"chance": 0.25, "tipos": {"flor_luminosa": 3, "seixos": 1}},
   "grandes": {"chance": 0.0, "tipos": {}},
   "jazidas": {"poca_seiva": 4, "jazida_carvao": 3, "jazida_cobre": 1}
  },
  "deserto_silex": {
   "centro": [0.88, 0.12], "textura": "deserto_silex", "cor_mapa": "#c9a86a",
-  "obstaculos": {"chance": 0.02, "tipos": {"cacto_cristal": 3, "pedregulho": 2}},
+  "obstaculos": {"chance": 0.02, "tipos": {"cacto_cristal": 3, "pedregulho": 2, "arv_acacia": 1}},
   "deco": {"chance": 0.10, "tipos": {"seixos": 1}},
   "grandes": {"chance": 0.08, "tipos": {"rocha_grande": 2, "montanha_3x3": 1}},
   "jazidas": {"jazida_silex": 4, "jazida_areia": 4, "jazida_cobre": 2}
  },
  "planalto_rochoso": {
   "centro": [0.30, 0.30], "textura": "planalto_rochoso", "cor_mapa": "#6d6a68",
-  "obstaculos": {"chance": 0.06, "tipos": {"pedregulho": 3}},
+  "obstaculos": {"chance": 0.06, "tipos": {"pedregulho": 3, "arv_pinheiro": 2}},
   "deco": {"chance": 0.20, "tipos": {"seixos": 1}},
   "grandes": {"chance": 0.18, "tipos": {"rocha_grande": 3, "montanha_3x3": 2, "montanha_5x5": 1}},
   "jazidas": {"jazida_ferro": 3, "jazida_cobre": 3, "jazida_pedra": 4, "jazida_silex": 1}
  },
  "campo_cristal": {
   "centro": [0.15, 0.65], "textura": "campo_cristal", "cor_mapa": "#8b84a0",
-  "obstaculos": {"chance": 0.05, "tipos": {"cacto_cristal": 2, "pedregulho": 1}},
+  "obstaculos": {"chance": 0.05, "tipos": {"cacto_cristal": 2, "pedregulho": 1, "arv_fungo_cristal": 1}},
   "deco": {"chance": 0.12, "tipos": {"seixos": 1, "flor_luminosa": 1}},
   "grandes": {"chance": 0.04, "tipos": {"rocha_grande": 1}},
   "jazidas": {"jazida_cristal": 6, "jazida_pedra": 1}
  },
  "pantano": {
   "centro": [0.75, 0.95], "textura": "pantano", "cor_mapa": "#3b4426",
-  "obstaculos": {"chance": 0.06, "tipos": {"arvore_morta": 2, "rocha_agua": 1}},
+  "obstaculos": {"chance": 0.06, "tipos": {"arv_salgueiro": 3, "arvore_morta": 1, "rocha_agua": 1}},
   "deco": {"chance": 0.30, "tipos": {"junco": 3, "vitoria_regia": 1}},
   "grandes": {"chance": 0.0, "tipos": {}},
   "jazidas": {"jazida_carvao": 4, "poca_seiva": 2}
  },
  "cinzal": {
   "centro": [0.95, 0.40], "textura": "cinzal", "cor_mapa": "#4a4446",
-  "obstaculos": {"chance": 0.04, "tipos": {"arvore_morta": 2, "pedregulho": 2}},
+  "obstaculos": {"chance": 0.04, "tipos": {"arvore_morta": 2, "pedregulho": 2, "arv_acacia": 1}},
   "deco": {"chance": 0.12, "tipos": {"seixos": 1}},
   "grandes": {"chance": 0.10, "tipos": {"rocha_grande": 2, "montanha_3x3": 1}},
   "jazidas": {"jazida_pedra": 3, "jazida_carvao": 3, "jazida_ferro": 2}

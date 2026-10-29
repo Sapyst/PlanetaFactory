@@ -40,13 +40,27 @@ static func preparar(gerador: GeradorMundo) -> void:
 	_material_chao.set_shader_parameter("camada_rocha", float(_camadas.find("planalto_rochoso")))
 
 
+## `nome#queimada` = a mesma malha carbonizada (árvore queimada de pé ou caída).
 static func malha(nome: String, vento := 0.0, boiar := 0.0) -> Mesh:
 	if not _malhas.has(nome):
-		var m: Dictionary = Registro.modelos.get(nome, {})
+		var base := nome.get_slice("#", 0)
+		var m: Dictionary = Registro.modelos.get(base, {})
 		if m.is_empty():
 			return null
-		_malhas[nome] = Materiais.malha_de(load(m.modelo), vento, boiar)
+		_malhas[nome] = Materiais.malha_de(load(m.modelo), vento, boiar, nome.ends_with("#queimada"))
 	return _malhas[nome]
+
+
+## Tiles que não se desenham agora (árvore caindo: o mundo anima à parte).
+static var ocultos: Dictionary = {}
+
+
+## Transformação da árvore caída: deitada na direção `dir` (grade), apoiada nos galhos.
+static func tombada(t: Transform3D, dir: Vector2) -> Transform3D:
+	var dw := Vector3(dir.x, 0.0, -dir.y).normalized()
+	var eixo := Vector3.UP.cross(dw).normalized()
+	var b := Basis(eixo, deg_to_rad(84.0)) * t.basis
+	return Transform3D(b, t.origin + Vector3(0, 0.1, 0))
 
 
 ## Em duas etapas, para o mapa carregar sem travar a câmera:
@@ -410,11 +424,17 @@ func refazer_objetos() -> void:
 	for o in d.obst:
 		if mapa != null and mapa.limpos.has(o[2]):
 			continue   # já foi limpo para construir
-		_add(obst, o[0], o[1])
+		if ocultos.has(o[2]):
+			continue
+		var est: Dictionary = mapa.arvores.get(o[2], {}) if mapa != null else {}
+		match est.get("e", ""):
+			"queimada": _add(obst, o[0] + "#queimada", o[1])
+			"caida": _add(obst, o[0] + "#queimada", tombada(o[1], est.dir))
+			_: _add(obst, o[0], o[1])
 	for nome in obst:
 		grupos[nome] = _buffer(obst[nome])
 	for nome in grupos:
-		var vegetal: bool = Registro.modelos.get(nome, {}).get("categoria", "") == "mapa/vegetacao"
+		var vegetal: bool = Registro.modelos.get(nome.get_slice("#", 0), {}).get("categoria", "") == "mapa/vegetacao"
 		var me := malha(nome, 1.0 if vegetal else 0.0, 1.0 if nome == "vitoria_regia" else 0.0)
 		if me == null:
 			continue
@@ -428,7 +448,7 @@ func refazer_objetos() -> void:
 		mmi.name = nome
 		mmi.multimesh = mm
 		_objetos.append(mmi)
-		if Registro.modelos.get(nome, {}).get("tipo", "") == "deco":
+		if Registro.modelos.get(nome.get_slice("#", 0), {}).get("tipo", "") == "deco":
 			# enfeite miúdo (grama, seixo, flor) some com a câmera longe: vira só ruído e custa desenho
 			mmi.visibility_range_end = 80.0
 			mmi.visibility_range_end_margin = 12.0

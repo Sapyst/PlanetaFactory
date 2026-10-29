@@ -27,31 +27,31 @@ Perto do ponto inicial há sempre uma jazida de cada: cristal, ferro, cobre, car
 
 ### Campina
 - **Jazidas:** Ferro (36%), Cobre (27%), Pedra (18%), Carvão (18%)
-- **Elementos:** Árvore, Arbusto, Pedregulho, Rocha grande
+- **Elementos:** Carvalho, Bétula-prata, Arbusto, Pedregulho, Rocha grande
 
 ### Floresta fúngica
 - **Jazidas:** Seiva (50%), Carvão (38%), Cobre (12%)
-- **Elementos:** Cogumelo gigante
+- **Elementos:** Cogumelo gigante, Fungo-cristal, Pinheiro
 
 ### Deserto de sílex
 - **Jazidas:** Sílex (40%), Areia (40%), Cobre (20%)
-- **Elementos:** Cacto de cristal, Pedregulho, Rocha grande, Morro
+- **Elementos:** Cacto de cristal, Pedregulho, Acácia, Rocha grande, Morro
 
 ### Planalto rochoso
 - **Jazidas:** Pedra (36%), Ferro (27%), Cobre (27%), Sílex (9%)
-- **Elementos:** Pedregulho, Rocha grande, Morro, Montanha
+- **Elementos:** Pedregulho, Pinheiro, Rocha grande, Morro, Montanha
 
 ### Campo de cristal
 - **Jazidas:** Cristal (86%), Pedra (14%)
-- **Elementos:** Cacto de cristal, Pedregulho, Rocha grande
+- **Elementos:** Cacto de cristal, Pedregulho, Fungo-cristal, Rocha grande
 
 ### Pântano
 - **Jazidas:** Carvão (67%), Seiva (33%)
-- **Elementos:** Árvore morta, Rocha na água
+- **Elementos:** Salgueiro, Árvore morta, Rocha na água
 
 ### Cinzal
 - **Jazidas:** Pedra (38%), Carvão (38%), Ferro (25%)
-- **Elementos:** Árvore morta, Pedregulho, Rocha grande, Morro
+- **Elementos:** Árvore morta, Pedregulho, Acácia, Rocha grande, Morro
 
 ## Águas
 
@@ -65,6 +65,14 @@ Rio, lago, lagoa, mar e oceano não aceitam construção; a praia aceita. Na vis
 | Rocha grande | 20 × Pedra |
 | Morro | 45 × Pedra |
 | Montanha | 120 × Pedra |
+| Carvalho | 5 × Biomassa |
+| Bétula-prata | 4 × Biomassa |
+| Pinheiro | 5 × Biomassa |
+| Salgueiro | 4 × Biomassa |
+| Acácia | 3 × Biomassa |
+| Fungo-cristal | 4 × Biomassa, 1 × Cristal bruto |
+| Árvore queimada | 2 × Carvão |
+| Tronco caído | 3 × Carvão |
 | Árvore | 4 × Biomassa |
 | Árvore morta | 2 × Biomassa |
 | Arbusto | 2 × Biomassa |

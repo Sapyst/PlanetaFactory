@@ -181,7 +181,23 @@ func obstaculo(tile: Vector2i, cx := {}) -> Dictionary:
 	var nome := sortear(dados.get("tipos", {}), h(tile.x, tile.y, 42))
 	if nome == "":
 		return {}
+	if nome.begins_with("arv_"):                     # árvore por receita: espécie nos dados, variação pelo tile
+		nome += "_%d" % (1 + int(h(tile.x, tile.y, 44) * VARIACOES_ARVORE))
 	return {"nome": nome, "ancora": tile, "area": Vector2i.ONE, "rot": int(h(tile.x, tile.y, 43) * 4.0)}
+
+
+const VARIACOES_ARVORE := 6
+
+
+## Espécie de uma árvore por receita ("arv_carvalho_3" → "arv_carvalho"); outros nomes ficam como estão.
+static func especie(nome: String) -> String:
+	if nome.begins_with("arv_") and nome[-1].is_valid_int() and nome[-2] == "_":
+		return nome.substr(0, nome.length() - 2)
+	return nome
+
+
+static func eh_arvore(nome: String) -> bool:
+	return nome.begins_with("arv_") or nome in ["arvore_campina_a", "arvore_campina_b", "arvore_morta"]
 
 
 # ------------------------------------------------------------------ enfeites

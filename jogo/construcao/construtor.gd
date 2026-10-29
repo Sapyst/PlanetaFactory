@@ -487,7 +487,7 @@ func executar(plano: Array[Dictionary]) -> Dictionary:
 				var o := mapa.limpar_obstaculo(it.tile)
 				if not o.is_empty():
 					rel.limpos.append({"tile": it.tile, "tiles": Grade.tiles_da_area(o.ancora, o.area, 0)})
-					_mexer_estoque(Registro.progressao.get("drops", {}).get(o.nome, {}), 1, rel)
+					_mexer_estoque(MapaOcupacao.drops_de(o), 1, rel)
 			"aplainar":
 				var t: Vector2i = it.tile
 				rel.aplainados.append([t, mapa.gerador.aplainado_em(t)])
@@ -498,7 +498,7 @@ func executar(plano: Array[Dictionary]) -> Dictionary:
 					var o := mapa.limpar_obstaculo(t)
 					if not o.is_empty():
 						rel.limpos.append({"tile": t, "tiles": Grade.tiles_da_area(o.ancora, o.area, 0)})
-						_mexer_estoque(Registro.progressao.get("drops", {}).get(o.nome, {}), 1, rel)
+						_mexer_estoque(MapaOcupacao.drops_de(o), 1, rel)
 				mapa.versao += 1
 			"remover":
 				if mapa.estruturas.has(it.id):

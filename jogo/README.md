@@ -68,6 +68,22 @@ fontes". Remover um poste religa quem ficou sem. Fantasma do poste mostra os fio
 - Visão de recursos: V de novo liga a camada **Vento** — mapa de calor do vento médio de cada lugar, setas no chão
   na direção média e a ficha do tile com "vento médio aqui". Roteiros: `vento`, `turbina`.
 
+## Árvores por receita
+- `arte/blender_scripts/arvores.py`: cada espécie é uma receita (altura, tronco, galhos, forma e folha da copa) e cada
+  uma das 6 variações sai de uma semente: carvalho, bétula, pinheiro, salgueiro, acácia e fungo-cristal (36 modelos,
+  até 400 triângulos, cabem em 1 tile). Tronco e galhos existem de verdade embaixo da copa.
+- No mapa os biomas sorteiam a espécie (`arv_carvalho`) e `Distribuicao.obstaculo` escolhe a variação pelo tile
+  (`arv_carvalho_3`); `Distribuicao.especie()` volta para a espécie (rendimento, nome, madeira no fogo).
+- Folhagem com material próprio (`P_Folha*`, mantido pela texturização) e perfil de estação no shader
+  (`Materiais.PERFIL_FOLHA`, global `estacao_atual`): caducas amarelam/alaranjam no outono, perdem a folha e ficam
+  nuas no inverno, brotam verde-claro na primavera; salgueiro amarela no inverno; acácia seca e perde metade no
+  verão; pinheiro e fungo-cristal não mudam. Cada árvore muda no seu tempo (sorte por instância + onda pelo mapa).
+- Balanço: inclinam para onde o vento sopra, mais na ventania e quando a rajada passa.
+- Fogo em etapas: a copa queima primeiro (folhas somem), depois o tronco carboniza. Fogo curto deixa a árvore de pé,
+  queimada (`MapaOcupacao.arvores`), que rebrota na primavera; fogo de 18 s ou mais derruba a árvore carbonizada
+  vento abaixo (animação de 1,4 s; desvia de construção; se não houver saída, cai em cima e tira 40 de vida).
+  Árvore queimada rende 2 carvões; tronco caído, 3. Roteiros: `arvores` (com `-- estacao E F`), `queimada`.
+
 ## Sujeira, consequências e limpeza
 - `ambiente/ambiente_vivo.gd`: máquinas sujam o chão em volta, vazam óleo, despejam na água; enxurrada leva a sujeira
   para rios e lagos. **Consequências:** bomba de seiva com poça contaminada rende menos e se desgasta; chão sujo perto

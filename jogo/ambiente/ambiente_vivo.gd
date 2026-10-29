@@ -41,6 +41,8 @@ var contaminacao: Dictionary = {}    ## id da bomba → contaminação 0..1 da p
 var poluicao: Poluicao               ## (opcional) as árvores plantadas absorvem dela
 var _plantou: Dictionary = {}        ## id do viveiro → ciclos já transformados em muda
 var _versao_mapa := -1
+var queima_arvore: Dictionary = {}   ## tile → segundos que a árvore já queimou (fogo longo derruba)
+var _estacao_ant := -1
 
 
 func _init(p_gerador: GeradorMundo, p_mapa: MapaOcupacao, semente := 9) -> void:
@@ -95,6 +97,8 @@ func _passo(fabrica: Fabrica, clima: Clima) -> void:
 	var vento: Vector2 = clima.direcao_vento * (0.4 + clima.valores.vento) if clima != null else Vector2.ZERO
 	var tufao := clima != null and clima.eh_tufao()
 	var secura := clima.secura() if clima != null else 0.0
+	if clima != null:
+		_rebrota(clima.estacao)
 	# fontes: quem trabalhou neste passo
 	for id in fabrica.emissao:
 		if not mapa.estruturas.has(id):
@@ -408,6 +412,44 @@ func _agua() -> void:
 		somar(t, AGUA, muda[t])
 
 
+func _tem_arvore(t: Vector2i) -> bool:
+	if mapa.limpos.has(t):
+		return false
+	var o := gerador.distribuicao.obstaculo(t)
+	return not o.is_empty() and Distribuicao.eh_arvore(o.nome)
+
+
+## Para onde a árvore carbonizada cai: a favor do vento, a não ser que haja construção nos 2 tiles daquele lado
+## (tenta os outros rumos, do mais a favor para o menos); sem saída, cai em cima e a construção apanha.
+func _rumo_queda(t: Vector2i, vento: Vector2) -> Vector2:
+	var v := vento.normalized() if vento.length() > 1e-4 else Vector2.RIGHT
+	var opcoes: Array[Vector2] = [v, v.rotated(PI / 4), v.rotated(-PI / 4), v.rotated(PI / 2), v.rotated(-PI / 2), -v]
+	for d in opcoes:
+		var livre := true
+		for k in [1, 2]:
+			if mapa.tiles.has(Vector2i((Vector2(t) + Vector2(0.5, 0.5) + d * k).floor())):
+				livre = false
+		if livre:
+			return d
+	var id: int = mapa.tiles.get(Vector2i((Vector2(t) + Vector2(0.5, 0.5) + v).floor()), -1)
+	if id >= 0 and dano.is_valid():
+		dano.call(id, float(_d.fogo.get("arvore_dano", 40.0)))
+	return v
+
+
+## Primavera: as árvores queimadas de pé rebrotam (as caídas ficam até alguém tirar).
+func _rebrota(estacao: int) -> void:
+	if _estacao_ant >= 0 and estacao != _estacao_ant and estacao == 0:
+		var tiles: Array = []
+		for t in mapa.arvores.keys():
+			if mapa.arvores[t].e == "queimada":
+				mapa.arvores.erase(t)
+				tiles.append(t)
+		if not tiles.is_empty():
+			eventos.append({"tipo": "arvores_mudaram", "tiles": tiles})
+	_estacao_ant = estacao
+
+
 ## Árvore/arbusto/cogumelo no tile queima mais tempo (é combustível); 1 = só grama.
 func _madeira(t: Vector2i) -> float:
 	if float(plantas.get(t, 0.0)) > 0.5:
@@ -417,13 +459,16 @@ func _madeira(t: Vector2i) -> float:
 	var o := gerador.distribuicao.obstaculo(t)
 	if o.is_empty():
 		return 1.0
-	return float(_d.fogo.get("madeira", {}).get(o.nome, 1.0))
+	var mad: Dictionary = _d.fogo.get("madeira", {})
+	var m := float(mad.get(o.nome, mad.get(Distribuicao.especie(o.nome), 1.0)))
+	return m * (0.5 if mapa.arvores.has(t) else 1.0)        # já carbonizada: sobra pouco para queimar
 
 
 func _inflamavel(t: Vector2i) -> bool:
 	if not mapa.limpos.has(t):
 		var o := gerador.distribuicao.obstaculo(t)
-		if not o.is_empty() and float(_d.fogo.get("madeira", {}).get(o.nome, 1.0)) <= 0.0:
+		var mad: Dictionary = _d.fogo.get("madeira", {})
+		if not o.is_empty() and float(mad.get(o.nome, mad.get(Distribuicao.especie(o.nome), 1.0))) <= 0.0:
 			return false
 	if fogo.has(t) or mapa.tiles.has(t) or gerador.terreno(t) != GeradorMundo.Terreno.TERRA:
 		return false
@@ -450,6 +495,8 @@ func _fogo(chuva: float, vento: Vector2, secura: float, tufao: bool) -> void:
 	for t in fogo:
 		fogo[t] -= 1.0 + chuva * float(_d.fogo.chuva_apaga) * 10.0
 		somar(t, QUEIM, 0.22)
+		if _tem_arvore(t):
+			queima_arvore[t] = float(queima_arvore.get(t, 0.0)) + 1.0
 		if fogo[t] <= 0.0:
 			apagar.append(t)
 			continue
@@ -467,10 +514,24 @@ func _fogo(chuva: float, vento: Vector2, secura: float, tufao: bool) -> void:
 		somar(t, QUEIM, 1.0)
 		if plantas.erase(t):
 			versao_plantas += 1
-		# a vegetação do tile virou cinza: árvore/arbusto some do mapa (o mundo redesenha o chunk)
+		# árvore: fogo curto deixa de pé, carbonizada (rebrota na primavera); fogo longo derruba vento abaixo.
+		# o resto da vegetação (arbusto, cogumelo...) vira cinza e some (o mundo redesenha o chunk)
 		if not mapa.limpos.has(t):
 			var o := gerador.distribuicao.obstaculo(t)
-			if not o.is_empty():
+			if not o.is_empty() and Distribuicao.eh_arvore(o.nome):
+				var queimou: float = queima_arvore.get(t, 0.0)
+				queima_arvore.erase(t)
+				var antes: String = mapa.arvores.get(t, {}).get("e", "")
+				if antes == "caida":
+					continue
+				if queimou >= float(_d.fogo.get("arvore_cai_s", 18.0)):
+					var dir := _rumo_queda(t, vento)
+					mapa.arvores[t] = {"e": "caida", "dir": dir}
+					eventos.append({"tipo": "arvore_caiu", "tile": t, "dir": dir, "nome": o.nome})
+				elif antes != "queimada":
+					mapa.arvores[t] = {"e": "queimada"}
+					eventos.append({"tipo": "arvores_mudaram", "tiles": [t]})
+			elif not o.is_empty():
 				mapa.limpar_obstaculo(t)
 				_mancha(Vector2(t) + Vector2(0.5, 0.5), 1.8, QUEIM, 0.8)
 				eventos.append({"tipo": "vegetacao_queimada", "tile": t, "tiles": Grade.tiles_da_area(o.ancora, o.area, 0)})
@@ -541,7 +602,7 @@ func imagem(k: Vector2i) -> Image:
 
 
 func estado() -> Dictionary:
-	return {"dados": dados, "fogo": fogo, "rng": _rng.state, "plantas": plantas, "plantou": _plantou}
+	return {"dados": dados, "fogo": fogo, "rng": _rng.state, "plantas": plantas, "plantou": _plantou, "queima_arvore": queima_arvore}
 
 
 func restaurar(d: Dictionary) -> void:
@@ -549,6 +610,7 @@ func restaurar(d: Dictionary) -> void:
 	fogo = d.get("fogo", {})
 	plantas = d.get("plantas", {})
 	_plantou = d.get("plantou", {})
+	queima_arvore = d.get("queima_arvore", {})
 	versao_plantas += 1
 	_rng.state = d.get("rng", _rng.state)
 	for k in dados:

@@ -53,7 +53,8 @@ def lin(c):
 SEM_LISTRAS = {'locomotiva', 'muro_centro', 'muro_lado'}   # faixa grande = pintura lisa (zebrado só em faixa fina)
 _modelo_atual = ''
 _modelo_cat = ''
-ESPECIAIS = {'P_Esteira', 'P_Cristal', 'P_Fogo', 'P_Vidro', 'P_Biomassa', 'P_OlhoInimigo', 'P_Seiva'}
+ESPECIAIS = {'P_Esteira', 'P_Cristal', 'P_Fogo', 'P_Vidro', 'P_Biomassa', 'P_OlhoInimigo', 'P_Seiva',
+             'P_FolhaCaduca', 'P_FolhaBetula', 'P_FolhaPerene', 'P_FolhaSalgueiro', 'P_FolhaSeca'}   # folhagem: o jogo troca pela estação
 filtro = sys.argv[sys.argv.index('--') + 1] if '--' in sys.argv and len(sys.argv) > sys.argv.index('--') + 1 else ''
 
 

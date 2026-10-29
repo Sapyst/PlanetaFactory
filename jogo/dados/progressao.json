@@ -44,7 +44,9 @@
   "sinal_trem": {"placa_ferro": 3, "circuito": 1},
   "trem": {"placa_ferro": 40, "engrenagem": 20, "tubo": 10}
  },
- "drops": {"arvore_campina_a": {"biomassa": 4}, "arvore_campina_b": {"biomassa": 4}, "arvore_morta": {"biomassa": 2},
+ "drops": {"arv_carvalho": {"biomassa": 5}, "arv_betula": {"biomassa": 4}, "arv_pinheiro": {"biomassa": 5}, "arv_salgueiro": {"biomassa": 4},
+           "arv_acacia": {"biomassa": 3}, "arv_fungo_cristal": {"biomassa": 4, "cristal_bruto": 1}, "arvore_queimada": {"carvao": 2}, "tronco_caido": {"carvao": 3},
+           "arvore_campina_a": {"biomassa": 4}, "arvore_campina_b": {"biomassa": 4}, "arvore_morta": {"biomassa": 2},
            "arbusto": {"biomassa": 2}, "cogumelo_gigante_a": {"biomassa": 6}, "cogumelo_gigante_b": {"biomassa": 6},
            "cacto_cristal": {"cristal_bruto": 3}, "pedregulho": {"pedra": 6}, "rocha_grande": {"pedra": 20},
            "montanha_3x3": {"pedra": 45}, "montanha_5x5": {"pedra": 120}},

@@ -1,0 +1,33 @@
+{
+ "nome": "arv_betula_1",
+ "categoria": "mapa/vegetacao",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Bétula-prata (variação 1): estreita, tronco claro; caduca: amarela no outono, nua no inverno. Bloqueia 1 tile.",
+ "ocupa_canto": true,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 228,
+ "dims": [
+  0.534,
+  0.462,
+  2.558
+ ],
+ "materiais": [
+  "P_FolhaBetula",
+  "P_TroncoClaro"
+ ]
+}

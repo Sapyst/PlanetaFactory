@@ -42,7 +42,9 @@ predominante da estação; ficha do tile mostra “vento médio aqui: 64% · de 
 
 ---
 
-## Etapa 2 — Árvores por receita (v0.11)
+## Etapa 2 — Árvores por receita (v0.11) — feita
+Biomas: carvalho e bétula na campina; fungo-cristal e pinheiro na floresta fúngica; pinheiro no planalto; fungo-cristal no campo de cristal; acácia no deserto e no cinzal; salgueiro no pântano.
+
 **Receitas de árvore.** Cada espécie é uma receita (regras no Blender): altura do tronco, quantas vezes ramifica,
 ângulo dos galhos, forma da copa, cor da folha por estação, se perde folha. Cada receita gera **6 variações** por
 semente. Proposta inicial (6 espécies = 36 árvores):

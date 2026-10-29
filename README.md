@@ -25,8 +25,10 @@ sistema de construção. O jogo começa com o núcleo caindo do espaço.
 | Nuvens altas: luz parcial e passagens diretas de sol | O mundo é natural (margens redondas); só as construções seguem a grade 1×1 |
 | ![Dia, entardecer e noite](docs/midia/dia_noite.jpg) | ![Estruturas novas](docs/midia/estruturas_novas.jpg) |
 | Dia, entardecer e noite: à noite o painel solar para e os cristais das máquinas se destacam | Coletor de lixo, filtro de água, viveiro, painel solar, turbina eólica, acumulador e baú grande |
-| ![Mapa do vento](docs/midia/vento.jpg) | |
-| Visão de recursos, camada Vento: vento médio de cada lugar e a direção predominante | |
+| ![Mapa do vento](docs/midia/vento.jpg) | ![Árvores nas quatro estações](docs/midia/arvores_estacoes.jpg) |
+| Visão de recursos, camada Vento: vento médio de cada lugar e a direção predominante | Mesmo bosque na primavera, verão, outono e inverno |
+| ![Árvores por receita](docs/midia/arvores.jpg) | |
+| Árvores por receita: carvalho, bétula, pinheiro, salgueiro, acácia e fungo-cristal (3 de 6 variações cada) | |
 
 ## Pastas
 - `jogo/` — projeto Godot 4.7 (código, dados, testes). Ver `jogo/README.md`.
@@ -41,7 +43,7 @@ sistema de construção. O jogo começa com o núcleo caindo do espaço.
 2. `jogo/ferramentas/testar.sh` — importa e roda todos os testes do jogo sem janela.
 3. `godot --path jogo --write-movie /tmp/q.png --fixed-fps 30 --quit-after 70 -- camera X Z DIST` — foto real.
 4. `python3 jogo/ferramentas/gerar_sons.py` — sintetiza os sons; `python3 jogo/ferramentas/gerar_nuvens.py` — mapa das nuvens.
-5. `godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.10.0.apk` — APK.
+5. `godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.11.0.apk` — APK.
 6. `... -- camera -3 2 11 roteiro construir` (ou `roteiro toque`) — teste visual da construção com cliques/toques injetados.
 7. `godot --path jogo --write-movie /tmp/v/q.png --fixed-fps 30 -- roteiro mostruario voo` — regrava o voo do mostruário
    (sem `voo` e com `camera X Z DIST` tira prints; `visao`/`setas` ligam a visão de recursos/as setas).
@@ -74,6 +76,8 @@ sistema de construção. O jogo começa com o núcleo caindo do espaço.
 - Vento com rumo de cada estação e rajadas que atravessam o campo (grama e árvores se curvam); o lugar muda o vento
   (alto e aberto venta mais, mata e construção abrigam); turbinas giram a cabeça para o vento; a poluição do ar vai
   vento abaixo; a visão de recursos mostra o mapa do vento.
+- Árvores por receita (6 espécies × 6 variações) que mudam com a estação (outono colorido, inverno nu, broto na
+  primavera); o fogo queima a copa, carboniza o tronco e, se durar, derruba a árvore vento abaixo.
 
 ## Arte
 - `arte/FICHA_DE_ESTILO.md` — regras de grade, portas, cantos livres, esteira elevada, paleta e orçamento.
@@ -83,6 +87,6 @@ sistema de construção. O jogo começa com o núcleo caindo do espaço.
 - `arte/icones/` — ícones da barra de construção (renderizados dos .glb por `icones.py`, fundo transparente).
 - `arte/_obsoleto/` — versões antigas, só para referência.
 
-## Modelos (114), texturas (13) e ícones (60)
+## Modelos (150), texturas (13) e ícones (60)
 Itens 25 · logística 20 · máquinas/energia/defesa 12 · transporte 8 · inimigos 5 · mapa 25 (vegetação 10, rochas 6,
 jazidas 8, água 1) · texturas de chão: 7 biomas + jazida + praia + 2 águas + ruído de detalhe.

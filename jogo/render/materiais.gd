@@ -8,15 +8,20 @@ const VELOCIDADE_ESTEIRA := 1.875
 
 static var _cache: Dictionary = {}
 
+## Folhagem das árvores por receita: perfil da estação no shader (0 perene, 1 caduca laranja, 2 salgueiro,
+## 3 acácia, 4 caduca amarela).
+const PERFIL_FOLHA := {"P_FolhaPerene": 0, "P_FolhaCaduca": 1, "P_FolhaSalgueiro": 2, "P_FolhaSeca": 3, "P_FolhaBetula": 4}
+
 
 ## `uv2` = a malha tem 2º canal de UV (modelo texturizado: a lona da esteira rola por ele).
-static func material(origem: Material, vento := 0.0, boiar := 0.0, uv2 := false) -> Material:
+## `carbonizada` = versão queimada (árvore em pé carbonizada ou caída): tudo carvão, sem folha.
+static func material(origem: Material, vento := 0.0, boiar := 0.0, uv2 := false, carbonizada := false) -> Material:
 	if not (origem is BaseMaterial3D):
 		return origem
 	var nome := origem.resource_name
 	var b := origem as BaseMaterial3D
 	var tex := b.albedo_texture
-	var chave := "%s|%.2f|%.2f|%s|%d" % [nome, vento, boiar, uv2, tex.get_instance_id() if tex != null else 0]
+	var chave := "%s|%.2f|%.2f|%s|%d|%s" % [nome, vento, boiar, uv2, tex.get_instance_id() if tex != null else 0, carbonizada]
 	if _cache.has(chave):
 		return _cache[chave]
 	var m := ShaderMaterial.new()
@@ -35,8 +40,12 @@ static func material(origem: Material, vento := 0.0, boiar := 0.0, uv2 := false)
 	if nome == "P_Cristal":
 		m.set_shader_parameter("por_trabalho", true)
 	# vegetação: o material assado ("<modelo>_Tex") também balança e queima (antes só os de nome P_Folha…)
-	if vento > 0.0 and (nome in ["P_Folha", "P_FolhaClara", "P_Biomassa", "P_Lodo", "P_Malaquita", "P_Cristal", "P_FungoCaule"] or nome.ends_with("_Tex")):
+	if vento > 0.0 and (nome in ["P_Folha", "P_FolhaClara", "P_Biomassa", "P_Lodo", "P_Malaquita", "P_Cristal", "P_FungoCaule"] or nome.ends_with("_Tex") or PERFIL_FOLHA.has(nome)):
 		m.set_shader_parameter("vento", vento)
+	if PERFIL_FOLHA.has(nome):
+		m.set_shader_parameter("perfil_folha", PERFIL_FOLHA[nome])
+	if carbonizada:
+		m.set_shader_parameter("carbonizada", true)
 	m.set_shader_parameter("boiar", boiar)
 	if tex != null:
 		m.set_shader_parameter("textura", tex)
@@ -60,7 +69,7 @@ static func converter(raiz: Node, vento := 0.0, boiar := 0.0) -> void:
 
 
 ## Malha única de um .glb de uma parte só (para MultiMesh), já com materiais convertidos.
-static func malha_de(cena: PackedScene, vento := 0.0, boiar := 0.0) -> Mesh:
+static func malha_de(cena: PackedScene, vento := 0.0, boiar := 0.0, carbonizada := false) -> Mesh:
 	var inst := cena.instantiate()
 	var mis := inst.find_children("*", "MeshInstance3D", true, false)
 	if mis.is_empty():
@@ -70,6 +79,6 @@ static func malha_de(cena: PackedScene, vento := 0.0, boiar := 0.0) -> Mesh:
 	var copia := orig.duplicate() as Mesh
 	for s in copia.get_surface_count():
 		var uv2: bool = (copia.surface_get_format(s) & Mesh.ARRAY_FORMAT_TEX_UV2) != 0
-		copia.surface_set_material(s, material(orig.surface_get_material(s), vento, boiar, uv2))
+		copia.surface_set_material(s, material(orig.surface_get_material(s), vento, boiar, uv2, carbonizada))
 	inst.free()
 	return copia

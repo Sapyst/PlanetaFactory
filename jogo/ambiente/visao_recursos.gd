@@ -456,11 +456,15 @@ func descrever(t: Vector2i) -> String:
 	elif not mapa.limpos.has(t):
 		var o := gerador.distribuicao.obstaculo(t)
 		if not o.is_empty():
-			var drops: Dictionary = Registro.progressao.get("drops", {}).get(o.nome, {})
+			if mapa.arvores.has(t):
+				o = o.duplicate()
+				o["estado"] = mapa.arvores[t].e
+			var drops: Dictionary = MapaOcupacao.drops_de(o)
 			var rende: Array[String] = []
 			for k in drops:
 				rende.append("%d %s" % [int(drops[k]), Registro.itens.get(k, {}).get("nome", k).to_lower()])
-			var txt: String = _d.elementos.get(o.nome, o.nome)
+			var txt: String = _d.elementos.get(o.nome, _d.elementos.get(Distribuicao.especie(o.nome), o.nome))
+			txt += {"queimada": " (queimada)", "caida": " (caída, carbonizada)"}.get(o.get("estado", ""), "")
 			if not rende.is_empty():
 				txt += " — remover rende " + ", ".join(rende)
 			linhas.append(txt)

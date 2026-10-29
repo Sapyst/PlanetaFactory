@@ -71,6 +71,32 @@ func _ready() -> void:
 				cam.alvo = Grade.ponto_mundo(Vector2(_ids_o) + Vector2(1.0, 4.0), 2.0)
 				cam.distancia = 11.0
 				cam.posicionar())
+		"arvores":                                     # o bosque mais denso perto do início (use com -- estacao E F)
+			em(2, func():
+				Sessao.config.fps = false
+				var c := _bosque()
+				_sem_ninhos(c)
+				var cam: CameraJogo = cena.camera
+				cam.alvo = Grade.ponto_mundo(Vector2(c) + Vector2(6, 6))
+				cam.distancia = 15.0
+				cam.posicionar())
+		"queimada":                                    # fogo num bosque: copa queima, tronco carboniza, fogo longo derruba
+			em(2, func():
+				Sessao.config.fps = false
+				var c := _bosque()
+				_sem_ninhos(c)
+				cena.clima.forcar("limpo", true)
+				var cam: CameraJogo = cena.camera
+				cam.alvo = Grade.ponto_mundo(Vector2(c) + Vector2(6, 6))
+				cam.distancia = 14.0
+				cam.posicionar()
+				var amb: AmbienteVivo = cena.ambiente
+				for y in 12:
+					for x in 12:
+						var t := c + Vector2i(x, y)
+						var o: Dictionary = cena.gerador.distribuicao.obstaculo(t)
+						if not o.is_empty() and Distribuicao.eh_arvore(o.nome) and (x + y) % 3 == 0:
+							amb.fogo[t] = 8.0 + 16.0 * float((x * 7 + y * 3) % 5) / 4.0)
 		"faiscas":                                     # acumulador carregado de perto (use com -- hora 0.0)
 			_roteiro_energia()
 			em(180, func():                            # depois do roteiro de energia mexer na câmera
@@ -633,6 +659,26 @@ func _roteiro_limpeza() -> void:
 				m.fluidos["seiva"] = 1000.0
 				m.acordar()
 		Engine.time_scale = 6.0)
+
+
+## Canto (12×12 tiles) com mais árvores destas espécies num raio de 90 tiles do início.
+func _bosque(especies: Array = ["arv_carvalho", "arv_betula"]) -> Vector2i:
+	var g: GeradorMundo = cena.gerador
+	var melhor := Vector2i.ZERO
+	var mais := -1
+	for cy in range(-90, 90, 6):
+		for cx in range(-90, 90, 6):
+			var n := 0
+			for y in range(0, 12, 2):
+				for x in range(0, 12, 2):
+					var o := g.distribuicao.obstaculo(Vector2i(cx + x, cy + y))
+					if not o.is_empty() and Distribuicao.especie(o.nome) in especies:
+						n += 1
+			if n > mais:
+				mais = n
+				melhor = Vector2i(cx, cy)
+	print("BOSQUE em ", melhor, " árvores (amostra) ", mais)
+	return melhor
 
 
 ## Tira ninhos (e suas aranhas) a até 60 tiles: cena só da limpeza.

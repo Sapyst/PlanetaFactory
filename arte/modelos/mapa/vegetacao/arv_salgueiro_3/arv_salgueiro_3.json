@@ -1,0 +1,33 @@
+{
+ "nome": "arv_salgueiro_3",
+ "categoria": "mapa/vegetacao",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Salgueiro-do-pântano (variação 3): galhos caídos; amarelado no inverno. Bloqueia 1 tile.",
+ "ocupa_canto": true,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 212,
+ "dims": [
+  0.877,
+  0.888,
+  1.521
+ ],
+ "materiais": [
+  "P_FolhaSalgueiro",
+  "P_Tronco"
+ ]
+}

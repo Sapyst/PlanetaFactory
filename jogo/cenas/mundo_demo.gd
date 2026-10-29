@@ -139,12 +139,18 @@ func _ready() -> void:
 	var ci := args.find("clima")
 	if ci >= 0 and args.size() > ci + 1:
 		clima.forcar(args[ci + 1], true)
+	var ei := args.find("estacao")                # fotos: -- estacao 2 0.5 (outono pela metade)
+	if ei >= 0 and args.size() > ei + 2:
+		clima.tempo_real = false
+		clima.estacao = int(args[ei + 1])
+		clima.t_estacao = float(args[ei + 2]) * float(Registro.clima.estacao_s)
 	# fotos: relógio parado (de dia, ou -- hora 0.0 meia-noite … 0.5 meio-dia); -- ciclo deixa o dia andar
 	var hi := args.find("hora")
 	if args.has("roteiro") and not args.has("ciclo"):
 		clima.ciclo = false
 		clima.tempo_real = false
-		clima.t_estacao = float(Registro.clima.estacao_s) * 0.5     # meio da estação (vento no rumo dela)
+		if not args.has("estacao"):
+			clima.t_estacao = float(Registro.clima.estacao_s) * 0.5     # meio da estação (vento no rumo dela)
 		clima.hora = 0.45
 	if hi >= 0 and args.size() > hi + 1:
 		clima.hora = float(args[hi + 1])
@@ -226,7 +232,7 @@ func salvar() -> void:
 		return
 	var ok := Salvamento.gravar({"modo": modo, "semente": semente, "tempo": _tempo,
 			"camera": [camera.alvo, camera.distancia, camera.angulo],
-			"mapa": {"estruturas": mapa.estruturas, "limpos": mapa.limpos.keys(), "prox": mapa._prox_id},
+			"mapa": {"estruturas": mapa.estruturas, "limpos": mapa.limpos.keys(), "prox": mapa._prox_id, "arvores": mapa.arvores},
 			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores, "clima": clima.estado(), "aplainado": gerador.aplainados(), "ambiente": ambiente.estado(), "agua": agua.estado(),
 			"estoques": estoques, "inventario": inventario, "pesquisa": pesquisa.estado(),
 			"trens": trens.map(func(t: Trem): return t.para_salvar()), "prox_trem": _prox_trem})
@@ -235,7 +241,7 @@ func salvar() -> void:
 
 
 func _carregar(d: Dictionary) -> void:
-	mapa.restaurar(d.mapa.estruturas, d.mapa.limpos, d.mapa.prox)
+	mapa.restaurar(d.mapa.estruturas, d.mapa.limpos, d.mapa.prox, d.mapa.get("arvores", {}))
 	inventario.merge(d.inventario, true)
 	pesquisa.restaurar(d.pesquisa)
 	for id in d.estoques:
@@ -417,7 +423,8 @@ func _atualizar_chunks() -> void:
 			chunks[k] = d
 			if ambiente.dados.has(k) or ambiente.dados.has(k + Vector2i(1, 0)) or ambiente.dados.has(k - Vector2i(1, 0)) \
 					or ambiente.dados.has(k + Vector2i(0, 1)) or ambiente.dados.has(k - Vector2i(0, 1)):
-				ambiente.sujos[k] = true
+				d.atualizar_ambiente(ambiente.imagem(k))   # já nasce suja/queimada (sem piscar o chão limpo)
+				ambiente.sujos.erase(k)
 	# encomenda os que faltam, do centro para fora
 	if _em_preparo.size() >= TAREFAS:
 		return
@@ -442,6 +449,40 @@ func _encomendar(k: Vector2i) -> void:
 
 
 ## Redesenha um chunk já visível (obstáculo limpo ou devolvido): o novo é preparado no fundo e troca o velho.
+## Árvores mudaram de estado (queimada, rebrotou): refaz só os objetos dos chunks (rápido, na hora).
+func _refazer_arvores(tiles: Array) -> void:
+	var ks := {}
+	for t in tiles:
+		ks[Grade.chunk_de(t)] = true
+	for k in ks:
+		if chunks.has(k):
+			chunks[k].refazer_objetos()
+
+
+## Árvore carbonizada cai vento abaixo: o chunk esconde a de pé, uma cópia tomba acelerando (1,4 s), bate no chão
+## e o chunk passa a desenhar a caída.
+func _derrubar(t: Vector2i, dir: Vector2, nome: String) -> void:
+	var o := gerador.distribuicao.obstaculo(t)
+	if o.is_empty():
+		return
+	var centro := Grade.centro_da_area(o.ancora, o.area, 0)
+	var t0 := Transform3D(Basis(Vector3.UP, Grade.angulo(o.rot)), Grade.ponto_mundo(centro, gerador.micro_em(centro - Vector2(0.5, 0.5))))
+	var t1 := DesenhoChunk.tombada(t0, dir)
+	var no := MeshInstance3D.new()
+	no.mesh = DesenhoChunk.malha(nome + "#queimada", 1.0)
+	no.transform = t0
+	add_child(no)
+	DesenhoChunk.ocultos[t] = true
+	_refazer_arvores([t])
+	var tw := create_tween()
+	tw.tween_method(func(p: float): no.transform = t0.interpolate_with(t1, p * p), 0.0, 1.0, 1.4)
+	tw.tween_callback(func():
+		Som.tocar("impacto", t1.origin, -14.0)
+		no.queue_free()
+		DesenhoChunk.ocultos.erase(t)
+		_refazer_arvores([t]))
+
+
 func _redesenhar_chunk(k: Vector2i) -> void:
 	if chunks.has(k) and not _em_preparo.has(k):
 		_encomendar(k)
@@ -935,6 +976,10 @@ func _tick_mundo(dt: float) -> void:
 	for ev in ambiente.eventos:
 		if ev.tipo == "fogo_inicio" and is_instance_valid(controle):
 			controle._avisar("Incêndio! A vegetação seca pegou fogo perto de uma máquina quente")
+		elif ev.tipo == "arvores_mudaram":
+			_refazer_arvores(ev.tiles)
+		elif ev.tipo == "arvore_caiu":
+			_derrubar(ev.tile, ev.dir, ev.nome)
 		elif ev.tipo == "vegetacao_queimada":
 			var rel := construtor._relatorio_vazio()
 			rel.limpos.append({"tile": ev.tile, "tiles": ev.tiles})
