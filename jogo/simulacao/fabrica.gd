@@ -199,6 +199,12 @@ func _montar_maquinas() -> void:
 						m.definir_receita(rec, Registro.receitas[rec])
 				"bomba":
 					m.definir_receita("bombear_seiva", Registro.receitas["bombear_seiva"])
+				"filtro":
+					m.definir_receita("filtrar_agua", Registro.receitas["filtrar_agua"])
+				"coletor":
+					m.definir_receita("coletar_lixo", Registro.receitas["coletar_lixo"])
+				"viveiro":
+					m.definir_receita("plantar_muda", Registro.receitas["plantar_muda"])
 		if r.get("combustivel", false) and not combustivel.has(id):
 			combustivel[id] = 0.0
 	for id in mapa.estruturas:

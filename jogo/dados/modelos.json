@@ -3645,6 +3645,85 @@
   ],
   "modelo": "res://assets/modelos/maquinas/broca_minerio.glb"
  },
+ "coletor_lixo": {
+  "nome": "coletor_lixo",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "coletor de lixo: silo octogonal com janela de lodo, dois bocais de sucção que descem até o chão e turbina de exaustão que gira no topo; aspira sujeira e óleo em volta.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "rotor",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.0,
+     1.32
+    ]
+   },
+   {
+    "nome": "pistao0",
+    "pai": "corpo",
+    "pivo": [
+     -0.55,
+     -0.745,
+     0.32
+    ]
+   },
+   {
+    "nome": "pistao1",
+    "pai": "corpo",
+    "pivo": [
+     0.55,
+     -0.745,
+     0.32
+    ]
+   }
+  ],
+  "portas": [],
+  "terminais": [
+   [
+    -0.85,
+    -0.85,
+    0.372
+   ],
+   [
+    -0.85,
+    0.85,
+    0.372
+   ],
+   [
+    0.85,
+    -0.85,
+    0.372
+   ],
+   [
+    0.85,
+    0.85,
+    0.372
+   ]
+  ],
+  "tris": 1100,
+  "dims": [
+   1.9,
+   1.9,
+   1.52
+  ],
+  "modelo": "res://assets/modelos/maquinas/coletor_lixo.glb"
+ },
  "extrator_cristal": {
   "nome": "extrator_cristal",
   "categoria": "maquinas",
@@ -3766,6 +3845,85 @@
    2.55
   ],
   "modelo": "res://assets/modelos/maquinas/extrator_cristal.glb"
+ },
+ "filtro_agua": {
+  "nome": "filtro_agua",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "filtro de água: três colunas de vidro com água limpa, coletor por cima e bomba de impulsor que gira; tomada d'água pelo ralo da borda sul.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "rotor",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.0,
+     1.38
+    ]
+   },
+   {
+    "nome": "pistao0",
+    "pai": "corpo",
+    "pivo": [
+     -0.62,
+     -0.55,
+     0.48
+    ]
+   },
+   {
+    "nome": "pistao1",
+    "pai": "corpo",
+    "pivo": [
+     0.62,
+     -0.55,
+     0.48
+    ]
+   }
+  ],
+  "portas": [],
+  "terminais": [
+   [
+    -0.85,
+    -0.85,
+    0.372
+   ],
+   [
+    -0.85,
+    0.85,
+    0.372
+   ],
+   [
+    0.85,
+    -0.85,
+    0.372
+   ],
+   [
+    0.85,
+    0.85,
+    0.372
+   ]
+  ],
+  "tris": 1420,
+  "dims": [
+   1.9,
+   1.9,
+   1.48
+  ],
+  "modelo": "res://assets/modelos/maquinas/filtro_agua.glb"
  },
  "fornalha": {
   "nome": "fornalha",
@@ -4457,6 +4615,96 @@
    2.23
   ],
   "modelo": "res://assets/modelos/maquinas/terraplenagem.glb"
+ },
+ "viveiro": {
+  "nome": "viveiro",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "viveiro: estufa aberta (telhado de vidro) com canteiros de mudas, aspersor que gira no topo; seiva entra pelo cano a oeste e vira muda plantada em volta.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "antena",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.0,
+     1.62
+    ]
+   },
+   {
+    "nome": "pistao0",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     -0.45,
+     0.46
+    ]
+   },
+   {
+    "nome": "pistao1",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.45,
+     0.46
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_ENT_O0",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     -1.0,
+     -0.5,
+     0.35
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "terminais": [
+   [
+    -0.85,
+    0.85,
+    0.372
+   ],
+   [
+    0.85,
+    -0.85,
+    0.372
+   ],
+   [
+    0.85,
+    0.85,
+    0.372
+   ]
+  ],
+  "tris": 1052,
+  "dims": [
+   1.95,
+   1.9,
+   1.73
+  ],
+  "modelo": "res://assets/modelos/maquinas/viveiro.glb"
  },
  "esteira_ht": {
   "nome": "esteira_ht",

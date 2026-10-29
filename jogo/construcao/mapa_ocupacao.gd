@@ -52,6 +52,8 @@ func motivo_bloqueio(nome: String, minimo: Vector2i, rot: int) -> String:
 				achou_jazida = true
 	if not achou_jazida:
 		return "sem_jazida"
+	if def.get("perto_agua", false) and not encosta_na_agua(minimo, area, rot):
+		return "longe_da_agua"
 	var alt := _altura(nome)
 	for t in Grade.tiles_da_area(minimo, area, rot):
 		for n in range(1, NIVEIS + 1):
@@ -62,6 +64,17 @@ func motivo_bloqueio(nome: String, minimo: Vector2i, rot: int) -> String:
 			if cantos.has(c) and estruturas[cantos[c]].nome.begins_with("pilar"):
 				return "pilar_no_canto"
 	return ""
+
+
+## A área (ou a volta dela, 1 tile) toca água — rio, lago ou buraco cheio?
+func encosta_na_agua(minimo: Vector2i, area: Vector2i, rot: int) -> bool:
+	for t in Grade.tiles_da_area(minimo, area, rot):
+		for y in range(-1, 2):
+			for x in range(-1, 2):
+				var n := t + Vector2i(x, y)
+				if gerador.eh_agua(gerador.terreno(n)) or gerador.superficie_em(n) != null:
+					return true
+	return false
 
 
 ## Algum tile da área é água (rio, lago ou buraco cheio)? Então a construção vai sobre plataforma com pilares.

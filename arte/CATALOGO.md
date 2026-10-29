@@ -1,6 +1,6 @@
 # Catálogo de modelos
 
-107 modelos. Gerado por `blender_scripts/catalogo.py` — não editar à mão.
+110 modelos. Gerado por `blender_scripts/catalogo.py` — não editar à mão.
 
 Portas: `ITEM`/`FLUIDO`/`TRILHO`, `ENT`/`SAI`, lado (S/N/L/O) e índice do tile na borda. Ficam no .glb como nós `PORTA_*`.
 Partes: peças móveis exportadas separadas (o jogo anima pelo nome — ver jogo/render/animacao/animador.gd).
@@ -94,13 +94,16 @@ Texturas de chão em `texturas/` (loop sem emenda; relatório em `texturas/_emen
 | Modelo | Área | Tri | Dimensões (m) | Portas | Descrição |
 |---|---|---|---|---|---|
 | `broca_minerio` | 2×2 | 924 | 1,90 × 1,95 × 1,62 | ITEM_SAI_S0 · partes: rotor, pistao0, pistao1 | broca: carcaça octogonal blindada, coroa de lâminas que gira em volta do eixo de perfuração e dois pistões que cravam a broca. Saída sul (tile da esquerda). |
+| `coletor_lixo` | 2×2 | 1100 | 1,90 × 1,90 × 1,52 | — · partes: rotor, pistao0, pistao1 | coletor de lixo: silo octogonal com janela de lodo, dois bocais de sucção que descem até o chão e turbina de exaustão que gira no topo; aspira sujeira e óleo em volta. |
 | `extrator_cristal` | 3×3 | 1398 | 2,90 × 2,95 × 2,55 | ITEM_SAI_S1 · partes: hastes, cristal, pistao0, pistao1, pistao2, pistao3 | extrator de cristal: câmara octogonal sobre a jazida, quatro pilones que suspendem o prisma de ressonância, anel de extração que sobe e desce e calha de luz até a boca sul. |
+| `filtro_agua` | 2×2 | 1420 | 1,90 × 1,90 × 1,48 | — · partes: rotor, pistao0, pistao1 | filtro de água: três colunas de vidro com água limpa, coletor por cima e bomba de impulsor que gira; tomada d'água pelo ralo da borda sul. |
 | `fornalha` | 2×2 | 836 | 1,90 × 2,00 × 1,19 | ITEM_ENT_S1, ITEM_SAI_N0 · partes: pistao0, pistao1 | fornalha de indução: cadinho octogonal, núcleo incandescente visto por frestas, bobinas de cobre e aletas de calor. Entra pelo sul, sai pelo norte. |
 | `laboratorio` | 3×3 | 1302 | 2,90 × 2,95 × 2,54 | ITEM_ENT_S1 · partes: antena, pistao0, pistao1, pistao2, pistao3 | laboratório: tambor octogonal, cúpula de sensores com pilares de dados de cristal e varredor que gira no topo. Entra pelo sul (meio). |
 | `montadora` | 3×3 | 1442 | 2,90 × 3,00 × 1,83 | ITEM_ENT_S1, ITEM_SAI_N1 · partes: antena, cristal, pistao0, pistao1, pistao2, pistao3 | montadora: câmara blindada octogonal, anel manipulador suspenso que gira e prisma de montagem de cristal. Entra pelo sul, sai pelo norte (meio). |
 | `nucleo` | 3×3 | 1426 | 3,00 × 3,00 × 2,56 | ITEM_ENT_S1, ITEM_ENT_N1, ITEM_ENT_L1, ITEM_ENT_O1 · partes: cristal, antena, pistao0, pistao1, pistao2, pistao3 | Núcleo: a unidade semeadora da IA. Tudo que entra (esteira nas 4 bocas ou braço) vira estoque para construir. Partes: cristal (monólito pulsa), antena (anel gira). |
 | `refinador` | 3×3 | 1374 | 3,00 × 2,95 × 3,12 | FLUIDO_ENT_O1, FLUIDO_SAI_L1, ITEM_SAI_N0 · partes: antena, pistao0, pistao1 | refinador: dois reatores octogonais e torre de fracionamento com anel de campo que gira; fluido entra a oeste, sai a leste; item ao norte. |
 | `terraplenagem` | 3×3 | 1158 | 2,90 × 2,90 × 2,23 | — · partes: antena, cristal, cabecote, pistao0, pistao1 | Terraplenagem: unidade de modelagem do terreno da IA. Enquanto existir, libera Aplainar em qualquer lugar do mapa. Partes: antena (anel de sensores gira), cristal (núcleo pulsa), bloco (rocha suspensa). |
+| `viveiro` | 2×2 | 1052 | 1,95 × 1,90 × 1,73 | FLUIDO_ENT_O0 · partes: antena, pistao0, pistao1 | viveiro: estufa aberta (telhado de vidro) com canteiros de mudas, aspersor que gira no topo; seiva entra pelo cano a oeste e vira muda plantada em volta. |
 
 ## Energia e fluidos
 

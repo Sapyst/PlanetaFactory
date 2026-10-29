@@ -87,6 +87,7 @@ func _sincronizar_aranhas() -> void:
 			_aranhas[id] = no
 		var p := Grade.ponto_mundo(ar.pos)
 		no.ir_para(p)
+		no.definir_furia(colonia.furia(ar))
 		no.atacando = ar.mordendo
 		if ar.mordendo and ar.has("mordida"):
 			no.encarar(Grade.ponto_mundo(ar.mordida))

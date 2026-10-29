@@ -1,0 +1,88 @@
+{
+ "nome": "filtro_agua",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "filtro de água: três colunas de vidro com água limpa, coletor por cima e bomba de impulsor que gira; tomada d'água pelo ralo da borda sul.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "rotor",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.0,
+    1.38
+   ]
+  },
+  {
+   "nome": "pistao0",
+   "pai": "corpo",
+   "pivo": [
+    -0.62,
+    -0.55,
+    0.48
+   ]
+  },
+  {
+   "nome": "pistao1",
+   "pai": "corpo",
+   "pivo": [
+    0.62,
+    -0.55,
+    0.48
+   ]
+  }
+ ],
+ "portas": [],
+ "terminais": [
+  [
+   -0.85,
+   -0.85,
+   0.372
+  ],
+  [
+   -0.85,
+   0.85,
+   0.372
+  ],
+  [
+   0.85,
+   -0.85,
+   0.372
+  ],
+  [
+   0.85,
+   0.85,
+   0.372
+  ]
+ ],
+ "tris": 1420,
+ "dims": [
+  1.9,
+  1.9,
+  1.48
+ ],
+ "materiais": [
+  "P_Aco",
+  "P_Agua",
+  "P_Cobre",
+  "P_Concreto",
+  "P_Cristal",
+  "P_Escuro",
+  "P_Metal",
+  "P_Vidro"
+ ]
+}

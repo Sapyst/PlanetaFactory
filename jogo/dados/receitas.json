@@ -8,6 +8,9 @@
  "minerar_silex":    {"maquina": "broca", "jazida": "jazida_silex",  "entradas": {}, "saidas": {"silex": 1}, "tempo": 2.5},
  "minerar_areia":    {"maquina": "broca", "jazida": "jazida_areia",  "entradas": {}, "saidas": {"areia": 1}, "tempo": 1.5},
  "bombear_seiva":    {"maquina": "bomba", "jazida": "poca_seiva",    "entradas": {}, "saidas_fluido": {"seiva": 10}, "tempo": 1.0},
+ "filtrar_agua":     {"maquina": "filtro",  "entradas": {}, "saidas": {}, "tempo": 1.0},
+ "coletar_lixo":     {"maquina": "coletor", "entradas": {}, "saidas": {}, "tempo": 1.0},
+ "plantar_muda":     {"maquina": "viveiro", "entradas": {}, "entradas_fluido": {"seiva": 10}, "saidas": {}, "tempo": 15.0},
 
  "fundir_ferro":     {"maquina": "fornalha", "entradas": {"minerio_ferro": 1}, "saidas": {"placa_ferro": 1}, "tempo": 3.2},
  "fundir_cobre":     {"maquina": "fornalha", "entradas": {"minerio_cobre": 1}, "saidas": {"placa_cobre": 1}, "tempo": 3.2},

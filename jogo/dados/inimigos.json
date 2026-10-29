@@ -15,5 +15,7 @@
  },
  "aranha": {"vida": 60, "dano": 15, "velocidade": 1.4, "alcance": 1.2, "raio_procura": 20, "altura_que_bloqueia": 0.5},
  "expansao": {"intervalo_s": 150, "dist_min": 14, "dist_max": 30, "tempo_obra": 10, "livre_de_estruturas": 26, "longe_do_spawn": 40, "construtoras": 3, "poluicao_para_expandir": 30},
- "torre": {"municao_inicial": 60}
+ "torre": {"municao_inicial": 60},
+ "furia": {"_nota": "chão sujo em volta do ninho (sujeira, óleo, água suja, num raio) deixa as aranhas furiosas: 0 = limpo, 1 = média 'sujo_cheio' ou mais. Cada efeito é o ganho em fúria 1.",
+           "raio": 24, "sujo_cheio": 0.12, "recalcula_s": 5, "dano": 0.8, "velocidade": 0.4, "producao": 1.0, "grupo_menos": 2, "raio_ataque": 0.5}
 }

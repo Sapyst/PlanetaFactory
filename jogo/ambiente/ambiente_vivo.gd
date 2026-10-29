@@ -9,6 +9,10 @@ extends RefCounted
 ##  - fogo: máquinas quentes podem acender a vegetação seca em volta (estação + chão seco); o fogo anda com o vento,
 ##    queima o tile (vira chão queimado), machuca construção encostada e apaga com chuva;
 ##  - tufão: vento extremo — espalha fogo e sujeira e danifica estruturas frágeis.
+##  - consequências: bomba de seiva com poça contaminada rende menos e se desgasta; o chão sujo em volta de um ninho
+##    deixa as aranhas furiosas (furia_em, lida pela Colonia);
+##  - limpeza: coletor aspira sujeira e óleo, filtro limpa a água, viveiro planta mudas que crescem, viram árvore,
+##    limpam o chão em volta e absorvem poluição do ar.
 ## Os valores são por tile (dado de simulação); o desenho é contínuo (mistura suave + ruído, nunca em quadrados).
 ## Só existem chunks com algum valor: o custo segue a sujeira, não o tamanho do mapa.
 
@@ -31,6 +35,12 @@ var _acum := 0.0
 var _d: Dictionary
 var _agua_perto := {}                ## id da máquina → tile de água mais perto (ou nulo)
 var _rumo := {}                      ## tile → para onde a enxurrada leva (tile vizinho mais baixo ou água; nulo = baixada)
+var plantas: Dictionary = {}         ## tile → crescimento 0..1 (muda do viveiro; 1 = árvore adulta)
+var versao_plantas := 0              ## muda quando alguma planta nasce, cai ou cresce um degrau (o desenho refaz)
+var contaminacao: Dictionary = {}    ## id da bomba → contaminação 0..1 da poça (último passo)
+var poluicao: Poluicao               ## (opcional) as árvores plantadas absorvem dela
+var _plantou: Dictionary = {}        ## id do viveiro → ciclos já transformados em muda
+var _versao_mapa := -1
 
 
 func _init(p_gerador: GeradorMundo, p_mapa: MapaOcupacao, semente := 9) -> void:
@@ -107,12 +117,198 @@ func _passo(fabrica: Fabrica, clima: Clima) -> void:
 			var alvo: Vector2i = Vector2i((c + Vector2.from_angle(_rng.randf() * TAU) * (1.2 + 0.5 * e.area.x)).floor())
 			if _inflamavel(alvo):
 				_acender(alvo)
+	_limpeza(fabrica)
+	_bombas(fabrica)
+	_plantas()
 	_escorrer(chuva)
 	_agua()
 	_fogo(chuva, vento, secura, tufao)
 	if tufao:
 		_tufao(vento)
 	_decair(chuva)
+
+
+# ------------------------------------------------------------------ consequências e limpeza
+## Tira `v` (por s) do canal em volta de `c`: cheio no meio, metade na borda do raio.
+func _limpar(c: Vector2, raio: float, canal: int, v: float) -> void:
+	if v <= 0.0:
+		return
+	var r := int(ceil(raio))
+	for y in range(floori(c.y) - r, floori(c.y) + r + 1):
+		for x in range(floori(c.x) - r, floori(c.x) + r + 1):
+			var d := (Vector2(x, y) + Vector2(0.5, 0.5)).distance_to(c)
+			if d < raio:
+				somar(Vector2i(x, y), canal, -v * (1.0 - 0.5 * d / raio))
+
+
+## Coletor e filtro limpam em volta enquanto trabalham (na proporção da energia); viveiro: cada ciclo pronto = uma muda.
+func _limpeza(fabrica: Fabrica) -> void:
+	for id in fabrica.maquinas:
+		var m: Maquina = fabrica.maquinas[id]
+		var r: Dictionary = Registro.estruturas.get(m.nome, {})
+		if not mapa.estruturas.has(id) or not (r.has("limpa") or r.has("planta")):
+			continue
+		var e: Dictionary = mapa.estruturas[id]
+		var c := Grade.centro_da_area(e.minimo, e.area, e.rot)
+		if r.has("planta"):
+			var feitos: int = m.produzidos - int(_plantou.get(id, 0))
+			_plantou[id] = m.produzidos
+			if feitos > 0:
+				plantar_perto(c, float(r.planta.raio))
+			continue
+		if m.estado != Maquina.Estado.TRABALHANDO:
+			continue
+		var l: Dictionary = r.limpa
+		var raio := float(l.raio)
+		_limpar(c, raio, SUJ, float(l.get("sujeira", 0.0)) * m.energia)
+		_limpar(c, raio, OLEO, float(l.get("oleo", 0.0)) * m.energia)
+		_limpar(c, raio, AGUA, float(l.get("agua", 0.0)) * m.energia)
+
+
+## Contaminação da poça de uma bomba (0..1): água suja perto (pesa menos com a distância), óleo e sujeira debaixo dela.
+func contaminacao_bomba(e: Dictionary) -> float:
+	var b: Dictionary = _d.get("bomba", {})
+	var c := 0.0
+	for t in Grade.tiles_da_area(e.minimo, e.area, e.rot):
+		c = maxf(c, maxf(valor(t, OLEO), valor(t, SUJ) * float(b.get("peso_sujeira", 0.6))))
+	var meio := Grade.centro_da_area(e.minimo, e.area, e.rot)
+	var r: int = b.get("raio", 4)
+	for y in range(floori(meio.y) - r, floori(meio.y) + r + 1):
+		for x in range(floori(meio.x) - r, floori(meio.x) + r + 1):
+			var t := Vector2i(x, y)
+			var a := valor(t, AGUA)
+			if a > 0.0:
+				var d := (Vector2(t) + Vector2(0.5, 0.5)).distance_to(meio)
+				c = maxf(c, a * clampf(1.2 - d / float(r + 1), 0.0, 1.0))
+	return clampf(c, 0.0, 1.0)
+
+
+## Bomba com poça contaminada: rende menos (velocidade) e se desgasta trabalhando (perde vida).
+func _bombas(fabrica: Fabrica) -> void:
+	var b: Dictionary = _d.get("bomba", {})
+	for id in fabrica.maquinas:
+		var m: Maquina = fabrica.maquinas[id]
+		if m.nome != "bomba" or not mapa.estruturas.has(id):
+			continue
+		var c := contaminacao_bomba(mapa.estruturas[id])
+		if c < float(b.get("minimo", 0.05)):
+			c = 0.0
+		contaminacao[id] = c
+		m.velocidade = float(Registro.estruturas.bomba.get("velocidade", 1.0)) * (1.0 - float(b.get("perda_producao", 0.75)) * c)
+		if c > 0.0 and m.estado == Maquina.Estado.TRABALHANDO and dano.is_valid():
+			dano.call(id, float(b.get("desgaste", 0.5)) * c)
+	for id in contaminacao.keys():
+		if not fabrica.maquinas.has(id):
+			contaminacao.erase(id)
+
+
+## Fúria das aranhas de um ninho (0..1): média de sujeira + óleo + água suja num raio em volta (amostra a cada 3 tiles).
+func furia_em(c: Vector2) -> float:
+	var f: Dictionary = Registro.inimigos.get("furia", {})
+	var r: int = f.get("raio", 24)
+	var soma := 0.0
+	var n := 0
+	for y in range(-r, r + 1, 3):
+		for x in range(-r, r + 1, 3):
+			if x * x + y * y > r * r:
+				continue
+			var t := Vector2i((c + Vector2(x, y)).floor())
+			n += 1
+			if dados.has(Grade.chunk_de(t)):
+				soma += valor(t, SUJ) + valor(t, OLEO) + valor(t, AGUA)
+	return clampf(soma / maxf(1.0, n) / float(f.get("sujo_cheio", 0.12)), 0.0, 1.0)
+
+
+## Pode nascer muda aqui? Terra seca e livre: fora do piso de fábrica (nenhuma construção a 3 tiles), sem
+## obstáculo, jazida, fogo, terraplenagem nem outra planta encostada.
+func pode_plantar(t: Vector2i) -> bool:
+	if gerador.terreno(t) != GeradorMundo.Terreno.TERRA or gerador.superficie_em(t) != null or gerador.aplainado_em(t) != null:
+		return false
+	if fogo.has(t) or not gerador.distribuicao.jazida(t).is_empty() or _perto_de_construcao(t, PISO + 1):
+		return false
+	if not mapa.limpos.has(t) and not gerador.distribuicao.obstaculo(t).is_empty():
+		return false
+	for y in range(-1, 2):
+		for x in range(-1, 2):
+			if plantas.has(t + Vector2i(x, y)):
+				return false
+	return true
+
+
+## Planta uma muda num tile livre perto de `c` (prefere o chão mais sujo/queimado). Devolve o tile ou nulo.
+func plantar_perto(c: Vector2, raio: float) -> Variant:
+	if plantas.size() >= int(_d.plantas.max):
+		return null
+	var melhor: Variant = null
+	var nota := -1.0
+	for i in 16:
+		var p := c + Vector2.from_angle(_rng.randf() * TAU) * _rng.randf_range(1.8, raio)
+		var t := Vector2i(p.floor())
+		if not pode_plantar(t):
+			continue
+		var v := valor(t, SUJ) + valor(t, OLEO) + valor(t, QUEIM) + _rng.randf() * 0.02
+		if v > nota:
+			nota = v
+			melhor = t
+	if melhor != null:
+		plantas[melhor] = 0.05
+		versao_plantas += 1
+	return melhor
+
+
+## Mudas crescem (mais devagar no chão sujo); planta crescida limpa o chão em volta e absorve poluição do ar.
+## Construção em cima corta a planta; água do canal afoga.
+func _plantas() -> void:
+	if plantas.is_empty():
+		return
+	var p: Dictionary = _d.plantas
+	var cai: Array[Vector2i] = []
+	var mapa_mudou := mapa.versao != _versao_mapa
+	_versao_mapa = mapa.versao
+	for t: Vector2i in plantas:
+		# construção nova perto: o piso de fábrica chega até aqui (a planta é cortada); canal escavado afoga
+		if gerador.superficie_em(t) != null or (mapa_mudou and (_perto_de_construcao(t, PISO) or gerador.aplainado_em(t) != null)):
+			cai.append(t)
+			continue
+		var g: float = plantas[t]
+		if g < 1.0:
+			var suj := clampf(valor(t, SUJ) + valor(t, OLEO), 0.0, 1.0)
+			var novo := minf(1.0, g + (1.0 - 0.6 * suj) / float(p.cresce_s))
+			if int(novo * 10.0) != int(g * 10.0):
+				versao_plantas += 1
+			plantas[t] = novo
+			g = novo
+		if g < 0.3:
+			continue
+		if poluicao != null:
+			poluicao.absorver(Grade.chunk_de(t), float(p.absorve_poluicao) * g)
+		var meio := Vector2(t) + Vector2(0.5, 0.5)
+		if valor(t, SUJ) + valor(t, OLEO) + valor(t, QUEIM) > 0.002 or _vizinho_sujo(t):
+			_limpar(meio, float(p.raio_limpa), SUJ, float(p.limpa_sujeira) * g)
+			_limpar(meio, float(p.raio_limpa), OLEO, float(p.limpa_oleo) * g)
+			_limpar(meio, float(p.raio_limpa), QUEIM, float(p.limpa_queimado) * g)
+	for t in cai:
+		plantas.erase(t)
+	if not cai.is_empty():
+		versao_plantas += 1
+
+
+const PISO := 2              ## o piso de fábrica se espalha 2 tiles em volta de cada construção (DesenhoChunk.ESPALHA)
+
+
+func _perto_de_construcao(t: Vector2i, r: int) -> bool:
+	for y in range(-r, r + 1):
+		for x in range(-r, r + 1):
+			if mapa.tiles.has(t + Vector2i(x, y)):
+				return true
+	return false
+
+
+func _vizinho_sujo(t: Vector2i) -> bool:
+	for d in [Vector2i(2, 0), Vector2i(-2, 0), Vector2i(0, 2), Vector2i(0, -2)]:
+		if valor(t + d, SUJ) + valor(t + d, OLEO) + valor(t + d, QUEIM) > 0.002:
+			return true
+	return false
 
 
 func _agua_mais_perto(id: int, c: Vector2) -> Variant:
@@ -213,6 +409,8 @@ func _agua() -> void:
 
 ## Árvore/arbusto/cogumelo no tile queima mais tempo (é combustível); 1 = só grama.
 func _madeira(t: Vector2i) -> float:
+	if float(plantas.get(t, 0.0)) > 0.5:
+		return float(_d.fogo.get("madeira", {}).get("arvore_campina_a", 4.0))
 	if mapa.limpos.has(t):
 		return 1.0
 	var o := gerador.distribuicao.obstaculo(t)
@@ -266,6 +464,8 @@ func _fogo(chuva: float, vento: Vector2, secura: float, tufao: bool) -> void:
 	for t in apagar:
 		fogo.erase(t)
 		somar(t, QUEIM, 1.0)
+		if plantas.erase(t):
+			versao_plantas += 1
 		# a vegetação do tile virou cinza: árvore/arbusto some do mapa (o mundo redesenha o chunk)
 		if not mapa.limpos.has(t):
 			var o := gerador.distribuicao.obstaculo(t)
@@ -340,12 +540,15 @@ func imagem(k: Vector2i) -> Image:
 
 
 func estado() -> Dictionary:
-	return {"dados": dados, "fogo": fogo, "rng": _rng.state}
+	return {"dados": dados, "fogo": fogo, "rng": _rng.state, "plantas": plantas, "plantou": _plantou}
 
 
 func restaurar(d: Dictionary) -> void:
 	dados = d.get("dados", {})
 	fogo = d.get("fogo", {})
+	plantas = d.get("plantas", {})
+	_plantou = d.get("plantou", {})
+	versao_plantas += 1
 	_rng.state = d.get("rng", _rng.state)
 	for k in dados:
 		sujos[k] = true

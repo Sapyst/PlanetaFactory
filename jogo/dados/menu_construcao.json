@@ -45,6 +45,14 @@
    ]
   },
   {
+   "nome": "Limpeza",
+   "pecas": [
+    "coletor_lixo",
+    "filtro_agua",
+    "viveiro"
+   ]
+  },
+  {
    "nome": "Energia",
    "pecas": [
     "gerador",
@@ -101,6 +109,9 @@
   "refinador": "Refinador",
   "laboratorio": "Laboratório",
   "terraplenagem": "Terraplenagem",
+  "coletor_lixo": "Coletor de lixo",
+  "filtro_agua": "Filtro de água",
+  "viveiro": "Viveiro",
   "gerador": "Gerador",
   "poste_energia": "Poste",
   "torre_sem_fio": "Torre sem fio",
@@ -142,6 +153,7 @@
   "nivel_fora_do_degrau": "Nível inválido",
   "nivel_chao": "Para descer, escolha um nível elevado (botão Nível)",
   "nivel_maximo": "Já está no nível mais alto (1,0 m)",
+  "longe_da_agua": "O filtro precisa encostar num rio, lago ou canal",
   "sem_trilho": "O trem precisa ser posto em cima de um trilho reto livre"
  },
  "explicacoes": {
@@ -168,6 +180,9 @@
   "refinador": "Processa fluidos.",
   "laboratorio": "Pesquisa com pacotes.",
   "terraplenagem": "Libera Aplainar o chão em qualquer lugar.",
+  "coletor_lixo": "Aspira sujeira e óleo do chão em volta (raio 6).",
+  "filtro_agua": "Encostado na água: limpa a água suja em volta (raio 7).",
+  "viveiro": "Com seiva pelo cano, planta mudas em volta (raio 8) que viram árvores e limpam o ar e o chão.",
   "gerador": "Queima carvão e gera energia.",
   "poste_energia": "Leva energia por cabo.",
   "torre_sem_fio": "Leva energia sem cabo, longe.",
@@ -187,6 +202,7 @@
   "Produção": "fornalha",
   "Energia": "gerador",
   "Defesa": "torre_defesa",
+  "Limpeza": "coletor_lixo",
   "Trilhos": "locomotiva"
  }
 }

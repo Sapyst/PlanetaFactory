@@ -16,6 +16,7 @@ var _morta := false
 var _corpo: Node3D
 var _femures: Array[Node3D] = []
 var _tibias: Array[Node3D] = []
+var _furia := 0.0
 
 
 func _ready() -> void:
@@ -35,6 +36,24 @@ func _ready() -> void:
 		add_child(t)
 		_femures.append(f)
 		_tibias.append(t)
+
+
+## Fúria (0..1, chão sujo em volta do ninho): os olhos acendem mais e puxam para o vermelho.
+func definir_furia(f: float) -> void:
+	if absf(f - _furia) < 0.1:
+		return
+	_furia = f
+	for n in _corpo.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		for s in mi.mesh.get_surface_count():
+			var base: Material = mi.mesh.surface_get_material(s)
+			if base == null or base.resource_name != "P_OlhoInimigo":
+				continue
+			var m: ShaderMaterial = Materiais.material(base).duplicate()
+			var c: Color = m.get_shader_parameter("cor_emissao")
+			m.set_shader_parameter("cor_emissao", c.lerp(Color(1.0, 0.08, 0.02), f))
+			m.set_shader_parameter("forca_emissao", float(m.get_shader_parameter("forca_emissao")) * (1.0 + 2.5 * f))
+			mi.set_surface_override_material(s, m)
 
 
 func ir_para(p: Vector3) -> void:

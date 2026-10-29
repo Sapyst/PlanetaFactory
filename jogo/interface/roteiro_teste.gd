@@ -38,6 +38,7 @@ func _ready() -> void:
 		"passagem": _roteiro_passagem()
 		"enxurrada": _roteiro_enxurrada()
 		"canal": _roteiro_canal()
+		"limpeza": _roteiro_limpeza()
 		"filtro": _roteiro_filtro()
 		"interface": _roteiro_interface()
 		"grama": _roteiro_grama()
@@ -519,6 +520,92 @@ func _roteiro_canal() -> void:
 			cena.camera.distancia = 3.2
 			cena.camera.angulo = 0.9
 			cena.camera.posicionar())
+
+
+## Limpeza: margem de rio suja (chão, óleo, água), filtro na margem, coletor, viveiro com mudas e árvores, gerador
+## ligando tudo; o tempo corre 6× para ver a sujeira sumindo e as mudas crescendo.
+func _roteiro_limpeza() -> void:
+	em(2, func():
+		var w := Vector2i(9999, 0)
+		cena.controle.barra.visible = false
+		Sessao.config.fps = false
+		var g := Grade.gerador
+		for r in range(6, 200, 2):
+			for k in 48:
+				var c := Vector2i((Vector2.from_angle(k * TAU / 48.0) * r).round())
+				if w.x != 9999 or not g.terreno(c) in [GeradorMundo.Terreno.RIO, GeradorMundo.Terreno.LAGO]:
+					continue
+				var ok := true
+				for i in range(1, 13):
+					for j in range(-4, 5):
+						var t := c + Vector2i(i, j)
+						if g.terreno(t) != GeradorMundo.Terreno.TERRA or g.nivel(t) != g.nivel(c + Vector2i(1, 0)) or g.em_encosta(t):
+							ok = false
+				if ok:
+					w = c
+		print("LIMPEZA margem ", w)
+		_canal = w
+		var con: Construtor = cena.construtor
+		for i in range(-2, 16):
+			for j in range(-8, 9):
+				cena.mapa.limpar_obstaculo(w + Vector2i(i, j))
+		var p := func(pl: Array[Dictionary]) -> void: cena.sincronizar(con.executar(pl))
+		p.call(con.plano_peca("filtro_agua", w + Vector2i(1, -1), 0))
+		p.call(con.plano_peca("coletor_lixo", w + Vector2i(4, 1), 0))
+		p.call(con.plano_peca("viveiro", w + Vector2i(9, -4), 0))
+		p.call(con.plano_peca("gerador", w + Vector2i(10, 2), 0))
+		p.call(con.plano_peca("poste_energia", w + Vector2i(7, 1), 0))
+		p.call(con.plano_peca("poste_energia", w + Vector2i(3, 0), 0))
+		var a: AmbienteVivo = cena.ambiente
+		for y in range(-8, 9):
+			for x in range(-4, 15):
+				var t := w + Vector2i(x, y)
+				if g.eh_agua(g.terreno(t)):
+					a.somar(t, AmbienteVivo.AGUA, 0.7)
+				elif Vector2(x - 5, y - 2).length() < 6.0:
+					a.somar(t, AmbienteVivo.SUJ, 0.55)
+					if (x + y) % 3 == 0:
+						a.somar(t, AmbienteVivo.OLEO, 0.6)
+				elif Vector2(x - 10, y + 2).length() < 7.0:
+					a.somar(t, AmbienteVivo.QUEIM, 0.8)
+		for i in 14:
+			var t: Variant = a.plantar_perto(Vector2(w + Vector2i(10, -3)), 8.0)
+			if t != null:
+				a.plantas[t] = [0.08, 0.35, 0.7, 1.0][i % 4]
+		a.versao_plantas += 1
+		_sem_ninhos(w)
+		cena.camera.alvo = Grade.centro_mundo(w + Vector2i(6, -3))
+		cena.camera.distancia = 12.0
+		cena.camera.posicionar())
+	em(6, func():
+		_sem_ninhos(_canal)
+		if OS.get_cmdline_user_args().has("perto"):
+			cena.camera.alvo = Grade.centro_mundo(_canal + Vector2i(5, -3))
+			cena.camera.distancia = 7.5
+			cena.camera.posicionar()
+		for id in cena.fabrica.combustivel:
+			cena.fabrica.combustivel[id] = 500.0
+		for id in cena.fabrica.maquinas:
+			var m: Maquina = cena.fabrica.maquinas[id]
+			if m.nome == "viveiro":
+				m.fluidos["seiva"] = 1000.0
+				m.acordar()
+		Engine.time_scale = 6.0)
+
+
+## Tira ninhos (e suas aranhas) a até 60 tiles: cena só da limpeza.
+func _sem_ninhos(w: Vector2i) -> void:
+	var col: Colonia = cena.colonia
+	for id in col.ninhos.keys():
+		if col.ninhos[id].centro.distance_to(Vector2(w)) < 60.0:
+			for ar in col.aranhas_do_ninho(id):
+				col.aranhas.erase(ar)
+			col.ninhos.erase(id)
+			cena.sincronizar(cena.construtor.destruir(id))
+			var dc: DesenhoColonia = cena._desenho_colonia
+			if dc._ninhos.has(id):
+				dc._ninhos[id].queue_free()
+				dc._ninhos.erase(id)
 
 
 ## Interface B: abre Produção (painel com explicações), escolhe a fornalha, toca no mapa (holograma + ações),

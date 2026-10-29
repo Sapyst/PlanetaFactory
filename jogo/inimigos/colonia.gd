@@ -9,6 +9,8 @@ extends RefCounted
 ##           ficam por baixo das pernas. Água desvia. Sem alvo perto, voltam para o ninho.
 ##  expansão de tempos em tempos um ninho que absorveu poluição manda construtoras a 14–30 tiles, a 26+ de qualquer estrutura; elas erguem um
 ##           ninho novo (obra de 10 s) que depois produz aranhas como os outros.
+##  fúria    chão sujo em volta do ninho (AmbienteVivo.furia_em) deixa as aranhas furiosas: nascem mais rápido,
+##           atacam em grupos menores e de mais longe, andam mais rápido e mordem mais forte.
 ##  torres   atiram na aranha mais perto (ou no ninho, se não houver aranha) dentro do alcance, gastando munição.
 ##
 ## Tudo que o desenho precisa saber sai em `eventos` (tiro, morte, ninho novo, estrutura destruída) a cada tick.
@@ -17,6 +19,7 @@ enum E { PARADA, ATACANDO, VOLTANDO, CONSTRUINDO, OBRA }
 
 var mapa: MapaOcupacao
 var poluicao: Poluicao
+var ambiente: AmbienteVivo        ## (opcional) de onde vem a fúria
 var ninhos: Dictionary = {}       ## id da estrutura → {id, centro: Vector2, vida, raiva, obra (0..1; 1 = pronto)}
 var aranhas: Dictionary = {}      ## id → {id, pos: Vector2, vida, ninho, estado, alvo (id estrutura), destino: Vector2, mordendo}
 var torres: Dictionary = {}       ## id da estrutura → {municao, recarga, mira: Vector2, mirando}
@@ -33,6 +36,7 @@ var _t_expansao := 0.0
 var _n: Dictionary
 var _a: Dictionary
 var _x: Dictionary
+var _f: Dictionary
 
 
 func _init(p_mapa: MapaOcupacao, p_poluicao: Poluicao, semente := 7) -> void:
@@ -42,6 +46,7 @@ func _init(p_mapa: MapaOcupacao, p_poluicao: Poluicao, semente := 7) -> void:
 	_n = Registro.inimigos.get("ninho", {})
 	_a = Registro.inimigos.get("aranha", {})
 	_x = Registro.inimigos.get("expansao", {})
+	_f = Registro.inimigos.get("furia", {})
 	_t_expansao = _x.get("intervalo_s", 150.0)
 	destruir = func(id: int) -> void: mapa.remover(id)
 
@@ -139,26 +144,33 @@ func _ninhos(dt: float, fontes: Array[Dictionary]) -> void:
 			continue
 		if n.obra < 1.0:
 			continue
+		n.t_furia = float(n.get("t_furia", 0.0)) - dt
+		if n.t_furia <= 0.0:
+			n.t_furia = float(_f.get("recalcula_s", 5.0))
+			n.furia = ambiente.furia_em(n.centro) if ambiente != null else 0.0
+		var fu := float(n.get("furia", 0.0))
 		var k := Grade.chunk_de(Vector2i(n.centro.floor()))
 		var tirou := poluicao.absorver(k, poluicao.em_chunk(k) * float(_n.get("taxa_absorcao", 0.06)) * dt)
 		n.raiva += tirou
 		n.absorvido += tirou
-		if n.raiva >= custo and aranhas_do_ninho(id).size() < maximo:
-			n.raiva -= custo
+		var custo_aqui := custo / (1.0 + float(_f.get("producao", 1.0)) * fu)
+		if n.raiva >= custo_aqui and aranhas_do_ninho(id).size() < maximo:
+			n.raiva -= custo_aqui
 			_nova_aranha(id)
+		var grupo_aqui := maxi(2, grupo - roundi(float(_f.get("grupo_menos", 2)) * fu))
 		var paradas := aranhas_do_ninho(id, E.PARADA)
-		if paradas.size() >= grupo:
-			var alvo := _fonte_mais_perto(n.centro, fontes)
+		if paradas.size() >= grupo_aqui:
+			var alvo := _fonte_mais_perto(n.centro, fontes, 1.0 + float(_f.get("raio_ataque", 0.5)) * fu)
 			if alvo >= 0:
-				for a in paradas.slice(0, grupo):
+				for a in paradas.slice(0, grupo_aqui):
 					aranhas[a].estado = E.ATACANDO
 					aranhas[a].alvo = alvo
 				eventos.append({"tipo": "ataque", "ninho": id, "alvo": alvo})
 
 
-func _fonte_mais_perto(p: Vector2, fontes: Array[Dictionary]) -> int:
+func _fonte_mais_perto(p: Vector2, fontes: Array[Dictionary], mult := 1.0) -> int:
 	var melhor := -1
-	var md: float = _n.get("raio_ataque", 160)
+	var md: float = float(_n.get("raio_ataque", 160)) * mult
 	for f in fontes:
 		if not mapa.estruturas.has(f.id):
 			continue
@@ -249,7 +261,7 @@ func _mover(ar: Dictionary, para: Vector2, dt: float, ritmo: float) -> void:
 	else:
 		ar.preso += dt
 	var dir := d.normalized()
-	var passo: float = minf(float(_a.get("velocidade", 1.4)) * ritmo * dt, d.length())
+	var passo: float = minf(float(_a.get("velocidade", 1.4)) * (1.0 + float(_f.get("velocidade", 0.4)) * furia(ar)) * ritmo * dt, d.length())
 	for ang in [0.0, 0.6, -0.6, 1.2, -1.2, 1.9, -1.9, 2.6, -2.6]:
 		var tent := dir.rotated(ang)
 		var novo: Vector2 = ar.pos + tent * passo
@@ -300,13 +312,19 @@ func _morder(ar: Dictionary, id: int, dt: float) -> void:
 	ar.mordida = Grade.centro_da_area(em.minimo, em.area, em.rot)       # para onde as pernas golpeiam (desenho)
 	var nome: String = mapa.estruturas[id].nome
 	var v: float = vida.get(id, float(Registro.estruturas.get(nome, {}).get("vida", 100)))
-	v -= float(_a.get("dano", 15)) * dt
+	v -= float(_a.get("dano", 15)) * (1.0 + float(_f.get("dano", 0.8)) * furia(ar)) * dt
 	vida[id] = v
 	if v <= 0.0:
 		vida.erase(id)
 		var e: Dictionary = mapa.estruturas[id]
 		eventos.append({"tipo": "destruida", "id": id, "nome": nome, "centro": Grade.centro_da_area(e.minimo, e.area, e.rot)})
 		destruir.call(id)
+
+
+## Fúria da aranha = a do ninho dela (0 se o ninho caiu).
+func furia(ar: Dictionary) -> float:
+	var n: Variant = ninhos.get(ar.ninho)
+	return float(n.get("furia", 0.0)) if n != null else 0.0
 
 
 func _estrutura_perto(p: Vector2, raio: float) -> int:

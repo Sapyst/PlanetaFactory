@@ -1,0 +1,87 @@
+{
+ "nome": "coletor_lixo",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "coletor de lixo: silo octogonal com janela de lodo, dois bocais de sucção que descem até o chão e turbina de exaustão que gira no topo; aspira sujeira e óleo em volta.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "rotor",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.0,
+    1.32
+   ]
+  },
+  {
+   "nome": "pistao0",
+   "pai": "corpo",
+   "pivo": [
+    -0.55,
+    -0.745,
+    0.32
+   ]
+  },
+  {
+   "nome": "pistao1",
+   "pai": "corpo",
+   "pivo": [
+    0.55,
+    -0.745,
+    0.32
+   ]
+  }
+ ],
+ "portas": [],
+ "terminais": [
+  [
+   -0.85,
+   -0.85,
+   0.372
+  ],
+  [
+   -0.85,
+   0.85,
+   0.372
+  ],
+  [
+   0.85,
+   -0.85,
+   0.372
+  ],
+  [
+   0.85,
+   0.85,
+   0.372
+  ]
+ ],
+ "tris": 1100,
+ "dims": [
+  1.9,
+  1.9,
+  1.52
+ ],
+ "materiais": [
+  "P_Aco",
+  "P_Cobre",
+  "P_Concreto",
+  "P_Cristal",
+  "P_Escuro",
+  "P_Lodo",
+  "P_Metal"
+ ]
+}

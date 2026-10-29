@@ -97,6 +97,8 @@ func _ready() -> void:
 	ambiente = AmbienteVivo.new(gerador, mapa, semente)
 	agua = AguaJogo.new(gerador, mapa)
 	ambiente.dano = func(id: int, pontos: float) -> void: _danificar(id, pontos)
+	ambiente.poluicao = poluicao
+	colonia.ambiente = ambiente
 	fabrica.estoques = estoques
 	fabrica.estoque_nucleo = inventario
 	fabrica.pesquisa = pesquisa
@@ -301,6 +303,9 @@ func _criar_desenhos() -> void:
 	dpl.mapa = mapa
 	dpl.agua = agua
 	add_child(dpl)
+	var dpt := DesenhoPlantas.new()
+	dpt.ambiente = ambiente
+	add_child(dpt)
 
 
 func alternar_recursos() -> bool:
@@ -987,6 +992,23 @@ func _detalhe() -> void:
 		for fl in m.fluidos:
 			linhas.append("%s: %.0f" % [fl.capitalize(), m.fluidos[fl]])
 		var tipo: String = Registro.estruturas[e.nome].get("maquina", "")
+		match tipo:
+			"bomba":
+				var c: float = ambiente.contaminacao.get(id, 0.0)
+				linhas.append("Poça limpa" if c <= 0.0 else "Poça contaminada: %d%% — rende %d%% menos e desgasta a bomba (um Filtro de água ou Coletor perto limpa)"
+						% [c * 100, c * float(Registro.ambiente.bomba.perda_producao) * 100])
+			"filtro":
+				linhas.append("Limpa a água suja num raio de %d m enquanto tem energia" % Registro.estruturas[e.nome].limpa.raio)
+			"coletor":
+				linhas.append("Aspira sujeira e óleo do chão num raio de %d m enquanto tem energia" % Registro.estruturas[e.nome].limpa.raio)
+			"viveiro":
+				var c0 := Grade.centro_da_area(e.minimo, e.area, e.rot)
+				var r: float = Registro.estruturas[e.nome].planta.raio
+				var n := 0
+				for t in ambiente.plantas:
+					if (Vector2(t) + Vector2(0.5, 0.5)).distance_to(c0) <= r + 0.5:
+						n += 1
+				linhas.append("Plantas em volta: %d (cada ciclo com 10 de seiva planta uma muda)" % n)
 		if tipo in ["montadora", "refinador", "fornalha"]:
 			for r in Registro.receitas_da_maquina(tipo):
 				if not pesquisa.receita_liberada(r):
@@ -1012,6 +1034,10 @@ func _detalhe() -> void:
 		linhas.append("Pacotes de pesquisa: %d de 10\nEnergia: %d%%" % [fabrica.laboratorios[id].pacotes, fabrica.laboratorios[id].energia * 100])
 	elif fabrica.baus.has(id):
 		linhas.append("Conteúdo: %s" % _lista_itens(fabrica.baus[id]))
+	elif colonia.ninhos.has(id):
+		var fu: float = colonia.ninhos[id].get("furia", 0.0)
+		linhas.append("Aranhas: %d" % colonia.aranhas_do_ninho(id).size())
+		linhas.append("Fúria: %d%% %s" % [fu * 100, "— o chão sujo em volta deixa as aranhas mais rápidas e fortes" if fu > 0.05 else "(chão limpo em volta)"])
 	elif e.nome == "gerador":
 		linhas.append("Combustível: %.1f MJ (carvão ou biomassa pela porta sul ou por braço)" % fabrica.combustivel.get(id, 0.0))
 	elif e.nome == "torre_defesa":

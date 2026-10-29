@@ -66,5 +66,10 @@
   "espalha_sujeira": 0.02
  },
  "enxurrada": 0.05,
- "lixo_na_agua": 1.0
+ "lixo_na_agua": 1.0,
+ "bomba": {"_nota": "bomba de seiva com poça contaminada (água suja até 'raio' tiles, óleo e sujeira na própria área): rende menos e se desgasta (pontos de vida por s com contaminação 1).",
+           "raio": 4, "peso_sujeira": 0.6, "minimo": 0.05, "perda_producao": 0.75, "desgaste": 0.5},
+ "plantas": {"_nota": "mudas do viveiro: crescem em 'cresce_s' (mais devagar no chão sujo), viram árvore; cada árvore adulta por s limpa o chão em volta e absorve poluição do ar.",
+             "cresce_s": 180, "max": 3000, "raio_limpa": 2.5, "limpa_sujeira": 0.0012, "limpa_oleo": 0.0005, "limpa_queimado": 0.003, "absorve_poluicao": 0.004,
+             "modelos": ["arvore_campina_a", "arvore_campina_b", "arbusto"]}
 }
