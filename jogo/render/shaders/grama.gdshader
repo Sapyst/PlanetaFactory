@@ -29,7 +29,7 @@ void vertex() {
 	float some = smoothstep(0.12, 0.35, max(fb.r, fb.b));
 	// queima: só o tufo do tile que queima — escurece e encolhe enquanto o fogo come, some quando acaba
 	float q = amb.a;
-	queimando = smoothstep(0.02, 0.4, amb.b) * (1.0 - smoothstep(0.6, 0.9, q));
+	queimando = smoothstep(0.51, 0.7, amb.b) * (1.0 - smoothstep(0.6, 0.9, q));   // B ≥ 0,5 = brasa (abaixo é água suja)
 	some = max(some, smoothstep(0.1, 0.7, q));
 	tom *= mix(vec3(1.0), vec3(0.18, 0.12, 0.08), smoothstep(0.0, 0.25, q));
 	tom *= mix(vec3(1.0), vec3(0.72, 0.62, 0.42), smoothstep(0.1, 0.6, amb.r));   // suja: amarelada

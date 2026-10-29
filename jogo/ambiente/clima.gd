@@ -9,6 +9,7 @@ var ativo := true
 var atual := "limpo"
 var valores: Dictionary = {}
 var molhado := 0.0
+var pocas := 0.0          ## 0..1: quanto as baixadas já encheram (enche devagar com chuva forte, seca mais devagar ainda)
 var deslocamento := Vector2.ZERO
 var direcao_vento := Vector2(1, 0.35).normalized()
 var restante := 120.0
@@ -43,6 +44,7 @@ func forcar(estado: String, instantaneo := false) -> void:
 	if instantaneo:
 		valores = _alvo().duplicate()
 		molhado = 1.0 if valores.chuva > 0.0 else 0.0
+		pocas = 0.85 if valores.chuva > 0.25 else 0.0
 
 
 func nome_estacao() -> String:
@@ -80,6 +82,11 @@ func tick(dt: float) -> void:
 		molhado = minf(1.0, molhado + dt * 0.05 * valores.chuva)
 	else:
 		molhado = maxf(0.0, molhado - dt * 0.008)
+	# poças: só chuva de verdade enche; secam do raso para o fundo (o mais fundo some por último)
+	if valores.chuva > 0.25:
+		pocas = minf(1.0, pocas + dt * 0.012 * valores.chuva)
+	else:
+		pocas = maxf(0.0, pocas - dt * 0.0035)
 	direcao_vento = direcao_vento.rotated(_rng.randf_range(-0.02, 0.02) * dt).normalized()
 	deslocamento += direcao_vento * (1.5 + 6.0 * valores.vento) * dt
 	if _d.estados[atual].get("raios", false) and ativo and _rng.randf() < dt * 0.07:
@@ -108,7 +115,7 @@ func _sortear(pesos: Dictionary) -> String:
 
 
 func estado() -> Dictionary:
-	return {"atual": atual, "valores": valores, "molhado": molhado, "deslocamento": deslocamento, "restante": restante,
+	return {"atual": atual, "valores": valores, "molhado": molhado, "pocas": pocas, "deslocamento": deslocamento, "restante": restante,
 			"vento": direcao_vento, "rng": _rng.state, "estacao": estacao, "t_estacao": t_estacao}
 
 
@@ -116,6 +123,7 @@ func restaurar(d: Dictionary) -> void:
 	atual = d.atual
 	valores = d.valores
 	molhado = d.molhado
+	pocas = d.get("pocas", 0.0)
 	deslocamento = d.deslocamento
 	restante = d.restante
 	direcao_vento = d.vento

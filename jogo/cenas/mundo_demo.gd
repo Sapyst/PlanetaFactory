@@ -290,6 +290,7 @@ func _criar_desenhos() -> void:
 	dc.ambiente = $Ambiente
 	dc.sol = $Sol
 	dc.fontes_calor = _fontes_calor
+	dc.mapa = mapa
 	add_child(dc)
 
 

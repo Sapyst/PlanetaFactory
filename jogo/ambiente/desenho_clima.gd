@@ -7,10 +7,15 @@ extends Node3D
 ##    andando com o vento, abrindo onde há calor (`fontes_calor`); a névoa do ambiente só dá a distância;
 ##  - raios de sol: feixes descendo pelos buracos das nuvens (ver raios_sol.gdshader) — com céu parcialmente
 ##    nublado, mais fortes com ar úmido (depois da chuva, neblina);
-##  - chuva: partículas na GPU só em volta do que a câmera vê (menos no celular), com som em loop.
+##  - chuva: partículas na GPU só em volta do que a câmera vê (menos no celular), com som em loop. Cada gota é um
+##    risco 3D alinhado à queda (nada de plano virado para a câmera). Respingos (coroa + anel, malhas 3D) nascem
+##    em pontos sorteados na superfície de verdade em volta da câmera — chão com a ondulação, esteira, água —
+##    renovados a cada fração de segundo (colisão de partícula na GPU não existe no renderizador do celular).
 
 const GOTAS_PC := 1600
 const GOTAS_CELULAR := 400
+const RESPINGOS_PC := 1600
+const RESPINGOS_CELULAR := 400
 const FATIAS_PC := 10
 const FATIAS_CELULAR := 3
 const TOPO_NEBLINA := 3.2
@@ -28,6 +33,13 @@ var fontes_calor: Callable           ## → Array de Vector3 (x, z do mundo, rai
 
 var _chuva: GPUParticles3D
 var _proc: ParticleProcessMaterial
+var mapa: MapaOcupacao                ## esteiras: o respingo bate na lona, não no chão debaixo dela
+var _respingo: GPUParticles3D
+var _pontos: Image
+var _pontos_tex: ImageTexture
+var _proc_respingo: ParticleProcessMaterial
+var _t_pontos := 0.0
+var _rng := RandomNumberGenerator.new()
 var _neblina: MeshInstance3D
 var _mat_neblina: ShaderMaterial
 var _fatias := 0
@@ -65,6 +77,8 @@ func _process(delta: float) -> void:
 	RenderingServer.global_shader_parameter_set("nuvem_cobertura", v.nuvens)
 	RenderingServer.global_shader_parameter_set("nuvem_deslocamento", clima.deslocamento)
 	RenderingServer.global_shader_parameter_set("molhado", clima.molhado)
+	RenderingServer.global_shader_parameter_set("pocas", clima.pocas)
+	RenderingServer.global_shader_parameter_set("chuva_agora", v.chuva)
 	RenderingServer.global_shader_parameter_set("vento_dir", clima.direcao_vento * (0.4 + v.vento))
 	RenderingServer.global_shader_parameter_set("sol_dir", sol.global_transform.basis.z.normalized())
 	_relampagos(delta)
@@ -85,8 +99,9 @@ func _process(delta: float) -> void:
 
 # ------------------------------------------------------------------ chuva
 func _criar_chuva() -> void:
+	var celular := OS.has_feature("mobile")
 	_chuva = GPUParticles3D.new()
-	_chuva.amount = GOTAS_CELULAR if OS.has_feature("mobile") else GOTAS_PC
+	_chuva.amount = GOTAS_CELULAR if celular else GOTAS_PC
 	_chuva.lifetime = 1.1
 	_chuva.local_coords = false
 	_chuva.visibility_aabb = AABB(Vector3(-70, -30, -70), Vector3(140, 60, 140))
@@ -98,18 +113,123 @@ func _criar_chuva() -> void:
 	_proc.initial_velocity_min = 17.0
 	_proc.initial_velocity_max = 22.0
 	_proc.gravity = Vector3(0, -9.8, 0)
+	_proc.particle_flag_align_y = true                 # o risco segue a direção da queda (com vento, inclina)
 	_chuva.process_material = _proc
-	var gota := QuadMesh.new()
-	gota.size = Vector2(0.025, 0.6)
+	var gota := BoxMesh.new()                          # risco fino de verdade (3D), não um plano
+	gota.size = Vector3(0.014, 0.5, 0.014)
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
 	m.albedo_color = Color(0.78, 0.82, 0.88, 0.32)
 	gota.material = m
 	_chuva.draw_pass_1 = gota
 	_chuva.emitting = false
 	add_child(_chuva)
+	_criar_respingo(celular)
+
+
+## Respingo: coroa d'água que abre e um anel rente ao chão que se espalha, os dois somem em ~0,3 s. Malhas 3D
+## de verdade (coroa = tubo aberto, anel = toro achatado), nascidas onde cada gota bateu.
+func _criar_respingo(celular: bool) -> void:
+	_respingo = GPUParticles3D.new()
+	_respingo.amount = RESPINGOS_CELULAR if celular else RESPINGOS_PC
+	_respingo.lifetime = 0.26
+	_respingo.local_coords = false
+	_respingo.visibility_aabb = AABB(Vector3(-70, -40, -70), Vector3(140, 80, 140))
+	_respingo.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var pm := ParticleProcessMaterial.new()
+	var n := 128 if celular else 512
+	_pontos = Image.create(n, 1, false, Image.FORMAT_RGBF)
+	_pontos_tex = ImageTexture.create_from_image(_pontos)
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_POINTS
+	pm.emission_point_texture = _pontos_tex
+	pm.emission_point_count = n
+	_proc_respingo = pm
+	pm.direction = Vector3.UP
+	pm.spread = 0.0
+	pm.initial_velocity_min = 0.0
+	pm.initial_velocity_max = 0.0
+	pm.gravity = Vector3.ZERO
+	pm.angle_min = 0.0
+	pm.angle_max = 360.0
+	pm.scale_min = 0.7
+	pm.scale_max = 1.3
+	var cresce := Curve.new()
+	cresce.add_point(Vector2(0.0, 0.35))
+	cresce.add_point(Vector2(1.0, 1.6))
+	var ct := CurveTexture.new()
+	ct.curve = cresce
+	pm.scale_curve = ct
+	var some := Gradient.new()
+	some.set_color(0, Color(1, 1, 1, 0.5))
+	some.set_color(1, Color(1, 1, 1, 0.0))
+	var gt := GradientTexture1D.new()
+	gt.gradient = some
+	pm.color_ramp = gt
+	_respingo.process_material = pm
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.vertex_color_use_as_albedo = true
+	mat.albedo_color = Color(0.82, 0.87, 0.93)
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var coroa := CylinderMesh.new()
+	coroa.top_radius = 0.04
+	coroa.bottom_radius = 0.012
+	coroa.height = 0.045
+	coroa.radial_segments = 10
+	coroa.rings = 1
+	coroa.cap_top = false
+	coroa.cap_bottom = false
+	coroa.material = mat
+	var anel := TorusMesh.new()
+	anel.inner_radius = 0.06
+	anel.outer_radius = 0.07
+	anel.rings = 16
+	anel.ring_segments = 4
+	anel.material = mat
+	_respingo.draw_passes = 2
+	_respingo.draw_pass_1 = coroa
+	_respingo.draw_pass_2 = anel
+	_respingo.emitting = false
+	add_child(_respingo)
+
+
+## Sorteia de novo os pontos onde as gotas batem, na caixa da chuva: altura do que está ali de verdade.
+func _sortear_pontos(centro: Vector3, e: float) -> void:
+	var g := Grade.gerador
+	var n := _pontos.get_width()
+	for i in n:
+		var p := Vector2(centro.x + _rng.randf_range(-e, e), -centro.z + _rng.randf_range(-e * 0.8, e * 0.8))
+		var y := _altura_superficie(g, p)
+		if is_nan(y):
+			y = -1000.0                                 # encosta/construção alta: sem respingo (fica longe da vista)
+		_pontos.set_pixel(i, 0, Color(p.x, y + 0.01, -p.y))
+	_pontos_tex.update(_pontos)
+
+
+func _altura_superficie(g: GeradorMundo, p: Vector2) -> float:
+	if g == null:
+		return 0.0
+	var t := Vector2i(floori(p.x), floori(p.y))
+	var base := float(g.nivel(t)) * Grade.ALT_NIVEL
+	if g.eh_agua(g.terreno(t)):
+		return base - 0.12                              # lâmina d'água
+	if g.em_encosta(t):
+		return NAN
+	if mapa != null and mapa.tiles.has(t):
+		var nome: String = mapa.estruturas[mapa.tiles[t]].nome
+		return base + 0.16 if nome.begins_with("esteira_") else NAN
+	var plano := g.aplainado_em(t) != null
+	if not plano and mapa != null:
+		for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			if mapa.tiles.has(t + d):
+				plano = true                            # o piso da fábrica em volta das construções é aplainado
+				break
+	if plano:
+		var nv: Variant = g.aplainado_em(t)
+		return float(nv) * Grade.ALT_NIVEL if nv != null else base
+	return base + g.micro_em(p - Vector2(0.5, 0.5))
 
 
 func _atualizar_chuva(chuva: float, vento: float) -> void:
@@ -127,13 +247,19 @@ func _atualizar_chuva(chuva: float, vento: float) -> void:
 		_som_chuva.volume_db = vol
 	elif _som_chuva.playing:
 		_som_chuva.stop()
+	_respingo.emitting = ligar
 	if not ligar:
 		return
 	_chuva.amount_ratio = chuva
+	_respingo.amount_ratio = chuva
 	# caixa de onde as gotas caem: segue o ponto olhado, do tamanho da vista (com limite)
 	var e := clampf(camera.distancia * 0.55, 12.0, 45.0)
 	_proc.emission_box_extents = Vector3(e, 3.0, e * 0.8)
 	_chuva.global_position = camera.alvo + Vector3(0, 15, 0)
+	_t_pontos -= get_process_delta_time()
+	if _t_pontos <= 0.0:
+		_t_pontos = 0.2
+		_sortear_pontos(camera.alvo, e)
 	var w := clima.direcao_vento * 7.0 * vento
 	_proc.gravity = Vector3(w.x, -9.8, w.y)
 

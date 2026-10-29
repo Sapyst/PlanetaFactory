@@ -36,6 +36,7 @@ func _ready() -> void:
 		"montagem": _roteiro_montagem()
 		"bracos": _roteiro_bracos()
 		"passagem": _roteiro_passagem()
+		"enxurrada": _roteiro_enxurrada()
 		"filtro": _roteiro_filtro()
 		"interface": _roteiro_interface()
 		"grama": _roteiro_grama()
@@ -428,6 +429,35 @@ func _roteiro_passagem() -> void:
 			for t in [Vector2i(-10, -8), Vector2i(-6, -11), Vector2i(-9, -13), Vector2i(-3, -16)]:
 				if f._no_tile.has(t):
 					(f.caminhos[f._no_tile[t][0]].esteira as EsteiraCaminho).inserir_na_entrada(itens[(q / 7 + t.x) % itens.size()]))
+
+
+## Chuva num rio sujo: acha o rio mais perto, suja a água e a margem, liga a chuva com poças cheias. Mostra os
+## respingos, os anéis na água, a enxurrada e o lixo boiando com a correnteza.
+func _roteiro_enxurrada() -> void:
+	em(2, func():
+		cena.controle.barra.visible = false
+		Sessao.config.fps = false
+		var g := Grade.gerador
+		var rio := Vector2i(9999, 0)
+		for r in range(4, 160, 2):
+			for k in 32:
+				var t := Vector2i((Vector2.from_angle(k * TAU / 32.0) * r).round())
+				if rio.x == 9999 and g.terreno(t) == GeradorMundo.Terreno.RIO:
+					rio = t
+		var a: AmbienteVivo = cena.ambiente
+		for y in range(-10, 11):
+			for x in range(-10, 11):
+				var t := rio + Vector2i(x, y)
+				if g.eh_agua(g.terreno(t)):
+					a.somar(t, AmbienteVivo.AGUA, 0.7)
+				elif Vector2(x, y).length() < 8.0:
+					a.somar(t, AmbienteVivo.SUJ, 0.6)
+		var c: Clima = cena.clima
+		c.forcar("chuva", true)
+		c.pocas = 0.9
+		cena.camera.alvo = Grade.centro_mundo(rio)
+		cena.camera.distancia = 7.0
+		cena.camera.posicionar())
 
 
 ## Interface B: abre Produção (painel com explicações), escolhe a fornalha, toca no mapa (holograma + ações),

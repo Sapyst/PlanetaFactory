@@ -571,7 +571,9 @@ static func _chao_dados(c: ChunkDados, gerador: GeradorMundo) -> Dictionary:
 			var d2 := (vi + 1) + maxi(vj - 1, 0) * (v + 2)
 			var u2 := (vi + 1) + mini(vj + 3, v + 1) * (v + 2)
 			var oc := maxf(0.0, alt[l2] - hk) + maxf(0.0, alt[r2] - hk) + maxf(0.0, alt[d2] - hk) + maxf(0.0, alt[u2] - hk)
-			oclusao[vj * v + vi] = Vector2(clampf(oc * 0.42, 0.0, 1.0), 0.0)
+			# baixada (UV.y): quanto este ponto fica abaixo da média em volta — onde a chuva junta poça
+			var conc := (alt[l2] + alt[r2] + alt[d2] + alt[u2]) * 0.25 - hk
+			oclusao[vj * v + vi] = Vector2(clampf(oc * 0.42, 0.0, 1.0), clampf(conc * 9.0, 0.0, 1.0) * (1.0 - agua_v[k]))
 			mar_out[vj * v + vi] = mar_v[k]
 			var rv := rio_v[k]
 			cores[vj * v + vi] = Color(agua_v[k], 0.5 + 0.5 * rv.y, 0.5 + 0.5 * rv.z, 1.0 if rv.x > 0.01 else 0.0)

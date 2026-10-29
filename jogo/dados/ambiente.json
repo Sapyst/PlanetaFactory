@@ -1,9 +1,9 @@
 {
- "_nota": "Ambiente vivo (efeitos passivos da fábrica). Valores por tile em 0..1, passo de 1 s. sujeira: máquinas que poluem sujam o chão em volta; oleo: vazamentos ao acaso de máquinas trabalhando; agua_suja: despejo de máquinas perto de água, corre rio abaixo e se espalha no lago; queimado: chão depois de incêndio (some devagar).",
+ "_nota": "Ambiente vivo (efeitos passivos da fábrica). Valores por tile em 0..1, passo de 1 s. sujeira: máquinas que poluem sujam o chão em volta; oleo: vazamentos ao acaso de máquinas trabalhando; agua_suja: despejo de máquinas perto de água, corre rio abaixo e se espalha no lago; queimado: chão depois de incêndio (some devagar). enxurrada: fração da sujeira que desce por passo com chuva forte (vai ao vizinho mais baixo; se é água, vira água suja). lixo_na_agua: quanto da sujeira vira água suja ao chegar.",
  "sujeira_por_ponto": 0.0035,
  "sujeira_raio": 3.5,
  "sujeira_some": 4e-05,
- "chuva_lava": 0.0004,
+ "chuva_lava": 0.0002,
  "oleo_chance": {
   "broca_minerio": 0.0012,
   "gerador": 0.0018,
@@ -64,5 +64,7 @@
    "sinal_trem"
   ],
   "espalha_sujeira": 0.02
- }
+ },
+ "enxurrada": 0.05,
+ "lixo_na_agua": 1.0
 }

@@ -44,7 +44,8 @@ static func _malha(nome: String) -> Mesh:
 		var m := base.duplicate() as ArrayMesh
 		for s in m.get_surface_count():
 			var mat := m.surface_get_material(s)
-			if mat is ShaderMaterial and float((mat as ShaderMaterial).get_shader_parameter("rolagem")) != 0.0:
+			var rol: Variant = (mat as ShaderMaterial).get_shader_parameter("rolagem") if mat is ShaderMaterial else null
+			if rol != null and float(rol) != 0.0:
 				var c := (mat as ShaderMaterial).duplicate() as ShaderMaterial
 				c.set_shader_parameter("rolagem", -float(c.get_shader_parameter("rolagem")))
 				m.surface_set_material(s, c)

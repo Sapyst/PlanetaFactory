@@ -13,7 +13,7 @@ uniform sampler2DArray texturas : source_color, filter_linear_mipmap, repeat_ena
 uniform sampler2D detalhe : filter_linear_mipmap, repeat_enable;
 uniform sampler2D mapa_camadas : filter_nearest;
 uniform vec2 origem_mapa;          // tile (grade) do pixel (0, 0) do mapa de camadas
-uniform sampler2D mapa_ambiente : filter_linear, hint_default_transparent;   // R sujeira, G óleo, B água suja, A queimado
+uniform sampler2D mapa_ambiente : filter_linear, hint_default_transparent;   // R sujeira, G óleo, B água suja (0..0,45) ou brasa (0,5..1), A queimado
 uniform sampler2D mapa_fabrica : filter_nearest, hint_default_black;   // 1 = tile com construção (mesma grade do mapa de camadas)
 uniform float camada_piso = 9.0;
 uniform float camada_jazida = 7.0;  // zona de minério nunca vira piso
@@ -29,6 +29,7 @@ varying vec3 fluxo;                // xy = direção da correnteza (grade), z = 
 varying vec3 mundo;
 varying vec3 normal_mundo;
 varying float oclusao;            // pé de barranco (UV.x da malha)
+varying float baixa;              // baixada (UV.y da malha): onde a chuva junta poça; aplainado = 0
 varying vec2 mar_v;               // (fração de mar, fração de fundo) do campo contínuo (UV2)
 
 // Construção molda o chão: onde o mapa da fábrica tem piso, o vértice vai para o nível da construção (R = força,
@@ -57,6 +58,7 @@ void vertex() {
 	float alvo;
 	float plano = smoothstep(0.0, 0.75, aplainar(vec2(mundo.x, -mundo.z), alvo));
 	oclusao = UV.x * (1.0 - plano);
+	baixa = UV.y * (1.0 - plano);
 	if (plano > 0.0) {
 		VERTEX.y = mix(VERTEX.y, alvo, plano);
 		n = normalize(mix(n, vec3(0.0, 1.0, 0.0), plano));
@@ -113,6 +115,7 @@ void fragment() {
 	float agua = smoothstep(0.5 - aa, 0.5 + aa, wf);
 	float beira = smoothstep(0.12, 0.5, wf) * (1.0 - agua);        // terra molhada na margem
 	vec3 c_terra = vec3(0.0);
+	float junta = 0.0;
 	float a = camada;
 	if (agua < 1.0) {
 		// bioma/jazida/praia: mistura suave das 4 camadas em volta de um ponto deformado por ruído (sem franja de
@@ -150,11 +153,13 @@ void fragment() {
 		if (f > 0.0) {
 			vec3 piso = texture(texturas, vec3(grade * vec2(0.25, -0.25), camada_piso)).rgb;
 			c_terra = mix(c_terra, piso, f);
+			junta = f * (1.0 - smoothstep(0.025, 0.06, dot(piso, vec3(0.333))));   // vão entre blocos: água junta ali
 		}
 		c_terra *= 1.0 - 0.35 * beira;
 	}
 	vec3 c_agua = vec3(0.0);
 	float onda = 0.0;
+	float suja = 0.0;
 	if (agua > 0.0) {
 		vec2 corre = fluxo.z > 0.5 ? vec2(fluxo.x, -fluxo.y) * 0.35 : vec2(0.02, 0.013);
 		vec2 uva = uv + corre * TIME;
@@ -174,9 +179,16 @@ void fragment() {
 		c_agua = mix(c_agua, vec3(0.62, 0.66, 0.66), smoothstep(0.62, 0.5, wf) * 0.35 * smoothstep(0.4, 0.7, onda));
 		// água contaminada: turva (marrom-esverdeada) com espuma suja em manchas
 		vec4 amb_a = ambiente_em(grade, w1, w2);
-		float suja = smoothstep(0.02, 0.4, amb_a.b);
+		suja = smoothstep(0.009, 0.18, min(amb_a.b, 0.45));
 		c_agua = mix(c_agua, vec3(0.20, 0.19, 0.11) * (0.8 + 0.4 * onda), suja * 0.85);
 		c_agua = mix(c_agua, vec3(0.42, 0.40, 0.30), suja * smoothstep(0.62, 0.8, onda) * 0.6);
+		// lixo boiando: pedacinhos claros e escuros levados pela correnteza (mesmo passo da textura da água)
+		if (suja > 0.05) {
+			float lx = texture(detalhe, mundo.xz * 0.9 + corre * 3.6 * TIME).r;
+			float ly = texture(detalhe, mundo.xz * 1.7 + corre * 6.8 * TIME + vec2(0.31, 0.77)).r;
+			c_agua = mix(c_agua, vec3(0.55, 0.50, 0.40), smoothstep(0.80, 0.84, lx) * suja);
+			c_agua = mix(c_agua, vec3(0.08, 0.07, 0.05), smoothstep(0.82, 0.86, ly) * suja);
+		}
 	}
 	// barranco: onde a encosta é íngreme aparece a pedra (com faixas horizontais de estrato)
 	float ingreme = 1.0 - smoothstep(0.55, 0.85, normal_mundo.y);
@@ -200,7 +212,9 @@ void fragment() {
 	// brasa: onde queima agora o chão brilha laranja, tremendo (é a luz do fogo no Factorio: rente ao chão)
 	// só onde o fogo é recente (B alto) e em pontos do grão: brasas, não um tapete
 	// fogo no próprio chão (nada de sprite): línguas esticadas e correndo com o vento, cor pela temperatura
-	float fogo_i = smoothstep(0.02, 0.5, amb.b);
+	// B é brasa em terra e água suja na água: perto da margem o filtro mistura os dois — fogo só em terra firme
+	float terra_firme = 1.0 - smoothstep(0.04, 0.2, wf);
+	float fogo_i = smoothstep(0.51, 0.75, amb.b) * terra_firme;
 	if (fogo_i > 0.0) {
 		vec2 vd = length(vento_dir) > 0.01 ? normalize(vento_dir) : vec2(1.0, 0.0);
 		vec2 pp = vec2(dot(grade, vd), dot(grade, vec2(-vd.y, vd.x)));
@@ -212,14 +226,24 @@ void fragment() {
 		float brasa_fundo = smoothstep(0.5, 0.8, grao) * fogo_i * 0.5;  // pontos de brasa entre as línguas
 		brasa = max(brasa, brasa_fundo);
 	}
-	c_terra = mix(c_terra, vec3(0.05, 0.035, 0.03), smoothstep(0.0, 0.3, amb.b) * 0.85);   // queimando: chão escuro
+	c_terra = mix(c_terra, vec3(0.05, 0.035, 0.03), smoothstep(0.47, 0.62, amb.b) * 0.85 * terra_firme);   // queimando: chão escuro
 	vec3 c = mix(c_terra, c_agua, agua);
 	c *= 0.88 + 0.24 * d;
 	float poca = 0.0;
-	if (agua < 1.0 && molhado > 0.0) {
-		// chão molhado escurece; nas partes baixas do ruído junta poça (lisa, reflete o céu)
-		poca = smoothstep(0.62, 0.70, 1.0 - d) * smoothstep(0.35, 1.0, molhado) * (1.0 - agua);
-		c *= 1.0 - (0.30 * molhado + 0.15 * poca) * (1.0 - agua);
+	if (agua < 1.0 && (molhado > 0.0 || pocas > 0.0)) {
+		// chão molhado escurece; a água da chuva junta nas baixadas do relevo de verdade (enche do mais fundo para
+		// o raso e seca do raso para o fundo) e nos vãos entre os blocos do piso
+		float fundo_p = baixa + (d - 0.5) * 0.22 + (w1.x * 0.12);
+		float limiar = 1.0 - pocas * 0.78;
+		poca = smoothstep(limiar, limiar + 0.05, fundo_p);
+		poca = max(poca, smoothstep(0.25, 0.7, pocas) * junta);
+		poca *= 1.0 - agua;
+		c *= 1.0 - 0.30 * molhado * (1.0 - agua);
+		c = mix(c, c * 0.45 + vec3(0.10, 0.12, 0.14), poca * 0.75);       // lâmina d'água: escura, puxa o céu
+	}
+	if (chuva_agora > 0.05) {
+		float aneis = aneis_chuva(grade, TIME) * chuva_agora * max(poca, agua);
+		c += vec3(0.22, 0.24, 0.27) * aneis;
 	}
 	c *= 1.0 - 0.6 * sombra_nuvem(mundo);
 	if (visao_recursos > 0.0) {
@@ -230,6 +254,6 @@ void fragment() {
 	fogo_cor = mix(fogo_cor, vec3(1.0, 0.85, 0.45), smoothstep(0.7, 1.0, brasa));
 	EMISSION = fogo_cor * brasa * 1.3 * (1.0 - agua);
 	float oleo_r = smoothstep(0.35, 0.55, ambiente_em(grade, w1, w2).g);
-	ROUGHNESS = mix(mix(mix(mix(0.92, 0.55, molhado), 0.06, poca), 0.15, oleo_r * (1.0 - agua)), 0.08, agua);
-	SPECULAR = mix(0.5 + 0.4 * poca, 0.8, agua);
+	ROUGHNESS = mix(mix(mix(mix(0.92, 0.55, molhado), 0.06, poca), 0.15, oleo_r * (1.0 - agua)), mix(0.08, 0.45, suja), agua);
+	SPECULAR = mix(0.5 + 0.4 * poca, mix(0.8, 0.3, suja), agua);      // água suja é opaca: reflete menos o céu
 }

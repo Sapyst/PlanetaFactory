@@ -117,3 +117,49 @@ func test_salvar() -> void:
 	a2.restaurar(str_to_var(var_to_str(a.estado())))
 	perto(a2.valor(Vector2i(4, 4), AmbienteVivo.OLEO), 0.7, 1e-4, "óleo volta")
 	verificar(a2.fogo.has(Vector2i(9, 9)), "fogo volta")
+
+
+func test_enxurrada_leva_lixo_para_a_agua() -> void:
+	var b := _base()
+	var g: GeradorMundo = b[0]
+	var f: Fabrica = b[2]
+	var a: AmbienteVivo = b[3]
+	var c := Clima.new(5)
+	c.forcar("chuva", true)
+	# terra suja encostada num rio
+	var perto := Vector2i(9999, 9999)
+	for x in range(-300, 300, 2):
+		for y in range(-300, 300, 2):
+			var t := Vector2i(x, y)
+			if perto.x == 9999 and g.terreno(t) == GeradorMundo.Terreno.TERRA and g.eh_agua(g.terreno(t + Vector2i(2, 0))):
+				perto = t
+	verificar(perto.x != 9999, "achou terra perto da água")
+	for dx in range(-2, 2):
+		for dy in range(-2, 3):
+			if g.terreno(perto + Vector2i(dx, dy)) == GeradorMundo.Terreno.TERRA:
+				a.somar(perto + Vector2i(dx, dy), AmbienteVivo.SUJ, 0.8)
+	var suj0 := 0.0
+	for dx in range(-2, 2):
+		for dy in range(-2, 3):
+			suj0 += a.valor(perto + Vector2i(dx, dy), AmbienteVivo.SUJ)
+	for i in 120:
+		a.tick(1.0, f, c)
+	var agua := 0.0
+	for k in a.dados:
+		var arr: PackedFloat32Array = a.dados[k]
+		for i in arr.size() / 4:
+			if g.eh_agua(g.terreno(k * Grade.TAM_CHUNK + Vector2i(i % Grade.TAM_CHUNK, i / Grade.TAM_CHUNK))):
+				agua += arr[i * 4 + AmbienteVivo.AGUA]
+	verificar(agua > 0.05, "com chuva o lixo chegou na água (%.3f)" % agua)
+	var suj1 := 0.0
+	for dx in range(-2, 2):
+		for dy in range(-2, 3):
+			suj1 += a.valor(perto + Vector2i(dx, dy), AmbienteVivo.SUJ)
+	verificar(suj1 < suj0 * 0.8, "a mancha de sujeira escorreu (%.2f → %.2f)" % [suj0, suj1])
+	# sem chuva nada escorre
+	var b2 := _base()
+	var a2: AmbienteVivo = b2[3]
+	a2.somar(perto, AmbienteVivo.SUJ, 0.8)
+	for i in 60:
+		a2.tick(1.0, b2[2], null)
+	verificar(a2.valor(perto, AmbienteVivo.SUJ) > 0.75, "seco: a sujeira fica no lugar")

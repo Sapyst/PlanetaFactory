@@ -5,6 +5,7 @@ extends RefCounted
 ##    (o ambiente tende a sujar com o tempo);
 ##  - óleo: vazamentos ao acaso de máquinas trabalhando (manchas que demoram a sumir);
 ##  - água suja: despejo de máquinas perto de água; corre rio abaixo (fluxo da hidrologia) e se espalha no lago;
+##  - enxurrada: com chuva, a sujeira do chão escorre morro abaixo (relevo contínuo) e o lixo acaba no rio/lago;
 ##  - fogo: máquinas quentes podem acender a vegetação seca em volta (estação + chão seco); o fogo anda com o vento,
 ##    queima o tile (vira chão queimado), machuca construção encostada e apaga com chuva;
 ##  - tufão: vento extremo — espalha fogo e sujeira e danifica estruturas frágeis.
@@ -29,6 +30,7 @@ var _rng := RandomNumberGenerator.new()
 var _acum := 0.0
 var _d: Dictionary
 var _agua_perto := {}                ## id da máquina → tile de água mais perto (ou nulo)
+var _rumo := {}                      ## tile → para onde a enxurrada leva (tile vizinho mais baixo ou água; nulo = baixada)
 
 
 func _init(p_gerador: GeradorMundo, p_mapa: MapaOcupacao, semente := 9) -> void:
@@ -105,6 +107,7 @@ func _passo(fabrica: Fabrica, clima: Clima) -> void:
 			var alvo: Vector2i = Vector2i((c + Vector2.from_angle(_rng.randf() * TAU) * (1.2 + 0.5 * e.area.x)).floor())
 			if _inflamavel(alvo):
 				_acender(alvo)
+	_escorrer(chuva)
 	_agua()
 	_fogo(chuva, vento, secura, tufao)
 	if tufao:
@@ -128,6 +131,54 @@ func _agua_mais_perto(id: int, c: Vector2) -> Variant:
 					melhor = t
 	_agua_perto[id] = melhor
 	return melhor
+
+
+## Enxurrada: chovendo, parte da sujeira de cada tile desce para o vizinho mais baixo; se o vizinho é água,
+## vira água suja ali (o lixo chega ao rio e ao lago e segue com a correnteza). Baixada sem saída segura a sujeira.
+func _escorrer(chuva: float) -> void:
+	if chuva < 0.2:
+		return
+	var taxa: float = float(_d.get("enxurrada", 0.05)) * chuva
+	var muda := {}
+	for k in dados:
+		var a: PackedFloat32Array = dados[k]
+		var base: Vector2i = k * T
+		for i in T * T:
+			var v := a[i * CANAIS + SUJ]
+			if v < 0.01:
+				continue
+			var t := base + Vector2i(i % T, i / T)
+			var r: Variant = _rumo_de(t)
+			if r == null:
+				continue
+			var q := v * taxa
+			muda[t] = float(muda.get(t, 0.0)) - q
+			if gerador.eh_agua(gerador.terreno(r)):
+				somar(r, AGUA, q * float(_d.get("lixo_na_agua", 1.0)))
+			else:
+				muda[r] = float(muda.get(r, 0.0)) + q
+	for t in muda:
+		somar(t, SUJ, muda[t])
+
+
+func _rumo_de(t: Vector2i) -> Variant:
+	if _rumo.has(t):
+		return _rumo[t]
+	var r: Variant = null
+	if not gerador.eh_agua(gerador.terreno(t)):
+		var h := gerador.relevo_em(Vector2(t) + Vector2(0.5, 0.5))
+		var menor := h - 1e-4
+		for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 1), Vector2i(-1, 1), Vector2i(1, -1), Vector2i(-1, -1)]:
+			var n: Vector2i = t + d
+			if gerador.eh_agua(gerador.terreno(n)):
+				r = n                                   # água encostada: a enxurrada cai nela
+				break
+			var hn := gerador.relevo_em(Vector2(n) + Vector2(0.5, 0.5))
+			if hn < menor:
+				menor = hn
+				r = n
+	_rumo[t] = r
+	return r
 
 
 ## Água suja: rio leva para o tile rio abaixo; lago espalha para os vizinhos de água.
@@ -279,10 +330,11 @@ func imagem(k: Vector2i) -> Image:
 			var l := Grade.local_de(t)
 			var o := (l.y * T + l.x) * CANAIS
 			var arr: PackedFloat32Array = a
-			# em terra o canal da água suja não é usado: ali vai a brasa (tile queimando agora, 0..1 pelo fogo restante)
-			var b := arr[o + 2]
+			# B divide faixas: água suja em 0..0,45 e brasa (tile queimando agora) em 0,5..1 — assim, na margem, onde o
+			# filtro mistura tiles de água e de terra, água suja nunca vira fogo
+			var b := arr[o + 2] * 0.45
 			if fogo.has(t):
-				b = clampf(float(fogo[t]) / 4.5, 0.0, 1.0)       # recém-aceso = 1, quase apagando = 0 (faixa estreita: a frente)
+				b = 0.5 + 0.5 * clampf(float(fogo[t]) / 4.5, 0.0, 1.0)   # recém-aceso = 1, quase apagando = 0,5
 			img.set_pixel(i, j, Color(arr[o], arr[o + 1], b, arr[o + 3]))
 	return img
 

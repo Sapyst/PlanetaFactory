@@ -49,6 +49,14 @@ molhado={
 "type": "float",
 "value": 0.0
 }
+pocas={
+"type": "float",
+"value": 0.0
+}
+chuva_agora={
+"type": "float",
+"value": 0.0
+}
 sol_dir={
 "type": "vec3",
 "value": Vector3(0.44, 0.63, 0.64)

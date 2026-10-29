@@ -4,6 +4,8 @@ global uniform sampler2D nuvem_mapa : filter_linear_mipmap, repeat_enable;   // 
 global uniform float nuvem_cobertura;
 global uniform vec2 nuvem_deslocamento;
 global uniform float molhado;
+global uniform float pocas;           // 0..1: quanto as baixadas já encheram de água da chuva
+global uniform float chuva_agora;     // 0..1: força da chuva neste instante (anéis das gotas na água)
 global uniform float visao_recursos;  // 0..1: visão de recursos ligada (mapa apagado, jazidas em destaque)
 global uniform vec3 sol_dir;          // direção PARA o sol (mundo, normalizada)
 const float ALTURA_NUVENS = 90.0;      // camada bem acima do chão
@@ -30,4 +32,25 @@ float sombra_nuvem(vec3 p) {
 vec3 apagar_visao(vec3 c, float quanto) {
 	float l = dot(c, vec3(0.299, 0.587, 0.114));
 	return mix(c, vec3(l * 0.6 + 0.04), visao_recursos * quanto);
+}
+
+
+float _hash_gota(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+
+// Anéis das gotas batendo na água (poça, rio, lago): em cada célula de ~30 cm uma gota cai em hora sorteada e o
+// anel abre e some. Duas grades defasadas para não parecer padrão. Devolve o brilho do anel (0..1).
+float aneis_chuva(vec2 p, float t) {
+	float s = 0.0;
+	for (int k = 0; k < 2; k++) {
+		vec2 q = p * 3.3 + float(k) * vec2(0.5, 0.37);
+		vec2 cel = floor(q);
+		vec2 f = fract(q) - 0.5;
+		float h = _hash_gota(cel + float(k) * 17.0);
+		float fase = fract(t * (1.1 + 0.5 * h) + h * 7.0);
+		vec2 o = vec2(_hash_gota(cel + 3.1), _hash_gota(cel + 9.7)) - 0.5;
+		float r = length(f - o * 0.45);
+		float anel = 1.0 - smoothstep(0.0, 0.035, abs(r - fase * 0.4));
+		s = max(s, anel * (1.0 - fase) * step(0.6, h));
+	}
+	return s;
 }
