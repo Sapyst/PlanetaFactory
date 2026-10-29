@@ -1,6 +1,7 @@
 """Ícones da barra de construção: cada estrutura construível renderizada em isométrico, fundo transparente.
 Lê os .glb já exportados (rodar depois dos scripts de modelos). Saída: arte/icones/<nome>.png (192×192).
-Uso: blender -b --factory-startup --python icones.py"""
+Itens (placas, engrenagens...) só com `-- itens`: arte/icones/itens/<nome>.png (128×128), para as casas da interface.
+Uso: blender -b --factory-startup --python icones.py [-- itens]"""
 import bpy, os, sys, json, glob
 sys.path.insert(0, os.path.dirname(__file__))
 import importlib, lib_pf; importlib.reload(lib_pf)
@@ -9,13 +10,19 @@ from lib_pf import preparar_cena, render, RAIZ
 SAIDA = os.path.abspath(os.path.join(RAIZ, '..', 'icones'))
 PULAR = ('mapa', 'itens', 'inimigos')
 
+ITENS = '--' in sys.argv and 'itens' in sys.argv[sys.argv.index('--') + 1:]
+if ITENS:
+    SAIDA = os.path.join(SAIDA, 'itens')
 os.makedirs(SAIDA, exist_ok=True)
 n = 0
 for f in sorted(glob.glob(os.path.join(RAIZ, '**', '*.json'), recursive=True)):
     if os.path.basename(f).startswith('_'):
         continue
     d = json.load(open(f, encoding='utf-8'))
-    if d.get('tipo') not in ('estrutura', 'canto', 'veiculo') or d['categoria'].startswith(PULAR):
+    if ITENS:
+        if d.get('tipo') != 'item':
+            continue
+    elif d.get('tipo') not in ('estrutura', 'canto', 'veiculo') or d['categoria'].startswith(PULAR):
         continue
     sc = preparar_cena()
     sc.render.film_transparent = True
@@ -24,6 +31,6 @@ for f in sorted(glob.glob(os.path.join(RAIZ, '**', '*.json'), recursive=True)):
     sc.display.shading.color_type = 'TEXTURE'          # estruturas texturizadas
     bpy.ops.import_scene.gltf(filepath=f[:-5] + '.glb')
     objs = [o for o in sc.objects if o.type == 'MESH']
-    render(objs, os.path.join(SAIDA, d['nome'] + '.png'), res=(192, 192), margem=1.08)
+    render(objs, os.path.join(SAIDA, d['nome'] + '.png'), res=(128, 128) if ITENS else (192, 192), margem=1.08)
     n += 1
 print('ICONES', n)

@@ -48,6 +48,7 @@ var _no_nivel: Dictionary = {}         ## Vector3i(x, y, nível de entrada) → 
 var _saidas_portas: Array[Dictionary] = []   ## {origem: Object, tile: Vector2i}
 var _membros: Dictionary = {}          ## id → membro da rede (dict)
 var acumulado: Dictionary = {}         ## id do acumulador → MJ guardados
+var carga_torre: Dictionary = {}       ## id da torre de defesa → MJ guardados para atirar (puxa da rede até encher)
 var sol := 1.0                         ## 0..1: quanto os painéis solares rendem agora (o mundo passa do clima)
 var vento := 0.5                       ## força do vento (0..~1,6) para turbina sem valor próprio
 var vento_turbina: Dictionary = {}     ## id da turbina → vento no lugar dela (clima × VentoLocal × rajada), o mundo passa
@@ -74,7 +75,7 @@ func reconstruir() -> void:
 	var vivos := {}
 	for id in mapa.estruturas:
 		vivos[id] = true
-	for d in [maquinas, bracos, baus, combustivel, laboratorios, distribuidores, acumulado]:
+	for d in [maquinas, bracos, baus, combustivel, laboratorios, distribuidores, acumulado, carga_torre]:
 		for id in d.keys():
 			if not vivos.has(id):
 				d.erase(id)
@@ -226,6 +227,16 @@ func _montar_maquinas() -> void:
 			distribuidores[id] = {"buffer": [], "vez": 0}
 		if Registro.estruturas.get(e.nome, {}).has("acumula_mj") and not acumulado.has(id):
 			acumulado[id] = 0.0
+		if Registro.estruturas.get(e.nome, {}).has("carga_mj") and not carga_torre.has(id):
+			carga_torre[id] = 0.0
+
+
+## Torre de defesa atira com a energia guardada: gasta `mj` se tiver (a colônia chama a cada tiro).
+func gastar_torre(id: int, mj: float) -> bool:
+	if float(carga_torre.get(id, 0.0)) + 1e-6 < mj:
+		return false
+	carga_torre[id] = float(carga_torre[id]) - mj
+	return true
 
 
 ## Opções internas guardadas na própria estrutura do mapa (vão junto no salvamento).
@@ -485,7 +496,14 @@ func tick(dt: float) -> void:
 			mb.kw = kw_de(id)                   # renovável: rende conforme o sol/vento de agora
 		elif mb.kw < 0.0:
 			mb.combustivel_mj = combustivel.get(id, 0.0)
+		if carga_torre.has(id):                 # torre: puxa da rede só enquanto não está cheia
+			var cap := float(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("carga_mj", 1.0))
+			mb.kw = kw_de(id) if float(carga_torre[id]) < cap - 1e-4 else 0.0
 	rede.tick(dt)
+	for id in carga_torre:
+		if _membros.has(id) and float(_membros[id].kw) > 0.0:
+			var cap := float(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("carga_mj", 1.0))
+			carga_torre[id] = minf(cap, float(carga_torre[id]) + float(_membros[id].kw) * rede.satisfacao(id) * dt / 1000.0)
 	for id in _membros:
 		var m: Dictionary = _membros[id]
 		if m.acum_cap > 0.0:
@@ -723,7 +741,7 @@ func estado() -> Dictionary:
 		var b: Braco = bracos[id]
 		br[id] = {"segurando": b.segurando, "estado": b.estado, "t": b.t}
 	return {"maquinas": maq, "bracos": br, "baus": baus, "combustivel": combustivel, "laboratorios": laboratorios, "acumulado": acumulado,
-			"distribuidores": distribuidores, "fluidos": _guardar_fluidos(), "itens": _guardar_itens()}
+			"distribuidores": distribuidores, "fluidos": _guardar_fluidos(), "itens": _guardar_itens(), "carga_torre": carga_torre}
 
 
 ## Depois de mapa restaurado: remonta e devolve o conteúdo de cada um (os dicionários de baú são preenchidos
@@ -754,6 +772,9 @@ func restaurar(d: Dictionary) -> void:
 			baus[id].merge(d.baus[id], true)
 	for id in d.get("combustivel", {}):
 		combustivel[id] = d.combustivel[id]
+	for id in d.get("carga_torre", {}):
+		if carga_torre.has(id):
+			carga_torre[id] = d.carga_torre[id]
 	for id in d.get("acumulado", {}):
 		if acumulado.has(id):
 			acumulado[id] = d.acumulado[id]

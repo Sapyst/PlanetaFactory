@@ -148,3 +148,26 @@ func test_acumulador_salva() -> void:
 	var f2 := Fabrica.new(m)
 	f2.restaurar(f.estado())
 	perto(f2.acumulado[a], f.acumulado[a], 1e-6, "volta do save")
+
+
+func test_torre_carrega_e_atira_com_energia() -> void:
+	var b := _fab()
+	var m: MapaOcupacao = b[0]
+	var f: Fabrica = b[1]
+	_por(m, "turbina_eolica", Vector2i(0, 0))
+	_por(m, "poste_energia", Vector2i(3, 1))
+	var t := _por(m, "torre_defesa", Vector2i(5, 0))
+	f.vento = 1.0
+	f.reconstruir()
+	verificar(f.carga_torre.has(t), "torre tem carga")
+	for i in 10:
+		f.tick(1.0)
+	perto(f.carga_torre[t], 1.2, 1e-3, "10 s a 120 kW = 1,2 MJ")
+	verificar(f.gastar_torre(t, 0.05), "um tiro gasta 0,05 MJ")
+	perto(f.carga_torre[t], 1.15, 1e-3, "sobrou")
+	for i in 100:
+		f.tick(1.0)
+	perto(f.carga_torre[t], 6.0, 1e-3, "enche até 6 MJ e para de puxar")
+	perto(f.kw_de(t), 120.0, 1e-3, "consumo nominal")
+	f.carga_torre[t] = 0.01
+	verificar(not f.gastar_torre(t, 0.05), "sem energia não atira")

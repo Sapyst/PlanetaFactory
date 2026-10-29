@@ -50,11 +50,11 @@
            "arbusto": {"biomassa": 2}, "cogumelo_gigante_a": {"biomassa": 6}, "cogumelo_gigante_b": {"biomassa": 6},
            "cacto_cristal": {"cristal_bruto": 3}, "pedregulho": {"pedra": 6}, "rocha_grande": {"pedra": 20},
            "montanha_3x3": {"pedra": 45}, "montanha_5x5": {"pedra": 120}},
- "liberado_inicio": ["esteira", "braco", "bau", "extrator_cristal", "broca_minerio", "fornalha", "montadora", "laboratorio",
+ "liberado_inicio": ["torre_defesa", "esteira", "braco", "bau", "extrator_cristal", "broca_minerio", "fornalha", "montadora", "laboratorio",
                      "gerador", "poste_energia", "muro_centro", "terraplenagem"],
  "receitas_inicio": ["fundir_ferro", "fundir_cobre", "cozer_tijolo", "fundir_vidro", "fio", "engrenagem", "tubo", "lapidar", "pesquisa"],
  "pesquisas": {
-  "defesa":      {"nome": "Defesa",            "pacotes": 8,  "tempo": 4, "requer": [], "libera": ["torre_defesa"], "receitas": ["municao"]},
+  "defesa":      {"nome": "Munição",           "pacotes": 8,  "tempo": 4, "requer": [], "libera": [], "receitas": ["municao"]},
   "logistica":   {"nome": "Logística 2",       "pacotes": 12, "tempo": 4, "requer": [], "libera": ["esteira_rampa", "rampa_desce", "esteira_tunel_entrada", "esteira_tunel_saida", "braco_longo"], "receitas": ["circuito"]},
   "eletronica":  {"nome": "Eletrônica",        "pacotes": 20, "tempo": 5, "requer": ["logistica"], "libera": ["divisor", "juncao", "braco_rapido"], "receitas": ["motor"]},
   "fluidos":     {"nome": "Fluidos",           "pacotes": 20, "tempo": 5, "requer": [], "libera": ["cano", "cano_t", "cano_cruz", "bomba", "tanque"], "receitas": []},

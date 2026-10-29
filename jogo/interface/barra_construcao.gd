@@ -15,7 +15,7 @@ const COR_FUNDO := Color(0.09, 0.10, 0.13, 0.92)
 const COR_BORDA := Color(0.28, 0.30, 0.36)
 const COR_DESTAQUE := Color(0.96, 0.74, 0.24)
 const COR_PERIGO := Color(0.95, 0.35, 0.30)
-const COR_CIANO := Color(0.31, 0.9, 0.87)
+const COR_TITULO := Tema.COR.titulo     ## (era ciano) títulos e cabeçalhos
 
 var toque := false                     ## sem atalhos de teclado nos textos
 var liberado: Callable                 ## nome da peça → bool (pesquisa); vazio = tudo liberado
@@ -32,6 +32,7 @@ var _dica_painel: PanelContainer
 var _dica: Label
 var _paineis: Array[Control] = []
 var _canto: Control
+var _seg := {}                         ## margens da área segura
 var _botoes_peca: Dictionary = {}      ## nome → Button
 var _botoes_ferr: Dictionary = {}
 var _info: Label
@@ -75,6 +76,7 @@ func _ready() -> void:
 	var margem := MarginContainer.new()
 	margem.set_anchors_preset(Control.PRESET_FULL_RECT)
 	var seg := _seguro()
+	_seg = seg
 	for lado in seg:
 		margem.add_theme_constant_override("margin_" + lado, seg[lado])
 	margem.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -96,9 +98,14 @@ func _ready() -> void:
 	info_vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	canto.add_child(info_vb)
 	var chips := PanelContainer.new()
-	chips.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	chips.mouse_filter = Control.MOUSE_FILTER_STOP     # tocar no status abre/fecha os detalhes
+	chips.gui_input.connect(func(e: InputEvent):
+		if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT and not e.pressed:
+			_status_aberto = not _status_aberto
+			_mostrar_status())
+	_paineis.append(chips)
 	# raio pequeno: o texto tem várias linhas, um canto em pílula cortaria as pontas das linhas
-	var caixa_info := Tema.caixa(Color(0.03, 0.05, 0.06, 0.72), Color(0.31, 0.9, 0.87, 0.25), 10, 8)
+	var caixa_info := Tema.caixa(Color(0.04, 0.045, 0.05, 0.78), Color(Tema.COR.filete, 0.6), 10, 8)
 	caixa_info.content_margin_left = 16
 	caixa_info.content_margin_right = 18
 	chips.add_theme_stylebox_override("panel", caixa_info)
@@ -107,7 +114,7 @@ func _ready() -> void:
 	_info = Label.new()
 	_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info.add_theme_font_size_override("font_size", 15)
-	_info.add_theme_color_override("font_color", Color(0.62, 0.95, 0.92))
+	_info.add_theme_color_override("font_color", Tema.cor("info"))
 	chips.add_child(_info)
 	_alerta = Label.new()
 	_alerta.add_theme_color_override("font_color", COR_PERIGO.lightened(0.2))
@@ -117,7 +124,7 @@ func _ready() -> void:
 	_detalhe.visible = false
 	_detalhe.custom_minimum_size = Vector2(320, 0)
 	_detalhe.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	info_vb.add_child(_detalhe)
+	raiz.add_child(_detalhe)                       # gaveta: posição e altura por _posicionar_detalhe (cabe na tela)
 	_paineis.append(_detalhe)
 	var dv := VBoxContainer.new()
 	dv.add_theme_constant_override("separation", 6)
@@ -125,7 +132,7 @@ func _ready() -> void:
 	var topo_det := HBoxContainer.new()
 	dv.add_child(topo_det)
 	_det_titulo = Label.new()
-	_det_titulo.add_theme_color_override("font_color", COR_CIANO)
+	_det_titulo.add_theme_color_override("font_color", COR_TITULO)
 	_det_titulo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	topo_det.add_child(_det_titulo)
 	var fechar := Button.new()
@@ -134,12 +141,17 @@ func _ready() -> void:
 	fechar.custom_minimum_size = Vector2(48, 44)
 	fechar.pressed.connect(func(): fechar_detalhe_pedido.emit())
 	topo_det.add_child(fechar)
+	dv.add_child(Tema.faixa_titulo())
 	var rolagem := ScrollContainer.new()
 	rolagem.custom_minimum_size = Vector2(0, 0)
 	rolagem.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	rolagem.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var corpo := VBoxContainer.new()
 	corpo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_det_maquina = VBoxContainer.new()                # máquina: ícone, receita em casas, barras (detalhe_maquina)
+	_det_maquina.add_theme_constant_override("separation", 6)
+	_det_maquina.visible = false
+	corpo.add_child(_det_maquina)
 	_det_texto = Label.new()
 	_det_texto.add_theme_font_size_override("font_size", 15)
 	_det_texto.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -150,7 +162,7 @@ func _ready() -> void:
 	corpo.add_child(_det_botoes)
 	rolagem.add_child(corpo)
 	rolagem.add_child(RolagemToque.new())          # arrastar em cima dos botões rola a lista (celular)
-	rolagem.custom_minimum_size = Vector2(0, 360)
+	rolagem.custom_minimum_size = Vector2(0, 0)
 	_det_rolagem = rolagem
 	dv.add_child(rolagem)
 	var vazio := Control.new()
@@ -213,7 +225,7 @@ func _ready() -> void:
 	_painel_pecas.add_child(pv)
 	_titulo_cat = Label.new()
 	_titulo_cat.add_theme_font_size_override("font_size", 19)
-	_titulo_cat.add_theme_color_override("font_color", COR_CIANO)
+	_titulo_cat.add_theme_color_override("font_color", COR_TITULO)
 	pv.add_child(_titulo_cat)
 	var rol := ScrollContainer.new()
 	rol.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -244,6 +256,11 @@ func _ready() -> void:
 		b.expand_icon = true
 		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		b.tooltip_text = cats[i].nome
+		var cc := Tema.cor_categoria(cats[i].nome)       # cada categoria com a sua cor (ícone branco tingido)
+		b.add_theme_color_override("icon_normal_color", cc.darkened(0.08))
+		b.add_theme_color_override("icon_hover_color", cc.lightened(0.15))
+		b.add_theme_color_override("icon_pressed_color", cc.lightened(0.25))
+		b.add_theme_color_override("icon_hover_pressed_color", cc.lightened(0.25))
 		b.pressed.connect(func(): Som.tocar("clique"); _tocar_categoria(i))
 		cv.add_child(b)
 	# barra de ações da peça pendente (segue o fantasma): Girar · Mover · Construir · ✕
@@ -267,12 +284,95 @@ func _ready() -> void:
 		ah.add_child(b)
 		_botoes_acao[a[0]] = b
 	marcar("", false)
+	_criar_faixa(raiz)
 	get_viewport().size_changed.connect(_ajustar_tamanhos)
 	_ajustar_tamanhos()
 
 
+## Faixa do modo construção: no alto, entre o status e as categorias, diz o que a mão está fazendo e tem um Sair
+## grande (antes só as setas das esteiras mostravam que o jogo ainda estava construindo).
+var _faixa: PanelContainer
+var _faixa_texto: Label
+
+
+func _criar_faixa(raiz: Control) -> void:
+	_faixa = PanelContainer.new()
+	_faixa.add_theme_stylebox_override("panel", Tema.perigo_estilo())
+	_faixa.visible = false
+	raiz.add_child(_faixa)
+	_paineis.append(_faixa)
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 12)
+	_faixa.add_child(h)
+	_faixa_texto = Label.new()
+	_faixa_texto.add_theme_font_size_override("font_size", 17)
+	_faixa_texto.add_theme_color_override("font_color", Color(1.0, 0.92, 0.7))
+	_faixa_texto.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_faixa_texto.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_faixa_texto.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	h.add_child(_faixa_texto)
+	var sair := Button.new()
+	sair.text = "✕  Sair"
+	sair.custom_minimum_size = Vector2(112, 52)
+	sair.focus_mode = Control.FOCUS_NONE
+	sair.pressed.connect(func(): Som.tocar("clique"); ferramenta.emit("sair"))
+	for est in ["normal", "hover"]:
+		sair.add_theme_stylebox_override(est, Tema.botao_perigo_estilo())
+	sair.add_theme_stylebox_override("pressed", Tema.botao_perigo_estilo(true))
+	sair.add_theme_color_override("font_color", Color.WHITE)
+	sair.add_theme_color_override("font_hover_color", Color.WHITE)
+	sair.add_theme_color_override("font_outline_color", Color.BLACK)
+	sair.add_theme_constant_override("outline_size", 8)
+	sair.add_theme_font_size_override("font_size", 19)
+	h.add_child(sair)
+
+
+## Texto vazio = fora do modo construção (some).
+func modo_construcao(texto: String) -> void:
+	_faixa.visible = texto != ""
+	if _faixa.visible:
+		_faixa_texto.text = texto
+		_posicionar_faixa()
+
+
+func _posicionar_faixa() -> void:
+	var tela := get_viewport().get_visible_rect().size
+	var esq := _canto.get_global_rect().end.x + 10.0
+	var dir := (_abas.get_parent() as Control).get_global_rect().position.x - 10.0
+	var topo := (_ferr.get_parent() as Control).get_global_rect().end.y + 8.0
+	var larg := clampf(dir - esq, 260.0, 560.0)
+	_faixa_texto.custom_minimum_size.x = larg - 150.0
+	var tam := _faixa.get_combined_minimum_size()
+	tam.x = maxf(tam.x, larg)
+	_faixa.size = tam
+	_faixa.position = Vector2(clampf(dir - tam.x, 8.0, tela.x - tam.x - 8.0), topo)
+
+
 const ENCOLHEM := ["remover", "aplainar", "escavar", "recursos"]   ## em tela estreita ficam só com o ícone
 const LARGURA_ESTREITA := 1300.0
+
+
+## Painel de detalhe como gaveta: da borda de baixo do status até a borda de baixo da tela (área segura), largura
+## pela tela. A lista rola dentro dela — nunca passa da tela (antes crescia para baixo e o fim ficava inalcançável).
+func _process(_d: float) -> void:
+	if _detalhe != null and _detalhe.visible:
+		_posicionar_detalhe()
+	if _faixa != null and _faixa.visible:
+		_posicionar_faixa()
+
+
+func _posicionar_detalhe() -> void:
+	var tela := get_viewport().get_visible_rect().size
+	var topo := _canto.get_global_rect().end.y + 8.0
+	var baixo := tela.y - float(_seg.get("bottom", 10))
+	var larg := clampf(tela.x * 0.34, 270.0, 380.0)
+	var pos := Vector2(float(_seg.get("left", 12)), topo)
+	var tam := Vector2(larg, maxf(160.0, baixo - topo))
+	if _detalhe.position != pos or _detalhe.size != tam:
+		_detalhe.custom_minimum_size = tam
+		_detalhe.position = pos
+		_detalhe.size = tam
+		_det_texto.custom_minimum_size.x = larg - 36.0
 
 
 ## Troca o texto de uma ferramenta respeitando o modo estreito (só o ícone).
@@ -294,9 +394,6 @@ func _ajustar_tamanhos() -> void:
 		var cheio: String = b.get_meta("texto_cheio")
 		b.text = cheio.get_slice(" ", 0) if estreita and k in ENCOLHEM else cheio
 	_painel_pecas.custom_minimum_size.x = clampf(tela.x * 0.36, 250.0, 400.0)
-	_detalhe.custom_minimum_size.x = clampf(tela.x * 0.3, 240.0, 320.0)
-	_det_texto.custom_minimum_size.x = _detalhe.custom_minimum_size.x - 24.0
-	_det_rolagem.custom_minimum_size.y = clampf(tela.y * 0.5, 180.0, 360.0)
 	_dica.custom_minimum_size.x = clampf(tela.x * 0.36, 220.0, 420.0)
 	# status do canto: quebra as linhas longas em vez de alargar a coluna da esquerda
 	_info.custom_minimum_size.x = clampf(tela.x * 0.3, 220.0, 420.0)
@@ -317,7 +414,7 @@ func acoes_em(pos: Vector2, pode: bool, movendo: bool) -> void:
 	_acoes.position = Vector2(clampf(pos.x - tam.x / 2.0, 8.0, tela.x - tam.x - 8.0), clampf(pos.y + 24.0, 8.0, tela.y - tam.y - 40.0))
 	_acoes.size = tam
 	_botoes_acao["construir"].disabled = not pode
-	_destacar(_botoes_acao["mover"], movendo, COR_CIANO)
+	_destacar(_botoes_acao["mover"], movendo, Tema.cor("agua"))
 
 
 func _tocar_categoria(i: int) -> void:
@@ -351,9 +448,9 @@ func marcar(nome: String, removendo: bool) -> void:
 	_selecionada = nome
 	_removendo = removendo
 	for k in _botoes_peca:
-		_destacar(_botoes_peca[k], k == nome, COR_CIANO)
+		_destacar(_botoes_peca[k], k == nome, COR_DESTAQUE)
 	_destacar(_botoes_ferr["remover"], removendo, COR_PERIGO)
-	_destacar(_botoes_ferr["aplainar"], nome == "#aplainar", Color(0.35, 0.85, 0.8))
+	_destacar(_botoes_ferr["aplainar"], nome == "#aplainar", COR_DESTAQUE)
 	_destacar(_botoes_ferr["escavar"], nome == "#escavar", Color(0.35, 0.65, 0.95))
 	var ativo := nome != "" or removendo
 	_botoes_ferr["cancelar"].disabled = not ativo
@@ -372,14 +469,92 @@ func pode_desfazer(sim: bool) -> void:
 
 
 ## Texto do painel de situação; `alerta` vazio esconde a linha vermelha.
+## Status do canto: fechado mostra só o essencial (hora/clima, núcleo, pesquisa) em poucas linhas; tocar abre tudo.
 func situacao(texto: String, alerta := "") -> void:
-	_info.text = texto
+	_status_texto = texto
+	_mostrar_status()
 	_alerta.text = alerta
 	_alerta.visible = alerta != ""
 
 
+var _status_aberto := false
+var _status_texto := ""
+
+
+func _mostrar_status() -> void:
+	var linhas := _status_texto.split("\n")
+	if _status_aberto or linhas.size() <= 2:
+		_info.text = _status_texto + "   ▴"
+		return
+	var curtas: Array[String] = [linhas[0]]
+	for l in linhas:
+		if l.begins_with("Núcleo:") or l.begins_with("Pesquisa:"):
+			curtas.append(l)
+	_info.text = "\n".join(curtas) + "   ▾"
+
+
 ## Mostra o painel de detalhe. botoes: [{texto, ligado (destaque), acao: Callable}]. Os botões só são refeitos
 ## quando mudam (o texto é atualizado sempre) — refazer a cada atualização engoliria cliques.
+var _det_maquina: VBoxContainer
+var _det_maq_assin := ""
+
+
+## Parte de cima do painel numa máquina (como no painel de uma montadora): ícone grande da construção, a receita em
+## casas — entradas (número = o que tem; borda vermelha = falta) → saída — e as barras de progresso e de energia.
+## m vazio = some. m: {icone, entradas: [{tex, n, dica, falta}], saidas: [...], progresso 0..1, energia 0..1 ou -1}
+func detalhe_maquina(m: Dictionary) -> void:
+	_det_maquina.visible = not m.is_empty()
+	if m.is_empty():
+		_det_maq_assin = ""
+		return
+	var assin := str(m.get("entradas", [])) + str(m.get("saidas", [])) + str(m.get("icone"))
+	if assin != _det_maq_assin:
+		_det_maq_assin = assin
+		for c in _det_maquina.get_children():
+			c.queue_free()
+		var h := HBoxContainer.new()
+		h.add_theme_constant_override("separation", 10)
+		_det_maquina.add_child(h)
+		var ic := TextureRect.new()
+		ic.texture = m.get("icone")
+		ic.custom_minimum_size = Vector2(84, 84)
+		ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		h.add_child(ic)
+		var receita := HFlowContainer.new()
+		receita.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		receita.add_theme_constant_override("h_separation", 4)
+		receita.add_theme_constant_override("v_separation", 4)
+		h.add_child(receita)
+		for e in m.get("entradas", []):
+			receita.add_child(Casa.nova(e.tex, str(e.n), e.dica, COR_PERIGO if e.get("falta", false) else Color(0.35, 0.4, 0.45)))
+		if not m.get("saidas", []).is_empty():
+			var seta := Label.new()
+			seta.text = "→"
+			seta.add_theme_font_size_override("font_size", 28)
+			seta.custom_minimum_size = Vector2(28, Casa.LADO)
+			seta.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			receita.add_child(seta)
+		for e in m.get("saidas", []):
+			receita.add_child(Casa.nova(e.tex, str(e.n), e.dica, Color(0.45, 0.85, 0.45)))
+		for b in [["progresso", Color(0.35, 0.85, 0.35)], ["energia", Color(0.95, 0.8, 0.2)]]:
+			var pb := ProgressBar.new()
+			pb.name = b[0]
+			pb.max_value = 1.0
+			pb.show_percentage = false
+			pb.custom_minimum_size = Vector2(0, 12)
+			var cheio := Tema.caixa(b[1], b[1].lightened(0.3), 3, 0)
+			pb.add_theme_stylebox_override("fill", cheio)
+			_det_maquina.add_child(pb)
+	var pr := _det_maquina.get_node_or_null("progresso") as ProgressBar
+	if pr != null:
+		pr.value = float(m.get("progresso", 0.0))
+	var en := _det_maquina.get_node_or_null("energia") as ProgressBar
+	if en != null:
+		en.visible = float(m.get("energia", -1.0)) >= 0.0
+		en.value = float(m.get("energia", 0.0))
+
+
 func detalhe(titulo: String, texto: String, botoes: Array) -> void:
 	_detalhe.visible = true
 	_det_titulo.text = titulo
@@ -407,7 +582,7 @@ func fechar_detalhe() -> void:
 
 
 func ligar_recursos(sim: bool, camada := "recursos") -> void:
-	_destacar(_botoes_ferr["recursos"], sim, Color(0.35, 0.85, 0.8))
+	_destacar(_botoes_ferr["recursos"], sim, Tema.cor("agua"))
 	texto_ferramenta("recursos", "◈ Vento" if sim and camada == "vento" else "◈ Recursos")
 
 
@@ -535,10 +710,7 @@ func _icone(modelo: String) -> Texture2D:
 
 func _destacar(b: Button, sim: bool, cor: Color) -> void:
 	if sim:
-		var s := (_tema.get_stylebox("normal", "Button") as StyleBoxFlat).duplicate() as StyleBoxFlat
-		s.border_color = cor
-		s.set_border_width_all(3)
-		s.bg_color = cor.darkened(0.72)
+		var s := Tema.botao_cor_estilo(cor)            # placa em relevo com moldura na cor da situação
 		b.add_theme_stylebox_override("normal", s)
 		b.add_theme_stylebox_override("hover", s)
 	else:

@@ -127,6 +127,29 @@ func _ready() -> void:
 				cam.posicionar())
 		"telas":                                       # interface em telas de celular/tablet: nada passa da borda
 			_roteiro_telas()
+		"ui":                                          # modo construção (faixa + grade), painel de máquina
+			em(4, func(): Sessao.config.fps = false)
+			em(10, func(): cena.controle.escolher("esteira"))
+			em(14, func(): mover(Vector2(560, 420)))
+			em(40, func():
+				cena.controle.sair_do_modo()
+				var receitas := {"fornalha": "fundir_ferro", "montadora": "engrenagem", "refinador": "bateria"}
+				for id in cena.mapa.estruturas:
+					var e: Dictionary = cena.mapa.estruturas[id]
+					if receitas.has(e.nome) and cena.fabrica.maquinas.has(id):
+						cena.fabrica.escolher_receita(id, receitas[e.nome])
+						var r: Dictionary = Registro.receitas[receitas[e.nome]]
+						cena.fabrica.maquinas[id].entradas = {r.entradas.keys()[0]: 1}
+						cena.selecionar(Grade.centro_da_area(e.minimo, e.area, e.rot))
+						break)
+		"pesquisa":                                    # abre a árvore de pesquisa e escolhe um nó
+			em(4, func():
+				Sessao.config.fps = false
+				cena.abrir_pesquisa())
+			em(30, func():
+				var t: TelaPesquisa = cena._tela_pesquisa
+				t._sel = "logistica"
+				t._atualizar())
 		"dedo":                                        # celular: rolar lista com o dedo, arrastar mapa, pinça
 			_roteiro_dedo()
 		"faiscas":                                     # acumulador carregado de perto (use com -- hora 0.0)

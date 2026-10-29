@@ -180,9 +180,7 @@ func _clique_direito_toque() -> void:
 	if not (_ativo() or _gesto or _pendente):
 		return
 	Input.vibrate_handheld(35)
-	for i in 3:                                   # traço, holograma e peça na mão: larga tudo (o dedo ainda está encostado)
-		if _ativo() or _gesto or _pendente:
-			cancelar()
+	sair_do_modo()                                # traço, holograma e peça na mão: larga tudo (o dedo ainda está encostado)
 	_avisar("Cancelado")
 
 
@@ -214,6 +212,7 @@ func _ferramenta(nome: String) -> void:
 		"remover": alternar_remover()
 		"desfazer": desfazer()
 		"cancelar": cancelar()
+		"sair": sair_do_modo()
 		"poluicao": alternar_poluicao()
 		"recursos": alternar_recursos()
 		"aplainar": alternar_aplainar()
@@ -225,6 +224,28 @@ func _ferramenta(nome: String) -> void:
 
 func _ativo() -> bool:
 	return peca != "" or removendo
+
+
+## Sai de vez do modo construção (traço, holograma e peça na mão).
+func sair_do_modo() -> void:
+	for i in 3:
+		if _ativo() or _gesto or _pendente:
+			cancelar()
+	_atualizar()
+
+
+## Texto da faixa do modo construção ("" = fora dele).
+func _texto_modo() -> String:
+	if not _ativo():
+		return ""
+	var sair := "segure o dedo ou toque em Sair para parar" if _por_toque else "clique direito ou Sair para parar"
+	if removendo:
+		return "Removendo — toque ou arraste sobre o que tirar · " + sair
+	if peca == APLAINAR:
+		return "Aplainando — arraste a área no chão · " + sair
+	if peca == ESCAVAR:
+		return "Escavando — arraste a área no chão · " + sair
+	return "Construindo: %s — %s · %s" % [barra.rotulo(peca), "arraste no chão" if Construtor.arrastavel(peca) else "toque no chão", sair]
 
 
 func _confirmar() -> void:
@@ -263,6 +284,8 @@ func _avisar(t: String) -> void:
 
 # ------------------------------------------------------------------ entrada
 func _unhandled_input(e: InputEvent) -> void:
+	if mundo != null and mundo.has_method("modal_aberto") and mundo.modal_aberto() and not e is InputEventKey:
+		return                                      # tela por cima (pesquisa): o toque não mexe no mapa por baixo
 	if e is InputEventKey:
 		_tecla(e)
 	elif e is InputEventMouse and e.device == InputEvent.DEVICE_ID_EMULATION:
@@ -480,6 +503,7 @@ func _mirar(tela: Vector2) -> void:
 # ------------------------------------------------------------------ plano + fantasma + dica
 func _atualizar() -> void:
 	barra.pode_desfazer(construtor.pode_desfazer())
+	barra.modo_construcao(_texto_modo())
 	if _pendente and not _usa_pendente():
 		_pendente = false
 	if _pendente and _gesto and _arrastando_pend and _cursor_valido:
@@ -623,7 +647,19 @@ func _motivo_legivel(it: Dictionary) -> String:
 	return barra.texto_motivo(it.motivo)
 
 
+var _forca_grade := 0.0
+var _grade_ligada := false
+
+
 func _process(delta: float) -> void:
+	# grade no chão enquanto constrói: em volta do cursor (ou do ponto olhado), acende e apaga suave
+	_forca_grade = move_toward(_forca_grade, 1.0 if _ativo() else 0.0, delta * 4.0)
+	if _forca_grade > 0.0 or _grade_ligada:
+		_grade_ligada = _forca_grade > 0.0
+		var c := Vector2(_cursor) + Vector2(0.5, 0.5) if _cursor_valido else Vector2(camera.alvo.x, -camera.alvo.z)
+		if _pendente:
+			c = Vector2(_tile_pend) + Vector2(0.5, 0.5)
+		RenderingServer.global_shader_parameter_set("grade_construcao", Vector4(c.x, c.y, 16.0, _forca_grade))
 	if not _segurar.is_empty() and not _segurar.feito:
 		_segurar.t = float(_segurar.t) + delta
 		if _segurar.t * 1000.0 >= SEGURAR_MS:

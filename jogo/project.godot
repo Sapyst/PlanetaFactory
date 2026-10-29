@@ -101,6 +101,10 @@ visao_mapa={
 "type": "sampler2D",
 "value": ""
 }
+grade_construcao={
+"type": "vec4",
+"value": Vector4(0, 0, 16, 0)
+}
 visao_mapa_origem={
 "type": "vec3",
 "value": Vector3(0, 0, 256)

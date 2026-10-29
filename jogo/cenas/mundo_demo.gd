@@ -109,6 +109,7 @@ func _ready() -> void:
 	fabrica.estoque_nucleo = inventario
 	fabrica.pesquisa = pesquisa
 	fabrica.torre_receber = func(id: int, n: int) -> void: colonia.carregar_torre(id, n)
+	colonia.torre_energia = fabrica.gastar_torre                # torre atira com a energia guardada da rede
 	_lotes = DesenhoLotes.new()
 	add_child(_lotes)
 	_criar_construcao()
@@ -293,8 +294,14 @@ func abrir_pausa() -> void:
 
 
 func abrir_pesquisa() -> void:
-	_sel = {} if _sel.has("pesquisa") else {"pesquisa": true}
-	_detalhe()
+	_tela_pesquisa.alternar()
+
+
+var _tela_pesquisa: TelaPesquisa
+
+
+func modal_aberto() -> bool:
+	return _tela_pesquisa != null and _tela_pesquisa.visible
 
 
 func _criar_desenhos() -> void:
@@ -384,6 +391,12 @@ func _criar_construcao() -> void:
 	add_child(controle)
 	barra.liberado = func(nome: String) -> bool: return pesquisa == null or pesquisa.peca_liberada(nome)
 	controle.configurar(construtor, camera, barra, fantasma, self)
+	_tela_pesquisa = TelaPesquisa.new()            # pesquisa em tela própria (a lista no painel não cabia no celular)
+	_tela_pesquisa.pesquisa = pesquisa
+	_tela_pesquisa.tema = barra._tema
+	_tela_pesquisa.rotulo = barra.rotulo
+	_tela_pesquisa.nome_item = _nome_item
+	add_child(_tela_pesquisa)
 
 
 # ------------------------------------------------------------------ mundo
@@ -1095,6 +1108,7 @@ func _detalhe() -> void:
 				_sel = {}
 				_detalhe()})
 			barra.detalhe("Trem %d" % t.id, texto, botoes)
+			barra.detalhe_maquina({})
 			return
 	if _sel.has("estrutura") and not mapa.estruturas.has(_sel.estrutura):
 		_sel = {}
@@ -1166,6 +1180,7 @@ func _detalhe() -> void:
 		linhas.append("Passando: %s" % (", ".join(fabrica.distribuidores[id].buffer.map(_nome_item)) if not fabrica.distribuidores[id].buffer.is_empty() else "nada"))
 	elif fabrica.laboratorios.has(id):
 		linhas.append("Pacotes de pesquisa: %d de 10\nEnergia: %d%%" % [fabrica.laboratorios[id].pacotes, fabrica.laboratorios[id].energia * 100])
+		opcoes.append({"texto": "⚗  Abrir a pesquisa", "acao": abrir_pesquisa})
 	elif fabrica.baus.has(id):
 		var n := 0
 		for k in fabrica.baus[id]:
@@ -1183,7 +1198,11 @@ func _detalhe() -> void:
 		linhas.append("Combustível: %.1f MJ (carvão ou biomassa pela porta sul ou por braço)" % fabrica.combustivel.get(id, 0.0))
 	elif e.nome == "torre_defesa":
 		var t: Dictionary = colonia.torres.get(id, {})
-		linhas.append("Munição: %d tiros (cada munição que chega por braço/esteira = %d)" % [t.get("municao", 0), Fabrica.TIROS_POR_MUNICAO])
+		var cap_t := float(regra.get("carga_mj", 0.0))
+		if cap_t > 0.0:
+			var c_t := float(fabrica.carga_torre.get(id, 0.0))
+			linhas.append("Energia guardada: %.1f de %.0f MJ (%d tiros) · recarrega da rede a %d kW" % [c_t, cap_t, int(c_t / float(regra.get("tiro_mj", 0.05))), regra.get("energia_kw", 0)])
+		linhas.append("Munição de reserva: %d tiros (cada munição que chega por braço = %d)" % [t.get("municao", 0), Fabrica.TIROS_POR_MUNICAO])
 	elif estoques.has(id):
 		titulo = "Estação %d" % _numero_estacao(id)
 		linhas.append("Para enviar: %s\nRecebido: %s" % [_lista_itens(estoques[id].enviar), _lista_itens(estoques[id].recebido)])
@@ -1254,6 +1273,7 @@ func _detalhe() -> void:
 	if linhas.is_empty():
 		linhas.append(Registro.modelos.get(e.nome, {}).get("descricao", ""))
 	barra.detalhe(titulo, "\n".join(linhas), opcoes + botoes)
+	barra.detalhe_maquina(_painel_maquina(id))
 
 
 func _detalhe_pesquisa() -> void:
@@ -1290,6 +1310,25 @@ func _detalhe_pesquisa() -> void:
 	controle.barra.detalhe("Pesquisa", "\n".join(linhas), botoes)
 
 
+## Casas do painel da máquina: ícone da construção, receita (o que tem dentro × o que precisa), saída, barras.
+func _painel_maquina(id: int) -> Dictionary:
+	if not fabrica.maquinas.has(id) or not mapa.estruturas.has(id):
+		return {}
+	var m: Maquina = fabrica.maquinas[id]
+	var nome: String = mapa.estruturas[id].nome
+	var d := {"icone": TelaPesquisa._tex_peca(nome), "entradas": [], "saidas": [], "progresso": m.progresso,
+			"energia": m.energia if Registro.estruturas.get(nome, {}).has("energia_kw") else -1.0}
+	var precisa: Dictionary = m.receita.get("entradas", {})
+	for k in precisa:
+		var tem := int(m.entradas.get(k, 0))
+		d.entradas.append({"tex": TelaPesquisa._tex_item(k), "n": tem, "dica": "%s: precisa %d" % [_nome_item(k), int(precisa[k])], "falta": tem < int(precisa[k])})
+	for k in m.receita.get("saidas", {}):
+		d.saidas.append({"tex": TelaPesquisa._tex_item(k), "n": int(m.saidas.get(k, 0)), "dica": _nome_item(k)})
+	if precisa.is_empty() and m.receita.get("saidas", {}).is_empty():
+		d.erase("saidas")
+	return d
+
+
 func _hud() -> void:
 	if not _sel.is_empty():
 		_detalhe()
@@ -1301,12 +1340,12 @@ func _hud() -> void:
 	for t in colonia.torres.values():
 		municao += t.municao
 	var aqui := poluicao.em(Grade.tile_de_mundo(camera.alvo))
-	var texto := "%s %s · %s · Clima: %s · Vento %d%% %s\nPoluição aqui: %.1f   ·   total: %.0f\nNinhos: %d   ·   aranhas: %d\nMunição nas torres: %d   ·   trens: %d" % [
+	var texto := "%s %s · %s · %s · Vento %d%% %s\nPoluição aqui: %.1f   ·   total: %.0f\nNinhos: %d   ·   aranhas: %d\nMunição nas torres: %d   ·   trens: %d" % [
 			clima.periodo(), clima.relogio(), clima.nome_estacao(), clima.nome(), clima.vento_em(clima.foco) * 100, Clima.nome_rumo(clima.direcao_vento), aqui, poluicao.total(), colonia.ninhos.size(), colonia.aranhas.size(), municao, trens.size()]
 	if modo != "demo":
 		var principais: Array[String] = []
 		for k in ["placa_ferro", "engrenagem", "placa_cobre", "pedra"]:
-			principais.append("%d %s" % [int(inventario.get(k, 0)), _nome_item(k).to_lower()])
+			principais.append("%d %s" % [int(inventario.get(k, 0)), {"placa_ferro": "ferro", "placa_cobre": "cobre"}.get(k, _nome_item(k).to_lower())])
 		texto += "\nNúcleo: " + ", ".join(principais)
 		if pesquisa.ativa != "":
 			texto += "\nPesquisa: %s %d/%d" % [pesquisa.pesquisas()[pesquisa.ativa].nome, pesquisa.feitos, pesquisa.pesquisas()[pesquisa.ativa].pacotes]

@@ -4,6 +4,7 @@ extends Node
 ## começando em cima de um botão —, com embalo ao soltar. Arrasto que passou do limite (Toque.limiar) não aperta o
 ## botão embaixo do dedo: os botões da lista se ligam por `RolagemToque.so_clique(cb)`.
 ## A rolagem nativa do ScrollContainer por arrasto fica desligada (senão rolaria em dobro onde não há botão).
+## Rola nas duas direções quando o ScrollContainer permite (árvore de pesquisa); listas só na vertical.
 
 static var arrastou := false             ## o toque atual (ou o último) virou arrasto de lista
 
@@ -11,8 +12,8 @@ var _rol: ScrollContainer
 var _dedo := -1
 var _ini := Vector2.ZERO
 var _arrastando := false
-var _pos := 0.0                          ## rolagem em float (scroll_vertical é inteiro)
-var _vel := 0.0                          ## px/s para o embalo
+var _pos := Vector2.ZERO                 ## rolagem em float (scroll_* são inteiros)
+var _vel := Vector2.ZERO                 ## px/s para o embalo
 var _t_ultimo := 0
 
 
@@ -36,41 +37,56 @@ func _input(e: InputEvent) -> void:
 				_ini = e.position
 				_arrastando = false
 				arrastou = false
-				_vel = 0.0
-				_pos = _rol.scroll_vertical
+				_vel = Vector2.ZERO
+				_pos = Vector2(_rol.scroll_horizontal, _rol.scroll_vertical)
 		elif e.index == _dedo:
 			_dedo = -1
 			if _arrastando:
 				arrastou = true                    # o botão que receber este soltar não age
 				if Time.get_ticks_msec() - _t_ultimo > 60:
-					_vel = 0.0                       # dedo parado antes de soltar: sem embalo
+					_vel = Vector2.ZERO              # dedo parado antes de soltar: sem embalo
 			_arrastando = false
 	elif e is InputEventScreenDrag and e.index == _dedo:
-		if not _arrastando and absf(e.position.y - _ini.y) > Toque.limiar(get_viewport()):
+		var d: Vector2 = e.position - _ini
+		if not _horizontal():
+			d.x = 0.0
+		if not _arrastando and d.length() > Toque.limiar(get_viewport()):
 			_arrastando = true
 			arrastou = true
-			_pos = _rol.scroll_vertical
+			_pos = Vector2(_rol.scroll_horizontal, _rol.scroll_vertical)
 		if _arrastando:
 			var agora := Time.get_ticks_msec()
 			var dt := maxf((agora - _t_ultimo) / 1000.0, 1.0 / 120.0)
-			_vel = lerpf(_vel, -e.relative.y / dt, 0.5) if dt < 0.1 else 0.0
+			var rel: Vector2 = -e.relative
+			if not _horizontal():
+				rel.x = 0.0
+			_vel = _vel.lerp(rel / dt, 0.5) if dt < 0.1 else Vector2.ZERO
 			_t_ultimo = agora
-			_rolar(-e.relative.y)
+			_rolar(rel)
 			get_viewport().set_input_as_handled()
 	elif e is InputEventMouseMotion and e.device == InputEvent.DEVICE_ID_EMULATION and _arrastando:
 		get_viewport().set_input_as_handled()        # a interface não vê o dedo andando sobre os botões
 
 
+func _horizontal() -> bool:
+	return _rol.horizontal_scroll_mode != ScrollContainer.SCROLL_MODE_DISABLED
+
+
 func _process(delta: float) -> void:
-	if _dedo >= 0 or absf(_vel) < 20.0:
+	if _dedo >= 0 or _vel.length() < 20.0:
 		return
 	_rolar(_vel * delta)
 	_vel *= exp(-4.0 * delta)
 
 
-func _rolar(d: float) -> void:
-	var limite := maxf(0.0, _rol.get_v_scroll_bar().max_value - _rol.size.y)
-	_pos = clampf(_pos + d, 0.0, limite)
-	_rol.scroll_vertical = int(round(_pos))
-	if _pos <= 0.0 or _pos >= limite:
-		_vel = 0.0
+func _rolar(d: Vector2) -> void:
+	var lim := Vector2(maxf(0.0, _rol.get_h_scroll_bar().max_value - _rol.size.x), maxf(0.0, _rol.get_v_scroll_bar().max_value - _rol.size.y))
+	var antes := _pos
+	_pos = (_pos + d).clamp(Vector2.ZERO, lim)
+	_rol.scroll_vertical = int(round(_pos.y))
+	if _horizontal():
+		_rol.scroll_horizontal = int(round(_pos.x))
+	if _pos.x == antes.x:
+		_vel.x = 0.0
+	if _pos.y == antes.y:
+		_vel.y = 0.0

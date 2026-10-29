@@ -18,5 +18,7 @@ for f in glob.glob(os.path.join(ARTE, 'texturas', '*.png')):
     if not os.path.basename(f).startswith('_'): shutil.copy2(f, dest_t)
 dest_i = os.path.join(JOGO, 'assets', 'icones'); os.makedirs(dest_i, exist_ok=True)
 for f in glob.glob(os.path.join(ARTE, 'icones', '*.png')): shutil.copy2(f, dest_i)
+os.makedirs(os.path.join(dest_i, 'itens'), exist_ok=True)
+for f in glob.glob(os.path.join(ARTE, 'icones', 'itens', '*.png')): shutil.copy2(f, os.path.join(dest_i, 'itens'))   # casas da interface
 json.dump(defs, open(os.path.join(JOGO, 'dados', 'modelos.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 print(len(defs), 'modelos sincronizados')

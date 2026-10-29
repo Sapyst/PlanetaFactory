@@ -22,6 +22,7 @@ uniform float escala = 0.25;
 uniform float camada_rocha = 3.0;
 global uniform vec3 piso_crescer;   // (x, y da grade, raio): piso de fábrica só até esse raio (abertura); 1e6 = livre
 // vento_dir (grade: direção × força do vento — o fogo corre nessa direção) vem de clima.gdshaderinc
+global uniform vec4 grade_construcao;   // (centro na grade, raio, força 0..1): grade no chão no modo construção
 uniform float alt_nivel = 1.0;      // metros por nível de relevo   // barranco (encosta íngreme) mostra pedra
 #include "res://render/shaders/clima.gdshaderinc"
 
@@ -258,9 +259,20 @@ void fragment() {
 	}
 	float vd = visao_dentro(mundo);
 	ALBEDO = aplicar_visao(c, mundo);                // fora do oval de visão: névoa escura (ambiente/visao.gd)
+	// modo construção: grade 1×1 no chão em volta do cursor (linhas finas, some em degradê)
+	if (grade_construcao.w > 0.0) {
+		vec2 f = fract(grade);
+		vec2 aa = fwidth(grade) * 1.2;
+		vec2 l = smoothstep(aa, vec2(0.0), min(f, 1.0 - f) - 0.006);
+		float linha = max(l.x, l.y);
+		float perto = 1.0 - smoothstep(grade_construcao.z * 0.55, grade_construcao.z, distance(grade, grade_construcao.xy));
+		float g = linha * perto * grade_construcao.w;
+		ALBEDO = mix(ALBEDO, vec3(1.0, 0.86, 0.55), g * 0.28);      // traço de giz quente, discreto
+		EMISSION += vec3(0.5, 0.4, 0.2) * g * 0.12;
+	}
 	vec3 fogo_cor = mix(vec3(0.55, 0.05, 0.01), vec3(1.0, 0.33, 0.04), smoothstep(0.25, 0.7, brasa));
 	fogo_cor = mix(fogo_cor, vec3(1.0, 0.85, 0.45), smoothstep(0.7, 1.0, brasa));
-	EMISSION = fogo_cor * brasa * 1.3 * (1.0 - agua) * vd;
+	EMISSION += fogo_cor * brasa * 1.3 * (1.0 - agua) * vd;
 	float oleo_r = smoothstep(0.35, 0.55, ambiente_em(grade, w1, w2).g);
 	ROUGHNESS = mix(mix(mix(mix(0.92, 0.55, molhado), 0.06, poca), 0.15, oleo_r * (1.0 - agua)), mix(0.08, 0.45, suja), agua);
 	SPECULAR = mix(0.5 + 0.4 * poca, mix(0.8, 0.3, suja), agua) * mix(0.05, 1.0, vd);   // água suja é opaca: reflete menos o céu

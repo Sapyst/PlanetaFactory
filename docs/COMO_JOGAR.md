@@ -27,11 +27,12 @@ Você é a IA do núcleo que caiu no planeta. O objetivo é crescer: extrair, fa
    **Postes**. Os fios aparecem sozinhos. Toque numa máquina para ver se ela está com energia.
 5. **Peças:** a **Montadora** faz engrenagens, tubos, fios e circuitos. Toque nela para escolher a receita.
 6. **Pesquisa:** a montadora faz pacotes de pesquisa (cristal lapidado + engrenagem). Um braço leva os pacotes ao
-   **Laboratório**. No botão **Pesquisa** (T), escolha o que liberar: logística, fluidos, aço, energia renovável...
+   **Laboratório**. No botão **Pesquisa** (⚗ / T) abre a árvore: toque numa pesquisa para ver o que ela libera e
+   aperte **Pesquisar**.
 
 ## Cuidados
-- **Poluição:** máquinas poluem, e as aranhas dos ninhos vêm atrás de quem polui. A **Torre** defende; o **Muro**
-  segura.
+- **Poluição:** máquinas poluem, e as aranhas dos ninhos vêm atrás de quem polui. A **Torre** (já liberada) defende
+  com a energia da rede — ligue-a a um poste; o **Muro** segura.
 - **Sujeira:** chão sujo perto dos ninhos deixa as aranhas furiosas. Coletor de lixo, filtro de água e viveiro limpam.
 - **Fogo:** máquinas quentes podem acender a vegetação seca, principalmente no verão. A chuva apaga.
 - **Noite:** o painel solar para à noite; acumuladores seguram a energia.

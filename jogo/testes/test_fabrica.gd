@@ -164,7 +164,8 @@ func test_nucleo_custos_e_pesquisa() -> void:
 	igual(pl[5].motivo, "sem_recursos")
 	c.executar(pl)
 	igual(int(c.inventario.placa_ferro), 0, "gastou as 5 placas")
-	igual(c.plano_peca("torre_defesa", Vector2i(0, 0), 0)[0].motivo, "bloqueado", "torre só depois da pesquisa Defesa")
+	igual(c.plano_peca("torre_sem_fio", Vector2i(0, 0), 0)[0].motivo, "bloqueado", "torre sem fio só depois da pesquisa")
+	verificar(p.peca_liberada("torre_defesa"), "torre de defesa básica já vem liberada")
 	# remover devolve; desfazer a remoção volta a cobrar
 	c.executar(c.plano_remocao(Vector2i(-5, 6), Vector2i(-4, 6)))
 	igual(int(c.inventario.placa_ferro), 2, "duas esteiras devolvidas")

@@ -109,6 +109,21 @@ Medido arrastando a câmera 18 m/s (`-- modo demo roteiro panorama`): antes 71 q
 depois 0 quadros > 33 ms. Celular: 3D a 70% da resolução, sem sombra, sem brilho; aranhas só desenhadas perto da
 vista. Contador de FPS embutido (ligado por padrão na fase de testes; Configurações desliga).
 
+## Interface (reforma 0.12)
+- Pesquisa em tela própria (`interface/tela_pesquisa.gd`): árvore com colunas por pré-requisito, linhas ligando
+  (verde = feito), nó com o ícone do que libera; tocar mostra o detalhe ao lado (custo, casas do que libera, Pesquisar).
+- Painel de detalhe como gaveta: do status até a borda de baixo, a lista rola dentro (nunca passa da tela). Em
+  máquinas, cabeçalho com ícone, receita em casas (`interface/casa.gd`: número = o que tem; borda vermelha = falta),
+  saída e barras de progresso e energia. Laboratório: botão "Abrir a pesquisa".
+- Status do canto compacto (hora/clima, núcleo, pesquisa); tocar abre tudo.
+- Modo construção: faixa listrada no alto dizendo o que a mão faz, com Sair; grade 1×1 no chão em volta do cursor.
+- Estilo de fábrica (`interface/tema.gd`, texturas geradas por código): chapas grafite gastas com chanfro e rebites,
+  filete de cobre, listras de perigo amarelo-sujo e preto na faixa e no Sair; paleta por situação (`Tema.COR`:
+  destaque, perigo, sucesso, energia, pesquisa, água...) e por categoria (`Tema.CORES_CATEGORIA`, ícones tingidos).
+- Ícones dos itens (`arte/icones/itens`, `icones.py -- itens`) para as casas.
+- Torre de defesa básica liberada desde o começo: puxa 120 kW da rede até guardar 6 MJ, cada tiro gasta 0,05 MJ;
+  munição vira reserva (pesquisa "Munição").
+
 ## Toque (celular primeiro)
 - Toque × arrasto pelo dedo em milímetros reais (`interface/toque.gd`, 3,2 mm), não em pixels da tela de 720.
 - Câmera: o chão fica preso embaixo do dedo (`CameraJogo.arrastar_tela`), sem atraso; pinça aproxima em volta do

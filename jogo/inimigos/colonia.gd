@@ -23,6 +23,7 @@ var ambiente: AmbienteVivo        ## (opcional) de onde vem a fúria
 var ninhos: Dictionary = {}       ## id da estrutura → {id, centro: Vector2, vida, raiva, obra (0..1; 1 = pronto)}
 var aranhas: Dictionary = {}      ## id → {id, pos: Vector2, vida, ninho, estado, alvo (id estrutura), destino: Vector2, mordendo}
 var torres: Dictionary = {}       ## id da estrutura → {municao, recarga, mira: Vector2, mirando}
+var torre_energia: Callable       ## func(id, mj) -> bool: tiro com a energia guardada na torre (Fabrica.gastar_torre)
 var vida: Dictionary = {}         ## id da estrutura → vida atual (só as que levaram dano)
 var eventos: Array[Dictionary] = []
 ## Quem tira do mapa a estrutura que as aranhas derrubaram (o mundo troca por Construtor.destruir + desenho).
@@ -400,10 +401,16 @@ func _torres(dt: float) -> void:
 		if not t.mirando:
 			continue
 		t.mira = aranhas[alvo].pos if alvo >= 0 else ninhos[ninho].centro
-		if t.recarga > 0.0 or t.municao <= 0:
+		if t.recarga > 0.0:
+			continue
+		# atira com a energia guardada; munição (se algum braço trouxe) é a reserva quando a energia acaba
+		if torre_energia.is_valid() and torre_energia.call(id, float(regra.get("tiro_mj", 0.05))):
+			pass
+		elif t.municao > 0:
+			t.municao -= 1
+		else:
 			continue
 		t.recarga = 1.0 / float(regra.get("cadencia", 3))
-		t.municao -= 1
 		var dano: float = regra.get("dano", 8)
 		eventos.append({"tipo": "tiro", "torre": id, "de": c, "para": t.mira, "aranha": alvo, "ninho": ninho})
 		if alvo >= 0:
