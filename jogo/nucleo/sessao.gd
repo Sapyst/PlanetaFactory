@@ -6,7 +6,7 @@ extends Node
 const ARQ_CONFIG := "user://configuracoes.cfg"
 
 var modo := "demo"
-var config := {"volume": 0.8, "musica": 0.5, "sombras": true, "texto": 1.0, "autosalvar_s": 120, "resolucao": 1.0, "fps": true, "clima": true}   ## fps ligado por padrão na fase de testes
+var config := {"volume": 0.8, "musica": 0.5, "sombras": true, "texto": 1.0, "autosalvar_s": 120, "resolucao": 1.0, "fps": true, "clima": true, "grama": true}   ## fps ligado por padrão na fase de testes
 
 
 func _init() -> void:
@@ -14,6 +14,7 @@ func _init() -> void:
 		# celular: tela de altíssima resolução e GPU modesta — 3D a 70% (a interface continua nítida) e sem sombra
 		config.resolucao = 0.7
 		config.sombras = false
+		DesenhoChunk.densidade_grama = 22.0         # gramado mais ralo no celular
 	var cf := ConfigFile.new()
 	if cf.load(ARQ_CONFIG) == OK:
 		for k in config:

@@ -79,6 +79,7 @@ static func preparar_dados(k: Vector2i, gerador: GeradorMundo) -> Dictionary:
 			continue                                   # enfeite não fica pendurado na encosta
 		_add(d.grupos, dc.nome, Transform3D(Basis(Vector3.UP, dc.rot), Grade.ponto_mundo(dc.pos, gerador.micro_em(dc.pos - Vector2(0.5, 0.5)) if dc.nome != "vitoria_regia" else -0.12)))
 		_add(d.tiles, dc.nome, Vector2i(dc.pos.floor()))
+	d["grama"] = _grama_dados(c, gerador)
 	# já no formato do MultiMesh (12 floats por instância): a linha principal só entrega o buffer
 	var bufs := {}
 	for nome in d.grupos:
@@ -86,6 +87,89 @@ static func preparar_dados(k: Vector2i, gerador: GeradorMundo) -> Dictionary:
 	d["transf"] = d.grupos            # lista crua (para filtrar o que ficou debaixo de construção)
 	d.grupos = bufs
 	return d
+
+
+## Gramado denso nas planícies (campina): tufos espalhados por tile, só em terra plana sem jazida, água ou encosta,
+## na altura do chão desenhado (relevo em patamar + ondulação). Buffer de MultiMesh com cor (16 floats/instância).
+static var densidade_grama := 70.0     ## tufos por m² (o celular usa menos: Sessao)
+const BIOMAS_GRAMA := ["campina"]
+
+
+static func _grama_dados(c: ChunkDados, gerador: GeradorMundo) -> PackedFloat32Array:
+	var b := PackedFloat32Array()
+	if densidade_grama <= 0.0 or not gerador.relevo_ativo and false:
+		return b
+	var n := Grade.TAM_CHUNK
+	var base := c.coord * n
+	var idx: Array[int] = []
+	for nome in BIOMAS_GRAMA:
+		idx.append(gerador.indice_bioma(nome))
+	var tiles: Array[Vector2i] = []
+	for j in n:
+		for i in n:
+			var k := j * n + i
+			var t := base + Vector2i(i, j)
+			if c.terreno[k] != GeradorMundo.Terreno.TERRA or not (int(c.bioma[k]) in idx) or c.jazidas.has(t):
+				continue
+			if gerador.em_encosta(t):
+				continue
+			tiles.append(t)
+	if tiles.is_empty():
+		return b
+	var por_tile := int(densidade_grama)
+	b.resize(tiles.size() * por_tile * 16)
+	var w := 0
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(c.coord)
+	for t in tiles:
+		var h0 := float(gerador.nivel(t)) * Grade.ALT_NIVEL
+		for q in por_tile:
+			var p := Vector2(t) + Vector2(rng.randf(), rng.randf())
+			var y := h0 + gerador.micro_em(p - Vector2(0.5, 0.5)) if q % 6 == 0 else h0 + gerador.micro_em(Vector2(t))
+			var s := rng.randf_range(0.7, 1.35)
+			var sy := s * rng.randf_range(0.85, 1.3)
+			var a := rng.randf() * TAU
+			var ca := cos(a)
+			var sa := sin(a)
+			b[w] = ca * s; b[w + 1] = 0.0; b[w + 2] = sa * s; b[w + 3] = p.x
+			b[w + 4] = 0.0; b[w + 5] = sy; b[w + 6] = 0.0; b[w + 7] = y
+			b[w + 8] = -sa * s; b[w + 9] = 0.0; b[w + 10] = ca * s; b[w + 11] = -p.y
+			var tom := rng.randf_range(0.82, 1.12)
+			b[w + 12] = tom * rng.randf_range(0.95, 1.05); b[w + 13] = tom; b[w + 14] = tom * rng.randf_range(0.9, 1.0); b[w + 15] = 1.0
+			w += 16
+	return b
+
+
+static var _malha_tufo: Mesh
+static var _mat_grama: ShaderMaterial
+
+
+func _montar_grama(buf: PackedFloat32Array) -> void:
+	if buf.is_empty():
+		return
+	if _malha_tufo == null:
+		_malha_tufo = Grama.tufo()
+		_mat_grama = ShaderMaterial.new()
+		_mat_grama.shader = load("res://render/shaders/grama.gdshader")
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
+	mm.mesh = _malha_tufo
+	mm.instance_count = buf.size() / 16
+	mm.buffer = buf
+	var mi := MultiMeshInstance3D.new()
+	mi.name = "grama"
+	mi.multimesh = mm
+	var mat := _mat_grama.duplicate() as ShaderMaterial
+	mat.set_shader_parameter("mapa_fabrica", _tex_fabrica)
+	mat.set_shader_parameter("origem_mapa", _dados.chao.origem)
+	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mi)
+	grama = mi
+
+
+var grama: MultiMeshInstance3D
 
 
 static func _buffer(lista: Array) -> PackedFloat32Array:
@@ -122,6 +206,7 @@ func montar(d: Dictionary, mapa: MapaOcupacao = null) -> void:
 	_mapa = mapa
 	_montar_chao(d.chao)
 	atualizar_fabrica()
+	_montar_grama(d.get("grama", PackedFloat32Array()))
 	refazer_objetos()
 
 

@@ -31,6 +31,11 @@ func _ready() -> void:
 	cl.button_pressed = bool(Sessao.config.get("clima", true))
 	cl.toggled.connect(func(v: bool): _mudar("clima", v))
 	add_child(cl)
+	var gr := CheckButton.new()
+	gr.text = "Gramado denso (desligar deixa mais leve)"
+	gr.button_pressed = bool(Sessao.config.get("grama", true))
+	gr.toggled.connect(func(v: bool): _mudar("grama", v))
+	add_child(gr)
 	var auto := HBoxContainer.new()
 	var la := Label.new()
 	la.text = "Salvar sozinho a cada"

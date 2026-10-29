@@ -656,6 +656,15 @@ func _process(delta: float) -> void:
 	_animar_estruturas()
 	# modo construção (peça na mão): caminho e sentido das esteiras em destaque
 	_fluxo.ligado = controle != null and controle.peca != ""
+	# grama: só de perto e só nos chunks em volta do ponto olhado (o resto nem vai para a GPU)
+	RenderingServer.global_shader_parameter_set("alvo_camera", camera.alvo)
+	var ver_grama := camera.distancia < 80.0 and bool(Sessao.config.get("grama", true))
+	var ca := Vector2(camera.alvo.x, -camera.alvo.z)
+	for kc in chunks:
+		var ch: DesenhoChunk = chunks[kc]
+		if ch.grama != null:
+			var cc := Vector2(kc * Grade.TAM_CHUNK) + Vector2.ONE * Grade.TAM_CHUNK * 0.5
+			ch.grama.visible = ver_grama and maxf(absf(cc.x - ca.x), absf(cc.y - ca.y)) < Grade.TAM_CHUNK * 0.5 + 40.0
 	# letreiros só de perto (a névoa por zoom e clima fica no DesenhoClima)
 	($Sol as DirectionalLight3D).directional_shadow_max_distance = clampf(camera.distancia * 1.6, 30.0, 110.0)
 	for l in _rotulos.values():

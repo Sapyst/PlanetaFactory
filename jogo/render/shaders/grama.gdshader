@@ -8,6 +8,10 @@ uniform vec3 cor_base : source_color = vec3(0.16, 0.24, 0.10);
 uniform vec3 cor_ponta : source_color = vec3(0.47, 0.58, 0.28);
 uniform vec2 vento_dir = vec2(0.8, 0.6);
 uniform float forca = 0.35;
+uniform sampler2D mapa_fabrica : filter_nearest, hint_default_black;   // do chunk: R = piso, B = aplainado
+uniform vec2 origem_mapa;
+uniform float raio_vista = 38.0;
+global uniform vec3 alvo_camera;
 
 varying float altura;
 varying vec3 tom;
@@ -15,6 +19,13 @@ varying vec3 tom;
 void vertex() {
 	altura = UV.y;                                        // 0 = pé, 1 = ponta
 	tom = COLOR.rgb;
+	// tufo some (encolhe) sob construção/piso de fábrica — acompanha o piso crescendo — e longe do ponto olhado
+	vec3 o = MODEL_MATRIX[3].xyz;
+	ivec2 px = clamp(ivec2(floor(vec2(o.x, -o.z) - origem_mapa)), ivec2(0), ivec2(33));
+	vec3 fb = texelFetch(mapa_fabrica, px, 0).rgb;
+	float some = smoothstep(0.12, 0.35, max(fb.r, fb.b));
+	some = max(some, smoothstep(raio_vista - 6.0, raio_vista, distance(o.xz, alvo_camera.xz)));
+	VERTEX *= 1.0 - some;
 	vec3 mundo = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	vec2 d = normalize(vento_dir);
 	float fase = dot(mundo.xz, d) * 0.35 - TIME * 1.9;

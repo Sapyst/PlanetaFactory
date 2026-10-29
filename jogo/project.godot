@@ -65,3 +65,7 @@ piso_crescer={
 "type": "vec3",
 "value": Vector3(0, 0, 1e+06)
 }
+alvo_camera={
+"type": "vec3",
+"value": Vector3(0, 0, 0)
+}
