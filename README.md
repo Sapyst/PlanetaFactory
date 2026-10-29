@@ -31,6 +31,7 @@ sistema de construção. O jogo começa com o núcleo caindo do espaço.
 - `arte/` — modelos 3D, texturas e o verificador. Ver `arte/FICHA_DE_ESTILO.md` e `arte/CATALOGO.md`.
 - `docs/RECURSOS.md` — **guia dos recursos**: cada jazida (cor, item, máquina, em que bioma aparece), biomas, águas e o que
   cada elemento natural rende. Gerado dos dados por `jogo/ferramentas/gerar_doc_recursos.py`.
+- `docs/PLANO_CLIMA.md` — plano das próximas versões: vento, árvores, tempestades com raios, água e drones.
 - `docs/MUNDO.md` — geração procedural e distribuição por bioma. `docs/fotos/` — capturas reais do jogo.
 
 ## Fluxo de trabalho (sem precisar abrir nada)
