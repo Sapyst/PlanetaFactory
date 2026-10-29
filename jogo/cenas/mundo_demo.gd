@@ -820,7 +820,9 @@ func _process(delta: float) -> void:
 	# grama: por quadrante, perto do ponto olhado e dentro do oval de visão (DesenhoVisao → DesenhoChunk.ajustar_grama)
 	RenderingServer.global_shader_parameter_set("alvo_camera", camera.alvo)
 	# letreiros só de perto (a névoa por zoom e clima fica no DesenhoClima)
-	($Sol as DirectionalLight3D).directional_shadow_max_distance = clampf(camera.distancia * 1.6, 30.0, 110.0)
+	# sombra até onde se vê (celular: mais curta — de cima a diferença quase não aparece)
+	($Sol as DirectionalLight3D).directional_shadow_max_distance = clampf(camera.distancia * 1.1, 25.0, 60.0) if OS.has_feature("mobile") \
+			else clampf(camera.distancia * 1.6, 30.0, 110.0)
 	for l in _rotulos.values():
 		l.visible = camera.distancia < 75.0 and not _visao.ligada     # na visão de recursos só os nomes do mapa
 	_desenho_trens.sincronizar(trens)

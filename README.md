@@ -8,6 +8,7 @@ sistema de construção. O jogo começa com o núcleo caindo do espaço.
 
 ![Voo sobre uma fábrica](docs/midia/voo.gif)
 
+**Como jogar:** [docs/COMO_JOGAR.md](docs/COMO_JOGAR.md) ·
 **Baixar para Android:** [última versão](https://github.com/Sapyst/PlanetaFactory/releases/latest) ·
 **Vídeo do voo completo (18 s, MP4):** na página da [versão 0.3.3](https://github.com/Sapyst/PlanetaFactory/releases/tag/v0.3.3)
 
@@ -43,7 +44,7 @@ sistema de construção. O jogo começa com o núcleo caindo do espaço.
 2. `jogo/ferramentas/testar.sh` — importa e roda todos os testes do jogo sem janela.
 3. `godot --path jogo --write-movie /tmp/q.png --fixed-fps 30 --quit-after 70 -- camera X Z DIST` — foto real.
 4. `python3 jogo/ferramentas/gerar_sons.py` — sintetiza os sons; `python3 jogo/ferramentas/gerar_nuvens.py` — mapa das nuvens.
-5. `godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.11.1.apk` — APK.
+5. `godot --headless --path jogo --export-debug "Android" jogo/export/PlanetaFactory-0.11.2.apk` — APK.
 6. `... -- camera -3 2 11 roteiro construir` (ou `roteiro toque`) — teste visual da construção com cliques/toques injetados.
 7. `godot --path jogo --write-movie /tmp/v/q.png --fixed-fps 30 -- roteiro mostruario voo` — regrava o voo do mostruário
    (sem `voo` e com `camera X Z DIST` tira prints; `visao`/`setas` ligam a visão de recursos/as setas).

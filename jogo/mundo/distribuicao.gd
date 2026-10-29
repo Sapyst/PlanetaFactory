@@ -182,11 +182,20 @@ func obstaculo(tile: Vector2i, cx := {}) -> Dictionary:
 	if nome == "":
 		return {}
 	if nome.begins_with("arv_"):                     # árvore por receita: espécie nos dados, variação pelo tile
-		nome += "_%d" % (1 + int(h(tile.x, tile.y, 44) * VARIACOES_ARVORE))
+		nome += "_%d" % variacao_arvore(tile)
 	return {"nome": nome, "ancora": tile, "area": Vector2i.ONE, "rot": int(h(tile.x, tile.y, 43) * 4.0)}
 
 
 const VARIACOES_ARVORE := 6
+const VARIACOES_POR_CHUNK := 3        ## cada chunk usa só 3 das 6 (menos grupos de desenho); o mapa tem todas
+
+
+## Variação da árvore no tile: o chunk sorteia 3 das 6 (seguidas, a partir de um começo) e o tile escolhe entre elas.
+static func variacao_arvore(tile: Vector2i) -> int:
+	var k := Grade.chunk_de(tile)
+	var comeco := int(h(k.x, k.y, 45) * VARIACOES_ARVORE)
+	var i := int(h(tile.x, tile.y, 44) * VARIACOES_POR_CHUNK)
+	return 1 + (comeco + i) % VARIACOES_ARVORE
 
 
 ## Espécie de uma árvore por receita ("arv_carvalho_3" → "arv_carvalho"); outros nomes ficam como estão.

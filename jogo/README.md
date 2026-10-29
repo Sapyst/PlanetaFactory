@@ -121,6 +121,8 @@ vista. Contador de FPS embutido (ligado por padrão na fase de testes; Configura
   (2/3) até 16 m com degradê; quadrante longe ou fora do oval não vai para a GPU. Medido (`-- roteiro medir`, câmera
   a 60 m, RTX): GPU 9,2 → 3,4 ms e 17,5 → 6,9 milhões de triângulos; densidade do celular 3,0 → 1,6 ms.
   `-- roteiro inventario` lista quem soma os triângulos.
+- Árvores: cada chunk usa 3 das 6 variações de cada espécie (`Distribuicao.variacao_arvore`): 562 → 468 chamadas.
+- Celular: sombra em 2 cascatas (em vez de 4) e até 60 m.
 - Céu: só recebe cor nova quando a diferença se vê, e o reflexo é refeito aos poucos (Sky incremental).
 - Sem música (só efeitos).
 

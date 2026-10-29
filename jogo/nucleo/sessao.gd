@@ -47,6 +47,8 @@ func aplicar() -> void:
 		var sol := cena.get_node_or_null("Sol") as DirectionalLight3D
 		if sol != null:
 			sol.shadow_enabled = bool(config.sombras)
+			if OS.has_feature("mobile"):                 # celular: 2 cascatas em vez de 4 (metade das passadas de sombra)
+				sol.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 		var amb := cena.get_node_or_null("Ambiente") as WorldEnvironment
 		if amb != null:
 			amb.environment.glow_enabled = not OS.has_feature("mobile")   # brilho custa caro na GPU do celular
