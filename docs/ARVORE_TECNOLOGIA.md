@@ -583,10 +583,9 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
 
 ## Decisões e pontos em aberto
 
-- **Água na base continua seca.** O `PLANO_CLIMA.md` diz que a base nunca precisa de água, mas também põe água em
-  "fundir aço" e "lapidar", que já existem no começo. Proposta: as receitas atuais ficam sem água e a pesquisa
-  `bomba_agua` libera versões **refrigeradas** (com água, +50% de produto). Assim nada que já funciona quebra. Falta
-  Sapyst confirmar.
+- **Água na base continua seca (decidido).** Fundir aço e lapidar cristal ficam sem água, como hoje. A pesquisa
+  `bomba_agua` libera as versões **refrigeradas** dessas duas receitas (com água, +50% de produto). Assim nada que já
+  funciona quebra.
 - **As 14 pesquisas atuais não mudam.** Mesmos IDs, pré-requisitos e custos (incluindo `energia`, que existe no jogo
   mesmo fora da lista do pedido). `refino`, `acumulacao` e `energia` ficam na era do meio, ainda pagas só com pacote
   básico, como hoje.

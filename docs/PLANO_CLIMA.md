@@ -100,12 +100,13 @@ A IA quer se espalhar: água é **essencial para crescer**, mas não é o primei
 fornalha comum, montadora, gerador, núcleo, laboratório) **nunca** precisa de água. Ela entra no nível do meio:
 | Quem usa água | Para quê | Consumo |
 |---|---|---|
-| Fundir aço | têmpera | 20 por barra |
-| Lapidar cristal | corte refrigerado | 10 por cristal |
+| Fundir aço refrigerado (opcional) | têmpera: +50% de barras | 20 por barra |
+| Lapidar cristal refrigerado (opcional) | corte refrigerado: +50% de cristal | 10 por cristal |
 | Refinador (bateria, núcleo, módulo) | resfriamento contínuo | 6/s trabalhando |
 | Estação de drones | fabricar drone | 50 por drone |
 | Captador de carga | banho do cristal | 30 por cristal carregado |
-Sem água, essas receitas param (painel mostra “sem água”); o uso devolve parte como **água suja** (despejo, já
+Fundir aço e lapidar continuam existindo sem água; a pesquisa da bomba só acrescenta as versões refrigeradas, que
+rendem 50% mais. Sem água, as demais receitas param (painel mostra “sem água”); o uso devolve parte como **água suja** (despejo, já
 existe), então crescer sem filtro suja os rios — consequência, não ataque.
 
 **Fontes de água** (fluido novo `agua`, pelos canos que já existem):
