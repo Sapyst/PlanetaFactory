@@ -19,14 +19,17 @@ static func material(origem: Material, vento := 0.0, boiar := 0.0, uv2 := false,
 	if not (origem is BaseMaterial3D):
 		return origem
 	var nome := origem.resource_name
+	var cor_nome := nome
+	nome = nome.get_slice(".", 0)          # P_Fogo.001 (paleta do conversor: um material por cor) → efeito de P_Fogo
 	var b := origem as BaseMaterial3D
 	var tex := b.albedo_texture
-	var chave := "%s|%.2f|%.2f|%s|%d|%s" % [nome, vento, boiar, uv2, tex.get_instance_id() if tex != null else 0, carbonizada]
+	# a cor entra na chave: P_Fogo de modelos diferentes pode ter cor diferente com o mesmo nome
+	var chave := "%s|%s|%.2f|%.2f|%s|%d|%s" % [cor_nome, b.albedo_color.to_html(), vento, boiar, uv2, tex.get_instance_id() if tex != null else 0, carbonizada]
 	if _cache.has(chave):
 		return _cache[chave]
 	var m := ShaderMaterial.new()
 	m.shader = SHADER
-	m.resource_name = nome
+	m.resource_name = cor_nome
 	m.set_shader_parameter("cor", b.albedo_color)
 	m.set_shader_parameter("aspereza", b.roughness)
 	m.set_shader_parameter("metal", b.metallic)

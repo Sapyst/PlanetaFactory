@@ -19,8 +19,6 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 PECAS_CANOS = ['bomba', 'reto_visor', 'reto_visor2', 't', 'curva_a', 'reto_isolado', 'reto_fole', 'curva_b', 'cruz',
                'tampao', 'tanque', 'reto_jogo']
 SUJEIRA_CONJUNTO = ['halo', 'mancha', 'espuma', 'respingo']
-# decalques com alfa por cor de vértice (estudo_baus.py): assados viram borrões chapados pretos — saem
-DECAL_SUAVE = ['escorrido_s', 'fuligem_s', 'oleo_s', 'po_s']
 
 
 def _bpy():
@@ -56,21 +54,6 @@ def _centro_mundo(o):
     return sum(cs, Vector()) / 8
 
 
-def _sem_metal():
-    """O assado é a passada DIFFUSE/COLOR: em material metálico ela sai preta (a cor do metal vai no especular).
-    Antes de assar, metal vira 0 em todos os materiais — a textura leva a cor-base (o jogo usa material fosco)."""
-    bpy = _bpy()
-    for m in bpy.data.materials:
-        if not m.node_tree:
-            continue
-        for n in m.node_tree.nodes:
-            if n.type == 'BSDF_PRINCIPLED':
-                ent = n.inputs['Metallic']
-                for l in list(ent.links):
-                    m.node_tree.links.remove(l)
-                ent.default_value = 0.0
-
-
 def _isolar(w, d, minha, alheias=(), tirar_lote=False):
     """Tira objetos das peças vizinhas (pelo prefixo) e o que não tem dono cujo centro cai fora da área."""
     def f(sc):
@@ -102,65 +85,17 @@ def _so_colecao(nome):
     """Cena com dois baús: fica só a coleção da peça."""
     def f(sc):
         bpy = _bpy()
-        _sem_metal()
         rem = [o for o in sc.objects if o.name != '_base' and o.type in ('MESH', 'EMPTY', 'FONT')
                and not any(c.name == nome for c in o.users_collection)]
         rem += [o for o in sc.objects if o.type == 'MESH' and 'halo' in o.name.lower()]
         _remover(rem)
-        _textos_em_malha(sc)
         _limpar_vazios(sc)
-        _juntar_itens(sc)
     return f
-
-
-def _textos_em_malha(sc):
-    """Estêncil de texto (curva FONT) vira malha: entra no corpo, é reduzido e assado como o resto."""
-    bpy = _bpy()
-    fs = [o for o in sc.objects if o.type == 'FONT']
-    if not fs:
-        return
-    bpy.ops.object.select_all(action='DESELECT')
-    for o in fs:
-        o.select_set(True)
-    bpy.context.view_layer.objects.active = fs[0]
-    bpy.ops.object.convert(target='MESH')
-
-
-def _brilha(m):
-    p = next((n for n in m.node_tree.nodes if n.type == 'BSDF_PRINCIPLED'), None) if m and m.node_tree else None
-    if p is None:
-        return False
-    e = p.inputs['Emission Strength']
-    return e.is_linked or e.default_value > 1.0
-
-
-def _juntar_itens(sc):
-    """Malhas filhas diretas do mesmo empty animado, sem animação própria, andam juntas: viram uma malha só
-    (item flutuante, tampa + número pintado…) — menos nós e chamadas de desenho no celular. Brilho e não brilho
-    ficam separados (o conversor trata a peça que brilha à parte)."""
-    bpy = _bpy()
-    for e in [o for o in sc.objects if o.type == 'EMPTY' and o.name != '_base']:
-        grupos = {}
-        for c in e.children:
-            if c.type != 'MESH' or (c.animation_data and c.animation_data.action):
-                continue
-            b = any(_brilha(s.material) for s in c.material_slots)
-            grupos.setdefault(b, []).append(c)
-        for ms in grupos.values():
-            if len(ms) < 2:
-                continue
-            bpy.ops.object.select_all(action='DESELECT')
-            for m in ms:
-                m.select_set(True)
-            bpy.context.view_layer.objects.active = ms[0]
-            bpy.ops.object.make_single_user(object=True, obdata=True)
-            bpy.ops.object.join()
 
 
 def _uma_malha(sc, raiz, dados):
     """Lote (MultiMesh) usa só a 1ª malha do .glb: luzinhas da paleta entram no corpo como outra superfície."""
     bpy = _bpy()
-    _paleta(sc, raiz, dados)
     ms = [o for o in sc.objects if o.type == 'MESH']
     if len(ms) > 1:
         corpo = next((o for o in ms if o.name.endswith('_corpo')), ms[0])
@@ -174,21 +109,6 @@ def _uma_malha(sc, raiz, dados):
               and not _filhos_malha(o)])
 
 
-def _paleta(sc, raiz, dados):
-    """O conversor cria um P_Fogo/P_Cristal por peça que brilha (P_Fogo.001…); o jogo liga o pulso pelo nome
-    exato, então todas apontam para o primeiro de cada nome."""
-    bpy = _bpy()
-    for o in sc.objects:
-        if o.type != 'MESH':
-            continue
-        for s in o.material_slots:
-            m = s.material
-            if m and '.' in m.name and m.name.split('.')[0] in ('P_Fogo', 'P_Cristal'):
-                base = bpy.data.materials.get(m.name.split('.')[0])
-                if base:
-                    s.material = base
-
-
 # partes que o Animador do jogo mexe pelo sufixo do nome (<modelo>_<parte>): nada do estudo pode cair nelas
 PARTES_ANIMADOR = {'hastes', 'cristal', 'rotor', 'antena', 'nacele', 'helice', 'cabecote', 'braco', 'braco1', 'braco2',
                    'garra', 'giro', 'canhao'}
@@ -198,8 +118,6 @@ def _neutro(sc, raiz, dados):
     """Empties animados do estudo (braços da estação, itens do baú…) e malhas com sufixo perigoso ganham nome
     neutro: quem os mexe é a animação "trabalho" do estudo, não o Animador (a IK do jogo é de um braço só, guiado
     pela regra do Braço, e não serve para os dois braços da estação)."""
-    _paleta(sc, raiz, dados)
-    _juntar_brilhos_fixos(sc, raiz)
     nome = raiz.name
     i = 0
     for o in list(sc.objects):
@@ -209,28 +127,6 @@ def _neutro(sc, raiz, dados):
         if o.type == 'EMPTY' or suf in PARTES_ANIMADOR or suf.startswith('pistao'):
             o.name = '%s_%s%d' % (nome, 'e' if o.type == 'EMPTY' else 'b', i)
             i += 1
-
-
-def _juntar_brilhos_fixos(sc, raiz):
-    """Peças que brilham e não se mexem (etiquetas, barras de luz, LEDs), filhas diretas da raiz ou do _base: uma malha por
-    material da paleta em vez de uma por peça."""
-    bpy = _bpy()
-    grupos = {}
-    for o in sc.objects:
-        if (o.type == 'MESH' and o.parent is not None and (o.parent is raiz or o.parent.name == '_base')
-                and not o.name.endswith('_corpo')
-                and not (o.animation_data and (o.animation_data.action or o.animation_data.nla_tracks))
-                and o.material_slots and all(s.material and s.material.name.startswith('P_') for s in o.material_slots)):
-            grupos.setdefault(o.material_slots[0].material.name, []).append(o)
-    for ms in grupos.values():
-        if len(ms) < 2:
-            continue
-        bpy.ops.object.select_all(action='DESELECT')
-        for m in ms:
-            m.select_set(True)
-        bpy.context.view_layer.objects.active = ms[0]
-        bpy.ops.object.make_single_user(object=True, obdata=True)
-        bpy.ops.object.join()
 
 
 def _cano(minha, w=1, d=1, x=0.0, y=0.0, rot=0.0, script='estudo_canos.py', args=None, tris=900):
@@ -246,7 +142,6 @@ def _estacao_depois(sc):
     bpy = _bpy()
     import bmesh
     from mathutils import Vector
-    _sem_metal()
     fora = ('minerio_4', 'minerio_5', 'chapas_3', 'chapas_4', 'monte')
     rem = [o for o in sc.objects if any(o.name == f or o.name.startswith(f + '_') or o.name.startswith(f + '.')
                                         for f in fora)]
@@ -257,7 +152,6 @@ def _estacao_depois(sc):
     e = sc.objects.get('estacao')                     # o empty raiz do estudo tomaria o nome da raiz do conversor
     if e is not None:
         e.name = 'est_raiz'
-    _textos_em_malha(sc)
     for o in [o for o in sc.objects if o.type == 'MESH']:
         for m in list(o.modifiers):
             if m.type in ('BEVEL', 'SOLIDIFY'):           # telha com espessura assava escura (o raio pegava o verso)
@@ -310,7 +204,6 @@ def _estacao_depois(sc):
     _remover([o for o in sc.objects if o.type == 'MESH' and '_rolo_' in o.name and _centro_mundo(o).x > 0.975])
     _remover([o for o in sc.objects if o.type == 'MESH' and not o.data.polygons])
     _limpar_vazios(sc)
-    _juntar_itens(sc)                                 # peças de cada elo do braço, rolo, item: uma malha por elo
 
 
 CONFIG = {
@@ -319,15 +212,13 @@ CONFIG = {
     'cano_t': _cano('t', x=0.0, y=2.0, tris=1600),
     'cano_cruz': _cano('cruz', x=2.0, y=3.0, tris=1600),
     'bomba': dict(script='estudo_canos.py', cat='logistica/canos', tris=3000, tex=1024, centro=(0.0, 0.0, 0.0),
-                  tirar=list(SUJEIRA_CONJUNTO), depois_de_montar=_isolar(1, 1, 'bomba', PECAS_CANOS),
-                  antes_de_exportar=_paleta),
+                  tirar=list(SUJEIRA_CONJUNTO), depois_de_montar=_isolar(1, 1, 'bomba', PECAS_CANOS)),
     'tanque': dict(script='estudo_canos.py', cat='energia', tris=4000, tex=1024, centro=(4.5, 3.5, 0.0),
-                   tirar=list(SUJEIRA_CONJUNTO), depois_de_montar=_isolar(2, 2, 'tanque', PECAS_CANOS),
-                   antes_de_exportar=_paleta),
+                   tirar=list(SUJEIRA_CONJUNTO), depois_de_montar=_isolar(2, 2, 'tanque', PECAS_CANOS)),
     'bau': dict(script='estudo_baus.py', cat='logistica/armazenagem', tris=3000, tex=1024, centro=(-1.0, -0.5, 0.0),
-                tirar=['halo'] + DECAL_SUAVE, depois_de_montar=_so_colecao('bau'), antes_de_exportar=_neutro),
+                tirar=['halo'], depois_de_montar=_so_colecao('bau'), antes_de_exportar=_neutro),
     'bau_grande': dict(script='estudo_baus.py', cat='logistica/armazenagem', tris=6000, tex=1024, centro=(0.5, 0.0, 0.0),
-                       tirar=['halo'] + DECAL_SUAVE, depois_de_montar=_so_colecao('bau_grande'),
+                       tirar=['halo'], depois_de_montar=_so_colecao('bau_grande'),
                        antes_de_exportar=_neutro),
     'estacao': dict(script='estudo_estacao.py', cat='transporte/trilhos', tris=9000, tex=1024, margem=1.2,
                     tirar=[], depois_de_montar=_estacao_depois, antes_de_exportar=_neutro),
