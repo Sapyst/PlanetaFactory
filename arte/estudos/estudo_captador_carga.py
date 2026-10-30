@@ -152,6 +152,9 @@ def luz(nome, cor, energia, loc, raio=0.05):
     o = bpy.data.objects.new(nome, d)
     sc.collection.objects.link(o)
     o.location = loc
+    o.visible_camera = False
+    o.visible_glossy = False
+    o.visible_transmission = False
     return d
 
 
@@ -320,7 +323,7 @@ def vidro_mat(nome='Vidro'):
     b = nt.nodes['Principled BSDF']
     b.inputs['Transmission Weight'].default_value = 1.0
     b.inputs['IOR'].default_value = 1.0
-    b.inputs['Coat Weight'].default_value = 0.35
+    b.inputs['Coat Weight'].default_value = 0.15
     b.inputs['Coat Roughness'].default_value = 0.05
     b.inputs['Coat IOR'].default_value = 1.5
     geo = no(nt, 'ShaderNodeNewGeometry')
@@ -365,7 +368,7 @@ def agua_banho_mat():
     vol = no(nt, 'ShaderNodeVolumePrincipled')
     vol.name = 'vol'
     vol.inputs['Color'].default_value = (0.35, 0.5, 0.42, 1)
-    vol.inputs['Density'].default_value = 0.7
+    vol.inputs['Density'].default_value = 0.3
     vol.inputs['Absorption Color'].default_value = (0.35, 0.5, 0.4, 1)
     vol.inputs['Emission Color'].default_value = (0.55, 0.22, 1.0, 1)
     vol.inputs['Emission Strength'].default_value = 0.0
@@ -397,26 +400,26 @@ def cristal_mat():
     nt.links.new(tc.outputs['Object'], ru.inputs['Vector'])
     # opaco: leitoso cinza-lilás, fosco, com nuvens; carregado: violeta translúcido
     turvo = no(nt, 'ShaderNodeMix', data_type='RGBA')
-    turvo.inputs[6].default_value = (0.36, 0.33, 0.40, 1)
-    turvo.inputs[7].default_value = (0.20, 0.18, 0.24, 1)
+    turvo.inputs[6].default_value = (0.22, 0.2, 0.25, 1)
+    turvo.inputs[7].default_value = (0.1, 0.09, 0.12, 1)
     nt.links.new(ru.outputs['Fac'], turvo.inputs[0])
     cor = no(nt, 'ShaderNodeMix', data_type='RGBA')
-    cor.inputs[7].default_value = (0.30, 0.06, 0.75, 1)
+    cor.inputs[7].default_value = (0.16, 0.02, 0.5, 1)
     nt.links.new(sep.outputs['Red'], cor.inputs[0])
     nt.links.new(turvo.outputs[2], cor.inputs[6])
     nt.links.new(cor.outputs[2], b.inputs['Base Color'])
     rg = no(nt, 'ShaderNodeMapRange', **{'To Min': 0.55, 'To Max': 0.12})
     nt.links.new(sep.outputs['Red'], rg.inputs['Value'])
     nt.links.new(rg.outputs['Result'], b.inputs['Roughness'])
-    tw = no(nt, 'ShaderNodeMapRange', **{'To Min': 0.15, 'To Max': 0.75})
+    tw = no(nt, 'ShaderNodeMapRange', **{'To Min': 0.1, 'To Max': 0.35})
     nt.links.new(sep.outputs['Red'], tw.inputs['Value'])
     nt.links.new(tw.outputs['Result'], b.inputs['Transmission Weight'])
-    b.inputs['Emission Color'].default_value = (0.5, 0.16, 1.0, 1)
+    b.inputs['Emission Color'].default_value = (0.42, 0.06, 1.0, 1)
     er = no(nt, 'ShaderNodeMath', operation='MULTIPLY')
-    er.inputs[1].default_value = 7.0
+    er.inputs[1].default_value = 2.2
     nt.links.new(sep.outputs['Red'], er.inputs[0])
     eg = no(nt, 'ShaderNodeMath', operation='MULTIPLY')
-    eg.inputs[1].default_value = 22.0
+    eg.inputs[1].default_value = 7.0
     nt.links.new(sep.outputs['Green'], eg.inputs[0])
     es = no(nt, 'ShaderNodeMath', operation='ADD')
     nt.links.new(er.outputs['Value'], es.inputs[0])
@@ -506,7 +509,7 @@ M.update({
     'faisca': emissivo('Faísca', (0.85, 0.7, 1.0), 50.0),
     'faisca_q': emissivo('Faísca quente', (1.0, 0.6, 0.25), 40.0),
     'vapor': base3d.volume_mat('Vapor', (0.85, 0.86, 0.88), 2.2, 1.1, 2.6),
-    'vapor_dentro': base3d.volume_mat('Vapor do banho', (0.85, 0.86, 0.88), 0.35, 0.5, 0.95),
+    'vapor_dentro': base3d.volume_mat('Vapor do banho', (0.85, 0.86, 0.88), 0.04, 0.5, 0.95),
     'vapor_vaza': base3d.volume_mat('Vapor vazando', (0.85, 0.86, 0.88), 1.6, 0.9, 1.7),
 })
 
@@ -1621,7 +1624,7 @@ luz_ceu.rotation_euler = (math.radians(25), math.radians(-12), math.radians(145)
 luz_ponta = luz('Ponta', (0.75, 0.6, 1.0), 0, PONTA_RAIO + Z * 0.1, 0.1)
 luz_banho = luz('Banho', VIOLETA, 0, C + Z * (Z_AGUA + 0.12), 0.15)
 luz_banho2 = luz('Banho fundo', VIOLETA, 0, C + Z * (Z_BASE + 0.12), 0.2)
-luz_servico = luz('Serviço', (1.0, 0.62, 0.3), 3.0, C + Z * (Z_TOP - 0.08) + dirz(PI) * 0.25, 0.05)
+luz_servico = luz('Serviço', (1.0, 0.62, 0.3), 1.2, C + Z * (Z_TOP - 0.08) + dirz(PI) * 0.25, 0.05)
 luz_trilhos = luz('Trilhos', VIOLETA, 0, C + dirz(ANG_EL[1]) * R_TRILHO + Z * 1.45, 0.1)
 
 
@@ -1647,11 +1650,11 @@ def anim_energia(q, fr):
         o.hide_render = k != raio_on
         chave(o, 'hide_render', q)
     flash = 1.0 if raio_on >= 0 else 0.0
-    luz_ceu_d.energy = 3.5 * flash
+    luz_ceu_d.energy = 1.6 * flash
     chave(luz_ceu_d, 'energy', q)
-    luz_ponta.energy = 900 * flash
+    luz_ponta.energy = 400 * flash
     chave(luz_ponta, 'energy', q)
-    bg_str.default_value = 1.0 + 1.6 * flash
+    bg_str.default_value = 1.0 + 0.5 * flash
     bg_str.keyframe_insert('default_value', frame=q)
     for k, o in enumerate(arco_coroa):
         o.hide_render = not ((flash > 0 and rr.random() < 0.8) or (rr.random() < 0.12))
@@ -1689,10 +1692,10 @@ def anim_energia(q, fr):
     # banho acende
     g = brilho_banho(fr)
     pisc = 0.8 + 0.2 * math.sin(fr * 230) * math.sin(fr * 97)
-    vol_em.default_value = 0.5 * g * pisc
+    vol_em.default_value = 0.35 * g * pisc
     vol_em.keyframe_insert('default_value', frame=q)
-    luz_banho.energy = 5 * g * pisc + 0.6
-    luz_banho2.energy = 8 * g * pisc
+    luz_banho.energy = 2.5 * g * pisc + 0.3
+    luz_banho2.energy = 5 * g * pisc
     luz_trilhos.energy = 30 * (1.0 if janela(fr, 0.34, 0.46) else 0.0) * pisc
     for l_ in (luz_banho, luz_banho2, luz_trilhos):
         chave(l_, 'energy', q)
@@ -1824,7 +1827,7 @@ def renderizar():
     import time
     for tentativa in range(30):
         try:
-            renderizar()
+            bpy.ops.render.render(write_still=True)
             return
         except RuntimeError as erro:
             print('GPU ocupada, tentando de novo:', erro)
@@ -1850,15 +1853,17 @@ if modo == 'foto':
         sc.render.filepath = os.path.join(AQUI, 'captador_carga_0.png')
         renderizar()
     if 'perto' in quais:
-        sc.frame_set(44)
+        sc.frame_set(58)                                                   # brilho residual: opacos e carregado lado a lado
         sc.render.resolution_x, sc.render.resolution_y = 1300, 1000
-        mirar(C + Vector((-0.86, 0.1, 0.98)), C + Vector((0.05, 0.1, 0.48)), 24)
+        mirar(C + Vector((-0.7, 0.06, 0.8)), C + Vector((0.1, 0.08, 0.36)), 19)
+        sc.view_settings.exposure = 0.0
         sc.render.filepath = os.path.join(AQUI, 'captador_carga_perto.png')
         renderizar()
     if 'raio' in quais:
         sc.frame_set(37)                                                   # repique do raio, pulso no cabo, banho acendendo
         sc.render.resolution_x, sc.render.resolution_y = 1100, 1400
-        mirar((-6.6, -4.4, 1.4), (0.4, 0.6, 3.4), 24)
+        mirar((-5.0, -3.4, 1.6), (0.3, 0.5, 3.5), 22)
+        sc.view_settings.exposure = 0.3
         sc.render.filepath = os.path.join(AQUI, 'captador_carga_raio.png')
         renderizar()
 print('CAPTADOR ok')

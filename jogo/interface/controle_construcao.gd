@@ -27,6 +27,8 @@ var _plano: Array[Dictionary] = []
 var _chave_plano := ""
 var _cursor := Vector2i.ZERO
 var _cursor_valido := false
+var _ima_tile := Vector2i(1 << 30, 0)   ## braço: tile onde o ímã já virou a peça para a esteira
+var _rot_manual := false                ## o jogador girou depois do ímã (vale até mudar de tile)
 var _gesto := false                 ## traço/colocação em andamento (botão ou dedo pressionado)
 var _inicio := Vector2i.ZERO
 var _arrasto_camera := false
@@ -133,6 +135,7 @@ func girar(passo := -1) -> void:
 	if peca == "":
 		return
 	rot = posmod(rot + passo, 4)           # −1 = horário (como o jogador espera do botão)
+	_rot_manual = true
 	_atualizar()
 
 
@@ -517,6 +520,7 @@ func _atualizar() -> void:
 		barra.dica(_dica_parada(), false)
 		return
 	var alvo := _tile_pend if _pendente else _cursor
+	_ima_braco(alvo)
 	var chave := "%s|%s|%d|%s|%s|%s|%d|%s" % [peca, removendo, rot, _inicio, alvo, _gesto, construtor.nivel, _pendente]
 	if chave != _chave_plano:
 		_chave_plano = chave
@@ -541,6 +545,23 @@ func _atualizar() -> void:
 	else:
 		barra.acoes_em(Vector2.INF, false, false)
 	_dica_do_plano()
+
+
+## Ímã do braço: posto encostado numa esteira, ele vira sozinho com a frente (onde solta) para ela, seja qual for o
+## giro de antes — sem confusão de lado. Girar depois disso vale até o braço ir para outro tile.
+func _ima_braco(alvo: Vector2i) -> void:
+	if not Portas.eh_braco(peca) or removendo:
+		return
+	if alvo != _ima_tile:
+		_ima_tile = alvo
+		_rot_manual = false
+	if _rot_manual:
+		return
+	for i in 4:
+		for id in construtor.mapa.ids_no_tile(alvo + Grade.DIRECOES[i]):
+			if Portas.eh_esteira(construtor.mapa.estruturas[id].nome):
+				rot = posmod(-i, 4)              # frente do braço (norte girado) aponta para a esteira
+				return
 
 
 ## Poste/torre/máquina no fantasma: mostra os fios que vão aparecer e o alcance do poste.

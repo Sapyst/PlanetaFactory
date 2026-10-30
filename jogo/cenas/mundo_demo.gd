@@ -326,6 +326,9 @@ func _criar_desenhos() -> void:
 	_efeitos.fabrica = fabrica
 	_efeitos.mapa = mapa
 	add_child(_efeitos)
+	var portas_soltas := DesenhoPortas.new()        # aviso de entrada/saída sem nada ligado
+	portas_soltas.mapa = mapa
+	add_child(portas_soltas)
 	_desenho_poluicao = DesenhoPoluicao.new()
 	_desenho_poluicao.poluicao = poluicao
 	add_child(_desenho_poluicao)
@@ -385,6 +388,7 @@ func alternar_poluicao() -> bool:
 func _criar_construcao() -> void:
 	construtor = Construtor.new(mapa)
 	var fantasma := Fantasma.new()
+	fantasma.mapa = mapa
 	add_child(fantasma)
 	var barra := BarraConstrucao.new()
 	add_child(barra)
@@ -1041,6 +1045,21 @@ const NOMES_ESTADO := {Maquina.Estado.SEM_RECEITA: "sem receita — escolha abai
 
 
 ## Clique/toque de mão vazia: trem perto do ponto, senão a estrutura do tile. Vector2.INF fecha.
+## Gira uma estrutura já construída (mesmo id, mesmo estado) e redesenha; avisa se não couber.
+func girar_estrutura(id: int) -> void:
+	if not mapa.estruturas.has(id):
+		return
+	var antes: Dictionary = mapa.estruturas[id].duplicate()
+	antes["id"] = id
+	if not mapa.girar(id):
+		controle._avisar("Não dá para girar: a peça girada encosta em outra construção")
+		return
+	Som.tocar("clique")
+	sincronizar({"colocados": [id] as Array[int], "removidos": [antes] as Array[Dictionary], "limpos": [] as Array[Dictionary],
+			"restaurados": [] as Array[Dictionary], "trens": [] as Array[Dictionary], "estoque": {}, "aplainados": []})
+	_detalhe()
+
+
 func selecionar(p: Vector2) -> void:
 	_sel = {}
 	if p != Vector2.INF:
@@ -1260,6 +1279,8 @@ func _detalhe() -> void:
 		if est.acum_cap > 0.0:
 			t += " · acumulado %.0f de %.0f MJ (%s)" % [est.acum, est.acum_cap, "carregando" if est.carga > 0.5 else ("descarregando" if est.carga < -0.5 else "parado")]
 		linhas.append(t)
+	if e.nome != "pilar" and e.get("nivel", 0) == 0:
+		opcoes.append({"texto": "⟲  Girar", "acao": func(): girar_estrutura(id)})
 	# opções internas: ligar/desligar (tudo que usa ou gera energia, e máquinas) e modo de trabalho (máquinas elétricas)
 	if Fiacao.papel(e.nome) in ["consumo", "fonte"] or fabrica.maquinas.has(id):
 		var liga: bool = not e.get("desligada", false)

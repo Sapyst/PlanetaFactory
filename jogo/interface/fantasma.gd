@@ -2,7 +2,9 @@ class_name Fantasma
 extends Node3D
 ## Desenha um plano do Construtor: cada peça translúcida (verde = pode, vermelho = não pode, cinza = já está igual),
 ## a pegada no chão tile a tile e setas nas portas (entrada aponta para dentro, saída para fora) — é assim que se lê
-## a direção de uma esteira/braço antes de construir. Tudo vem de pools: nada é criado de novo a cada quadro.
+## a direção de uma esteira/braço antes de construir. Cada porta tem rótulo "entra"/"sai"; porta sem nada encostado
+## (Portas.ligada) fica vermelha com "falta". Máquinas ganham uma seta grande "frente" fora da borda da frente.
+## Tudo vem de pools: nada é criado de novo a cada quadro.
 
 const VERDE := Color(0.35, 1.0, 0.55)
 const VERMELHO := Color(1.0, 0.30, 0.25)
@@ -17,6 +19,8 @@ var _setas: Array[MeshInstance3D] = []
 var _malha_pegada: PlaneMesh
 var _linhas: MeshInstance3D           ## prévia dos fios + anel do alcance do poste
 var _malha_seta: ArrayMesh
+var _rotulos: Array[Label3D] = []
+var mapa: MapaOcupacao                    ## (opcional) para saber se a porta já tem algo ligado
 
 
 func _ready() -> void:
@@ -37,6 +41,7 @@ func mostrar(plano: Array[Dictionary], remover := false) -> void:
 	_usados.clear()
 	var np := 0
 	var ns := 0
+	var nr := 0
 	for it in plano:
 		var cor := _cor(it, remover)
 		if it.get("acao", "") == "aplainar":
@@ -70,6 +75,8 @@ func mostrar(plano: Array[Dictionary], remover := false) -> void:
 			p.material_override = _material(Color(cor, 0.5))
 		if remover:
 			continue
+		var maquina := Portas.mostra_aviso(nome) and it.get("acao", "colocar") != "trem"
+		var e := {"nome": nome, "minimo": it.minimo, "rot": it.rot, "area": area}
 		for porta in Registro.modelos.get(nome, {}).get("portas", []):
 			if porta.tipo == "TRILHO":
 				continue
@@ -80,13 +87,41 @@ func mostrar(plano: Array[Dictionary], remover := false) -> void:
 			var p2: Vector2 = pm.pos - Vector2(pm.dir) * 0.22       # um pouco para dentro da peça
 			s.position = Grade.ponto_mundo(p2, float(porta.pos[2]) + 0.30 + alt)
 			s.rotation = Vector3(0, atan2(-d.x, d.y), 0)            # −Z da seta → direção d da grade
-			s.material_override = _material(AMARELO if porta.io == "SAI" else Color.WHITE)
+			var solta := maquina and mapa != null and not Portas.ligada(mapa, e, porta)
+			var cor := AMARELO if porta.io == "SAI" else Color.WHITE
+			s.material_override = _material(VERMELHO if solta else cor)
+			s.scale = Vector3.ONE * (1.6 if maquina else 1.0)
+			if maquina:                                            # rótulo da porta (entra/sai; falta se solta)
+				var r := _rotulo(nr)
+				nr += 1
+				r.position = Grade.ponto_mundo(p2, float(porta.pos[2]) + 0.62 + alt)
+				r.text = ("falta " if solta else "") + ("entra" if porta.io == "ENT" else "sai")
+				r.modulate = VERMELHO if solta else cor
+		if maquina:                                                # frente da peça: seta grande fora da borda norte girada
+			var f := Vector2(Grade.girar_i(Vector2i(0, 1), it.rot))
+			var meio := Grade.centro_da_area(it.minimo, area, it.rot)
+			var lado := float(Grade.area_girada(area, it.rot).y if f.y != 0.0 else Grade.area_girada(area, it.rot).x)
+			var s := _seta(ns)
+			ns += 1
+			s.position = Grade.ponto_mundo(meio + f * (lado / 2.0 + 0.45), 0.08 + alt)
+			s.rotation = Vector3(0, atan2(-f.x, f.y), 0)
+			s.scale = Vector3.ONE * 2.6
+			s.material_override = _material(Color(0.55, 1.0, 0.6))
+			var r := _rotulo(nr)
+			nr += 1
+			r.position = Grade.ponto_mundo(meio + f * (lado / 2.0 + 0.95), 0.25 + alt)
+			r.text = "frente"
+			r.modulate = Color(0.75, 1.0, 0.78)
 	_esconder_resto(np, ns)
+	for i in range(nr, _rotulos.size()):
+		_rotulos[i].visible = false
 
 
 func limpar() -> void:
 	_usados.clear()
 	_esconder_resto(0, 0)
+	for r in _rotulos:
+		r.visible = false
 	_linhas.mesh = null
 
 
@@ -160,6 +195,22 @@ func _pegada(i: int) -> MeshInstance3D:
 		_pegadas.append(p)
 	_pegadas[i].visible = true
 	return _pegadas[i]
+
+
+func _rotulo(i: int) -> Label3D:
+	while _rotulos.size() <= i:
+		var l := Label3D.new()
+		l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		l.no_depth_test = true
+		l.fixed_size = true
+		l.pixel_size = 0.001
+		l.font_size = 28
+		l.outline_size = 10
+		l.outline_modulate = Color(0, 0, 0, 0.85)
+		add_child(l)
+		_rotulos.append(l)
+	_rotulos[i].visible = true
+	return _rotulos[i]
 
 
 func _seta(i: int) -> MeshInstance3D:

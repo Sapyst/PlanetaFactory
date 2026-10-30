@@ -142,6 +142,41 @@ func remover(id: int) -> void:
 	estruturas.erase(id)
 
 
+## Gira uma estrutura já posta em torno do próprio centro (mesmo id: a máquina guarda receita e estoque).
+## Recusa se a área girada encosta em outra estrutura ou se é peça elevada. `passo` −1 = horário.
+func girar(id: int, passo := -1) -> bool:
+	if not estruturas.has(id):
+		return false
+	var e: Dictionary = estruturas[id]
+	if e.get("nivel", 0) > 0 or e.nome == "pilar":
+		return false
+	var nova := posmod(int(e.rot) + passo, 4)
+	var c := Grade.centro_da_area(e.minimo, e.area, e.rot)
+	var g := Grade.area_girada(e.area, nova)
+	var minimo := Vector2i(roundi(c.x - g.x / 2.0), roundi(c.y - g.y / 2.0))
+	var novos := Grade.tiles_da_area(minimo, e.area, nova)
+	for t in novos:
+		if tiles.get(t, id) != id:
+			return false
+	for t in Grade.tiles_da_area(e.minimo, e.area, e.rot):
+		if tiles.get(t, -1) == id:
+			tiles.erase(t)
+	var canto: bool = registro.estruturas.get(e.nome, {}).get("ocupa_canto", false)
+	if canto:
+		for k in Grade.cantos_da_area(e.minimo, e.area, e.rot):
+			if cantos.get(k, -1) == id:
+				cantos.erase(k)
+	for t in novos:
+		tiles[t] = id
+	if canto:
+		for k in Grade.cantos_da_area(minimo, e.area, nova):
+			cantos[k] = id
+	e.rot = nova
+	e.minimo = minimo
+	versao += 1
+	return true
+
+
 var _terra_versao := -1
 var _terra := false
 
