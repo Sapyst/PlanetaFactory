@@ -11,6 +11,9 @@ extends RefCounted
 ##    depende do id para não virarem juntos, o trem tenta a rota pelo outro lado.
 ##  - Estação: para com o meio do trem na parada, espera, troca carga (descarrega o que trouxe de outra estação,
 ##    carrega o que está para enviar) e segue para a próxima.
+##  - Vagão-tanque (pesquisa vagao_tanque): leva um fluido só, até 25.000 por vagão. Na estação, o tanque dela
+##    (estoque.fluido, cheio/esvaziado por cano pela Fabrica) troca com o trem conforme o modo da estação:
+##    "carregar" enche o trem, "descarregar" esvazia o trem (fluido que veio de outra estação), "desligado" nada.
 
 const CARRO := 3.0            ## m por carro (engate a engate)
 const TRUQUE := 0.85          ## truques a ±0,85 m do centro do carro (modelo)
@@ -19,6 +22,10 @@ const ACEL := 1.5
 const FREIO := 2.5
 const PARADA_S := 4.0
 const CAPACIDADE_VAGAO := 40
+const CAPACIDADE_TANQUE := 25000.0      ## fluido por vagão-tanque (árvore: vagao_tanque)
+## Peças de menu que põem um trem no trilho → composição (o custo é o da peça em progressao.custos).
+const COMPOSICOES := {"trem": ["locomotiva", "vagao_carga", "vagao_carga", "locomotiva"],
+		"trem_tanque": ["locomotiva", "vagao_tanque", "vagao_tanque", "locomotiva"]}
 const FOLGA_SINAL := 0.3
 
 enum Estado { ANDANDO, PARADO, ESPERANDO_BLOCO, SEM_ROTA }
@@ -40,6 +47,9 @@ var espera := 0.0
 var carga: Dictionary = {}            ## item → quantidade
 var origem_carga := -1                ## estrutura da estação onde carregou
 var chegada := -1                     ## estrutura da estação onde acabou de parar (o mundo lê e zera)
+var fluido := ""                      ## vagões-tanque: um fluido só no trem
+var fluido_qtd := 0.0
+var origem_fluido := -1               ## estrutura da estação onde encheu
 var _tentar := 0.0
 
 
@@ -57,6 +67,18 @@ func capacidade() -> int:
 	return carros.count("vagao_carga") * CAPACIDADE_VAGAO
 
 
+func capacidade_fluido() -> float:
+	return carros.count("vagao_tanque") * CAPACIDADE_TANQUE
+
+
+## Peça de menu que monta esta composição (devolve o material ao desmontar).
+func peca() -> String:
+	for k in COMPOSICOES:
+		if ",".join(PackedStringArray(carros)) == ",".join(PackedStringArray(COMPOSICOES[k])):
+			return k
+	return "trem_tanque" if carros.has("vagao_tanque") else "trem"
+
+
 func total_carga() -> int:
 	var n := 0
 	for k in carga:
@@ -65,7 +87,8 @@ func total_carga() -> int:
 
 
 # ------------------------------------------------------------------ salvamento
-const CAMPOS := ["carros", "pontos", "acum", "segs", "s", "v", "s_alvo", "proxima", "espera", "carga", "origem_carga", "rota"]
+const CAMPOS := ["carros", "pontos", "acum", "segs", "s", "v", "s_alvo", "proxima", "espera", "carga", "origem_carga", "rota",
+		"fluido", "fluido_qtd", "origem_fluido"]
 
 
 func para_salvar() -> Dictionary:
@@ -82,6 +105,8 @@ static func de_salvo(d: Dictionary, g: GrafoTrilhos) -> Trem:
 	var t := Trem.new(d.id, g, cs)
 	for k in CAMPOS:
 		if k == "carros":
+			continue
+		if not d.has(k):                    # salvo antigo (antes do vagão-tanque)
 			continue
 		if k in ["segs", "rota"]:
 			t.get(k).assign(d[k])
@@ -218,6 +243,37 @@ func trocar_carga(estoque: Dictionary, estacao: int) -> void:
 		estoque.enviar[k] -= n
 		cabe -= n
 		origem_carga = estacao
+	trocar_fluido(estoque, estacao)
+
+
+## Vagões-tanque × tanque da estação (estoque.fluido = {modo, f, qtd}; capacidade CAPACIDADE_TANQUE). Descarrega só
+## o que veio de outra estação; carrega até encher o trem; um fluido só de cada lado.
+func trocar_fluido(estoque: Dictionary, estacao: int) -> void:
+	var cap := capacidade_fluido()
+	if cap <= 0.0 or not estoque.has("fluido"):
+		return
+	var tq: Dictionary = estoque.fluido
+	var modo: String = tq.get("modo", "desligado")
+	if modo == "descarregar" and fluido_qtd > 0.0 and origem_fluido != estacao and (tq.f == "" or tq.f == fluido):
+		var vai := minf(fluido_qtd, CAPACIDADE_TANQUE - float(tq.qtd))
+		if vai > 0.0:
+			tq.qtd = float(tq.qtd) + vai
+			tq.f = fluido
+			fluido_qtd -= vai
+	elif modo == "carregar" and float(tq.qtd) > 0.0 and (fluido == "" or fluido == tq.f):
+		var vem := minf(float(tq.qtd), cap - fluido_qtd)
+		if vem > 0.0:
+			fluido = tq.f
+			fluido_qtd += vem
+			tq.qtd = float(tq.qtd) - vem
+			origem_fluido = estacao
+	if fluido_qtd <= 0.001:
+		fluido_qtd = 0.0
+		fluido = ""
+		origem_fluido = -1
+	if float(tq.qtd) <= 0.001:
+		tq.qtd = 0.0
+		tq.f = ""
 
 
 # ------------------------------------------------------------------ rota

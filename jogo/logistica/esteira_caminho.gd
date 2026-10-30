@@ -42,9 +42,18 @@ func cabe_na_entrada() -> bool:
 func inserir_na_entrada(item: String) -> bool:
 	if not cabe_na_entrada():
 		return false
-	espacos.append(util() if itens.is_empty() else livre_fim)
+	if itens.is_empty():
+		espacos.append(util())
+		livre_fim = 0.0
+	elif livre_fim < 2.0 * ESPACO:
+		# fila contínua: o item entra colado no anterior e a sobra do tick fica no fim (sem ela, a esteira expressa,
+		# que anda 0,1875 m por tick a 30 quadros/s, só aceitaria 1 item a cada 2 ticks: 2× em vez de 3×)
+		espacos.append(ESPACO)
+		livre_fim -= ESPACO
+	else:
+		espacos.append(livre_fim)
+		livre_fim = 0.0
 	itens.append(item)
-	livre_fim = 0.0
 	return true
 
 
@@ -109,24 +118,38 @@ func tick(dt: float) -> void:
 	if itens.is_empty():
 		return
 	var anda := velocidade * dt
-	# 1) entrega o item que está na saída
-	if espacos[0] <= 1e-6:
-		var entregue := false
-		if proximo != null:
-			entregue = proximo.inserir_na_entrada(itens[0])
-		elif saida.is_valid():
-			entregue = saida.call(itens[0])
-		if entregue:
+	# entrega o item da saída e anda; se a fila inteira encostou e ainda sobra caminho no tick, o próximo item
+	# chega à saída no mesmo tick e sai também (sem isso a sobra se perde: a expressa, 0,1875 m por tick a 30
+	# quadros/s, entregaria 1 item a cada 2 ticks — 2× em vez de 3×)
+	for volta in 8:
+		if espacos[0] <= 1e-6:
 			var e0 := espacos[0]
-			itens.remove_at(0)
-			espacos.remove_at(0)
-			if itens.is_empty():
-				livre_fim = util()
+			if _entregar():
+				itens.remove_at(0)
+				espacos.remove_at(0)
+				if itens.is_empty():
+					livre_fim = util()
+					_primeiro_movel = 0
+					return
+				espacos[0] += e0
 				_primeiro_movel = 0
+			elif volta > 0:
 				return
-			espacos[0] += e0
-			_primeiro_movel = 0
-	# 2) anda: encolhe espaços a partir do primeiro móvel até gastar `anda`
+		anda = _andar(anda)
+		if anda <= 1e-6:
+			return
+
+
+func _entregar() -> bool:
+	if proximo != null:
+		return proximo.inserir_na_entrada(itens[0])
+	if saida.is_valid():
+		return saida.call(itens[0])
+	return false
+
+
+## Encolhe espaços a partir do primeiro móvel até gastar `anda`; devolve o que sobrou (fila toda encostada).
+func _andar(anda: float) -> float:
 	var i := _primeiro_movel
 	while anda > 0.0 and i < espacos.size():
 		var minimo := 0.0 if i == 0 else ESPACO
@@ -143,3 +166,4 @@ func tick(dt: float) -> void:
 		else:
 			i += 1
 	_primeiro_movel = mini(i, maxi(espacos.size() - 1, 0))
+	return anda

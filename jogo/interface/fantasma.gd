@@ -54,7 +54,7 @@ func mostrar(plano: Array[Dictionary], remover := false) -> void:
 			continue
 		var nome: String = it.nome
 		var area := Registro.area(nome)
-		var no := _pegar_modelo(Registro.menu.get("icones", {}).get(nome, nome) if nome == "trem" else Construtor.modelo_classe(nome, int(it.get("classe", 1))))
+		var no := _pegar_modelo(Registro.menu.get("icones", {}).get(nome, nome) if nome in Trem.COMPOSICOES else Construtor.modelo_classe(nome, int(it.get("classe", 1))))
 		var alt: float = it.get("nivel", 0) * 0.5
 		if no != null:
 			no.position = Grade.ponto_mundo(Grade.centro_da_area(it.minimo, area, it.rot), 0.01 + alt)

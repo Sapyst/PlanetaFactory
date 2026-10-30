@@ -44,6 +44,7 @@ var passos := 0                        ## quantos ticks já rodaram (o desenho s
 var redes_fluido: Array[Dictionary] = []    ## {fluido, qtd, cap, membros: Array[int]}
 var _rede_do: Dictionary = {}          ## id (cano/tanque) → índice da rede
 var _ligacoes_fluido: Array[Dictionary] = []  ## {id (máquina), io, rede}
+var _estacoes_fluido: Array[Dictionary] = []  ## {id (estação), rede}: cano com a boca virada para a estação
 var distribuidores: Dictionary = {}    ## id (divisor/junção) → {buffer: Array[String], vez: int}
 var _saidas_dist: Dictionary = {}      ## id → Array[{caminho, idx}]
 var _no_tile: Dictionary = {}          ## tile → [caminho, índice do tile no caminho] (só esteira no chão)
@@ -524,6 +525,7 @@ func _montar_bracos() -> void:
 			b = Braco.new(float(r.ciclo_s))
 			bracos[id] = b
 		var f := Grade.DIRECOES[Construtor.fluxo_da_rot(e.rot)] * int(r.get("alcance", 1))
+		b.pilha_max = int(r.get("pilha", 1))
 		b.filtros = Fabrica.filtros_de(e)
 		b.filtro = b.filtros[0] if b.filtros.size() == 1 else ""
 		b.origem = origem_em(e.minimo - f)
@@ -704,6 +706,7 @@ func tick(dt: float) -> void:
 			if combustivel.has(id):
 				combustivel[id] = maxf(0.0, combustivel[id] - FOGO_KW / 1000.0 * dt)
 	_tick_fluidos(dt)
+	_tick_estacoes_fluido(dt)
 	for id in distribuidores:
 		var d: Dictionary = distribuidores[id]
 		var saidas: Array = _saidas_dist.get(id, [])
@@ -903,6 +906,66 @@ func _montar_fluidos() -> void:
 			var cano: int = pontas.get("%s|%s" % [p.tile_fora, -p.dir], -1)
 			if cano >= 0:
 				_ligacoes_fluido.append({"id": id, "io": p.io, "rede": _rede_do[cano]})
+	# estações (vagão-tanque): cano com a boca virada para um tile da estação liga o tanque dela à rede
+	_estacoes_fluido.clear()
+	var visto := {}
+	for id in canos:
+		for p in _portas(id):
+			if p.tipo != "FLUIDO":
+				continue
+			var o: int = mapa.tiles.get(p.tile_fora, -1)
+			if o >= 0 and mapa.estruturas.has(o) and mapa.estruturas[o].nome == "estacao":
+				var chave := "%d|%d" % [o, _rede_do[id]]
+				if not visto.has(chave):
+					visto[chave] = true
+					_estacoes_fluido.append({"id": o, "rede": _rede_do[id]})
+
+
+## Tanque da estação (vagão-tanque): {modo: "desligado" | "carregar" | "descarregar", f, qtd}. Cria se faltar
+## (estação de salvo antigo).
+static func tanque_estacao(es: Dictionary) -> Dictionary:
+	if not es.has("fluido"):
+		es["fluido"] = {"modo": "desligado", "f": "", "qtd": 0.0}
+	return es.fluido
+
+
+## Estações ligadas por cano a alguma rede de fluido (o painel da estação mostra o modo só nelas).
+func estacao_tem_cano(id: int) -> bool:
+	return _estacoes_fluido.any(func(l): return l.id == id)
+
+
+## Modo "carregar": a estação puxa da rede para o tanque dela (o trem enche ao chegar); "descarregar": o tanque
+## dela (enchido pelo trem) solta na rede. Vazão e tanque em estruturas.json (estacao: vazao_fluido, tanque_fluido).
+func _tick_estacoes_fluido(dt: float) -> void:
+	var regra: Dictionary = Registro.estruturas.get("estacao", {})
+	var cap := float(regra.get("tanque_fluido", 25000.0))
+	var vaz := float(regra.get("vazao_fluido", 1000.0)) * dt
+	for l in _estacoes_fluido:
+		if not estoques.has(l.id):
+			continue
+		var tq := tanque_estacao(estoques[l.id])
+		var rede: Dictionary = redes_fluido[l.rede]
+		match String(tq.get("modo", "desligado")):
+			"carregar":
+				if rede.qtd > 0.0 and (tq.f == "" or tq.f == rede.fluido):
+					var vem := minf(minf(float(rede.qtd), vaz), cap - float(tq.qtd))
+					if vem > 0.0:
+						tq.f = rede.fluido
+						tq.qtd = float(tq.qtd) + vem
+						rede.qtd -= vem
+			"descarregar":
+				if float(tq.qtd) > 0.0 and (rede.fluido == "" or rede.fluido == tq.f):
+					var vai := minf(minf(float(tq.qtd), vaz), float(rede.cap) - float(rede.qtd))
+					if vai > 0.0:
+						rede.fluido = tq.f
+						rede.qtd += vai
+						tq.qtd = float(tq.qtd) - vai
+		if float(tq.qtd) <= 0.001:
+			tq.qtd = 0.0
+			tq.f = ""
+		if rede.qtd <= 0.001:
+			rede.qtd = 0.0
+			rede.fluido = ""
 
 
 ## Cano subterrâneo: a entrada liga na primeira saída alinhada à frente (mesma rotação), até `alcance` tiles — o
@@ -984,7 +1047,7 @@ func estado() -> Dictionary:
 	var br := {}
 	for id in bracos:
 		var b: Braco = bracos[id]
-		br[id] = {"segurando": b.segurando, "estado": b.estado, "t": b.t}
+		br[id] = {"segurando": b.segurando, "estado": b.estado, "t": b.t, "qtd": b.qtd}
 	return {"maquinas": maq, "bracos": br, "baus": baus, "combustivel": combustivel, "fator_fogo": fator_fogo, "laboratorios": laboratorios, "acumulado": acumulado,
 			"distribuidores": distribuidores, "fluidos": _guardar_fluidos(), "itens": _guardar_itens(), "carga_torre": carga_torre}
 
@@ -1011,6 +1074,7 @@ func restaurar(d: Dictionary) -> void:
 		if bracos.has(id):
 			var b: Braco = bracos[id]
 			b.segurando = d.bracos[id].segurando
+			b.qtd = int(d.bracos[id].get("qtd", 1 if b.segurando != "" else 0))
 			b.estado = d.bracos[id].estado
 			b.t = d.bracos[id].t
 	for id in d.get("baus", {}):

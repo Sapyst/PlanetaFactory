@@ -6,6 +6,8 @@ extends RefCounted
 ##            ou func pegar_se(aceito: Callable) -> String           (escolhe um item que o destino aceita)
 ##   destino: func aceita(item: String) -> bool  e  func receber(item: String) -> bool
 ## O animador lê `fase()` (0..1) e `segurando` para posar o braço.
+## Braço empilhador (pilha_max 4): na origem pega, de uma vez, até pilha_max itens IGUAIS ao primeiro (os que estão lá
+## agora e que o destino aceita); no destino solta um por vez até a garra esvaziar.
 
 enum Estado { ESPERANDO_ITEM, INDO_SOLTAR, ESPERANDO_DESTINO, VOLTANDO }
 
@@ -16,6 +18,8 @@ var filtro := ""
 ## Itens que o braço pega (vazio = Auto: o que vier). Sempre esperto: só pega o que o destino aceita agora.
 var filtros: Array = []
 var segurando := ""
+var qtd := 0                  ## quantos `segurando` na garra (1; até pilha_max no empilhador)
+var pilha_max := 1
 var estado := Estado.ESPERANDO_ITEM
 var t := 0.0
 var energia := 1.0            ## 0..1 (satisfação da rede); 0 = parado
@@ -49,6 +53,20 @@ func tick(dt: float) -> void:
 				item = origem.pegar_para_braco(filtro)
 			if item != "":
 				segurando = item
+				qtd = 1
+				while qtd < pilha_max:              # empilhador: mais iguais, se já estão na origem
+					var mais := ""
+					if origem.has_method("pegar_se"):
+						mais = origem.pegar_se(func(i: String) -> bool: return i == item)
+					else:
+						mais = origem.pegar_para_braco(item)
+					if mais == "":
+						break
+					if mais != item:                # origem sem filtro devolveu outro: devolve se der
+						if origem.has_method("devolver"):
+							origem.devolver(mais)
+						break
+					qtd += 1
 				estado = Estado.INDO_SOLTAR
 				t = 0.0
 		Estado.INDO_SOLTAR:
@@ -67,9 +85,13 @@ func tick(dt: float) -> void:
 
 
 func _tentar_soltar() -> void:
-	if destino.receber(segurando):
-		segurando = ""
+	qtd = maxi(qtd, 1)
+	while qtd > 0 and destino.receber(segurando):
+		qtd -= 1
 		entregues += 1
+	if qtd <= 0:
+		qtd = 0
+		segurando = ""
 		estado = Estado.VOLTANDO
 		t = 0.0
 

@@ -18,6 +18,14 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
 - Mais tarde (pesquisas com pacote de automação): **Esteira rápida** (o dobro de itens; arraste por cima da comum
   para trocar), **Braço com filtro** e **Divisor com filtro** (toque neles para escolher os itens), **Silo de
   granel** (20.000 de um tipo só) e **Cano subterrâneo** (passa o cano por baixo da terra, até 9 tiles).
+- Com pacote químico: **Esteira expressa** (Logística 4: o triplo da comum, faixa azul; passagem até 8 tiles) e
+  **Braço empilhador** (pega até 4 itens iguais de uma vez e solta um por um). Como a rápida, arraste a expressa por
+  cima de outra esteira para trocar. A **Esteira quântica** (o quádruplo, faixa violeta, passagem até 10 tiles) já
+  aparece na árvore, mas espera a Computação quântica.
+- **Trem-tanque** (pesquisa Vagão-tanque; espera o Trem automático): locomotiva + 2 vagões-tanque (25.000 de fluido
+  cada), posto num trilho reto como o trem. Encoste a boca de um cano na estação e toque nela: **Cano → trem**
+  (carregar) enche o tanque da estação (25.000) com o que vem pelo cano e o trem leva ao parar; **Trem → cano**
+  (descarregar) recebe o fluido que o trem trouxe de outra estação e solta no cano. Começa desligado (não puxa nada).
 - **Água** (pesquisa "Água como insumo", com pacote de automação): a **Bomba d'água** 2×2 fica na margem, com a tomada
   (o lado da grade) encostada num rio, lago ou canal, e solta 40 de água/s pelo cano. Água suja na tomada rende menos.
   Também dão água o **Coletor de chuva** (só quando chove; guarda 2.000), o **Condensador de neblina** (com neblina e

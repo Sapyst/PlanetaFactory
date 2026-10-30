@@ -5,8 +5,10 @@ class_name Materiais
 
 const SHADER := preload("res://render/shaders/material_pf.gdshader")
 const VELOCIDADE_ESTEIRA := 1.875
-## Lona que rola pelo shader (m/s = tiles/s, igual à velocidade da esteira da classe): básica e rápida (logistica_3).
-const ROLAGEM := {"P_Esteira": VELOCIDADE_ESTEIRA, "P_EsteiraRapida": VELOCIDADE_ESTEIRA * 2.0}
+## Lona que rola pelo shader (m/s = tiles/s, igual à velocidade da esteira da classe): básica, rápida (logistica_3),
+## expressa (logistica_4) e quântica (logistica_5).
+const ROLAGEM := {"P_Esteira": VELOCIDADE_ESTEIRA, "P_EsteiraRapida": VELOCIDADE_ESTEIRA * 2.0,
+		"P_EsteiraExpressa": VELOCIDADE_ESTEIRA * 3.0, "P_EsteiraQuantica": VELOCIDADE_ESTEIRA * 4.0}
 
 static var _cache: Dictionary = {}
 

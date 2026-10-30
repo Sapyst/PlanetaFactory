@@ -647,8 +647,8 @@ func sincronizar(rel: Dictionary) -> void:
 	if not (rel.colocados.is_empty() and rel.removidos.is_empty()):
 		_fabrica_suja = true                    # remonta uma vez no próximo tick (vários eventos no mesmo quadro)
 	for t in rel.trens:
-		if not criar_trem(t.tile):
-			construtor.devolver("trem")
+		if not criar_trem(t.tile, t.get("nome", "trem")):
+			construtor.devolver(t.get("nome", "trem"))
 			controle._avisar("Não coube: o trem precisa de 12 m de trilho livre (bloco sem outro trem)")
 
 
@@ -764,6 +764,7 @@ func _remontar_trilhos() -> void:
 	for est in grafo.estacoes:
 		if not estoques.has(est.estrutura):
 			estoques[est.estrutura] = {"enviar": {}, "recebido": {}}
+		Fabrica.tanque_estacao(estoques[est.estrutura])
 		if not _rotulos.has(est.estrutura):
 			_rotulo_estacao(est.estrutura)
 	for t in trens.duplicate():
@@ -772,12 +773,15 @@ func _remontar_trilhos() -> void:
 			_desenho_colonia._faiscas(Grade.ponto_mundo(t.ponto_em(t.s - t.comprimento() / 2.0).pos, 0.6), 50)
 
 
-## Põe um trem (locomotiva + 2 vagões + locomotiva) no trilho reto do tile, com a cauda na ponta sul/oeste.
-func criar_trem(tile: Vector2i) -> bool:
+## Põe um trem (locomotiva + 2 vagões + locomotiva; `peca` "trem_tanque" = 2 vagões-tanque) no trilho reto do tile,
+## com a cauda na ponta sul/oeste.
+func criar_trem(tile: Vector2i, peca := "trem") -> bool:
 	var r := grafo.peca_no_ponto(Vector2(tile) + Vector2(0.5, 0.5), 0.1)
 	if r.is_empty():
 		return false
-	var t := Trem.new(_prox_trem, grafo, ["locomotiva", "vagao_carga", "vagao_carga", "locomotiva"] as Array[String])
+	var carros: Array[String] = []
+	carros.assign(Trem.COMPOSICOES.get(peca, Trem.COMPOSICOES.trem))
+	var t := Trem.new(_prox_trem, grafo, carros)
 	if not t.colocar(r.peca, grafo.pecas[r.peca].a):
 		return false
 	_prox_trem += 1
@@ -811,7 +815,25 @@ func _atualizar_rotulos() -> void:
 		var rec := _soma(es.recebido)
 		if env > 0: linhas.append("Para enviar: %d" % env)
 		if rec > 0: linhas.append("Recebido: %d" % rec)
+		var tq: Dictionary = es.get("fluido", {})
+		if float(tq.get("qtd", 0.0)) > 0.0:
+			linhas.append("%s: %.0f" % [Registro.nome_fluido(tq.f), float(tq.qtd)])
 		_rotulos[id].text = "Estação %d" % _numero_estacao(id) + ("\n" + "\n".join(linhas) if not linhas.is_empty() else "")
+
+
+## Vagão-tanque: tanque da estação e o modo do cano (só aparece com cano encostado ou fluido no tanque).
+func _opcoes_estacao_fluido(id: int, linhas: Array[String], botoes: Array) -> void:
+	var tq := Fabrica.tanque_estacao(estoques[id])
+	if not fabrica.estacao_tem_cano(id) and float(tq.qtd) <= 0.0:
+		linhas.append("Fluido (vagão-tanque): encoste a boca de um cano na estação")
+		return
+	var cap := float(Registro.estruturas.get("estacao", {}).get("tanque_fluido", 25000))
+	linhas.append("Tanque: %s %.0f de %.0f" % [Registro.nome_fluido(tq.f) if tq.f != "" else "vazio", float(tq.qtd), cap])
+	for m in [["desligado", "Cano desligado"], ["carregar", "Cano → trem (carregar)"], ["descarregar", "Trem → cano (descarregar)"]]:
+		var modo: String = m[0]
+		botoes.append({"texto": m[1], "ligado": tq.get("modo", "desligado") == modo, "acao": func():
+			tq["modo"] = modo
+			_detalhe()})
 
 
 static func _soma(d: Dictionary) -> int:
@@ -1264,6 +1286,9 @@ func _detalhe() -> void:
 					Trem.Estado.ESPERANDO_BLOCO: "esperando sinal", Trem.Estado.SEM_ROTA: "sem rota"}
 			var texto := "Estado: %s\nCarga: %s (%d de %d)\nRota: toque nas estações para ligar/desligar.\nSem nenhuma ligada, passa por todas." % [
 					est[t.estado], _lista_itens(t.carga), t.total_carga(), t.capacidade()]
+			if t.capacidade_fluido() > 0.0:
+				texto += "\nVagões-tanque: %s %.0f de %.0f" % [Registro.nome_fluido(t.fluido) if t.fluido != "" else "vazios",
+						t.fluido_qtd, t.capacidade_fluido()]
 			var botoes := []
 			for e in grafo.estacoes:
 				var id: int = e.estrutura
@@ -1279,7 +1304,7 @@ func _detalhe() -> void:
 			botoes.append({"texto": "Desmontar trem (devolve o material)", "acao": func():
 				trens.erase(t)
 				grafo.liberar(t.id)
-				construtor.devolver("trem")
+				construtor.devolver(t.peca())
 				_sel = {}
 				_detalhe()})
 			barra.detalhe("Trem %d" % t.id, texto, botoes)
@@ -1294,7 +1319,7 @@ func _detalhe() -> void:
 	var e: Dictionary = mapa.estruturas[id]
 	var titulo: String = controle.barra.rotulo(e.nome)
 	if int(e.get("classe", 1)) > 1:
-		titulo += " (%s)" % {2: "rápida"}.get(int(e.classe), "nível %d" % int(e.classe))
+		titulo += " (%s)" % {2: "rápida", 3: "expressa", 4: "quântica"}.get(int(e.classe), "nível %d" % int(e.classe))
 	var linhas: Array[String] = []
 	var botoes := []
 	var opcoes := []                     ## opções internas (reparar, ligar, modo) vêm antes das receitas
@@ -1511,9 +1536,12 @@ func _detalhe() -> void:
 	elif estoques.has(id):
 		titulo = "Estação %d" % _numero_estacao(id)
 		linhas.append("Para enviar: %s\nRecebido: %s" % [_lista_itens(estoques[id].enviar), _lista_itens(estoques[id].recebido)])
+		_opcoes_estacao_fluido(id, linhas, botoes)
 	elif fabrica.bracos.has(id):
 		var b: Braco = fabrica.bracos[id]
-		linhas.append("Segurando: %s\nEnergia: %d%%\nEntregues: %d" % [_nome_item(b.segurando) if b.segurando != "" else "nada", b.energia * 100, b.entregues])
+		linhas.append("Segurando: %s\nEnergia: %d%%\nEntregues: %d" % [(_nome_item(b.segurando) + (" × %d" % b.qtd if b.qtd > 1 else "")) if b.segurando != "" else "nada", b.energia * 100, b.entregues])
+		if b.pilha_max > 1:
+			linhas.append("Empilha: até %d itens iguais por vez" % b.pilha_max)
 		var filtros: Array = e.get("filtros", [])
 		var mx := int(regra.get("filtro_max", 0))
 		if mx <= 0 and filtros.is_empty():

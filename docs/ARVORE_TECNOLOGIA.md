@@ -1,6 +1,6 @@
 # Árvore de tecnologia
 
-Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 96 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (algumas ainda esperam um pré-requisito ou pacote "em breve"; o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras aparecem como "em breve" até a estrutura, o item ou o pacote existir. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
+Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 100 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (algumas ainda esperam um pré-requisito ou pacote "em breve"; o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras aparecem como "em breve" até a estrutura, o item ou o pacote existir. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
 
 ## Eras e pacotes de pesquisa
 
@@ -429,8 +429,8 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Divisor / junção | 1×1 | temos | reparte em 3 / junta 3 | `eletronica` |
 | Divisor com filtro | 1×1 | temos | manda um item escolhido para uma saída e dá prioridade a outra (saída do filtro e prioridade escolhidas no painel) | `divisor_filtro` |
 | Esteira rápida + rampa, passagem (6 tiles), divisor e junção rápidos | 1×1 | temos | 3,75 itens/s (as mesmas peças com classe 2: reta, curvas, início, fim, junção lateral, rampas, passagem; o divisor e a junção de 3 vias não limitam a vazão e servem às duas) | `logistica_3` |
-| Esteira expressa + rampa, passagem (8 tiles), divisor e junção expressos | 1×1 | falta | 5,625 itens/s | `logistica_4` |
-| Esteira quântica + rampa, passagem (10 tiles), divisor e junção quânticos | 1×1 | falta | 7,5 itens/s | `logistica_5` |
+| Esteira expressa + rampa, passagem (8 tiles), divisor e junção expressos | 1×1 | temos | 5,625 itens/s (as mesmas peças com classe 3, faixa azul-aço; divisor e junção de 3 vias servem a todas as classes) | `logistica_4` |
+| Esteira quântica + rampa, passagem (10 tiles), divisor e junção quânticos | 1×1 | temos | 7,5 itens/s (classe 4, faixa violeta e ferro fundido); travada pela árvore (`computacao_quantica` e pacote quântico em breve) | `logistica_5` |
 
 ### Braços
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
@@ -441,7 +441,7 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Baú | 1×1 | temos | 1.600 itens | início |
 | Baú grande | 2×2 | temos | 6.400 itens | `armazenagem` |
 | Braço com filtro | 1×1 | temos | só pega os itens escolhidos (até 5) | `braco_filtro` |
-| Braço empilhador | 1×1 | falta | leva até 4 itens por ciclo | `braco_empilhador` |
+| Braço empilhador | 1×1 | temos | pega até 4 itens iguais de uma vez (os que estão na origem) e solta um por vez | `braco_empilhador` |
 | Braço quântico | 1×1 | falta | ciclo 0,2 s, 8 itens, alcance ajustável 1–3 | `braco_quantico` |
 | Silo de granel | 3×3 | temos | 20.000 itens de um tipo só | `silo_granel` |
 
@@ -536,8 +536,8 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Sinal | 1×1 | temos | divide a linha em blocos | `ferrovia` |
 | Trem (locomotiva) | sobre trilho | temos | leva carga | `ferrovia` |
 | Sinal em cadeia | 1×1 | falta | só libera a entrada se a saída do cruzamento estiver livre | `trem_automatico` |
-| Vagão-tanque | sobre trilho | falta | 25.000 de fluido | `vagao_tanque` |
-| Bomba de estação | 1×1 | falta | enche/esvazia vagão-tanque | `vagao_tanque` |
+| Vagão-tanque | sobre trilho | temos | trem-tanque (2 vagões-tanque × 25.000 de fluido); troca com o tanque da estação ao parar; travado pela árvore (`trem_automatico` em breve) | `vagao_tanque` |
+| Bomba de estação | 1×1 | temos (sem modelo próprio) | o cano encostado na estação faz de bomba: enche (carregar) ou esvazia (descarregar) o tanque dela (25.000) a 1.000/s | `vagao_tanque` |
 | Trilho energizado | 1×1 | falta | dá energia à locomotiva elétrica | `trem_eletrico` |
 | Locomotiva elétrica | sobre trilho | falta | 2× velocidade, sem poluição | `trem_eletrico` |
 
@@ -578,7 +578,7 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Transportador quântico | 3×3 | falta | troca itens entre colônias | `transportador_quantico` |
 | Silo de lançamento | 3×3 | falta | monta e lança o foguete de proliferação | `silo_lancamento` |
 
-**Contagem:** 67 linhas "temos", **42 linhas "falta"** e 1 em parte (baús logísticos: provedor e requisitante sem
+**Contagem:** 72 linhas "temos", **37 linhas "falta"** e 1 em parte (baús logísticos: provedor e requisitante sem
 modelo próprio, estoque falta) (uma linha pode juntar variantes, como a família da esteira
 rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima, Drones, Lógica, Proliferação).
 
@@ -617,6 +617,17 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
   atmosférico (1 a cada 20 de poluição). A **Recuperação de solo** não tem estrutura: com ela, Aplainar também limpa o
   chão do tile. O semeador de bioma devolve as árvores queimadas e o chão queimado; o bioma natural **cinzal** fica como
   está. A estação de tratamento espera o `refinador_2` (sem estudo).
+- **Fim da fase 2 (estruturas com estudo).** A esteira **expressa** (`logistica_4`, jogável) e a **quântica**
+  (`logistica_5`) são as mesmas peças com classe 3 e 4 (`Construtor.CLASSES_ESTEIRA`): 3× e 4× a básica, passagem de 8
+  e 10 tiles; traçar uma classe por cima de outra troca a peça. A quântica espera a `computacao_quantica` e o pacote
+  quântico (em breve). Na esteira, a sobra do tick agora conta na entrada e na saída (sem isso, a 30 quadros/s a
+  expressa só entregava 2×). O **vagão-tanque** (`vagao_tanque`) vem como a peça **trem-tanque** (locomotiva + 2
+  vagões-tanque + locomotiva, 25.000 por vagão); a **bomba de estação** não tem modelo (sem estudo): o cano com a boca
+  virada para a estação liga o tanque dela (25.000) à rede, e o painel escolhe desligado (padrão, não rouba fluido),
+  carregar (rede → estação → trem) ou descarregar (trem → estação → rede), a 1.000/s. O trem descarrega só o que veio
+  de outra estação, um fluido só de cada lado. Fica travado pelo `trem_automatico` (sinal em cadeia e rotas com
+  condição, sem estudo); no modo demonstração se constrói. O **braço empilhador** (`braco_empilhador`, jogável) pega
+  até 4 itens iguais que estão na origem e solta um por vez.
 - **Água limpa** (`agua_limpa`, do filtro) serve em toda receita que pede água; água do rio não serve onde se pede
   limpa (pacote ecológico). Resina bebe dois fluidos: seiva por uma boca do refinador e água pela outra.
 - **As 14 pesquisas originais não mudam** (a 15ª, `dano_energia_1`, entrou depois como a primeira melhoria jogável: +20% de dano da torre com energia). Mesmos IDs, pré-requisitos e custos (incluindo `energia`, que existe no jogo

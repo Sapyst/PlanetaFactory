@@ -21,7 +21,7 @@ const HISTORICO := 50
 ## Classes de esteira (pesquisa logistica_3…): as MESMAS peças (reta, curvas, início, fim, junção, rampa, passagem) com
 ## outro modelo (<peça>_<sufixo>, que tem regra própria em estruturas.json: velocidade, alcance da passagem) e o campo
 ## "classe" na estrutura do mapa. Sem o campo = 1 (básica). No menu a peça vem com o sufixo ("esteira_rapida").
-const CLASSES_ESTEIRA := {2: "rapida"}
+const CLASSES_ESTEIRA := {2: "rapida", 3: "expressa", 4: "quantica"}
 const PECAS_COM_CLASSE := ["esteira", "esteira_rampa", "rampa_desce", "esteira_tunel_entrada", "esteira_tunel_saida"]
 
 var mapa: MapaOcupacao
@@ -136,8 +136,8 @@ func plano_peca(nome: String, tile: Vector2i, rot: int) -> Array[Dictionary]:
 func _plano_peca(nome: String, tile: Vector2i, rot: int) -> Array[Dictionary]:
 	if nome == "esteira_rampa" or nome == "rampa_desce":
 		return [_item_rampa(nome == "rampa_desce", tile, rot)]
-	if nome == "trem":
-		return [_item_trem(tile)]
+	if nome in Trem.COMPOSICOES:
+		return [_item_trem(tile, nome)]
 	if nome in ["esteira", "cano"]:
 		return _plano_linha(nome, tile, tile, rot)
 	var minimo := minimo_no_cursor(nome, tile, rot)
@@ -535,8 +535,8 @@ func executar(plano: Array[Dictionary]) -> Dictionary:
 			"igual":
 				pass
 			"trem":
-				rel.trens.append({"tile": it.minimo, "rot": it.rot})      # o mundo põe o trem na malha
-				_mexer_estoque(custo_de("trem"), -1, rel)
+				rel.trens.append({"tile": it.minimo, "rot": it.rot, "nome": it.nome})   # o mundo põe o trem na malha
+				_mexer_estoque(custo_de(it.nome), -1, rel)
 			"limpar":
 				var o := mapa.limpar_obstaculo(it.tile)
 				if not o.is_empty():
@@ -905,10 +905,10 @@ func _portas(e: Dictionary) -> Array[Dictionary]:
 
 
 ## Trem: vai em cima de um trilho reto já construído (fica na direção do trilho).
-func _item_trem(tile: Vector2i) -> Dictionary:
+func _item_trem(tile: Vector2i, nome := "trem") -> Dictionary:
 	var e := _estrutura_em(tile)
 	var ok: bool = not e.is_empty() and e.nome == "trilho_reto"
-	return {"nome": "trem", "minimo": tile, "rot": e.rot if ok else 0, "motivo": "" if ok else "sem_trilho",
+	return {"nome": nome, "minimo": tile, "rot": e.rot if ok else 0, "motivo": "" if ok else "sem_trilho",
 			"acao": "trem", "id_antigo": -1}
 
 

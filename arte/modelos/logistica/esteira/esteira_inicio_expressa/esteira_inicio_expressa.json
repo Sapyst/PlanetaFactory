@@ -1,0 +1,54 @@
+{
+ "nome": "esteira_inicio_expressa",
+ "categoria": "logistica/esteira",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Esteira expressa (logistica_4): a mesma peça da esteira com o acabamento do nível 3 do estudo (faixa azul-aço gasta, lascada até o aço); lona P_EsteiraExpressa (o jogo rola no triplo da velocidade).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_SAI_N0",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    0.5,
+    0.16
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  }
+ ],
+ "tris": 920,
+ "dims": [
+  0.769,
+  1.0,
+  0.204
+ ],
+ "materiais": [
+  "P_Cobre",
+  "P_Escuro",
+  "P_Esteira",
+  "P_Faixa",
+  "P_Metal"
+ ],
+ "anima": false,
+ "estudo": "conv_esteiras_bracos.py"
+}

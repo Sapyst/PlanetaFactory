@@ -2947,6 +2947,134 @@
   "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/bracos/braco.glb"
  },
+ "braco_empilhador": {
+  "nome": "braco_empilhador",
+  "categoria": "logistica/bracos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Braço empilhador: braço reforçado com garra-gaiola, pinças e prensa; leva até 4 itens iguais por ciclo. Partes: giro, braco1, braco2, garra, camisa/haste do pistão de elevação.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "base",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "giro",
+    "pai": "base",
+    "pivo": [
+     0,
+     0,
+     0.25
+    ]
+   },
+   {
+    "nome": "braco1",
+    "pai": "giro",
+    "pivo": [
+     0,
+     0,
+     0.45
+    ]
+   },
+   {
+    "nome": "braco2",
+    "pai": "braco1",
+    "pivo": [
+     0,
+     0,
+     1.0
+    ]
+   },
+   {
+    "nome": "garra",
+    "pai": "braco2",
+    "pivo": [
+     0,
+     0.62,
+     1.0
+    ]
+   },
+   {
+    "nome": "camisa",
+    "pai": "giro",
+    "pivo": [
+     0,
+     0.2,
+     0.33
+    ]
+   },
+   {
+    "nome": "haste",
+    "pai": "braco1",
+    "pivo": [
+     0,
+     0.085,
+     0.7
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "terminais": [
+   [
+    0.33,
+    -0.33,
+    0.075
+   ]
+  ],
+  "tris": 4076,
+  "dims": [
+   0.8,
+   1.106,
+   1.145
+  ],
+  "garra": {
+   "pulso_dz": 0.1,
+   "item": 0.23
+  },
+  "anima": false,
+  "estudo": "estudo_bracos_novos.py",
+  "modelo": "res://assets/modelos/logistica/bracos/braco_empilhador.glb"
+ },
  "braco_filtro": {
   "nome": "braco_filtro",
   "categoria": "logistica/bracos",
@@ -4172,6 +4300,132 @@
   "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_curva_dir.glb"
  },
+ "esteira_curva_dir_expressa": {
+  "nome": "esteira_curva_dir_expressa",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira expressa (logistica_4): a mesma peça da esteira com o acabamento do nível 3 do estudo (faixa azul-aço gasta, lascada até o aço); lona P_EsteiraExpressa (o jogo rola no triplo da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_L0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 848,
+  "dims": [
+   0.841,
+   0.841,
+   0.168
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_curva_dir_expressa.glb"
+ },
+ "esteira_curva_dir_quantica": {
+  "nome": "esteira_curva_dir_quantica",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira quântica (logistica_5): a mesma peça da esteira com o acabamento do nível 4 do estudo (faixa violeta gasta, estrutura de ferro fundido enferrujado); lona P_EsteiraQuantica (o jogo rola no quádruplo da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_L0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 848,
+  "dims": [
+   0.841,
+   0.841,
+   0.168
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_curva_dir_quantica.glb"
+ },
  "esteira_curva_dir_rapida": {
   "nome": "esteira_curva_dir_rapida",
   "categoria": "logistica/esteira",
@@ -4298,6 +4552,132 @@
   "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_curva_esq.glb"
  },
+ "esteira_curva_esq_expressa": {
+  "nome": "esteira_curva_esq_expressa",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira expressa (logistica_4): a mesma peça da esteira com o acabamento do nível 3 do estudo (faixa azul-aço gasta, lascada até o aço); lona P_EsteiraExpressa (o jogo rola no triplo da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_O0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     -0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 848,
+  "dims": [
+   0.841,
+   0.841,
+   0.168
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_curva_esq_expressa.glb"
+ },
+ "esteira_curva_esq_quantica": {
+  "nome": "esteira_curva_esq_quantica",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira quântica (logistica_5): a mesma peça da esteira com o acabamento do nível 4 do estudo (faixa violeta gasta, estrutura de ferro fundido enferrujado); lona P_EsteiraQuantica (o jogo rola no quádruplo da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_O0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     -0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 848,
+  "dims": [
+   0.841,
+   0.841,
+   0.168
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_curva_esq_quantica.glb"
+ },
  "esteira_curva_esq_rapida": {
   "nome": "esteira_curva_esq_rapida",
   "categoria": "logistica/esteira",
@@ -4409,6 +4789,102 @@
   "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_fim.glb"
  },
+ "esteira_fim_expressa": {
+  "nome": "esteira_fim_expressa",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira expressa (logistica_4): a mesma peça da esteira com o acabamento do nível 3 do estudo (faixa azul-aço gasta, lascada até o aço); lona P_EsteiraExpressa (o jogo rola no triplo da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 770,
+  "dims": [
+   0.75,
+   1.0,
+   0.236
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_fim_expressa.glb"
+ },
+ "esteira_fim_quantica": {
+  "nome": "esteira_fim_quantica",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira quântica (logistica_5): a mesma peça da esteira com o acabamento do nível 4 do estudo (faixa violeta gasta, estrutura de ferro fundido enferrujado); lona P_EsteiraQuantica (o jogo rola no quádruplo da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 770,
+  "dims": [
+   0.75,
+   1.0,
+   0.236
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_fim_quantica.glb"
+ },
  "esteira_fim_rapida": {
   "nome": "esteira_fim_rapida",
   "categoria": "logistica/esteira",
@@ -4504,6 +4980,102 @@
   "anima": false,
   "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_inicio.glb"
+ },
+ "esteira_inicio_expressa": {
+  "nome": "esteira_inicio_expressa",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira expressa (logistica_4): a mesma peça da esteira com o acabamento do nível 3 do estudo (faixa azul-aço gasta, lascada até o aço); lona P_EsteiraExpressa (o jogo rola no triplo da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 920,
+  "dims": [
+   0.769,
+   1.0,
+   0.204
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_inicio_expressa.glb"
+ },
+ "esteira_inicio_quantica": {
+  "nome": "esteira_inicio_quantica",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira quântica (logistica_5): a mesma peça da esteira com o acabamento do nível 4 do estudo (faixa violeta gasta, estrutura de ferro fundido enferrujado); lona P_EsteiraQuantica (o jogo rola no quádruplo da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 920,
+  "dims": [
+   0.769,
+   1.0,
+   0.204
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_inicio_quantica.glb"
  },
  "esteira_inicio_rapida": {
   "nome": "esteira_inicio_rapida",
@@ -4615,6 +5187,132 @@
   "anima": false,
   "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_juncao.glb"
+ },
+ "esteira_juncao_expressa": {
+  "nome": "esteira_juncao_expressa",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira expressa (logistica_4): a mesma peça da esteira com o acabamento do nível 3 do estudo (faixa azul-aço gasta, lascada até o aço); lona P_EsteiraExpressa (o jogo rola no triplo da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 844,
+  "dims": [
+   0.75,
+   1.25,
+   0.315
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_juncao_expressa.glb"
+ },
+ "esteira_juncao_quantica": {
+  "nome": "esteira_juncao_quantica",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira quântica (logistica_5): a mesma peça da esteira com o acabamento do nível 4 do estudo (faixa violeta gasta, estrutura de ferro fundido enferrujado); lona P_EsteiraQuantica (o jogo rola no quádruplo da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 844,
+  "dims": [
+   0.75,
+   1.25,
+   0.315
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_juncao_quantica.glb"
  },
  "esteira_juncao_rapida": {
   "nome": "esteira_juncao_rapida",
@@ -4742,6 +5440,132 @@
   "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_rampa.glb"
  },
+ "esteira_rampa_expressa": {
+  "nome": "esteira_rampa_expressa",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira expressa (logistica_4): a mesma peça da esteira com o acabamento do nível 3 do estudo (faixa azul-aço gasta, lascada até o aço); lona P_EsteiraExpressa (o jogo rola no triplo da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.66
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 676,
+  "dims": [
+   0.75,
+   1.055,
+   0.666
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_rampa_expressa.glb"
+ },
+ "esteira_rampa_quantica": {
+  "nome": "esteira_rampa_quantica",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira quântica (logistica_5): a mesma peça da esteira com o acabamento do nível 4 do estudo (faixa violeta gasta, estrutura de ferro fundido enferrujado); lona P_EsteiraQuantica (o jogo rola no quádruplo da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.66
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 676,
+  "dims": [
+   0.75,
+   1.055,
+   0.666
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_rampa_quantica.glb"
+ },
  "esteira_rampa_rapida": {
   "nome": "esteira_rampa_rapida",
   "categoria": "logistica/esteira",
@@ -4868,6 +5692,132 @@
   "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_reta.glb"
  },
+ "esteira_reta_expressa": {
+  "nome": "esteira_reta_expressa",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira expressa (logistica_4): a mesma peça da esteira com o acabamento do nível 3 do estudo (faixa azul-aço gasta, lascada até o aço); lona P_EsteiraExpressa (o jogo rola no triplo da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 526,
+  "dims": [
+   0.75,
+   1.0,
+   0.168
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_reta_expressa.glb"
+ },
+ "esteira_reta_quantica": {
+  "nome": "esteira_reta_quantica",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira quântica (logistica_5): a mesma peça da esteira com o acabamento do nível 4 do estudo (faixa violeta gasta, estrutura de ferro fundido enferrujado); lona P_EsteiraQuantica (o jogo rola no quádruplo da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 526,
+  "dims": [
+   0.75,
+   1.0,
+   0.168
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_reta_quantica.glb"
+ },
  "esteira_reta_rapida": {
   "nome": "esteira_reta_rapida",
   "categoria": "logistica/esteira",
@@ -4979,6 +5929,102 @@
   "estudo": "estudo_esteira_acessorios.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_tunel_entrada.glb"
  },
+ "esteira_tunel_entrada_expressa": {
+  "nome": "esteira_tunel_entrada_expressa",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira expressa (logistica_4): a mesma peça da esteira com o acabamento do nível 3 do estudo (faixa azul-aço gasta, lascada até o aço); lona P_EsteiraExpressa (o jogo rola no triplo da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 1671,
+  "dims": [
+   0.941,
+   1.004,
+   0.606
+  ],
+  "anima": false,
+  "estudo": "estudo_esteira_acessorios.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_tunel_entrada_expressa.glb"
+ },
+ "esteira_tunel_entrada_quantica": {
+  "nome": "esteira_tunel_entrada_quantica",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira quântica (logistica_5): a mesma peça da esteira com o acabamento do nível 4 do estudo (faixa violeta gasta, estrutura de ferro fundido enferrujado); lona P_EsteiraQuantica (o jogo rola no quádruplo da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 1671,
+  "dims": [
+   0.941,
+   1.004,
+   0.606
+  ],
+  "anima": false,
+  "estudo": "estudo_esteira_acessorios.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_tunel_entrada_quantica.glb"
+ },
  "esteira_tunel_entrada_rapida": {
   "nome": "esteira_tunel_entrada_rapida",
   "categoria": "logistica/esteira",
@@ -5074,6 +6120,102 @@
   "anima": false,
   "estudo": "estudo_esteira_acessorios.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_tunel_saida.glb"
+ },
+ "esteira_tunel_saida_expressa": {
+  "nome": "esteira_tunel_saida_expressa",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira expressa (logistica_4): a mesma peça da esteira com o acabamento do nível 3 do estudo (faixa azul-aço gasta, lascada até o aço); lona P_EsteiraExpressa (o jogo rola no triplo da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 1674,
+  "dims": [
+   0.942,
+   1.002,
+   0.606
+  ],
+  "anima": false,
+  "estudo": "estudo_esteira_acessorios.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_tunel_saida_expressa.glb"
+ },
+ "esteira_tunel_saida_quantica": {
+  "nome": "esteira_tunel_saida_quantica",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira quântica (logistica_5): a mesma peça da esteira com o acabamento do nível 4 do estudo (faixa violeta gasta, estrutura de ferro fundido enferrujado); lona P_EsteiraQuantica (o jogo rola no quádruplo da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 1674,
+  "dims": [
+   0.942,
+   1.002,
+   0.606
+  ],
+  "anima": false,
+  "estudo": "estudo_esteira_acessorios.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_tunel_saida_quantica.glb"
  },
  "esteira_tunel_saida_rapida": {
   "nome": "esteira_tunel_saida_rapida",

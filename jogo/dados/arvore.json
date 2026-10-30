@@ -657,6 +657,7 @@
    ],
    "tempo": 6.0,
    "libera": "Vagão-tanque (25.000 de fluido) e bomba de estação",
+   "existente": true,
    "tipo": "estrutura"
   },
   "refino": {
@@ -1151,6 +1152,7 @@
    ],
    "tempo": 8.0,
    "libera": "Esteira expressa (5,625 itens/s) com rampa, passagem, divisor e junção expressos",
+   "existente": true,
    "tipo": "estrutura"
   },
   "braco_empilhador": {
@@ -1176,6 +1178,7 @@
    ],
    "tempo": 8.0,
    "libera": "Braço empilhador (leva até 4 itens por vez)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "montadora_3": {
@@ -3761,6 +3764,7 @@
    ],
    "tempo": 15.0,
    "libera": "Esteira quântica (7,5 itens/s) com rampa, passagem, divisor e junção quânticos",
+   "existente": true,
    "tipo": "estrutura"
   },
   "braco_quantico": {

@@ -1,0 +1,133 @@
+{
+ "nome": "braco_empilhador",
+ "categoria": "logistica/bracos",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Braço empilhador: braço reforçado com garra-gaiola, pinças e prensa; leva até 4 itens iguais por ciclo. Partes: giro, braco1, braco2, garra, camisa/haste do pistão de elevação.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "base",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "giro",
+   "pai": "base",
+   "pivo": [
+    0,
+    0,
+    0.25
+   ]
+  },
+  {
+   "nome": "braco1",
+   "pai": "giro",
+   "pivo": [
+    0,
+    0,
+    0.45
+   ]
+  },
+  {
+   "nome": "braco2",
+   "pai": "braco1",
+   "pivo": [
+    0,
+    0,
+    1.0
+   ]
+  },
+  {
+   "nome": "garra",
+   "pai": "braco2",
+   "pivo": [
+    0,
+    0.62,
+    1.0
+   ]
+  },
+  {
+   "nome": "camisa",
+   "pai": "giro",
+   "pivo": [
+    0,
+    0.2,
+    0.33
+   ]
+  },
+  {
+   "nome": "haste",
+   "pai": "braco1",
+   "pivo": [
+    0,
+    0.085,
+    0.7
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S0",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -0.5,
+    0.16
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_N0",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    0.5,
+    0.16
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  }
+ ],
+ "terminais": [
+  [
+   0.33,
+   -0.33,
+   0.075
+  ]
+ ],
+ "tris": 4076,
+ "dims": [
+  0.8,
+  1.106,
+  1.145
+ ],
+ "materiais": [
+  "P_Cobre",
+  "P_Cristal",
+  "P_Escuro",
+  "P_Metal"
+ ],
+ "garra": {
+  "pulso_dz": 0.1,
+  "item": 0.23
+ },
+ "anima": false,
+ "estudo": "estudo_bracos_novos.py"
+}

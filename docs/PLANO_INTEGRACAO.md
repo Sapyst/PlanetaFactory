@@ -20,7 +20,7 @@ Em andamento / a fazer, nesta ordem:
 - [x] esteiras (reta, curvas, início, fim, junção, rampa, túnel, divisor, juncao) e braços (braco, rapido, longo)
       (conv_esteiras_bracos.py — lona P_Esteira rolando, IK do braço)
 
-## Fase 2 — estruturas novas que já têm estudo: modelo + sistema + pesquisa jogável (1 por vez)
+## Fase 2 — estruturas novas que já têm estudo: modelo + sistema + pesquisa jogável (1 por vez) — ENCERRADA (2.7)
 Ordem pela árvore (pré-requisitos primeiro). Cada uma: converter, regra em estruturas.json, receita/itens se
 preciso, sistema em jogo/simulacao (ou onde couber), pesquisa em progressao.json (tirar o "em breve"), testes.
 Base: pacote de automação (destrava metade da árvore) e água como insumo (bomba d'água → refrigeradas +50%).
@@ -326,21 +326,74 @@ com a grade inteira + resultado dos testes), para ela não precisar abrir uma po
     o núcleo do jogo saem de conversões diferentes — conferir se a troca não "pula"; (13) **melhoria do núcleo**: a árvore
     não tem melhoria de núcleo e não há modelo de núcleo mais robusto — nada ligado; (14) ícones das 9 peças novas e do
     item drone pelo render Workbench do icones.py (só esses); ícone do resíduo derivado do tijolo (derivar_icone.gd).
+- [x] 2.7 fechamento da fase 2 (testes test_esteira_niveis.gd, test_vagao_tanque.gd, test_braco_empilhador.gd).
+      Pesquisas logistica_4, vagao_tanque e braco_empilhador entram em progressao.json; logistica_5 também, mas
+      travada pela árvore. **Fase 2 encerrada**: não sobra estudo de estrutura sem uso no jogo, a não ser o braço
+      quântico e o divisor/junção por nível (ver pendências).
+  - **Esteira expressa** (logistica_4, jogável: liga leve + pacote químico já existem) e **quântica** (logistica_5):
+    mesmo método da rápida (arte/estudos/conv_esteiras_niveis.py): as MESMAS 9 peças com `"classe": 3` / `4`
+    (Construtor.CLASSES_ESTEIRA), acabamento dos níveis 3 e 4 de estudo_esteiras_niveis.py — expressa: faixa
+    azul-aço gasta 0,25 e as peças amarelas no Azul-aço do estudo; quântica: faixa violeta gasta 0,3 e as peças
+    amarelas no ferro fundido enferrujado da estrutura rústica do estudo. Lonas P_EsteiraExpressa / P_EsteiraQuantica
+    rolam a 3× e 4× (Materiais.ROLAGEM). 5,625 e 7,5 m/s, passagem até 8 e 10 tiles livres, troca ao arrastar por cima
+    (devolve a velha, cobra a nova; desfazer volta). Custos: expressa 1 liga leve + 2 engrenagens (rampa 2+4, passagem
+    6+10); quântica 2 ligas + 1 cristal carregado (rampa 3+2, passagem 10 + 6 + 2 processadores). A **quântica fica
+    travada**: pede `computacao_quantica` (sem estudo) e o pacote quântico (forja quântica, sem estudo) — fase futura.
+    No modo demonstração se constrói. Mesmas portas, áreas e triângulos da rápida (526 a 1.674).
+  - Fora do escopo, mas necessário: `EsteiraCaminho` perdia a sobra do tick — a 30 quadros/s a expressa (0,1875 m por
+    tick, item a cada 0,25 m) só aceitava/entregava 1 item a cada 2 ticks (2× em vez de 3×). Agora o item entra colado
+    no anterior quando a fila é contínua e, com a fila toda encostada, o próximo sai no mesmo tick. Básica e rápida
+    não mudam (múltiplos exatos); a quântica bate 30 itens/s = 1 por tick a 30 quadros/s.
+  - **Vagão-tanque** (vagao_tanque): peça de menu **trem-tanque** (`Trem.COMPOSICOES`: locomotiva + 2 vagões-tanque +
+    locomotiva; modelo vagao_tanque do estudo_trem que já estava no jogo), 25.000 de fluido por vagão. Como o vagão de
+    carga com itens: a **estação** ganha um tanque (25.000) e o **cano com a boca virada para a estação** liga esse
+    tanque à rede (a bomba de estação da árvore não tem estudo: o cano faz o papel dela, 1.000/s). Painel da estação:
+    **Cano desligado** (padrão: não rouba fluido de rede nenhuma), **Cano → trem** (carregar: rede → tanque da estação
+    → trem ao parar) e **Trem → cano** (descarregar: o fluido que o trem trouxe de OUTRA estação → tanque → rede). Um
+    fluido só de cada lado (seiva não entra em rede de água). Salvo antigo sem tanque carrega normal.
+    Travado pela árvore: `vagao_tanque` pede `trem_automatico` (rotas com condição + sinal em cadeia, sem estudo); no
+    modo demonstração se constrói.
+  - **Braço empilhador** (braco_empilhador, jogável: braço com filtro + processador; pacotes básico/automação/químico):
+    estudo_bracos_novos.py via arte/estudos/conv_bracos_novos.py (como o braço com filtro: repouso, pinças fechadas,
+    prensa em cima, contador apagado; partes giro/braco1/braco2/garra + camisa/haste do pistão da frente; 4.076
+    triângulos). `Braco.pilha_max` = 4: na origem pega de uma vez os itens IGUAIS que já estão lá (que o destino
+    aceita) e solta um por vez; `qtd` vai no salvo. Custa 4 barras de aço + 6 engrenagens + 1 processador.
+  - Estudos de arte/estudos/ sem uso no jogo depois desta: estudo_esteira_v1.py, estudo_montadora_v1.py e
+    estudo_terraplenagem_v1.py (versões antigas de peças que já estão no jogo), o **braço quântico** e o **divisor/junção
+    de cada nível** (cena 'acessorios' de estudo_esteiras_niveis.py). Nada mais.
+  - Verificação: 66.258 verificações, 0 falhas (testar.sh); os 132 scripts compilam (carregados sem janela); a demo
+    (`--quit-after 400`) e `-- modo demo roteiro trem` rodam sem erro.
+  - Pendências: (1) nada visto em imagem (sem fotos): conferir o azul-aço e o violeta das faixas no zoom normal (os
+    ícones das 18 peças e do empilhador saíram pelo render Workbench do icones.py, só esses), a gaiola do empilhador
+    (dims 0,80 × 1,11 × 1,15) e se a pilha na garra (`item` 0,23 abaixo do pulso, `pulso_dz` +0,10: a gaiola desce
+    0,34 m) fica dentro da gaiola; (2) expressa/quântica: só cor/acabamento — o motor duplo e os rolos de apoio da
+    expressa, o leito de bobinas, o campo violeta, os anéis, o conversor e a levitação dos itens da quântica não
+    entraram; o divisor e a junção de 3 vias continuam servindo a todas as classes (não limitam a vazão), como na
+    rápida; (3) a 30 quadros/s a esteira entrega no máximo 1 item por tick por caminho: a quântica fica exatamente no
+    teto (30/s); abaixo de 30 quadros/s o laço da saída entrega mais de um por tick (até 8); (4) **braço quântico**
+    (tem estudo, mas é outra máquina: lança telescópica de 5 seções que estica de 1 a 3 tiles e campo violeta que leva
+    as placas por cima da lança — não serve o IK de 2 elos do Animador) não entrou: pede animação própria; está travado
+    pela `computacao_quantica` de qualquer jeito; (5) trem-tanque: o vagão não mostra o nível (o modelo não tem
+    visor/parte para isso); a estação não tem modelo de bomba (sem estudo) nem boca de cano no modelo: o cano só
+    encosta na borda; (6) vagão-tanque e trem-tanque só jogáveis quando o `trem_automatico` existir (sinal em cadeia e
+    rotas com condição — fase 3); (7) empilhador: a garra desenha um item só (a pilha não aparece); o contador de LEDs
+    e a prensa/pinças ficam parados (sem animação do estudo); pega só o que já está na origem (não espera completar 4).
 
 ### Lista para a fase 3 — estruturas da árvore ainda sem estudo/modelo
 (Fonte: "Estruturas: temos × precisamos" do docs/ARVORE_TECNOLOGIA.md. Entre parênteses, o que cada uma destrava do que
 já está ligado e travado.)
-- Braços: braço empilhador, braço quântico.
+- Braços: braço quântico (tem estudo em estudo_bracos_novos.py, falta a animação própria — ver 2.7).
 - Produção: fornalha de aço, fornalha elétrica, fundição de cristal, **montadora 2** (o pacote de tempestade é da
   montadora 2 na árvore; hoje sai na comum), montadora 3, montadora quântica, **refinador 2** (estação de tratamento),
   **forja quântica** (computação quântica → regulador climático), broca grande, extrator ressonante, broca de núcleo,
   laboratório 2, laboratório quântico, irradiador de módulos.
 - Energia: poste alto, turbina de correnteza, gerador a fluido, painel solar 2, **turbina alta** (defletor de vento),
   acumulador 2, acumulador de cristal, reator de cristal, reator de fusão, núcleo de singularidade.
-- Trilhos: sinal em cadeia, bomba de estação, trilho energizado, locomotiva elétrica (o vagão-tanque já tem modelo).
+- Trilhos: sinal em cadeia (destrava o trem automático e, com ele, o vagão-tanque), trilho energizado, locomotiva
+  elétrica; modelo próprio da bomba de estação, se Sapyst quiser (hoje o cano encostado faz o papel dela).
 - Lógica: sensor de esteira, sensor de tanque, comparador, válvula.
 - Proliferação: **sensor de varredura** (cartografia → artilharia), farol de cristal, posto avançado, lançador de
   sementes, receptor de cápsulas, transportador quântico, silo de lançamento.
 - Drones: baú de estoque (e, se Sapyst quiser modelo próprio, porto logístico e baús provedor/requisitante).
-- Com estudo mas ainda fora do jogo (não precisam de arte nova): esteira expressa e quântica (+ rampa, passagem,
-  divisor e junção de cada nível) e o sistema do vagão-tanque.
+- Com estudo mas ainda fora do jogo: braço quântico (animação própria) e divisor/junção de cada nível (hoje os de 3
+  vias servem a todas as classes).

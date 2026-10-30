@@ -248,6 +248,17 @@ Tudo que se constrói funciona — a mini-fábrica da demo é só um mapa pronto
 - Abertura (fase 2.6): `cenas/abertura.gd` desce a cápsula `nucleo_queda` (conv_nucleo.py, animação "chegada" de
   240 quadros) e toca a chegada do impacto em diante; no fim troca pelo núcleo do jogo. Sem janela: `--fixed-fps 30
   -- novo roteiro chegada abertura`.
+- Fim da fase 2: **Esteira expressa / quântica** (`logistica_4` / `logistica_5`): classes 3 e 4 em
+  `Construtor.CLASSES_ESTEIRA` (modelos `<peça>_expressa` / `<peça>_quantica`, conv_esteiras_niveis.py; lonas
+  P_EsteiraExpressa e P_EsteiraQuantica em `Materiais.ROLAGEM`), 5,625 e 7,5 m/s, passagem até 8 e 10 tiles livres.
+  `EsteiraCaminho` guarda a sobra do tick: na entrada o item entra colado no anterior (fila contínua) e na saída, com a
+  fila toda encostada, o próximo sai no mesmo tick — a 30 quadros/s a expressa entrega 3× (antes, 2×).
+  **Trem-tanque** (`vagao_tanque`, peça `trem_tanque` = `Trem.COMPOSICOES`): `Trem.fluido`/`fluido_qtd`/`origem_fluido`,
+  25.000 por vagão-tanque; `Trem.trocar_fluido` troca com `estoque.fluido` = {modo, f, qtd} da estação. A `Fabrica`
+  liga à rede o cano com a boca virada para um tile da estação (`_estacoes_fluido`) e move 1.000/s (`vazao_fluido`)
+  entre a rede e o tanque da estação (`tanque_fluido` 25.000) conforme o modo do painel (desligado/carregar/
+  descarregar). **Braço empilhador** (`braco_empilhador`, conv_bracos_novos.py): `Braco.pilha_max` = regra `pilha`
+  (4): pega na origem os iguais que já estão lá e solta um por vez (`Braco.qtd`, salvo).
 - Extrator/broca mineram a jazida de baixo; fornalha escolhe a receita pelo que chega e queima carvão/biomassa;
   montadora/refinador: receita escolhida no painel. Elétricos precisam de poste (cobertura 2,5) ligado a gerador com combustível.
 - Torre: cada munição que chega (braço ou esteira na porta sul) = 10 tiros. Quem trabalha polui (e vira alvo por 60 s).
