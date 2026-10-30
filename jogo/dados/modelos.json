@@ -1566,12 +1566,14 @@
    }
   ],
   "portas": [],
-  "tris": 60,
+  "tris": 3102,
   "dims": [
-   0.84,
-   0.78,
-   0.62
+   1.0,
+   1.0,
+   0.619
   ],
+  "anima": true,
+  "estudo": "estudo_baus.py",
   "modelo": "res://assets/modelos/logistica/armazenagem/bau.glb"
  },
  "bau_grande": {
@@ -1596,12 +1598,14 @@
    }
   ],
   "portas": [],
-  "tris": 84,
+  "tris": 6973,
   "dims": [
-   1.82,
-   1.755,
-   0.94
+   2.0,
+   2.0,
+   0.942
   ],
+  "anima": true,
+  "estudo": "estudo_baus.py",
   "modelo": "res://assets/modelos/logistica/armazenagem/bau_grande.glb"
  },
  "braco": {
@@ -5936,12 +5940,14 @@
     ]
    }
   ],
-  "tris": 140,
+  "tris": 9136,
   "dims": [
-   1.92,
-   2.9,
-   2.15
+   3.043,
+   3.04,
+   2.054
   ],
+  "anima": true,
+  "estudo": "estudo_estacao.py",
   "modelo": "res://assets/modelos/transporte/trilhos/estacao.glb"
  },
  "sinal_trem": {

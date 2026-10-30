@@ -51,11 +51,11 @@
    ]
   }
  ],
- "tris": 140,
+ "tris": 9136,
  "dims": [
-  1.92,
-  2.9,
-  2.15
+  3.043,
+  3.04,
+  2.054
  ],
  "materiais": [
   "P_Concreto",
@@ -63,5 +63,7 @@
   "P_Escuro",
   "P_Faixa",
   "P_Metal"
- ]
+ ],
+ "anima": true,
+ "estudo": "estudo_estacao.py"
 }

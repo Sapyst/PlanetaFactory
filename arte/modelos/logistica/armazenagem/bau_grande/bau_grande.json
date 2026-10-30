@@ -20,16 +20,18 @@
   }
  ],
  "portas": [],
- "tris": 84,
+ "tris": 6973,
  "dims": [
-  1.82,
-  1.755,
-  0.94
+  2.0,
+  2.0,
+  0.942
  ],
  "materiais": [
   "P_Cobre",
   "P_Escuro",
   "P_Faixa",
   "P_Metal"
- ]
+ ],
+ "anima": true,
+ "estudo": "estudo_baus.py"
 }
