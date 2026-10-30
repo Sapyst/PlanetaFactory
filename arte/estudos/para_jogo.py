@@ -4,7 +4,19 @@ fora da área), separa o que se mexe do que é fixo, reduz a malha ao orçamento
 numa textura só a partir do modelo detalhado, mantém as peças que brilham com material da paleta (P_Cristal/P_Fogo,
 o jogo pulsa) e exporta o .glb com a animação de 4 s do estudo ("trabalho", o jogo toca em laço enquanto a máquina
 trabalha) e o .json com as portas e a área que o jogo já usa.
-Uso: blender -b --python para_jogo.py -- <nome>      (nome em CONFIG)"""
+Uso: blender -b --python para_jogo.py -- <nome>      (nome em CONFIG; mais entradas em conv_*.py, que definem CONFIG)
+
+Opções de CONFIG além de script/cat/tris/tex/tirar:
+  args      argumentos do estudo (padrão ['nada'])
+  centro    (x, y[, rot_z]) onde a estrutura está na cena do estudo (cena com várias): ela vem para a origem e só
+            fica o que está dentro da área dela
+  margem    folga (m) além da área antes de tirar o que está fora (padrão 0,06)
+  anima     False = tudo fixo (peças desenhadas em lote: esteira, cano, trilho, muro)
+  corpo     nome da parte fixa (padrão 'corpo'; a torre usa 'base')
+  partes    {nome: dict(objetos=[substrings], pivo=(x, y, z), pai='corpo', tris=n)}: peças que o JOGO mexe pelo nome
+            (giro, canhao, nacele, helice, braco1...) — sem a animação do estudo, com pivô para o Animador
+  depois_de_montar(sc)       função chamada com a cena já na origem e limpa (ajustes do estudo: tirar, mover, renomear)
+  antes_de_exportar(sc, raiz, dados)  função chamada antes do .glb (ex.: material especial da lona; dados = .json)"""
 import bpy, bmesh, sys, os, json, math
 from mathutils import Vector, Matrix
 
@@ -25,6 +37,12 @@ for _n, _s, _c, _t in (('broca_minerio', 'estudo_broca.py', 'maquinas', 8000), (
                        ('coletor_lixo', 'estudo_coletor_lixo.py', 'maquinas', 8000), ('filtro_agua', 'estudo_filtro_agua.py', 'maquinas', 8000),
                        ('viveiro', 'estudo_viveiro.py', 'maquinas', 8000), ('nucleo', 'estudo_nucleo.py', 'maquinas', 12000)):
     CONFIG[_n] = dict(script=_s, cat=_c, tris=_t, tex=1024, tirar=[])
+import glob as _glob, importlib.util as _iu
+for _f in sorted(_glob.glob(os.path.join(AQUI, 'conv_*.py'))):
+    _spec = _iu.spec_from_file_location(os.path.basename(_f)[:-3], _f)
+    _mod = _iu.module_from_spec(_spec)
+    _spec.loader.exec_module(_mod)
+    CONFIG.update(getattr(_mod, 'CONFIG', {}))
 EFEITO = ('chao', 'ceu', 'terreno', 'fumaca', 'vapor', 'poeira', 'nevoa', 'faisca', 'jato', 'fogo', 'chama', 'raio',
           'chuva', 'gota', 'feixe', 'clarao', 'onda', 'rastro')
 
@@ -37,7 +55,7 @@ def args():
 def montar_estudo(cfg):
     """Roda o script do estudo num modo que não renderiza (constrói a cena e a animação)."""
     caminho = os.path.join(AQUI, cfg['script'])
-    sys.argv = [sys.argv[0], '--python', caminho, '--', 'nada']
+    sys.argv = [sys.argv[0], '--python', caminho, '--'] + list(cfg.get('args', ['nada']))
     sys.path.insert(0, AQUI)
     codigo = open(caminho, encoding='utf-8').read()
     exec(compile(codigo, caminho, 'exec'), {'__name__': '__main__', '__file__': caminho})
@@ -72,11 +90,10 @@ def vidro(m):
     return (t is not None and (t.is_linked or t.default_value > 0.5)) or (not a.is_linked and a.default_value < 0.6)
 
 
-def fora_da_area(o, w, d):
+def fora_da_area(o, w, d, m=0.06):
     cantos = [o.matrix_world @ Vector(c) for c in o.bound_box]
     x0, x1 = min(c.x for c in cantos), max(c.x for c in cantos)
     y0, y1 = min(c.y for c in cantos), max(c.y for c in cantos)
-    m = 0.06
     return x1 < -w / 2 - m or x0 > w / 2 + m or y1 < -d / 2 - m or y0 > d / 2 + m
 
 
@@ -89,7 +106,7 @@ def limpar(cfg, w, d):
         sai = o.type in ('LIGHT', 'CAMERA') or any(t in nome for t in tirar)
         if o.type == 'MESH':
             sai = sai or not o.data.polygons or any(tem_volume(m) for m in mats) or any(vidro(m) for m in mats)
-            sai = sai or fora_da_area(o, w, d) or o.hide_render
+            sai = sai or fora_da_area(o, w, d, cfg.get('margem', 0.06)) or o.hide_render
         if sai:
             bpy.data.objects.remove(o, do_unlink=True)
 
@@ -240,15 +257,40 @@ def main():
     montar_estudo(cfg)
     sc = bpy.context.scene
     sc.frame_start, sc.frame_end = 1, 96
+    sc.frame_set(1)
+    if cfg.get('centro'):                              # cena com várias estruturas: esta vem para a origem
+        c = cfg['centro']
+        base = bpy.data.objects.new('_base', None)
+        sc.collection.objects.link(base)
+        base.matrix_world = Matrix.Rotation(-(c[2] if len(c) > 2 else 0.0), 4, 'Z') @ Matrix.Translation((-c[0], -c[1], 0))
+        for o in list(sc.objects):
+            if o is not base and o.parent is None:
+                o.parent = base
+        bpy.context.view_layer.update()
     limpar(cfg, w, d)
-    din = dinamicos([1, 13, 25, 37, 49, 61, 73, 85])
+    if cfg.get('depois_de_montar'):
+        cfg['depois_de_montar'](sc)
+    din = dinamicos([1, 13, 25, 37, 49, 61, 73, 85]) if cfg.get('anima', True) else set()
     malhas = [o for o in sc.objects if o.type == 'MESH']
+    # peças que o jogo mexe pelo nome: juntadas por parte, com pivô; saem da animação do estudo
+    pecas = []
+    usados = set()
+    for pn, pd in cfg.get('partes', {}).items():
+        objs = [o for o in malhas if o.name not in usados and any(t.lower() in o.name.lower() for t in pd['objetos'])]
+        if not objs:
+            print('AVISO parte sem objetos:', pn)
+            continue
+        usados |= {o.name for o in objs}
+        for o in objs:
+            o.animation_data_clear()
+        pecas.append((pn, pd, objs))
+    malhas = [o for o in malhas if o.name not in usados]
     brilhantes = [o for o in malhas if any(brilha(s.material) for s in o.material_slots)]
     fixos = [o for o in malhas if o.name not in din and o not in brilhantes]
     moveis = [o for o in malhas if o.name in din and o not in brilhantes]
     total = sum(tris(o) for o in fixos + moveis) or 1
     # alto (detalhado) guardado para assar; baixo reduzido ao orçamento
-    corpo = juntar_fixos(fixos, nome + '_corpo') if fixos else None
+    corpo = juntar_fixos(fixos, nome + '_' + cfg.get('corpo', 'corpo')) if fixos else None
     pares = []
     if corpo:
         alto = copia(corpo)
@@ -268,10 +310,35 @@ def main():
         for s in o.material_slots:
             s.material = material_brilho(s.material)
         reduzir(o, 300)
+    objs_partes = {}
+    for pn, pd, objs in pecas:
+        brilho = all(any(brilha(s.material) for s in o.material_slots) for o in objs)
+        po = juntar_fixos(objs, f'{nome}_{pn}')
+        sc.cursor.location = Vector(pd.get('pivo', (0, 0, 0)))
+        bpy.ops.object.select_all(action='DESELECT')
+        po.select_set(True)
+        bpy.context.view_layer.objects.active = po
+        bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
+        objs_partes[pn] = po
+        if brilho:
+            for s in po.material_slots:
+                s.material = material_brilho(s.material)
+            reduzir(po, pd.get('tris', 400))
+        else:
+            alto = copia(po)
+            reduzir(po, pd.get('tris', int(cfg['tris'] * 0.12)))
+            pares.append((po, alto))
     assar([b for b, _ in pares], [a for _, a in pares], cfg['tex'], nome)
     for _, a in pares:
         bpy.data.objects.remove(a, do_unlink=True)
     # raiz, portas (do .json atual do jogo) e exportação com a animação "trabalho"
+    for pn, pd, _ in pecas:                            # hierarquia das partes (o jogo lê o pai em modelos.json)
+        pai = objs_partes.get(pd.get('pai', 'corpo')) or corpo
+        po = objs_partes[pn]
+        if pai is not None and pai is not po:
+            mw = po.matrix_world.copy()
+            po.parent = pai
+            po.matrix_world = mw
     raiz = bpy.data.objects.new(nome, None)
     sc.collection.objects.link(raiz)
     for o in list(sc.objects):
@@ -291,6 +358,8 @@ def main():
             tr.name = 'trabalho'
             tr.strips.new('trabalho', 1, ad.action)
             ad.action = None
+    if cfg.get('antes_de_exportar'):
+        cfg['antes_de_exportar'](sc, raiz, antigo)
     bpy.ops.object.select_all(action='DESELECT')
     for o in sc.objects:
         o.select_set(True)
@@ -303,7 +372,9 @@ def main():
     hi = Vector((max(p.x for p in pts), max(p.y for p in pts), max(p.z for p in pts)))
     antigo.update(tris=sum(tris(o) for o in sc.objects if o.type == 'MESH'),
                   dims=[round(hi.x - lo.x, 3), round(hi.y - lo.y, 3), round(hi.z - lo.z, 3)],
-                  partes=[dict(nome='corpo', pai=None, pivo=[0.0, 0.0, 0.0])], anima=True,
+                  partes=[dict(nome=cfg.get('corpo', 'corpo'), pai=None, pivo=[0.0, 0.0, 0.0])] +
+                  [dict(nome=pn, pai=pd.get('pai', cfg.get('corpo', 'corpo')), pivo=[round(v, 4) for v in pd.get('pivo', (0, 0, 0))])
+                   for pn, pd, _ in pecas if pn in objs_partes], anima=bool(moveis),
                   estudo=cfg['script'])
     json.dump(antigo, open(os.path.join(pasta, nome + '.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     print('PARA_JOGO ok', nome, antigo['tris'], 'tris', len(moveis), 'peças móveis', len(brilhantes), 'brilhantes')
