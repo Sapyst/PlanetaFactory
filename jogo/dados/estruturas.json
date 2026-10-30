@@ -181,6 +181,8 @@
                        "_logica": "rede_logica: canal > ou < número → os vizinhos encostados (4 tiles) ficam ligados; senão, desligados"},
  "valvula":           {"grupo": "logica", "vida": 100, "vazao": 1000,
                        "_logica": "rede_logica: entre duas redes de cano; passa vazao/s se ligada e 'acima' (entrada > nível), 'abaixo' (saída < nível) ou 'sempre'"},
+ "sensor_varredura":  {"grupo": "sensor", "energia_kw": 150, "vida": 450, "varredura": {"intervalo_s": 60, "chunks": 6, "chunks_profunda": 16, "modo_profunda": "varredura_profunda"},
+                       "_varredura": "com energia, revela 1 chunk a cada intervalo_s (÷ energia), do mais perto para o mais longe, até `chunks` (com a pesquisa do modo_profunda — Varredura profunda — até chunks_profunda): o chunk sai da névoa, os ninhos dele passam a existir e ficam marcados no mapa enquanto o sensor está de pé; com a profunda, mede a riqueza das jazidas desses chunks"},
  "sinal_cadeia":      {"grupo": "sinal", "vida": 100, "_cadeia": "trem_automatico: divide em blocos como o sinal; o trem só passa se a saída (o bloco depois do próximo sinal comum) também estiver livre"},
  "pilar_base":        {"grupo": "pilar", "vida": 80},
  "pilar_segmento":    {"grupo": "pilar", "vida": 80},

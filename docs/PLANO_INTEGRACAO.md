@@ -29,7 +29,9 @@ Lista: ver docs/ARVORE_TECNOLOGIA.md (Estruturas: temos × precisamos) e arte/es
 ## Fase 3 — artes que faltam (lotes 16, 17, 13, 10, 14, 11), 1 por vez, mais enxutas no processo
 ## Fase 4 — inserir essas no jogo, 1 por vez, como na fase 2
 - [x] **Lote 16 (trilhos, drones e lógica)** — ver "Progresso das fases 3+4" abaixo.
-- [ ] Lote 17 (proliferação) → 13 (energia I) → 10 (produção I) → 14 (energia II) → 11 (produção II).
+- [ ] Lote 17 (proliferação): [x] sensor de varredura (estudo do Antigravity) — ver "Progresso das fases 3+4"; faltam
+  farol de cristal, posto avançado, lançador de sementes, receptor de cápsulas, transportador quântico, silo.
+- [ ] → 13 (energia I) → 10 (produção I) → 14 (energia II) → 11 (produção II).
 
 ## Fase 5 — só no fim de TUDO (a árvore inteira funcional): fotos no jogo + baterias de testes
 Sapyst: "vai terminar literalmente toda a tech-tree e tudo mais. Faltando só as fotos com testes mesmo."
@@ -441,6 +443,41 @@ com a grade inteira + resultado dos testes), para ela não precisar abrir uma po
     chega); (10) porto logístico e baús provedor/requisitante seguem sem modelo próprio (a estação e o baú comum fazem o
     papel).
 
+- [x] **Lote 17: sensor de varredura** (estudo estudo_sensor_varredura.py feito pelo Antigravity, sem alteração;
+      arte/estudos/conv_lote17.py; categoria de arte e do menu nova **Proliferação**; teste test_sensor_varredura.gd;
+      roteiro sem janela `-- modo demo roteiro lote17`). Pesquisas novas em progressao.json (2): sensor_varredura
+      (eletrônica; básico × 20) e cartografia "Varredura profunda" (sensor + processador; básico/automação/químico ×
+      50; modo `varredura_profunda`). Com elas ficam pesquisáveis a **artilharia**, a **Leitura ambiental**
+      (monitor_ambiental) e, com o pacote de tempestade, dano/alcance da artilharia 1.
+  - **Modelo**: 7.133 triângulos, 2×2 (1,91 × 1,91 × 2,18 m), sem bocas. Fica o laço do estudo: o giro (garfo, mesa,
+    pinhão, pistões) dá a volta em 4 s e a antena sobe e desce de 12° a 26° com os pistões acompanhando; saem a mancha
+    de óleo e a luz do radar; o pulso do cristal e a corrida dos LEDs eram animação de material (não vão no .glb): os
+    8 LEDs e o cristal ficam acesos fixos com P_Cristal (o jogo pulsa enquanto trabalha). Ícone pelo render Workbench
+    (só ele).
+  - **Função** (`ambiente/varredura.gd`, regra "varredura"): 150 kW; com energia, revela 1 chunk a cada 60 s
+    (÷ energia), do mais perto para o mais longe, até 6 (profunda: 16); chunk já todo visto entra na hora. Revelar
+    tira o chunk da névoa (`Descoberta.marcar_chunk`) e cria os ninhos dele (`Colonia.descobrir_chunk`, mesmo longe
+    da câmera: a artilharia já os mira). Ninhos dos chunks de um sensor de pé ficam marcados (alfinete "⚠ Ninho",
+    `render/desenho_varredura.gd`); com a profunda, mede as jazidas dos chunks (total da mancha, pobre/média/rica,
+    fator de riqueza) no painel e em rótulos no mapa. Anima com energia, no ritmo dela. Vai no save.
+  - **Em desenvolvimento** (pedido de Sapyst): pesquisa fora do jogo ou travada por pacote/pesquisa que não existe e
+    peça sem modelo ou só liberada por ela ficam em cinza escuro com a etiqueta "Em desenvolvimento"
+    (`Tema.botao_desenvolvimento`) na tela de pesquisa e na barra; não se escolhem/concluem (`Pesquisa.disponivel`,
+    `avancar`) nem se constroem fora da demonstração (`Construtor._cobrar_plano`, motivo `em_desenvolvimento`).
+    test_pesquisa.gd (`test_em_desenvolvimento`; `test_infinitas` passou a simular numa cópia dos dados, porque as
+    infinitas pedem o pacote gênese).
+  - Verificação: 67.786 verificações, 0 falhas (testar.sh); os 140 scripts compilam (carregados sem
+    janela); a demo (`--quit-after 400`) roda sem erro; `-- modo demo roteiro lote17` revelou 16 de 16 chunks, marcou
+    7 ninhos e mediu 5 jazidas (marcas desenhadas: 7 + 5), sensor animando com energia. test_esteira_niveis.gd
+    ajustado (a quântica agora vem "em_desenvolvimento", não "bloqueado"); docs/RECURSOS.md regerado.
+  - Pendências: (1) nada visto em imagem (sem fotos): conferir no zoom normal a silhueta (a grelha do refletor ficou
+    rala depois da redução), os LEDs acesos fixos e o tamanho do alfinete/rótulos; (2) a **mira automática**
+    (`artilharia_automatica`) segue em desenvolvimento e hoje a artilharia já mira sozinha qualquer ninho no alcance
+    (não exige ninho marcado) — decidir com Sapyst se a artilharia passa a mirar só ninhos marcados pelo sensor;
+    (3) a varredura não tem custo além da energia, nem raio visível (a ordem é por chunk, não por círculo); ninhos
+    marcados só somem quando o sensor sai (o que foi revelado continua descoberto); (4) as faixas de riqueza
+    (20 mil / 60 mil) são estimativa — calibrar quando houver mapas maiores.
+
 ### Lista para a fase 3 — estruturas da árvore ainda sem estudo/modelo
 (Fonte: "Estruturas: temos × precisamos" do docs/ARVORE_TECNOLOGIA.md. Entre parênteses, o que cada uma destrava do que
 já está ligado e travado.)
@@ -450,7 +487,7 @@ já está ligado e travado.)
   laboratório 2, laboratório quântico, irradiador de módulos.
 - Energia: poste alto, turbina de correnteza, gerador a fluido, painel solar 2, **turbina alta** (defletor de vento),
   acumulador 2, acumulador de cristal, reator de cristal, reator de fusão, núcleo de singularidade.
-- Proliferação: **sensor de varredura** (cartografia → artilharia), farol de cristal, posto avançado, lançador de
+- Proliferação: ~~sensor de varredura~~ (lote 17, feito), farol de cristal, posto avançado, lançador de
   sementes, receptor de cápsulas, transportador quântico, silo de lançamento.
 - Drones: se Sapyst quiser modelo próprio, porto logístico e baús provedor/requisitante (o estoque já tem, lote 16).
 - Com estudo mas ainda fora do jogo: divisor/junção de cada nível (hoje os de 3 vias servem a todas as classes).

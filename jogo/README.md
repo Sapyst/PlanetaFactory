@@ -115,6 +115,15 @@ vista. Contador de FPS embutido (ligado por padrão na fase de testes; Configura
   era (chapa com listras no título), colunas por pré-requisito dentro da era, linhas ligando (verde = feito). Nós são
   placas `Tema.botao_cor_estilo`; tipo no nó (■ estrutura, ⚗ receita, ▲ melhoria, ∞ infinita, ★ objetivo). Só as
   pesquisas de `progressao.json` se pesquisam; o resto é "em breve". Zoom: pinça, Ctrl + roda, gesto do trackpad, − e +.
+- **Em desenvolvimento** (pedido de Sapyst): `Pesquisa.em_desenvolvimento(id)` = fora do `progressao.json`, pacote que
+  não existe (`Registro.itens`) ou pré-requisito em desenvolvimento (recursivo; já concluída não conta);
+  `disponivel`/`escolher` recusam e `avancar` larga a ativa. `Pesquisa.peca_em_desenvolvimento(nome)` = sem modelo
+  (`tem_modelo`) ou, fora da demonstração, nenhuma pesquisa que a libera dá para fazer. Visual único
+  `Tema.botao_desenvolvimento` (placa `COR_DESENVOLVIMENTO` em todos os estados + `selo_desenvolvimento`: véu cinza
+  escuro e etiqueta com moldura amarela, sem pegar toque): nó da árvore (`TelaPesquisa._botao_no`, ainda abre o
+  detalhe, que diz o motivo com `motivo_desenvolvimento` e troca Pesquisar por "Em desenvolvimento"), peça da barra
+  (`BarraConstrucao.botao_peca`, desligada; `marcar` não tira o cinza), `ControleConstrucao.escolher` avisa e não pega,
+  `Construtor._cobrar_plano` marca o plano com o motivo `em_desenvolvimento` (vale também sem cobrança).
 - Encardido: cada estrutura suja com o tempo (`AmbienteVivo.encardido`, 0..1; parada leva `encardido.cheio_s`,
   trabalhando e em chão sujo vai mais rápido) e a chuva lava (`chuva_limpa_s`), recomeçando o ciclo; vai no save. O
   valor vai no canal R do `fogo_mapa` e o `material_pf` cobre a estrutura de lama marrom (pé, frestas, escorridos) e
@@ -272,6 +281,14 @@ Tudo que se constrói funciona — a mini-fábrica da demo é só um mapa pronto
   quântico**: `Fabrica.alcance_origem` (campo "alcance" 1..`alcance_max`), `Animador._lanca_quantica` e o caminho do
   item no campo (`ponto_garra`). Roteiro sem janela: `godot --headless --path jogo --quit-after 900 -- modo demo
   roteiro lote16`.
+- **Sensor de varredura** (lote 17; `ambiente/varredura.gd`, regra "varredura" em `estruturas.json`): consumidor de
+  150 kW; `Varredura.tick` revela, por sensor, o próximo chunk de `ordem(id)` (mais perto do centro primeiro) a cada
+  `intervalo_s` × energia, até `chunks` (6) ou `chunks_profunda` (16, modo `varredura_profunda` da pesquisa
+  `cartografia`); chunk já todo visto entra na hora. Revelar = `Descoberta.marcar_chunk` + `Colonia.descobrir_chunk`.
+  `ninhos_marcados()` (ninhos em chunks de sensores de pé), `jazidas(id)` (profunda: manchas com centro nos chunks,
+  total somado dos tiles e nível pobre/média/rica), `estado()`/`restaurar()` no save ("varredura"). Desenho:
+  `render/desenho_varredura.gd` (alfinete "⚠ Ninho" e rótulos das jazidas, sempre por cima). Painel:
+  `mundo_demo._detalhe_varredura`. Anima (laço do estudo: giro + antena) com energia, no ritmo dela.
 - Extrator/broca mineram a jazida de baixo; fornalha escolhe a receita pelo que chega e queima carvão/biomassa;
   montadora/refinador: receita escolhida no painel. Elétricos precisam de poste (cobertura 2,5) ligado a gerador com combustível.
 - Torre: cada munição que chega (braço ou esteira na porta sul) = 10 tiros. Quem trabalha polui (e vira alvo por 60 s).

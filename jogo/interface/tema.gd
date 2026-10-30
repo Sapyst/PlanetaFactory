@@ -133,6 +133,59 @@ static func botao_perigo_estilo(apertado := false) -> StyleBoxTexture:
 	return s
 
 
+## O que ainda não entrou no jogo (pesquisa "em breve" ou travada por ela, peça sem modelo): placa cinza escuro e
+## selo "Em desenvolvimento".
+const COR_DESENVOLVIMENTO := Color(0.20, 0.20, 0.22)
+const TEXTO_DESENVOLVIMENTO := "Em desenvolvimento"
+
+
+## Selo por cima de um botão (nó da pesquisa, peça da barra): véu cinza escuro no botão inteiro e a etiqueta com
+## moldura de listras no canto de baixo. Não pega toque: quem decide se o botão clica é ele.
+static func selo_desenvolvimento(alvo: Control, tam_fonte := 12) -> Control:
+	var veu := ColorRect.new()
+	veu.name = "SeloDesenvolvimento"
+	veu.color = Color(0.05, 0.05, 0.06, 0.58)
+	veu.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	veu.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var et := PanelContainer.new()
+	var caixa_et := caixa(Color(0.09, 0.09, 0.10, 0.96), AMARELO.darkened(0.2), 3, 0)
+	caixa_et.content_margin_left = 7
+	caixa_et.content_margin_right = 7
+	caixa_et.content_margin_top = 1
+	caixa_et.content_margin_bottom = 1
+	et.add_theme_stylebox_override("panel", caixa_et)
+	et.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	et.anchor_left = 1.0
+	et.anchor_right = 1.0
+	et.anchor_top = 1.0
+	et.anchor_bottom = 1.0
+	et.offset_right = -7.0
+	et.offset_bottom = -6.0
+	et.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	et.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	var l := Label.new()
+	l.text = TEXTO_DESENVOLVIMENTO.to_upper()
+	l.add_theme_font_size_override("font_size", tam_fonte)
+	l.add_theme_color_override("font_color", AMARELO.lightened(0.25))
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	et.add_child(l)
+	veu.add_child(et)
+	alvo.add_child(veu)
+	return veu
+
+
+## Botão em desenvolvimento: placa cinza escuro em todos os estados (inclusive desligado), texto apagado e o selo.
+static func botao_desenvolvimento(b: Button, tam_fonte := 12) -> void:
+	var st := botao_cor_estilo(COR_DESENVOLVIMENTO)
+	for k in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
+		b.add_theme_stylebox_override(k, st)
+	for k in ["font_color", "font_hover_color", "font_pressed_color", "font_disabled_color"]:
+		b.add_theme_color_override(k, Color(0.55, 0.56, 0.58))
+	b.tooltip_text = TEXTO_DESENVOLVIMENTO + ": ainda não está no jogo"
+	if b.get_node_or_null("SeloDesenvolvimento") == null:
+		selo_desenvolvimento(b, tam_fonte)
+
+
 ## Barra listrada para pôr sob títulos (TextureRect em ladrilho).
 static func listra() -> Texture2D:
 	return _tex("listra", func(): return _listras(64, 10, 0.0))

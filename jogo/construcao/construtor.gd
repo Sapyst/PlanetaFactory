@@ -463,8 +463,14 @@ static func custo_de(nome: String, classe := 1) -> Dictionary:
 	return Registro.progressao.get("custos", {}).get(chave_custo(nome, classe), {})
 
 
-## Marca "bloqueado" (falta pesquisa) e "sem_recursos" (o estoque acaba no meio do traço: o que cabe fica verde).
+## Marca "em_desenvolvimento" (peça que ainda não está no jogo: sem modelo, ou só uma pesquisa em desenvolvimento a
+## libera — no modo demonstração só a sem modelo), "bloqueado" (falta pesquisa) e "sem_recursos" (o estoque acaba no
+## meio do traço: o que cabe fica verde).
 func _cobrar_plano(plano: Array[Dictionary], escolhido: String) -> Array[Dictionary]:
+	if pesquisa != null and pesquisa.peca_em_desenvolvimento(escolhido):
+		for it in plano:
+			it.motivo = "em_desenvolvimento"
+		return plano
 	if not cobrar:
 		return plano
 	if pesquisa != null and not pesquisa.peca_liberada(escolhido):

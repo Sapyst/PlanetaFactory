@@ -3,7 +3,9 @@ extends CanvasLayer
 ## Árvore de pesquisa (botão ⚗ / T), por cima do jogo: a árvore de tecnologia inteira (dados/arvore.json) em três
 ## faixas, uma por era (base, meio, super avançada), cada uma com a sua cor. Dentro da faixa, colunas por profundidade
 ## (sem pré-requisito da mesma era à esquerda); linhas ligam aos pré-requisitos (verde = já feito). As pesquisas que
-## já existem no jogo (progressao.json) se pesquisam; as outras aparecem esmaecidas como "em breve".
+## já existem no jogo (progressao.json) se pesquisam; as que ainda não dá para fazer (fora do jogo, ou travadas por
+## pacote/pesquisa que não existe: Pesquisa.em_desenvolvimento) ficam em cinza escuro com o selo "Em desenvolvimento"
+## e não se escolhem (o detalhe diz por quê).
 ## O quadro rola nas duas direções pelo dedo (RolagemToque) e tem zoom: pinça com dois dedos, Ctrl + roda do mouse,
 ## gesto do trackpad ou os botões − e +. Tocar num nó mostra o detalhe ao lado: custo, o que
 ## libera em casas com ícone, o que falta e o botão Pesquisar.
@@ -277,6 +279,11 @@ func _em_breve(id: String) -> bool:
 	return not pesquisa.jogavel(id)
 
 
+## Ainda não dá para fazer no jogo (em breve, ou travada por algo em breve): cinza escuro, selo, não se pesquisa.
+func _em_dev(id: String) -> bool:
+	return pesquisa.em_desenvolvimento(id)
+
+
 func _nome(id: String) -> String:
 	return str(_no(id).get("nome", id))
 
@@ -374,35 +381,45 @@ func _montar_arvore() -> void:
 		t.position = Vector2(f.rect.position.x + 26.0, f.rect.position.y + 10.0)
 		_arvore.add_child(t)
 	for id in _pos:
-		var pq: Dictionary = _no(id)
-		var b := Button.new()
-		b.focus_mode = Control.FOCUS_NONE
+		var b := _botao_no(id)
 		b.position = (_pos[id] as Rect2).position
-		b.size = NO
-		b.custom_minimum_size = NO
-		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		b.icon = _icone_da(id)
-		b.expand_icon = false
-		b.add_theme_constant_override("icon_max_width", 56)
-		b.text = "%s\n%s" % [pq.get("nome", id), _situacao(id)]
-		b.add_theme_font_size_override("font_size", 16)
-		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		# placa em relevo com moldura na cor da situação (a mesma da barra de construção); escolhida = âmbar
-		var cor := Tema.cor("destaque") if _sel == id else _cor(id)
-		if _em_breve(id) and _sel != id:
-			cor = cor.darkened(0.45)
-			b.add_theme_color_override("font_color", Color(0.70, 0.70, 0.72))
+		_arvore.add_child(b)
+		_nos[id] = b
+	_arvore.queue_redraw()
+
+
+## Botão de um nó da árvore (placa na cor da situação; em desenvolvimento: cinza escuro com o selo, clica só para
+## ver o detalhe).
+func _botao_no(id: String) -> Button:
+	var pq: Dictionary = _no(id)
+	var b := Button.new()
+	b.focus_mode = Control.FOCUS_NONE
+	b.size = NO
+	b.custom_minimum_size = NO
+	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.icon = _icone_da(id)
+	b.expand_icon = false
+	b.add_theme_constant_override("icon_max_width", 56)
+	b.text = "%s\n%s" % [pq.get("nome", id), _situacao(id)]
+	b.add_theme_font_size_override("font_size", 16)
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	# placa em relevo com moldura na cor da situação (a mesma da barra de construção); escolhida = âmbar
+	var cor := Tema.cor("destaque") if _sel == id else _cor(id)
+	if _em_dev(id):                                # cinza escuro + selo; escolhida = moldura âmbar apagada
+		Tema.botao_desenvolvimento(b, 12)
+		if _sel == id:
+			b.add_theme_stylebox_override("normal", Tema.botao_cor_estilo(Tema.cor("destaque").darkened(0.45)))
+			b.add_theme_stylebox_override("hover", Tema.botao_cor_estilo(Tema.cor("destaque").darkened(0.45)))
+	else:
 		b.add_theme_stylebox_override("normal", Tema.botao_cor_estilo(cor))
 		b.add_theme_stylebox_override("hover", Tema.botao_cor_estilo(cor.lightened(0.18)))
 		b.add_theme_stylebox_override("pressed", Tema.botao_cor_estilo(cor.lightened(0.3)))
 		b.add_theme_stylebox_override("hover_pressed", Tema.botao_cor_estilo(cor.lightened(0.3)))
-		b.pressed.connect(RolagemToque.so_clique(func():
-			Som.tocar("clique")
-			_sel = id
-			_atualizar()))
-		_arvore.add_child(b)
-		_nos[id] = b
-	_arvore.queue_redraw()
+	b.pressed.connect(RolagemToque.so_clique(func():
+		Som.tocar("clique")
+		_sel = id
+		_atualizar()))
+	return b
 
 
 func _desenhar_linhas() -> void:
@@ -428,15 +445,15 @@ func _desenhar_linhas() -> void:
 			var lado := float(int(r.position.y / (NO.y + ESP.y)) % 4) / 3.0
 			var mx := a.x + ESP.x * (0.25 + 0.5 * lado)
 			var cor := COR_FEITA if pesquisa.concluidas.has(req) else COR_TRAVADA
-			if _em_breve(id):
-				cor = Color(ERA_COR.get(_no(id).get("era", ""), COR_TRAVADA), 0.4)
+			if _em_dev(id):
+				cor = Color(0.34, 0.34, 0.36, 0.5)
 			_arvore.draw_polyline(PackedVector2Array([a, Vector2(mx, a.y), Vector2(mx, b.y), b]), cor, 3.0, true)
 			_arvore.draw_circle(b, 5.0, cor)
 
 
 func _cor(id: String) -> Color:
-	if _em_breve(id):
-		return COR_OBJETIVO if _no(id).get("objetivo", false) else ERA_COR.get(_no(id).get("era", ""), COR_TRAVADA)
+	if _em_dev(id):
+		return Tema.COR_DESENVOLVIMENTO.lightened(0.25)
 	if pesquisa.ativa == id:
 		return BarraConstrucao.COR_DESTAQUE
 	if pesquisa.concluidas.has(id):
@@ -457,8 +474,8 @@ func _custo_texto(pq: Dictionary) -> String:
 func _situacao(id: String) -> String:
 	var pq: Dictionary = _no(id)
 	var tipo: String = (TIPOS.get(pq.get("tipo", ""), [""]) as Array)[0]
-	if _em_breve(id):
-		return tipo + " " + ("objetivo final" if pq.get("objetivo", false) else "em breve")
+	if _em_dev(id):
+		return tipo + " " + ("objetivo final" if pq.get("objetivo", false) else Tema.TEXTO_DESENVOLVIMENTO.to_lower())
 	return tipo + " " + _situacao_jogavel(id, pq)
 
 
@@ -559,7 +576,7 @@ func _mostrar_detalhe() -> void:
 			faltam_pacotes.append(Pesquisa.nome_tipo(t))
 	if not faltam_pacotes.is_empty():                             # depende de pacote que ainda é "em breve"
 		var fl := Label.new()
-		fl.text = "Pacote %s: em breve (a receita vem numa pesquisa que ainda não está no jogo)." % ", ".join(faltam_pacotes)
+		fl.text = "Pacote %s: em desenvolvimento (a receita vem numa pesquisa que ainda não está no jogo)." % ", ".join(faltam_pacotes)
 		fl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		fl.add_theme_font_size_override("font_size", 14)
 		fl.add_theme_color_override("font_color", Tema.cor("info"))
@@ -627,6 +644,16 @@ func _mostrar_detalhe() -> void:
 		if pesquisa.infinita(_sel):
 			b.text = "Nível %d: %d/%d (segue sozinha)" % [pesquisa.nivel(_sel) + 1, pesquisa.feitos, pesquisa.unidades(_sel)]
 		b.disabled = true
+	elif _em_dev(_sel):                                           # travada por algo que ainda não está no jogo
+		b.text = Tema.TEXTO_DESENVOLVIMENTO
+		b.disabled = true
+		Tema.botao_desenvolvimento(b, 12)
+		var dl := Label.new()
+		dl.text = "%s: %s." % [Tema.TEXTO_DESENVOLVIMENTO, pesquisa.motivo_desenvolvimento(_sel)]
+		dl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		dl.add_theme_font_size_override("font_size", 14)
+		dl.add_theme_color_override("font_color", Tema.AMARELO.lightened(0.25))
+		_det.add_child(dl)
 	elif pesquisa.disponivel(_sel):
 		b.text = "Pesquisar nível %d" % (pesquisa.nivel(_sel) + 1) if pesquisa.infinita(_sel) else "Pesquisar"
 		var id := _sel
@@ -673,6 +700,7 @@ func _detalhe_em_breve(pq: Dictionary) -> void:
 	var b := Button.new()
 	b.custom_minimum_size = Vector2(0, 56)
 	b.focus_mode = Control.FOCUS_NONE
-	b.text = "★ Objetivo final — em breve" if pq.get("objetivo", false) else "Em breve: ainda não está no jogo"
+	b.text = "★ Objetivo final — em desenvolvimento" if pq.get("objetivo", false) else Tema.TEXTO_DESENVOLVIMENTO + ": ainda não está no jogo"
 	b.disabled = true
+	Tema.botao_desenvolvimento(b, 12)
 	_det.add_child(b)

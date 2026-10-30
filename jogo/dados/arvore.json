@@ -208,6 +208,7 @@
    ],
    "tempo": 5.0,
    "libera": "Sensor de varredura 2×2: revela 1 chunk/min até 6 chunks e marca ninhos",
+   "existente": true,
    "tipo": "estrutura"
   },
   "farol_cristal": {
@@ -1636,6 +1637,7 @@
    ],
    "tempo": 8.0,
    "libera": "Sensor de varredura 2: até 16 chunks e mostra a riqueza das jazidas",
+   "existente": true,
    "tipo": "estrutura"
   },
   "coletor_lixo_2": {

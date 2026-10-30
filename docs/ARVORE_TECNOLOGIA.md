@@ -1,6 +1,6 @@
 # Árvore de tecnologia
 
-Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 104 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (algumas ainda esperam um pré-requisito ou pacote "em breve"; o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras aparecem como "em breve" até a estrutura, o item ou o pacote existir. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
+Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 106 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras — e as jogáveis que ainda esperam um pré-requisito ou pacote que não existe (`Pesquisa.em_desenvolvimento`) — aparecem em cinza escuro com a etiqueta **"Em desenvolvimento"** e não se escolhem nem se concluem, até a estrutura, o item ou o pacote existir. Na barra de construção, peça sem modelo ou liberada só por pesquisa em desenvolvimento fica igual (cinza escuro, etiqueta) e não se constrói fora do modo demonstração. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
 
 ## Eras e pacotes de pesquisa
 
@@ -521,7 +521,7 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Muro (pedra) | 1×1 | temos | 350 ♥, barra aranhas | início |
 | Metralhadora | 2×2 | temos | munição comum, 10 tiros/s, alcance 18 m, 3 de dano por bala, guarda 200 tiros | `torre_metralhadora` |
 | Lança-foguetes | 3×3 | temos | foguetes (1 por disparo, guarda 18), 1,5 disparos/s, 40 de dano em área (raio 2,5 m; metade na borda), alcance 30 m; o foguete voa (24 m/s) | `torre_foguetes` |
-| Artilharia | 3×3 | temos | granadas (guarda 10), 1 disparo a cada 4 s, 150 de dano em área (raio 4 m), só mira ninhos de 16 a 120 m; travada pela árvore (`cartografia` ainda em breve) | `artilharia` |
+| Artilharia | 3×3 | temos | granadas (guarda 10), 1 disparo a cada 4 s, 150 de dano em área (raio 4 m), só mira ninhos de 16 a 120 m; pesquisável depois da `cartografia` (sensor de varredura, lote 17) | `artilharia` |
 | Muro de tijolo | 1×1 | temos | 700 ♥ (`muro_tijolo`, 5 tijolos) | `muros_reforcados` |
 | Muro de liga | 1×1 | temos | 1.500 ♥ (4 liga leve + 1 aço); no jogo nenhuma aranha escala, vale a vida | `muro_liga` |
 | Muro de campo | 1×1 | temos | 800 ♥, regenera 5 ♥/s × energia da rede (10 kW por pilar); parede de campo desenhada por shader; pesquisável depois do escudo 2 (tempestade) | `muro_escudo` |
@@ -570,7 +570,7 @@ modelo do nível anterior com outra cor de luz e detalhe.
 ### Proliferação (categoria nova)
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
 |---|---|---|---|---|
-| Sensor de varredura | 2×2 | falta | revela o mapa em volta e marca ninhos (nível 2: 16 chunks e riqueza) | `sensor_varredura`, `cartografia` |
+| Sensor de varredura | 2×2 | temos | 150 kW: revela 1 chunk por minuto (do mais perto para o mais longe) até 6 — sai da névoa, os ninhos dele passam a existir e ficam marcados no mapa enquanto o sensor está de pé; Varredura profunda: até 16 chunks e mede a riqueza das jazidas (painel e rótulos no mapa) | `sensor_varredura`, `cartografia` |
 | Farol de cristal | 1×1 | falta | luz de 10 m à noite | `farol_cristal` |
 | Posto avançado | 3×3 | falta | núcleo-filho: estoque próprio e 150 kW sem fio | `posto_avancado` |
 | Lançador de sementes | 3×3 | falta | lança um núcleo-semente até 400 m | `nucleo_semente` |
@@ -578,7 +578,7 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Transportador quântico | 3×3 | falta | troca itens entre colônias | `transportador_quantico` |
 | Silo de lançamento | 3×3 | falta | monta e lança o foguete de proliferação | `silo_lancamento` |
 
-**Contagem:** 81 linhas "temos" e **29 linhas "falta"** (uma linha pode juntar variantes, como a família da esteira
+**Contagem:** 82 linhas "temos" e **28 linhas "falta"** (uma linha pode juntar variantes, como a família da esteira
 rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima, Drones, Lógica, Proliferação).
 
 ## Decisões e pontos em aberto
@@ -591,8 +591,8 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
   água → 3 lapidados (4 s). Precisam do refinador (`refino`), que não é pré-requisito da bomba d'água.
 - **Combate do meio (fase 2.4).** O **processador** pede 5 de água: sai no **refinador** (como as refrigeradas, a
   montadora não tem boca de cano). Foguete, granada e liga leve na montadora, como na tabela. A artilharia e o muro de
-  campo estão ligados, mas travados pela árvore: a artilharia pede `cartografia` (que pede o sensor de varredura,
-  ainda sem estudo) e o muro de campo pede `escudo_2` (ciência de tempestade, fase 2.5). Dano de energia 4, cadência
+  campo estão ligados, mas travados pela árvore: a artilharia pede `cartografia` (que pede o sensor de varredura;
+  pesquisável desde o lote 17) e o muro de campo pede `escudo_2` (ciência de tempestade, fase 2.5). Dano de energia 4, cadência
   de energia 2, foguetes 2 e as melhorias da artilharia também esperam o pacote de tempestade.
 - **Clima (fase 2.5).** Os **raios** passaram a cair no mapa (`jogo/ambiente/raios.gd`): tempestade (1 a cada 10 s) e
   tufão (1 a cada 7 s) soltam raios a até 20 m de uma construção sorteada, as altas com mais chance (peso = altura²).
@@ -639,6 +639,23 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
   somados) e o comparador liga/desliga os vizinhos; a válvula separa duas redes. O **baú de estoque** completa os
   baús logísticos. O **braço quântico** (`braco_quantico`) tem a lança telescópica animada, mas segue travado pela
   `computacao_quantica` (sem estudo); no modo demonstração se constrói.
+- **Lote 17 (proliferação: sensor de varredura).** O **sensor de varredura** (`sensor_varredura`, depois da
+  `eletronica`; categoria nova Proliferação) é um consumidor de 150 kW: com energia, revela os chunks em volta um a cada
+  60 s (÷ energia), do mais perto para o mais longe, até 6. Revelar tira o chunk inteiro da névoa e cria os ninhos dele
+  (mesmo longe da câmera: a artilharia já pode mirá-los); os ninhos dos chunks de cada sensor ficam marcados no mapa
+  enquanto ele está de pé (o que foi revelado continua descoberto). A **Varredura profunda** (`cartografia`, modo
+  `varredura_profunda`) leva cada sensor a 16 chunks e mede a riqueza das jazidas desses chunks (total da mancha,
+  pobre < 20 mil ≤ média < 60 mil ≤ rica, e o fator de riqueza que cresce longe do spawn). Com isso a **artilharia**,
+  a **Leitura ambiental** e, com o pacote de tempestade, **dano/alcance da artilharia 1** ficam pesquisáveis. A
+  **mira automática** (`artilharia_automatica`) segue em desenvolvimento: hoje a artilharia já mira sozinha qualquer
+  ninho no alcance.
+- **Em desenvolvimento (pedido de Sapyst).** Tudo o que ainda não entrou no jogo aparece em cinza escuro com a
+  etiqueta "Em desenvolvimento": na tela de pesquisa, as "em breve" e as jogáveis travadas por pacote ou pesquisa que
+  ainda não existe (nó clicável só para ver o detalhe, que diz o motivo; o botão vira "Em desenvolvimento" desligado;
+  não se escolhem nem se concluem — salvo antigo com uma delas ativa, o laboratório larga); na barra de construção, as
+  peças sem modelo ou que só uma pesquisa em desenvolvimento libera (hoje: esteira quântica, braço quântico, defletor
+  de vento, regulador climático, estação de tratamento) ficam desligadas e o construtor recusa. No modo
+  demonstração se constrói tudo o que já tem modelo.
 - **Água limpa** (`agua_limpa`, do filtro) serve em toda receita que pede água; água do rio não serve onde se pede
   limpa (pacote ecológico). Resina bebe dois fluidos: seiva por uma boca do refinador e água pela outra.
 - **As 14 pesquisas originais não mudam** (a 15ª, `dano_energia_1`, entrou depois como a primeira melhoria jogável: +20% de dano da torre com energia). Mesmos IDs, pré-requisitos e custos (incluindo `energia`, que existe no jogo

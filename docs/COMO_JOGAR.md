@@ -41,8 +41,16 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
   A **Válvula** separa dois canos: passa se a entrada estiver acima de um nível, se a saída estiver abaixo, ou sempre.
 - **Baú de estoque** (Drones logísticos): os drones guardam nele o que sobra na garra e buscam nele o que um
   requisitante pede quando nenhum provedor tem.
-- **Braço quântico** (precisa da Computação quântica, ainda em breve): a lança estica de 1 a 3 tiles para trás (toque
-  nele para escolher) e o campo leva até 8 itens iguais por vez, a cada 0,2 s.
+- **Braço quântico** (precisa da Computação quântica, ainda em desenvolvimento): a lança estica de 1 a 3 tiles para
+  trás (toque nele para escolher) e o campo leva até 8 itens iguais por vez, a cada 0,2 s.
+- **Sensor de varredura** (pesquisa Sensor de varredura, depois da Eletrônica; aba Proliferação): radar 2×2 com
+  energia (150 kW, poste perto). Revela os chunks em volta, **1 por minuto**, do mais perto para o mais longe, até
+  **6** — o chunk sai da névoa e os **ninhos** dele aparecem marcados no mapa (alfinete vermelho "⚠ Ninho", visível de
+  longe) enquanto o sensor estiver de pé. Toque nele para ver quantos chunks já revelou, quando vem o próximo e onde
+  estão os ninhos. Com a **Varredura profunda** (sensor + processador; pacotes básico, automação e químico) vai até
+  **16** chunks e mede a **riqueza das jazidas** (tipo, quantidade, pobre/média/rica e a distância), que também
+  aparecem escritas no mapa. A Varredura profunda abre a pesquisa da **Artilharia**; o sensor também abre a
+  **Leitura ambiental**.
 - **Água** (pesquisa "Água como insumo", com pacote de automação): a **Bomba d'água** 2×2 fica na margem, com a tomada
   (o lado da grade) encostada num rio, lago ou canal, e solta 40 de água/s pelo cano. Água suja na tomada rende menos.
   Também dão água o **Coletor de chuva** (só quando chove; guarda 2.000), o **Condensador de neblina** (com neblina e
@@ -93,8 +101,8 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
   aguenta 1.500 (feito de **liga leve**: aço + cobre + resina). O **Gerador de escudo** 2×2 (precisa de
   **processador**, feito no refinador com água) faz uma bolha de 8 m: enquanto tem carga, a mordida em qualquer
   construção dentro dela gasta o escudo, não a vida; ele recarrega pela rede. A **Artilharia** (granadas, ninhos a
-  até 120 m) e o **Muro de campo** (regenera com energia) já existem, mas a pesquisa deles espera tecnologias que
-  ainda vão chegar.
+  até 120 m) se pesquisa depois da **Varredura profunda** (sensor de varredura) — o sensor revela os ninhos longe,
+  e ela os alcança; o **Muro de campo** (regenera com energia) espera o escudo 2 (pacote de tempestade).
 
 ## Primeiros passos
 1. **Ache as jazidas:** aperte **V** (ou o botão **Recursos**). Cada jazida aparece colorida, com o nome, a quantidade
@@ -112,7 +120,10 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
    **Laboratório**. No botão **Pesquisa** (⚗ / T) abre a árvore: toque numa pesquisa para ver o que ela libera e
    aperte **Pesquisar**. A árvore mostra as três eras (base, meio, super avançada) lado a lado; arraste com o dedo
    para andar e use a pinça (ou − e +) para aproximar e afastar. Cada nó diz o tipo: ■ estrutura nova, ⚗ receita,
-   ▲ melhoria do que já existe. Nós esmaecidos são "em breve": ainda não estão no jogo.
+   ▲ melhoria do que já existe. Nós em **cinza escuro com a etiqueta "Em desenvolvimento"** ainda não estão no jogo
+   (ou dependem de algo que ainda não está): dá para tocar e ver o que vão liberar, mas não se pesquisam. Na barra
+   de construção, peça em cinza escuro com a mesma etiqueta também não se constrói (no modo Demonstração se constrói
+   tudo o que já tem modelo).
 
 ## Cuidados
 - **Poluição:** máquinas poluem, e as aranhas dos ninhos vêm atrás de quem polui. A **Torre** (já liberada) defende

@@ -23,6 +23,8 @@ var ativa := ""
 var feitos := 0                  ## pacotes já gastos na ativa
 var niveis: Dictionary = {}      ## pesquisa infinita → níveis já feitos (cada nível soma o "bonus" de novo)
 var _d: Dictionary
+var _dev_cache: Dictionary = {}  ## id → em desenvolvimento? (refeito quando `concluidas` muda)
+var _dev_assin := -1
 
 
 func _init(p_livre := false) -> void:
@@ -59,7 +61,7 @@ func nivel(id: String) -> int:
 
 
 func disponivel(id: String) -> bool:
-	if concluidas.has(id) or not pesquisas().has(id):
+	if concluidas.has(id) or not pesquisas().has(id) or em_desenvolvimento(id):
 		return false
 	for r in pesquisas()[id].get("requer", []):
 		if not concluidas.has(r):
@@ -153,9 +155,14 @@ func assinatura() -> String:
 	return "%s|%s" % [concluidas.keys(), niveis]
 
 
-## Um pacote consumido. Devolve o id concluído (ou "").
+## Um pacote consumido. Devolve o id concluído (ou ""). Pesquisa em desenvolvimento não avança nem conclui (salvo
+## antigo com ela ativa: larga).
 func avancar() -> String:
 	if ativa == "":
+		return ""
+	if em_desenvolvimento(ativa):
+		ativa = ""
+		feitos = 0
 		return ""
 	feitos += 1
 	if feitos >= unidades(ativa) and infinita(ativa):     # sobe de nível e segue no próximo (mais caro)
@@ -169,6 +176,77 @@ func avancar() -> String:
 		feitos = 0
 		return fim
 	return ""
+
+
+## Pesquisa "em desenvolvimento": ainda não há como fazê-la no jogo — não está em progressao.json (o "em breve" da
+## árvore), pede um pacote que ainda não existe ou depende (direta ou indiretamente) de outra assim. A tela de
+## pesquisa mostra cinza escuro com a etiqueta; não se escolhe nem se conclui. Já concluída (salvo, teste) não conta.
+func em_desenvolvimento(id: String) -> bool:
+	var h := hash([concluidas.hash(), pesquisas().size(), Registro.itens.size()])
+	if h != _dev_assin:
+		_dev_assin = h
+		_dev_cache.clear()
+	return _em_dev(id)
+
+
+func _em_dev(id: String) -> bool:
+	if concluidas.has(id):
+		return false
+	if _dev_cache.has(id):
+		return _dev_cache[id]
+	_dev_cache[id] = true                    # (ciclo não existe na árvore; se houvesse, contaria como em desenvolvimento)
+	var r := not pesquisas().has(id)
+	if not r:
+		for t in tipos(id):
+			if not Registro.itens.has(t):
+				r = true
+	if not r:
+		for q in pesquisas()[id].get("requer", []):
+			if _em_dev(q):
+				r = true
+				break
+	_dev_cache[id] = r
+	return r
+
+
+## Por que a pesquisa está em desenvolvimento (texto curto para o rodapé da tela); "" se não está.
+func motivo_desenvolvimento(id: String) -> String:
+	if not em_desenvolvimento(id):
+		return ""
+	if not pesquisas().has(id):
+		return "ainda não está no jogo"
+	var pac: Array[String] = []
+	for t in tipos(id):
+		if not Registro.itens.has(t):
+			pac.append(nome_tipo(t))
+	if not pac.is_empty():
+		return "o pacote %s ainda não existe" % ", ".join(pac)
+	var dep: Array[String] = []
+	for q in pesquisas()[id].get("requer", []):
+		if em_desenvolvimento(q):
+			dep.append(str(pesquisas().get(q, arvore().get(q, {})).get("nome", q)))
+	return "depende de %s, ainda em desenvolvimento" % ", ".join(dep)
+
+
+## Peça em desenvolvimento: sem modelo no jogo, ou (fora do modo demonstração) nenhuma pesquisa que a libera dá para
+## fazer — todas estão em desenvolvimento e nenhuma foi concluída. A barra mostra cinza escuro com a etiqueta e o
+## construtor não deixa pôr. No modo demonstração se constrói tudo o que já tem modelo.
+func peca_em_desenvolvimento(nome: String) -> bool:
+	if not tem_modelo(nome):
+		return true
+	if livre or nome in _d.get("liberado_inicio", []):
+		return false
+	for id in pesquisas():
+		if nome in pesquisas()[id].get("libera", []) and (concluidas.has(id) or not em_desenvolvimento(id)):
+			return false
+	return true
+
+
+## A peça do menu tem modelo (o próprio, o do ícone ou a reta da família: esteira, cano).
+static func tem_modelo(nome: String) -> bool:
+	if Registro.modelos.has(nome) or Registro.modelos.has(nome + "_reta"):
+		return true
+	return Registro.modelos.has(str(Registro.menu.get("icones", {}).get(nome, "")))
 
 
 func peca_liberada(nome: String) -> bool:

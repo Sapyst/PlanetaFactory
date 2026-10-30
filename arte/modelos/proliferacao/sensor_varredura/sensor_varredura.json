@@ -1,0 +1,31 @@
+{
+ "nome": "sensor_varredura",
+ "categoria": "proliferacao",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Sensor de varredura 2×2 (estudo_sensor_varredura.py): laje chanfrada, pedestal octogonal com barramento de LEDs de setor, motor e pinhão na coroa dentada; giro azimutal (garfo amarelo) com antena parabólica de grelha, corneta de cobre, cristal focal violeta, phased array e contrapesos, elevada por dois pistões. Com energia, revela os chunks em volta (1 por minuto, até 6; 16 com a Varredura profunda) e marca os ninhos deles.",
+ "ocupa_canto": false,
+ "portas": [],
+ "tris": 7133,
+ "dims": [
+  1.908,
+  1.908,
+  2.177
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_sensor_varredura.py"
+}

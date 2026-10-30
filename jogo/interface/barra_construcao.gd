@@ -19,6 +19,7 @@ const COR_TITULO := Tema.COR.titulo     ## (era ciano) títulos e cabeçalhos
 
 var toque := false                     ## sem atalhos de teclado nos textos
 var liberado: Callable                 ## nome da peça → bool (pesquisa); vazio = tudo liberado
+var em_desenvolvimento: Callable       ## nome da peça → bool (Pesquisa.peca_em_desenvolvimento); vazio = nenhuma
 var _tema: Theme
 var _abas: VBoxContainer
 var _pecas: VBoxContainer
@@ -448,7 +449,8 @@ func marcar(nome: String, removendo: bool) -> void:
 	_selecionada = nome
 	_removendo = removendo
 	for k in _botoes_peca:
-		_destacar(_botoes_peca[k], k == nome, COR_DESTAQUE)
+		if not _botoes_peca[k].has_meta("em_desenvolvimento"):     # a placa cinza do selo fica
+			_destacar(_botoes_peca[k], k == nome, COR_DESTAQUE)
 	_destacar(_botoes_ferr["remover"], removendo, COR_PERIGO)
 	_destacar(_botoes_ferr["aplainar"], nome == "#aplainar", COR_DESTAQUE)
 	_destacar(_botoes_ferr["escavar"], nome == "#escavar", Color(0.35, 0.65, 0.95))
@@ -650,36 +652,53 @@ func _mostrar_categoria(i: int) -> void:
 	_botoes_peca.clear()
 	var cats: Array = Registro.menu.get("categorias", [])
 	_titulo_cat.text = cats[i].nome if i < cats.size() else ""
-	var icones: Dictionary = Registro.menu.get("icones", {})
-	var expl: Dictionary = Registro.menu.get("explicacoes", {})
 	var pecas := pecas_da_categoria()
 	for k in pecas.size():
-		var nome: String = pecas[k]
-		var b := Button.new()
-		b.custom_minimum_size = Vector2(0, 74)
-		b.focus_mode = Control.FOCUS_NONE
-		b.icon = _icone(icones.get(nome, nome))
-		b.expand_icon = false
-		b.add_theme_constant_override("icon_max_width", 58)
-		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		var custo := Construtor.custo_de(nome)
-		var partes: Array[String] = []
-		for it in custo:
-			partes.append("%d %s" % [custo[it], Registro.itens.get(it, {}).get("nome", it).to_lower()])
-		var f := ficha(nome)
-		var extra := (" · " + f) if f != "" else ""
-		var bloqueada: bool = liberado.is_valid() and not liberado.call(nome)
-		b.text = "%s%s\n%s\n%s%s" % [rotulo(nome), "" if toque else "  (%d)" % (k + 1), expl.get(nome, ""),
-				"🔒 pesquisar" if bloqueada else ", ".join(partes), "" if bloqueada else extra]
-		b.add_theme_font_size_override("font_size", 14)
-		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		b.pressed.connect(RolagemToque.so_clique(func(): Som.tocar("clique"); peca_escolhida.emit(nome); fechar_pecas()))
-		if bloqueada:
-			b.modulate = Color(0.6, 0.6, 0.65)
+		var b := botao_peca(pecas[k], k)
 		_pecas.add_child(b)
-		_botoes_peca[nome] = b
+		_botoes_peca[pecas[k]] = b
 	if _botoes_ferr.has("remover"):
 		marcar(_selecionada, _removendo)
+
+
+## A peça ainda não está no jogo (sem modelo, ou só uma pesquisa em desenvolvimento a libera)?
+func peca_em_desenvolvimento(nome: String) -> bool:
+	return em_desenvolvimento.is_valid() and bool(em_desenvolvimento.call(nome))
+
+
+## Botão de uma peça da barra (ícone, nome, explicação, custo ou cadeado). Peça em desenvolvimento: placa cinza
+## escuro com o selo, desligado (não escolhe).
+func botao_peca(nome: String, k: int) -> Button:
+	var icones: Dictionary = Registro.menu.get("icones", {})
+	var expl: Dictionary = Registro.menu.get("explicacoes", {})
+	var b := Button.new()
+	b.custom_minimum_size = Vector2(0, 74)
+	b.focus_mode = Control.FOCUS_NONE
+	b.icon = _icone(icones.get(nome, nome))
+	b.expand_icon = false
+	b.add_theme_constant_override("icon_max_width", 58)
+	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	var custo := Construtor.custo_de(nome)
+	var partes: Array[String] = []
+	for it in custo:
+		partes.append("%d %s" % [custo[it], Registro.itens.get(it, {}).get("nome", it).to_lower()])
+	var f := ficha(nome)
+	var extra := (" · " + f) if f != "" else ""
+	var bloqueada: bool = liberado.is_valid() and not liberado.call(nome)
+	var dev := peca_em_desenvolvimento(nome)
+	b.text = "%s%s\n%s\n%s%s" % [rotulo(nome), "" if toque else "  (%d)" % (k + 1), expl.get(nome, ""),
+			"" if dev else ("🔒 pesquisar" if bloqueada else ", ".join(partes)), "" if bloqueada or dev else extra]
+	b.add_theme_font_size_override("font_size", 14)
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if dev:                                    # ainda não está no jogo: cinza escuro, selo, não escolhe
+		b.disabled = true
+		b.set_meta("em_desenvolvimento", true)
+		Tema.botao_desenvolvimento(b)
+	else:
+		b.pressed.connect(RolagemToque.so_clique(func(): Som.tocar("clique"); peca_escolhida.emit(nome); fechar_pecas()))
+	if bloqueada and not dev:
+		b.modulate = Color(0.6, 0.6, 0.65)
+	return b
 
 
 ## Dados técnicos curtos da peça: consumo/geração de energia, armazenamento e integridade.

@@ -46,6 +46,7 @@ func _ready() -> void:
 		"drones": _roteiro_drones()
 		"limpeza2": _roteiro_limpeza2()
 		"lote16": _roteiro_lote16()
+		"lote17": _roteiro_lote17()
 		"chegada":                                     # -- novo roteiro chegada abertura --fixed-fps 30: a cápsula cai e vira o núcleo
 			for q in [30, 150, 225, 235, 260, 330, 420, 450, 470, 490]:
 				em(q, func():
@@ -1580,6 +1581,79 @@ func _bosque(especies: Array = ["arv_carvalho", "arv_betula"]) -> Vector2i:
 
 
 ## Tira ninhos (e suas aranhas) a até 60 tiles: cena só da limpeza.
+## Lote 17 (sensor de varredura) sem janela: num chão plano longe do spawn põe gerador, postes e um sensor; adianta o
+## relógio dele para revelar um chunk por passo e imprime chunks revelados, ninhos marcados, jazidas medidas (a demo
+## tem a Varredura profunda), as marcas desenhadas e o painel. `-- modo demo roteiro lote17`.
+func _roteiro_lote17() -> void:
+	var ids := {}
+	var w := [Vector2i(9999, 0)]
+	em(2, func():
+		Sessao.config.fps = false
+		var g := Grade.gerador
+		var m: MapaOcupacao = cena.mapa
+		for r in range(120, 400, 4):
+			for k in 48:
+				var t := Vector2i((Vector2.from_angle(k * TAU / 48.0) * r).round())
+				if w[0].x != 9999:
+					break
+				var ok := true
+				for i in range(-2, 14):
+					for j in range(-2, 10):
+						var q := t + Vector2i(i, j)
+						if g.terreno(q) != GeradorMundo.Terreno.TERRA or g.nivel(q) != g.nivel(t) or g.em_encosta(q) or m.tiles.has(q):
+							ok = false
+				if ok:
+					w[0] = t
+		var o: Vector2i = w[0]
+		print("LOTE17 chão ", o)
+		if o.x == 9999:
+			return
+		for i in range(-2, 14):
+			for j in range(-2, 10):
+				m.limpar_obstaculo(o + Vector2i(i, j))
+		var con: Construtor = cena.construtor
+		var p := func(pl: Array[Dictionary]) -> void: cena.sincronizar(con.executar(pl))
+		p.call(con.plano_peca("sensor_varredura", o + Vector2i(1, 2), 0))
+		p.call(con.plano_peca("poste_energia", o + Vector2i(4, 3), 0))
+		p.call(con.plano_peca("gerador", o + Vector2i(7, 2), 0))
+		for id in m.estruturas:
+			ids[m.estruturas[id].nome] = id
+		print("LOTE17 construiu ", ids.has("sensor_varredura"), " ", ids.has("gerador"))
+		cena.camera.alvo = Grade.centro_mundo(o + Vector2i(2, 3))
+		cena.camera.distancia = 30.0
+		cena.camera.posicionar())
+	em(6, func():
+		var f: Fabrica = cena.fabrica
+		f.reconstruir()
+		for id in f.combustivel:
+			f.combustivel[id] = 5000.0)
+	for q in range(20, 360, 20):                      # adianta o minuto do sensor: 1 chunk a cada passo
+		em(q, func():
+			var v: Varredura = cena.varredura
+			var s: int = ids.get("sensor_varredura", -1)
+			if s >= 0 and v.sensores.has(s):
+				v.sensores[s].t = 59.9)
+	em(200, func():
+		if ids.has("sensor_varredura"):
+			cena._sel = {"estrutura": ids.sensor_varredura}
+			cena._detalhe()
+			print("LOTE17 painel sensor"))
+	em(390, func():
+		var v: Varredura = cena.varredura
+		var s: int = ids.get("sensor_varredura", -1)
+		if s < 0:
+			return
+		var dv: DesenhoVarredura = null
+		for c in cena.get_children():
+			if c is DesenhoVarredura:
+				dv = c
+		print("LOTE17 energia %.2f revelados %d de %d ninhos marcados %d jazidas %s marcas %s" % [v.energia_de(s), v.feitos(s), v.limite(s),
+				v.ninhos_marcados().size(), v.jazidas(s).map(func(j): return "%s %d %s" % [j.tipo, j.total, j.nivel]),
+				dv.contagem() if dv != null else {}])
+		var a := cena._animador(s) as Animador
+		print("LOTE17 anima ", a != null and a.ativo))
+
+
 func _sem_ninhos(w: Vector2i) -> void:
 	var col: Colonia = cena.colonia
 	for id in col.ninhos.keys():

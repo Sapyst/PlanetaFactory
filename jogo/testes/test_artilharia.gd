@@ -2,7 +2,7 @@ extends Caso
 ## Artilharia (artilharia, fase 2.4): modelo do estudo (estudo_artilharia.py; conv_combate_meio.py) com o obus elevado
 ## a 55°; granada (2 liga leve + 1 foguete + 2 tijolos → 1) por esteira/braço pela boca sul; só mira ninhos, de 16 a
 ## 120 m; a granada voa em arco e explode com dano em área (150, raio 4). A pesquisa pede a cartografia (Varredura
-## profunda), que ainda é "em breve" (sensor de varredura sem estudo): a artilharia fica travada pela árvore.
+## profunda), que vem depois do sensor de varredura (lote 17): pesquisável pela árvore.
 
 
 func _int(d: Dictionary) -> Dictionary:
@@ -53,10 +53,14 @@ func test_granada_e_pesquisa() -> void:
 	igual(p.custo("artilharia"), {"pacote_pesquisa": 100, "pacote_automacao": 100, "pacote_militar": 100, "pacote_quimico": 100}, "custo da árvore")
 	p.concluidas = {"torre_foguetes": true, "liga_leve": true}
 	verificar(not p.disponivel("artilharia"), "travada: espera a cartografia")
-	verificar(not p.jogavel("cartografia"), "cartografia ainda em breve (sem sensor de varredura)")
+	verificar(p.jogavel("cartografia"), "cartografia jogável (sensor de varredura, lote 17)")
+	p.concluidas.merge({"sensor_varredura": true, "processador": true, "cartografia": true})
+	verificar(p.disponivel("artilharia"), "com a cartografia a artilharia se pesquisa")
 	verificar(p.jogavel("dano_artilharia_1") and p.jogavel("alcance_artilharia_1"), "melhorias da artilharia ligadas (fase 2.5, tempestade)")
 	p.concluidas["ciencia_tempestade"] = true
-	verificar(not p.disponivel("dano_artilharia_1"), "melhorias esperam a própria artilharia (travada pela cartografia)")
+	verificar(not p.disponivel("dano_artilharia_1"), "melhorias esperam a própria artilharia")
+	p.concluidas["artilharia"] = true
+	verificar(p.disponivel("dano_artilharia_1") and p.disponivel("alcance_artilharia_1"), "artilharia + tempestade: melhorias pesquisáveis")
 	p.livre = true
 	verificar(p.peca_liberada("artilharia") and p.receita_liberada("granada"), "no modo livre (demo) já se constrói")
 

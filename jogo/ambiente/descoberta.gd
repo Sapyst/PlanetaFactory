@@ -49,6 +49,28 @@ func marcar_oval(margem := 1.0) -> int:
 	return novas
 
 
+## O chunk inteiro fica descoberto (sensor de varredura). Devolve quantas células eram novas.
+func marcar_chunk(k: Vector2i) -> int:
+	var arr: PackedByteArray
+	if celulas.has(k):
+		arr = celulas[k]
+	else:
+		arr = PackedByteArray()
+		arr.resize(POR_CHUNK * POR_CHUNK)
+	var novas := arr.count(0)
+	if novas == 0:
+		return 0
+	arr.fill(255)
+	celulas[k] = arr
+	versao += 1
+	return novas
+
+
+## Todas as células do chunk já foram vistas?
+func chunk_completo(k: Vector2i) -> bool:
+	return celulas.has(k) and (celulas[k] as PackedByteArray).count(0) == 0
+
+
 ## Imagem L8 (1 pixel por célula) de `lado` células a partir da célula `origem` (grade de células).
 func imagem(origem: Vector2i, lado: int) -> Image:
 	var img := Image.create(lado, lado, false, Image.FORMAT_L8)

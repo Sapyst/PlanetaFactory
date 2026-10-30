@@ -23,6 +23,7 @@ var clima: Clima
 var ambiente: AmbienteVivo
 var clima_local: ClimaLocal             ## máquinas de clima (semeador, defletor, cúpula, regulador)
 var raios: Raios                        ## raios da tempestade (caem no mapa, para-raios pegam)
+var varredura: Varredura                ## sensores de varredura (revelam chunks e marcam ninhos)
 var agua: AguaJogo                     ## buracos/canais escavados que enchem a partir de rio/lago
 var colonia: Colonia
 var drones: Drones                      ## drones das estações (reparo, combate, logística)
@@ -121,6 +122,10 @@ func _ready() -> void:
 	raios.clima_local = clima_local
 	raios.dano = func(id: int, pontos: float) -> void: _danificar(id, pontos)
 	colonia.ambiente = ambiente
+	varredura = Varredura.new(mapa, descoberta)
+	varredura.colonia = colonia
+	varredura.energia = fabrica.energia
+	varredura.profunda = func() -> bool: return pesquisa.modo_liberado("varredura_profunda")
 	fabrica.estoques = estoques
 	fabrica.estoque_nucleo = inventario
 	fabrica.pesquisa = pesquisa
@@ -262,7 +267,7 @@ func salvar() -> void:
 	var ok := Salvamento.gravar({"modo": modo, "semente": semente, "tempo": _tempo,
 			"camera": [camera.alvo, camera.distancia, camera.angulo],
 			"mapa": {"estruturas": mapa.estruturas, "limpos": mapa.limpos.keys(), "prox": mapa._prox_id, "arvores": mapa.arvores},
-			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores, "clima": clima.estado(), "aplainado": gerador.aplainados(), "ambiente": ambiente.estado(), "agua": agua.estado(), "descoberta": descoberta.estado(), "raios": raios.estado(), "drones": drones.estado(),
+			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores, "clima": clima.estado(), "aplainado": gerador.aplainados(), "ambiente": ambiente.estado(), "agua": agua.estado(), "descoberta": descoberta.estado(), "varredura": varredura.estado(), "raios": raios.estado(), "drones": drones.estado(),
 			"estoques": estoques, "inventario": inventario, "pesquisa": pesquisa.estado(),
 			"trens": trens.map(func(t: Trem): return t.para_salvar()), "prox_trem": _prox_trem})
 	if ok and is_instance_valid(controle):
@@ -281,6 +286,7 @@ func _carregar(d: Dictionary) -> void:
 	if d.has("ambiente"):
 		ambiente.restaurar(d.ambiente)
 	descoberta.restaurar(d.get("descoberta", {}))
+	varredura.restaurar(d.get("varredura", {}))
 	raios.restaurar(d.get("raios", {}))
 	for t in d.get("aplainado", {}):
 		gerador.aplainar(t, d.aplainado[t])
@@ -411,6 +417,9 @@ func _criar_desenhos() -> void:
 	dpt.ambiente = ambiente
 	add_child(dpt)
 	add_child(_arcos)
+	var dvr := DesenhoVarredura.new()              # marcas do sensor de varredura (ninhos, jazidas medidas)
+	dvr.varredura = varredura
+	add_child(dvr)
 	var dv := DesenhoVisao.new()                  # oval de visão + névoa do não visto
 	dv.camera = camera
 	dv.descoberta = descoberta
@@ -441,6 +450,7 @@ func _criar_construcao() -> void:
 	controle = ControleConstrucao.new()
 	add_child(controle)
 	barra.liberado = func(nome: String) -> bool: return pesquisa == null or pesquisa.peca_liberada(nome)
+	barra.em_desenvolvimento = func(nome: String) -> bool: return pesquisa != null and pesquisa.peca_em_desenvolvimento(nome)
 	controle.configurar(construtor, camera, barra, fantasma, self)
 	_tela_pesquisa = TelaPesquisa.new()            # pesquisa em tela própria (a lista no painel não cabia no celular)
 	_tela_pesquisa.pesquisa = pesquisa
@@ -1011,6 +1021,7 @@ var _turbinas: Array = []
 var _maq_clima: Array = []                  ## semeador, defletor, cúpula, regulador (animam com a zona ativa)
 var _bombas_est: Array = []                 ## bombas de estação (animam bombeando)
 var _logica: Array = []                     ## sensores, comparadores e válvulas (rede lógica)
+var _sensores_v: Array = []                 ## sensores de varredura (giram com energia)
 var _arcos := ArcosEletricos.new()
 
 
@@ -1021,6 +1032,7 @@ func _animar_estruturas() -> void:
 		_maq_clima = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).has("clima_local"))
 		_bombas_est = mapa.estruturas.keys().filter(func(i): return mapa.estruturas[i].nome == "bomba_estacao")
 		_logica = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).get("grupo", "") == "logica")
+		_sensores_v = mapa.estruturas.keys().filter(func(i): return Varredura.eh_sensor(mapa.estruturas[i].nome))
 		for id in fabrica.bracos:
 			var ab := _animador(id)
 			if ab != null and mapa.estruturas.has(id):
@@ -1044,6 +1056,13 @@ func _animar_estruturas() -> void:
 			"valvula": a.ativo = animar_tudo or fabrica.valvula_passou.has(id)
 			"comparador": a.ativo = animar_tudo or fabrica.ligada(id)
 			"sensor_tanque": a.ativo = animar_tudo or float(fabrica.rede_de(id).get("qtd", 0.0)) > 0.0
+	# sensor de varredura: o giro e a antena (laço do estudo) trabalham com energia, no ritmo dela
+	for id in _sensores_v:
+		var a := _animador(id)
+		if a != null:
+			var en := 1.0 if animar_tudo else varredura.energia_de(id)
+			a.ativo = en > 0.0
+			a.ritmo = clampf(en, 0.2, 1.0)
 	# estação de drones: garras, plugue e braço abastecedor trabalham quando um drone nasce, pousa ou decola
 	for est in drones.estacoes():
 		var a := _animador(est)
@@ -1194,6 +1213,8 @@ func _tick_mundo(dt: float) -> void:
 	poluicao.tick(dt)
 	colonia.tick(dt, fontes_vivas)
 	_eventos.append_array(colonia.eventos)
+	varredura.tick(dt)                                  # sensores revelam chunks (e os ninhos deles) com energia
+	varredura.eventos.clear()
 	drones.tick(dt)
 	_eventos_drones.append_array(drones.eventos)
 	_tempo += dt
@@ -1301,6 +1322,41 @@ func _numero_estacao(id: int) -> int:
 		if grafo.estacoes[i].estrutura == id:
 			return i + 1
 	return 0
+
+
+## Painel do sensor de varredura: quantos chunks já revelou, o próximo, os ninhos marcados e (profunda) as jazidas.
+func _detalhe_varredura(id: int, linhas: Array[String]) -> void:
+	var lim := varredura.limite(id)
+	var feito := varredura.feitos(id)
+	var en := varredura.energia_de(id)
+	var regra_v: Dictionary = Varredura.regra(mapa.estruturas[id].nome)
+	linhas.append("Revela os chunks em volta, 1 a cada %d s: %d de %d revelados%s" % [int(regra_v.get("intervalo_s", 60)), feito, lim,
+			"" if varredura.e_profunda() else " (Varredura profunda: até %d)" % int(regra_v.get("chunks_profunda", 16))])
+	if feito >= lim:
+		linhas.append("Varredura completa: segue vigiando os ninhos desses chunks")
+	elif en <= 0.0:
+		linhas.append("Parado (precisa de energia: poste perto)")
+	else:
+		linhas.append("Próximo chunk em %d s%s" % [ceili(varredura.falta_s(id)), "" if en >= 0.99 else " (energia em %d%%)" % (en * 100)])
+	var ns := varredura.ninhos_do_sensor(id)
+	if ns.is_empty():
+		linhas.append("Nenhum ninho nos chunks revelados")
+	else:
+		var c := varredura.centro(id)
+		var partes: Array[String] = []
+		for n in ns:
+			var d: Vector2 = (colonia.ninhos[n].centro as Vector2) - c
+			partes.append("%d m a %s" % [roundi(d.length()), Clima.nome_rumo(-d).trim_prefix("de ")])
+		linhas.append("Ninhos marcados no mapa (%d): %s" % [ns.size(), ", ".join(partes)])
+	if varredura.e_profunda():
+		var jz := varredura.jazidas(id)
+		if jz.is_empty():
+			linhas.append("Jazidas: nenhuma nos chunks revelados")
+		for j in jz.slice(0, 6):
+			var info: Dictionary = Registro.recursos.get("jazidas", {}).get(j.tipo, {"nome": j.tipo})
+			var dj: Vector2 = (j.centro as Vector2) - varredura.centro(id)
+			linhas.append("Jazida de %s: ≈ %s (%s, riqueza ×%s) a %d m, %s" % [str(info.nome).to_lower(), VisaoRecursos._quantidade(int(j.total)),
+					j.nivel, String.num(float(j.riqueza), 2), roundi(dj.length()), Clima.nome_rumo(-dj).trim_prefix("de ")])
 
 
 func _detalhe() -> void:
@@ -1496,6 +1552,8 @@ func _detalhe() -> void:
 				linhas.append("Sem raio, sem tufão e vento manso no raio; agora: %s" % ("céu firme (sem chuva)" if modo_c != "chuva" else "chuva mansa"))
 				for mc in [["firme", "Céu firme"], ["chuva", "Chuva mansa"]]:
 					opcoes.append({"texto": mc[1], "ligado": modo_c == mc[0], "acao": func(): e["modo_clima"] = mc[0]; _detalhe()})
+	elif Varredura.eh_sensor(e.nome):
+		_detalhe_varredura(id, linhas)
 	elif e.nome == "nucleo":
 		var linhas_n: Array[String] = []
 		var chaves := inventario.keys()

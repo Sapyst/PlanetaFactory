@@ -120,6 +120,9 @@ func _perto_do_holograma(tela: Vector2) -> bool:
 
 
 func escolher(nome: String) -> void:
+	if nome != "" and not nome.begins_with("#") and barra.peca_em_desenvolvimento(nome):
+		_avisar("%s: %s (ainda não está no jogo)" % [barra.rotulo(nome), Tema.TEXTO_DESENVOLVIMENTO.to_lower()])
+		return
 	_pendente = false
 	_movendo = false
 	if peca == nome and not removendo:
@@ -623,6 +626,8 @@ func _dica_peca() -> String:
 		t = "%s — %s no mapa para posicionar; depois Girar, Mover e Construir" % [barra.rotulo(peca), acao]
 		if _pendente:
 			t = "%s — arraste o holograma para mover · ✓ Construir" % barra.rotulo(peca)
+	if construtor.pesquisa != null and construtor.pesquisa.peca_em_desenvolvimento(peca):
+		return "%s — %s: ainda não está no jogo" % [barra.rotulo(peca), Tema.TEXTO_DESENVOLVIMENTO.to_lower()]
 	if construtor.cobrar:
 		if construtor.pesquisa != null and not construtor.pesquisa.peca_liberada(peca):
 			return "%s — precisa pesquisar: %s (botão Pesquisa)" % [barra.rotulo(peca), construtor.pesquisa.quem_libera(peca)]

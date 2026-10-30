@@ -271,7 +271,17 @@ func test_infinitas() -> void:
 	for id in ["mineracao_infinita", "pesquisa_infinita", "dano_energia_infinito"]:
 		verificar(p.jogavel(id) and p.infinita(id), "infinita jogável: " + id)
 		igual(p.unidades(id), 500, "nível 1 custa 500: " + id)
-	# simula a pesquisa sem os pré-requisitos (ainda em breve): dois níveis de mineração
+	# as infinitas pedem o pacote gênese (em desenvolvimento): o laboratório não as avança de verdade
+	verificar(p.em_desenvolvimento("mineracao_infinita"), "infinita espera o pacote gênese: em desenvolvimento")
+	p.ativa = "mineracao_infinita"
+	p.avancar()
+	igual(p.ativa, "", "em desenvolvimento não avança (larga)")
+	igual(p.nivel("mineracao_infinita"), 0, "nenhum nível")
+	# simula a pesquisa já com o que falta (cópia dos dados: sem pré-requisito, só pacote básico): dois níveis
+	p._d = Registro.progressao.duplicate(true)
+	p._d.pesquisas.mineracao_infinita.requer = []
+	p._d.pesquisas.mineracao_infinita.tipos = ["pacote_pesquisa"]
+	p._dev_assin = -1
 	p.ativa = "mineracao_infinita"
 	for i in 500:
 		p.avancar()
@@ -315,3 +325,104 @@ func test_infinitas() -> void:
 	q.niveis["mineracao_infinita"] = 1
 	f.tick(1.0 / 30.0)
 	perto(f.maquinas[broca].produtividade, 0.1, 1e-6, "nível novo chega na broca")
+
+
+## Pedido de Sapyst: o que ainda não entrou no jogo fica "em desenvolvimento" — a pesquisa não se escolhe nem se
+## conclui; a peça não se constrói fora do modo demonstração (que constrói tudo o que tem modelo).
+func test_em_desenvolvimento() -> void:
+	var p := Pesquisa.new()
+	verificar(p.em_desenvolvimento("escavar_canal"), "em breve (fora do progressao.json): em desenvolvimento")
+	verificar(p.em_desenvolvimento("braco_quantico"), "jogável travada pela computação quântica (em breve)")
+	verificar(p.em_desenvolvimento("logistica_5"), "logística 5 (pacote quântico não existe)")
+	verificar(not p.em_desenvolvimento("logistica"), "logística 2 já é do jogo")
+	verificar(p.motivo_desenvolvimento("braco_quantico").contains("quântico"), "motivo: %s" % p.motivo_desenvolvimento("braco_quantico"))
+	verificar(p.motivo_desenvolvimento("controle_vento").contains("Turbina eólica alta"), "motivo: %s" % p.motivo_desenvolvimento("controle_vento"))
+	verificar(p.motivo_desenvolvimento("logistica").is_empty(), "sem motivo para o que é do jogo")
+	# não se inicia: nem com todos os pré-requisitos jogáveis feitos
+	p.concluidas = {"braco_empilhador": true, "processador": true}
+	verificar(not p.disponivel("braco_quantico"), "não fica disponível")
+	p.escolher("braco_quantico")
+	igual(p.ativa, "", "escolher não pega")
+	p.escolher("escavar_canal")
+	igual(p.ativa, "", "nem a em breve")
+	# não se conclui: forçada como ativa (salvo antigo), o laboratório não avança e larga
+	p.ativa = "braco_quantico"
+	var concluiu := ""
+	for i in p.unidades("braco_quantico") + 5:
+		concluiu += p.avancar()
+	igual(concluiu, "", "não conclui")
+	verificar(not p.concluidas.has("braco_quantico"), "não ficou concluída")
+	igual(p.ativa, "", "largou a pesquisa em desenvolvimento")
+	# com a dependência concluída (salvo/teste), deixa de estar em desenvolvimento
+	verificar(p.em_desenvolvimento("controle_vento"), "controle de vento espera a turbina alta")
+	p.concluidas["turbina_alta"] = true
+	verificar(not p.em_desenvolvimento("controle_vento"), "dependência feita: sai de em desenvolvimento")
+	# peças
+	var q := Pesquisa.new()
+	for n in ["braco_quantico", "esteira_quantica", "defletor_vento", "regulador_clima", "estacao_tratamento"]:
+		verificar(q.peca_em_desenvolvimento(n), "peça em desenvolvimento: " + n)
+	for n in ["esteira", "braco", "sensor_varredura", "artilharia", "torre_metralhadora"]:
+		verificar(not q.peca_em_desenvolvimento(n), "peça do jogo: " + n)
+	verificar(q.peca_em_desenvolvimento("peca_que_nao_existe"), "sem modelo: em desenvolvimento")
+	var demo := Pesquisa.new(true)
+	verificar(not demo.peca_em_desenvolvimento("braco_quantico"), "demonstração constrói o que tem modelo")
+	verificar(demo.peca_em_desenvolvimento("peca_que_nao_existe"), "nem a demonstração constrói sem modelo")
+	# construtor: fora da demonstração não põe; na demonstração põe
+	var c := _c()
+	c.pesquisa = q
+	c.cobrar = true
+	c.inventario = {"liga_leve": 99, "processador": 99, "cristal_carregado": 99}
+	var plano := c.plano_peca("braco_quantico", Vector2i(2, 2), 0)
+	verificar(not plano.is_empty() and plano.all(func(it): return it.motivo == "em_desenvolvimento"), "plano marcado em desenvolvimento")
+	verificar(not Construtor.pode_tudo(plano), "não constrói")
+	var antes := c.mapa.estruturas.size()
+	c.executar(plano)
+	igual(c.mapa.estruturas.size(), antes, "nada foi posto no mapa")
+	var cd := _c()
+	cd.pesquisa = demo
+	cd.cobrar = false
+	var plano_d := cd.plano_peca("braco_quantico", Vector2i(2, 2), 0)
+	verificar(Construtor.pode_tudo(plano_d), "na demonstração o braço quântico se constrói (tem modelo)")
+	# interface: barra e tela de pesquisa em cinza escuro com o selo
+	var barra := BarraConstrucao.new()
+	barra.liberado = func(n: String) -> bool: return q.peca_liberada(n)
+	barra.em_desenvolvimento = func(n: String) -> bool: return q.peca_em_desenvolvimento(n)
+	var bq := barra.botao_peca("braco_quantico", 0)
+	verificar(bq.disabled, "barra: braço quântico desligado")
+	verificar(bq.get_node_or_null("SeloDesenvolvimento") != null, "barra: selo Em desenvolvimento")
+	verificar(bq.text.contains("Braço quântico") and not bq.text.contains("🔒"), "barra: nome sem cadeado (%s)" % bq.text)
+	var bb := barra.botao_peca("braco", 1)
+	verificar(not bb.disabled and bb.get_node_or_null("SeloDesenvolvimento") == null, "barra: braço comum normal")
+	barra._botoes_peca = {"braco_quantico": bq, "braco": bb}
+	barra._destacar(bb, true, BarraConstrucao.COR_DESTAQUE)
+	for k in barra._botoes_peca:                            # (o mesmo laço de marcar(): o cinza do selo fica)
+		if not barra._botoes_peca[k].has_meta("em_desenvolvimento"):
+			barra._destacar(barra._botoes_peca[k], false, BarraConstrucao.COR_DESTAQUE)
+	verificar(bq.get_theme_stylebox("normal") == bq.get_theme_stylebox("disabled"), "marcar outra peça não tira o cinza")
+	for b in [bq, bb]:
+		b.free()
+	barra.free()
+	var tela := TelaPesquisa.new()
+	tela.pesquisa = q
+	var nb := tela._botao_no("braco_quantico")
+	verificar(nb.get_node_or_null("SeloDesenvolvimento") != null, "tela: nó com o selo")
+	verificar(not nb.disabled, "tela: o nó ainda abre o detalhe")
+	verificar(tela._situacao("braco_quantico").contains("em desenvolvimento"), "tela: situação diz em desenvolvimento")
+	var nl := tela._botao_no("logistica")
+	verificar(nl.get_node_or_null("SeloDesenvolvimento") == null, "tela: pesquisa do jogo sem selo")
+	verificar(tela._situacao("escavar_canal").contains("em desenvolvimento"), "tela: em breve também")
+	tela._det = VBoxContainer.new()
+	tela._sel = "braco_quantico"
+	tela._mostrar_detalhe()
+	var botao_det: Button = null
+	var rodape := ""
+	for ch in tela._det.get_children():
+		if ch is Button:
+			botao_det = ch
+		elif ch is Label:
+			rodape += (ch as Label).text + "\n"
+	verificar(botao_det != null and botao_det.disabled and botao_det.text == Tema.TEXTO_DESENVOLVIMENTO, "tela: botão Pesquisar vira Em desenvolvimento (desligado)")
+	verificar(rodape.contains("Em desenvolvimento: o pacote quântico"), "tela: rodapé diz por quê")
+	for x in [nb, nl, tela._det]:
+		x.free()
+	tela.free()

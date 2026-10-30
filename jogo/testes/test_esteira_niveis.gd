@@ -149,7 +149,10 @@ func test_custo_da_troca() -> void:
 	igual(int(c.inventario.liga_leve), 100, "remover a expressa devolve o custo dela")
 	igual(int(c.inventario.engrenagem), 100)
 	var bloq := c.plano_linha("esteira_quantica", Vector2i(0, 2), Vector2i(3, 2), 0)
-	verificar(bloq.all(func(it): return it.motivo == "bloqueado"), "sem Logística 5: quântica bloqueada")
+	verificar(bloq.all(func(it): return it.motivo == "em_desenvolvimento"), "Logística 5 em desenvolvimento (computação quântica, pacote quântico): quântica não se põe")
+	c.pesquisa.concluidas = {}
+	var bloq_r := c.plano_linha("esteira_rapida", Vector2i(0, 4), Vector2i(3, 4), 0)
+	verificar(bloq_r.all(func(it): return it.motivo == "bloqueado"), "sem Logística 3: rápida bloqueada (pesquisável, não em desenvolvimento)")
 
 
 ## Mesma linha cheia, mesmo tempo: a expressa entrega 3× e a quântica 4× a básica.

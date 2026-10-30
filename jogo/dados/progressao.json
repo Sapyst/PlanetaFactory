@@ -96,6 +96,7 @@
   "sensor_esteira": {"placa_ferro": 3, "circuito": 2, "vidro": 1},
   "sensor_tanque": {"tubo": 2, "circuito": 2, "vidro": 1},
   "comparador": {"placa_ferro": 4, "circuito": 3, "processador": 1},
+  "sensor_varredura": {"placa_ferro": 20, "engrenagem": 10, "circuito": 5, "cristal_lapidado": 2},
   "valvula": {"tubo": 3, "engrenagem": 2, "motor": 1, "circuito": 1},
   "bau_estoque": {"placa_ferro": 8, "circuito": 2, "liga_leve": 1},
   "trem_tanque": {"placa_ferro": 40, "engrenagem": 20, "tubo": 30, "barra_aco": 10}
@@ -133,6 +134,7 @@
   "dano_bala_1": {"nome": "Munição: dano 1", "pacotes": 20, "tempo": 5, "requer": ["torre_metralhadora"], "libera": [], "receitas": [], "bonus": {"dano_bala": 0.1}},
   "cadencia_bala_1": {"nome": "Metralhadora: cadência 1", "pacotes": 20, "tempo": 5, "requer": ["torre_metralhadora"], "libera": [], "receitas": [], "bonus": {"cadencia_bala": 0.1}},
   "dano_bala_2": {"nome": "Munição: dano 2", "pacotes": 40, "tempo": 6, "requer": ["dano_bala_1", "automacao"], "tipos": ["pacote_pesquisa", "pacote_automacao"], "libera": [], "receitas": [], "bonus": {"dano_bala": 0.15}},
+  "sensor_varredura": {"nome": "Sensor de varredura", "pacotes": 20, "tempo": 5, "requer": ["eletronica"], "libera": ["sensor_varredura"], "receitas": []},
   "monitor_ambiental": {"nome": "Leitura ambiental", "pacotes": 15, "tempo": 5, "requer": ["sensor_varredura", "limpeza"], "libera": [], "receitas": [], "camadas": ["poluicao"]},
   "briquete":    {"nome": "Briquete de biomassa", "pacotes": 15, "tempo": 5, "requer": ["reflorestar"], "libera": [], "receitas": ["briquete"]},
   "automacao":   {"nome": "Automação",         "pacotes": 25, "tempo": 5, "requer": ["eletronica"], "libera": [], "receitas": ["pacote_automacao"]},
@@ -171,6 +173,7 @@
   "muro_liga":  {"nome": "Muro de liga", "pacotes": 40, "tempo": 8, "requer": ["muros_reforcados", "liga_leve", "ciencia_militar"], "tipos": ["pacote_pesquisa", "pacote_automacao", "pacote_militar", "pacote_quimico"], "libera": ["muro_liga"], "receitas": []},
   "muro_escudo": {"nome": "Muro de campo", "pacotes": 150, "tempo": 12, "requer": ["muro_liga", "escudo_2"], "tipos": ["pacote_pesquisa", "pacote_automacao", "pacote_militar", "pacote_quimico", "pacote_ecologico", "pacote_tempestade"], "libera": ["muro_escudo"], "receitas": []},
   "escudo_1":   {"nome": "Gerador de escudo", "pacotes": 75, "tempo": 10, "requer": ["ciencia_militar", "processador", "acumulacao"], "tipos": ["pacote_pesquisa", "pacote_automacao", "pacote_militar", "pacote_quimico"], "libera": ["gerador_escudo"], "receitas": []},
+  "cartografia": {"nome": "Varredura profunda", "pacotes": 50, "tempo": 8, "requer": ["sensor_varredura", "processador"], "tipos": ["pacote_pesquisa", "pacote_automacao", "pacote_quimico"], "libera": [], "receitas": [], "modos": ["varredura_profunda"]},
   "artilharia": {"nome": "Artilharia", "pacotes": 100, "tempo": 10, "requer": ["torre_foguetes", "liga_leve", "cartografia"], "tipos": ["pacote_pesquisa", "pacote_automacao", "pacote_militar", "pacote_quimico"], "libera": ["artilharia"], "receitas": ["granada"]},
   "para_raios": {"nome": "Para-raios", "pacotes": 30, "tempo": 6, "requer": ["automacao", "aco"], "tipos": ["pacote_pesquisa", "pacote_automacao"], "libera": ["para_raios"], "receitas": []},
   "captador_carga": {"nome": "Captador de carga", "pacotes": 60, "tempo": 8, "requer": ["para_raios", "acumulacao", "quimica"], "tipos": ["pacote_pesquisa", "pacote_automacao", "pacote_quimico"], "libera": ["captador_carga"], "receitas": []},
