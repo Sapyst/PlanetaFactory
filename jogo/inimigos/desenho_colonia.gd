@@ -85,6 +85,8 @@ func atualizar(eventos: Array[Dictionary], delta: float) -> void:
 					var para := Grade.ponto_mundo(e.para, 0.6)
 					_tracos.append({"de": de + (para - de).normalized() * 0.9, "para": para, "vida": 0.10})
 				_cartucho(e)
+			"salto":                                 # bala perfurante atravessando / carregada saltando
+				_tracos.append({"de": Grade.ponto_mundo(e.de, 0.6), "para": Grade.ponto_mundo(e.para, 0.6), "vida": 0.14 if e.get("eletrico", false) else 0.08})
 			"explosao":
 				_explosao(Grade.ponto_mundo(e.pos, 0.3), float(e.raio))
 			"pulso":

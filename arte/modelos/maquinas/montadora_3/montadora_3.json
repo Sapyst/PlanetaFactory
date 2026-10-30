@@ -1,0 +1,77 @@
+{
+ "nome": "montadora_3",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Montadora 3 3×3 (estudo_montadora_3.py): prensa dupla, 2 braços SCARA, 2 cabeçotes laser, anel quântico e exaustor no teto, esteira interna sul → norte, baia com 4 encaixes de módulo e boca de fluido a oeste. Velocidade 1,5.",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_N1",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_ENT_O1",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    -1.5,
+    0.0,
+    0.35
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 3764,
+ "dims": [
+  2.98,
+  3.03,
+  2.325
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_montadora_3.py"
+}

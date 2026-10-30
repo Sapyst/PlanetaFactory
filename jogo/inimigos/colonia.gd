@@ -28,6 +28,7 @@ extends RefCounted
 ## Tudo que o desenho precisa saber sai em `eventos` (tiro, morte, ninho novo, estrutura destruída) a cada tick.
 
 enum E { PARADA, ATACANDO, VOLTANDO, CONSTRUINDO, OBRA }
+const FURIA_ZERO := 0.01     ## fúria até aqui conta como "em paz" (Convivência com ninhos, Simbiose)
 const TORRES := ["torre_defesa", "torre_metralhadora", "torre_foguetes", "artilharia"]
 
 var mapa: MapaOcupacao
@@ -44,6 +45,9 @@ var _lista_minas: Array[int] = []
 var _lista_escudos: Array[int] = []
 var _t_escudo: Dictionary = {}    ## id do gerador → s até o próximo evento de impacto (desenho)
 var bonus: Callable               ## (opcional) func(chave) -> float: melhorias pesquisadas (Pesquisa.bonus)
+var artilharia_auto: Callable     ## (opcional) func() -> bool: Mira automática pesquisada? Sem ela, a artilharia só atira com a ordem do painel. Vazio = atira sozinha
+var harmonia: Callable            ## (opcional) func() -> bool: Convivência com ninhos (ninho com fúria 0 não expande rumo à fábrica)
+var ninhos_paz: Callable          ## (opcional) func() -> bool: Simbiose (ninho com fúria 0 não ataca)
 var vida: Dictionary = {}         ## id da estrutura → vida atual (só as que levaram dano)
 var eventos: Array[Dictionary] = []
 ## Quem tira do mapa a estrutura que as aranhas derrubaram (o mundo troca por Construtor.destruir + desenho).
@@ -162,6 +166,9 @@ func _ninhos(dt: float, fontes: Array[Dictionary]) -> void:
 	var custo: float = _n.get("custo_aranha", 16)
 	var maximo: int = _n.get("max_aranhas", 8)
 	var grupo: int = _n.get("grupo_ataque", 4)
+	# Convivência com ninhos: 25% menos grupos de ataque = aranhas 1/0,75 mais caras (o ninho junta raiva no mesmo ritmo)
+	var menos_grupos := clampf(_bonus("grupos_ataque"), 0.0, 0.9)
+	var paz := ninhos_paz.is_valid() and bool(ninhos_paz.call())
 	for id in ninhos.keys():
 		var n: Dictionary = ninhos[id]
 		if not mapa.estruturas.has(id):
@@ -178,10 +185,12 @@ func _ninhos(dt: float, fontes: Array[Dictionary]) -> void:
 		var tirou := poluicao.absorver(k, poluicao.em_chunk(k) * float(_n.get("taxa_absorcao", 0.06)) * dt)
 		n.raiva += tirou
 		n.absorvido += tirou
-		var custo_aqui := custo / (1.0 + float(_f.get("producao", 1.0)) * fu)
+		var custo_aqui := custo / (1.0 + float(_f.get("producao", 1.0)) * fu) / (1.0 - menos_grupos)
 		if n.raiva >= custo_aqui and aranhas_do_ninho(id).size() < maximo:
 			n.raiva -= custo_aqui
 			_nova_aranha(id)
+		if paz and fu <= FURIA_ZERO:                      # Simbiose: ninho em paz não manda grupo
+			continue
 		var grupo_aqui := maxi(2, grupo - roundi(float(_f.get("grupo_menos", 2)) * fu))
 		var paradas := aranhas_do_ninho(id, E.PARADA)
 		if paradas.size() >= grupo_aqui:
@@ -451,13 +460,15 @@ func _torres(dt: float) -> void:
 					md = d
 					alvo = a
 		var ninho := -1
-		if alvo < 0:
+		if alvo < 0 and _pode_mirar_ninho(regra, t):
 			for n in ninhos:
 				var d: float = c.distance_to(ninhos[n].centro)
 				if d < md and d >= minimo:
 					md = d
 					ninho = n
 		t.mirando = alvo >= 0 or ninho >= 0
+		if ninho < 0 and t.has("ordem"):
+			t.erase("ordem")                                  # não há mais ninho no alcance: a ordem acabou
 		if not t.mirando:
 			continue
 		t.mira = aranhas[alvo].pos if alvo >= 0 else ninhos[ninho].centro
@@ -468,10 +479,16 @@ func _torres(dt: float) -> void:
 		var chave := "dano_torre_energia"                     # melhoria que vale para este tiro
 		var cadencia := float(regra.get("cadencia", 3))
 		var bala := false
+		var efeito := {}                                       # munição especial deste tiro (regra municao_especial)
 		if regra.has("carga_mj") and torre_energia.is_valid() and torre_energia.call(id, tiro_mj()):
 			cadencia *= 1.0 + _bonus("cadencia_torre_energia")
-		elif t.municao > 0:
-			t.municao -= 1
+		elif t.municao > 0 or not especial_da_vez(t, regra).is_empty():
+			var esp := especial_da_vez(t, regra)
+			if esp.is_empty():
+				t.municao -= 1
+			else:
+				t.especial[esp] = int(t.especial[esp]) - 1
+				efeito = regra.municao_especial[esp]
 			chave = String(regra.get("bonus_dano", "dano_bala"))
 			bala = true
 			if not regra.has("carga_mj"):
@@ -479,22 +496,64 @@ func _torres(dt: float) -> void:
 		else:
 			continue
 		t.recarga = maxf(t.recarga, -dt) + 1.0 / cadencia   # sobra do tick conta: 10 tiros/s mesmo a 30 quadros/s
-		var dano: float = float(regra.get("dano", 8)) * (1.0 + _bonus(chave))
+		var dano: float = float(regra.get("dano", 8)) * (1.0 + _bonus(chave)) * float(efeito.get("dano", 1.0))
 		var ev := {"tipo": "tiro", "torre": id, "nome": e.nome, "bala": bala, "de": c, "para": t.mira, "aranha": alvo, "ninho": ninho}
 		if regra.has("projetil"):                       # foguete/granada: voa e explode no ponto mirado
 			var pj: Dictionary = regra.projetil
 			var dur := c.distance_to(t.mira) / float(pj.get("velocidade", 25.0)) + float(pj.get("tempo_extra", 0.0))
 			projeteis.append({"torre": id, "nome": e.nome, "de": c, "para": t.mira, "t": 0.0, "dur": dur, "dano": dano,
-					"raio": float(pj.get("raio", 2.0))})
+					"raio": float(pj.get("raio", 2.0)), "ogivas": int(efeito.get("ogivas", 0)), "ogiva_dano": float(efeito.get("ogiva_dano", 0.5)),
+					"ogiva_raio": float(efeito.get("ogiva_raio", 2.0)), "abre": float(efeito.get("abre", 3.0))})
 			ev.projetil = true
 			ev.dur = dur
 			eventos.append(ev)
 			continue
 		eventos.append(ev)
 		if alvo >= 0:
+			var de_onde: Vector2 = aranhas[alvo].pos
 			_ferir_aranha(alvo, dano)
+			_efeito_bala(efeito, alvo, de_onde, dano)
 		else:
 			_ferir_ninho(ninho, dano)
+
+
+## A ordem do painel vale para a artilharia ("alvo": "ninhos"); sem a Mira automática, ela só atira com a ordem.
+func _pode_mirar_ninho(regra: Dictionary, t: Dictionary) -> bool:
+	if regra.get("alvo", "") != "ninhos" or not artilharia_auto.is_valid() or bool(artilharia_auto.call()):
+		return true
+	return bool(t.get("ordem", false))
+
+
+## A artilharia está esperando ordem (sem a Mira automática)?
+func artilharia_espera_ordem(id: int) -> bool:
+	return artilharia_auto.is_valid() and not bool(artilharia_auto.call()) and not bool(torres.get(id, {}).get("ordem", false))
+
+
+## Ordem do painel: a artilharia atira nos ninhos no alcance até não sobrar nenhum.
+func ordenar_disparo(id: int) -> void:
+	_garantir_torre(id)
+	torres[id]["ordem"] = true
+
+
+## Bala especial: perfurante atravessa para a(s) aranha(s) mais perto (dano cheio); carregada salta (arco, dano menor).
+func _efeito_bala(efeito: Dictionary, alvo: int, de: Vector2, dano: float) -> void:
+	if efeito.is_empty():
+		return
+	var atravessa := int(efeito.get("atravessa", 0))
+	var salta := int(efeito.get("salta", 0))
+	var n := atravessa + salta
+	if n <= 0:
+		return
+	var raio := float(efeito.get("raio_atravessa", efeito.get("raio_salto", 3.0)))
+	var perto: Array = []
+	for a in aranhas:
+		if a != alvo and aranhas[a].pos.distance_to(de) <= raio:
+			perto.append(a)
+	perto.sort_custom(func(x, y): return aranhas[x].pos.distance_to(de) < aranhas[y].pos.distance_to(de))
+	for a in perto.slice(0, n):
+		var para: Vector2 = aranhas[a].pos
+		eventos.append({"tipo": "salto", "de": de, "para": para, "eletrico": salta > 0})
+		_ferir_aranha(a, dano * (float(efeito.get("salto_dano", 1.0)) if salta > 0 else 1.0))
 
 
 ## Tiro de fora da colônia (drone de combate): fere a aranha se ela ainda existe.
@@ -529,6 +588,13 @@ func _voar(dt: float) -> void:
 			vivos.append(p)
 			continue
 		var onde: Vector2 = p.para
+		if int(p.get("ogivas", 0)) > 0:                  # foguete de enxame: abre em ogivas menores em volta do ponto
+			for k in int(p.ogivas):
+				var alvo_og: Vector2 = onde + Vector2.from_angle(TAU * k / float(p.ogivas)) * float(p.abre)
+				vivos.append({"torre": p.torre, "nome": p.nome, "de": onde, "para": alvo_og, "t": 0.0, "dur": 0.25,
+						"dano": float(p.dano) * float(p.ogiva_dano), "raio": float(p.ogiva_raio)})
+			eventos.append({"tipo": "explosao", "torre": p.torre, "nome": p.nome, "pos": onde, "raio": 1.0})
+			continue
 		eventos.append({"tipo": "explosao", "torre": p.torre, "nome": p.nome, "pos": onde, "raio": p.raio})
 		for a in aranhas.keys():
 			var d: float = aranhas[a].pos.distance_to(onde)
@@ -648,7 +714,38 @@ func aceita_municao(id: int) -> bool:
 	if maximo <= 0:
 		return true
 	_garantir_torre(id)
-	return int(torres[id].municao) + tiros_por_item(nome) <= maximo
+	return int(torres[id].municao) + tiros_especiais(id) + tiros_por_item(nome) <= maximo
+
+
+## Munição especial que a torre aceita além da comum: item → efeito (dano, atravessa, salta, ogivas, tiros).
+static func especiais(nome: String) -> Dictionary:
+	return Registro.estruturas.get(nome, {}).get("municao_especial", {})
+
+
+## Munição especial que chegou à torre (braço/esteira, via Fabrica). A torre gasta a melhor primeiro.
+func carregar_especial(id: int, item: String) -> void:
+	_garantir_torre(id)
+	if not torres[id].has("especial"):
+		torres[id]["especial"] = {}
+	torres[id].especial[item] = int(torres[id].especial.get(item, 0)) + int(especiais(mapa.estruturas[id].nome)[item].get("tiros", 1))
+
+
+func tiros_especiais(id: int) -> int:
+	var n := 0
+	var es: Dictionary = torres.get(id, {}).get("especial", {})
+	for k in es:
+		n += int(es[k])
+	return n
+
+
+## Que munição especial a torre usa no próximo tiro ("" = a comum): a última da lista da regra que tiver (a mais forte).
+func especial_da_vez(t: Dictionary, regra: Dictionary) -> String:
+	var es: Dictionary = t.get("especial", {})
+	var lista: Array = (regra.get("municao_especial", {}) as Dictionary).keys()
+	for i in range(lista.size() - 1, -1, -1):
+		if int(es.get(lista[i], 0)) > 0:
+			return lista[i]
+	return ""
 
 
 ## Item que a torre usa de munição (munição comum, foguete, granada).
@@ -709,7 +806,8 @@ func _expandir(dt: float) -> void:
 		return
 	var origem: int = prontos[_rng.randi() % prontos.size()]
 	ninhos[origem].absorvido = 0.0
-	var lugar := _lugar_de_ninho(ninhos[origem].centro)
+	var afasta := harmonia.is_valid() and bool(harmonia.call()) and float(ninhos[origem].get("furia", 0.0)) <= FURIA_ZERO
+	var lugar := _lugar_de_ninho(ninhos[origem].centro, afasta)
 	if lugar == Vector2i(-99999, -99999):
 		return
 	for a in aranhas_do_ninho(origem, E.PARADA).slice(0, int(_x.get("construtoras", 3))):
@@ -719,8 +817,10 @@ func _expandir(dt: float) -> void:
 	eventos.append({"tipo": "expansao", "de": origem, "para": lugar})
 
 
-func _lugar_de_ninho(perto: Vector2) -> Vector2i:
+## `afasta` (Convivência com ninhos, fúria 0): o lugar novo não pode ficar mais perto da fábrica do que o ninho de origem.
+func _lugar_de_ninho(perto: Vector2, afasta := false) -> Vector2i:
 	var livre: float = _x.get("livre_de_estruturas", 14)
+	var de_origem := dist_fabrica(perto) if afasta else 0.0
 	for tentativa in 20:
 		var d := _rng.randf_range(_x.get("dist_min", 14), _x.get("dist_max", 30))
 		var p := perto + Vector2.from_angle(_rng.randf() * TAU) * d
@@ -729,6 +829,8 @@ func _lugar_de_ninho(perto: Vector2) -> Vector2i:
 			continue
 		if _estrutura_perto(p, livre) >= 0 or p.length() < float(_x.get("longe_do_spawn", 40)):
 			continue
+		if afasta and dist_fabrica(p) < de_origem:
+			continue
 		var perto_ninho := false
 		for n in ninhos:
 			if ninhos[n].centro.distance_to(p) < 8.0:
@@ -736,6 +838,16 @@ func _lugar_de_ninho(perto: Vector2) -> Vector2i:
 		if not perto_ninho:
 			return minimo
 	return Vector2i(-99999, -99999)
+
+
+## Distância de `p` até a construção mais perto (ninho não conta).
+func dist_fabrica(p: Vector2) -> float:
+	var md := INF
+	for id in mapa.estruturas:
+		var e: Dictionary = mapa.estruturas[id]
+		if e.nome != "ninho_aranha":
+			md = minf(md, _dist_estrutura(p, e))
+	return md
 
 
 func _chegou_obra(ar: Dictionary) -> void:

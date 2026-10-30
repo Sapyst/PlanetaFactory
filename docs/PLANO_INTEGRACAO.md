@@ -36,8 +36,9 @@ Lista: ver docs/ARVORE_TECNOLOGIA.md (Estruturas: temos × precisamos) e arte/es
   "Progresso das fases 3+4").
 - [x] Lote 10 (produção I): montadora 2, refinador 2, fornalha de aço, fornalha elétrica, broca grande, laboratório 2.
 - [x] Lote 14 (energia II): turbina alta, acumulador de cristal, reator de cristal, reator de fusão, núcleo de
-  singularidade (os dois últimos em desenvolvimento até a computação quântica).
-- [ ] → 11 (produção II).
+  singularidade.
+- [x] Lote 11 (produção II): forja quântica, fundição de cristal, montadora 3, montadora quântica, extrator ressonante, broca de
+  núcleo, laboratório quântico, irradiador + módulos, pacote quântico, foguete, combate e infinitas. **A árvore fechou.**
 
 ## Fase 5 — só no fim de TUDO (a árvore inteira funcional): fotos no jogo + baterias de testes
 Sapyst: "vai terminar literalmente toda a tech-tree e tudo mais. Faltando só as fotos com testes mesmo."
@@ -622,17 +623,40 @@ com a grade inteira + resultado dos testes), para ela não precisar abrir uma po
     estimativa: kW, vida e custos de construção; (4) bocas de fluido sem função (elétrica O1, broca O1, laboratório L1);
     (5) só o laboratório 2 para de animar quando não pesquisa; o laboratório 1 segue animando sempre.
 
+- [x] **Lote 11: forja quântica, fundição de cristal, montadora 3, montadora quântica, extrator ressonante, broca de núcleo,
+      laboratório quântico, irradiador de módulos** (estudos do Antigravity, sem alteração; arte/estudos/conv_lote11.py; testes
+      test_forja_quantica.gd, test_fundicao_cristal.gd, test_montadora_3.gd, test_montadora_quantica.gd, test_extrator_ressonante.gd,
+      test_broca_nucleo.gd, test_laboratorio_quantico.gd, test_irradiador_modulos.gd, test_modulos.gd, test_municoes_especiais.gd,
+      test_ninhos_e_mira.gd, test_infinitas_novas.gd, test_arvore_completa.gd; roteiro `-- modo demo roteiro lote11`). 37 pesquisas
+      novas: as 166 da árvore agora estão em progressao.json.
+  - **Modelos** (tris): forja 8.020; fundição 6.726; montadora 3 3.764; montadora quântica 5.736; extrator 4.952; broca de núcleo
+    3.784; laboratório quântico 5.332; irradiador 6.704. Ficam as peças em trânsito (laço fechado, sem sumir). Ícones pelo render
+    Workbench (só esses 8); ícones dos 16 itens novos derivados por matiz (derivar_icone.gd), modelo na esteira idem.
+  - **Função, itens e decisões**: ver "Lote 11" em docs/ARVORE_TECNOLOGIA.md.
+  - **Destravou**: fusão, singularidade, braço/esteira/transportador quânticos, regulador climático, silo de lançamento, foguete de
+    proliferação (vitória alcançável no modo novo) e as 10 infinitas. test_arvore_completa.gd percorre a árvore do zero, sem contar o
+    kit inicial: pesquisa só entra com pré-requisitos feitos e pacotes com receita liberada cujas entradas têm fonte.
+  - **Em desenvolvimento**: nada. Nenhuma pesquisa nem peça.
+  - Verificação: 72.5 mil verificações, 0 falhas (testar.sh); os 185 scripts compilam; a demo (`--quit-after 400 -- modo demo`) roda sem
+    erro; roteiro lote11: as 6 peças do pátio com energia, módulos e irradiador valendo, painéis abertos. 9 testes antigos ajustados
+    (esperavam isso em desenvolvimento; test_pesquisa simula o que faltava para seguir testando o mecanismo). docs/RECURSOS.md regerado.
+  - Pendências / decisões para Sapyst: (1) nada visto no jogo em imagem, só os ícones; (2) **jazidas não se esgotam no jogo**: a
+    "jazida esgotada rende 10%" da broca de núcleo está pronta na máquina, mas sem gatilho (ela hoje é só a broca mais rápida, 2,0
+    estimado); ligar esgotamento mudaria a partida inteira, é decisão dela; (3) **artilharia passou a pedir ordem** até a Mira automática
+    (a pesquisa não teria efeito de outro jeito), e **Escavar passou a pedir pesquisa**: partidas em andamento notam as duas; (4)
+    "Simbiose: estruturas viram abrigo de musgo" é visual e não entrou; "laboratórios das colônias somam" já era verdade; (5) núcleo-semente
+    segue na montadora comum e pacote de tempestade também (a tabela pede montadora 3 e 2 "ou melhor"): não mudei para não parar fábrica
+    pronta; (6) números estimados: kW, vida, custos, tempos dos módulos, efeitos das munições; módulo de produtividade vale em toda
+    receita (no Factorio, só intermediários) e o irradiador não leva produtividade; (7) bocas de fluido sem função nas 6 peças; (8) módulo
+    só entra pelo painel, vindo do núcleo (braço não encaixa).
+
 ### Lista para a fase 3 — estruturas da árvore ainda sem estudo/modelo
 (Fonte: "Estruturas: temos × precisamos" do docs/ARVORE_TECNOLOGIA.md. Entre parênteses, o que cada uma destrava do que
 já está ligado e travado.)
-- Produção: ~~fornalha de aço, fornalha elétrica~~ (lote 10), fundição de cristal, ~~montadora 2~~ (lote 10; o pacote de tempestade
-  segue saindo também na comum), montadora 3, montadora quântica, ~~refinador 2~~ (lote 10: estação de tratamento),
-  **forja quântica** (computação quântica → regulador climático), ~~broca grande~~ (lote 10), extrator ressonante, broca de
-  núcleo, ~~laboratório 2~~ (lote 10; a computação quântica não espera mais por ele), laboratório quântico, irradiador de módulos.
+- Produção: tudo feito (lotes 10 e 11).
 - Energia: ~~poste alto, turbina de correnteza, gerador a fluido, painel solar 2, acumulador 2~~ (lote 13), ~~turbina alta,
   acumulador de cristal, reator de cristal, reator de fusão, núcleo de singularidade~~ (lote 14).
 - Proliferação: ~~sensor de varredura, farol de cristal, posto avançado, lançador de sementes, receptor de cápsulas,
   transportador quântico, silo de lançamento~~ (lote 17, feitos).
 - Drones: se Sapyst quiser modelo próprio, porto logístico e baús provedor/requisitante (o estoque já tem, lote 16).
 - Com estudo mas ainda fora do jogo: divisor/junção de cada nível (hoje os de 3 vias servem a todas as classes).
-- Travados por pesquisa sem estudo (lote 16 pronto, esperando): braço quântico (`computacao_quantica`).

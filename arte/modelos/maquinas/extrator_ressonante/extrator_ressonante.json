@@ -1,0 +1,62 @@
+{
+ "nome": "extrator_ressonante",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Extrator ressonante 3×3 (estudo_extrator_ressonante.py): sonotrodo de titânio, cristal ressonador, anel de sintonia, poço sísmico, boca de fluido a oeste e esteira de saída ao sul. 2× a velocidade do extrator no cristal.",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_SAI_S1",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    -1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_ENT_O1",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    -1.5,
+    0.0,
+    0.35
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 4952,
+ "dims": [
+  2.98,
+  2.98,
+  2.183
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_extrator_ressonante.py"
+}

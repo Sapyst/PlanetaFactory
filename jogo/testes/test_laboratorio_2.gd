@@ -2,8 +2,7 @@ extends Caso
 ## Laboratório 2 (laboratorio_2, lote 10 — produção I): modelo do estudo (estudo_laboratorio_2.py, do Antigravity;
 ## arte/estudos/conv_lote10.py) com carrossel, braço, gaveta, comporta e anel de força; pesquisa laboratorio_2 (velocidade
 ## de pesquisa 2 + processador; 3 pacotes × 80, 8 s). Faz o mesmo do laboratório na velocidade 2,0 (soma com as melhorias
-## de velocidade de pesquisa), com 2 encaixes de módulo. É ele que a computação quântica pede — ela e o laboratório
-## quântico seguem em desenvolvimento até existirem a forja quântica e o pacote quântico.
+## de velocidade de pesquisa), com 2 encaixes de módulo. É ele que a computação quântica pede.
 
 
 func test_dados_e_modelo() -> void:
@@ -116,6 +115,6 @@ func test_pesquisa_e_arvore() -> void:
 	verificar(p.peca_liberada("laboratorio_2"), "libera o laboratório 2")
 	var q := Pesquisa.new()
 	verificar(not q.peca_em_desenvolvimento("laboratorio_2"), "a peça não fica em cinza")
-	verificar(q.em_desenvolvimento("computacao_quantica"), "computação quântica segue em desenvolvimento: falta a forja quântica")
-	verificar(q.em_desenvolvimento("laboratorio_3"), "e o laboratório quântico também")
+	verificar(not q.em_desenvolvimento("computacao_quantica"), "computação quântica fora do em desenvolvimento (forja quântica, lote 11)")
+	verificar(not q.em_desenvolvimento("laboratorio_3"), "e o laboratório quântico também")
 	igual(Registro.arvore.nos.computacao_quantica.requer, ["ciencia_tempestade", "laboratorio_2", "energia"], "a árvore pede o laboratório 2")

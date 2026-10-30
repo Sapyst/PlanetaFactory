@@ -422,12 +422,15 @@ func plano_aplainar(a: Vector2i, b: Vector2i, fundo := 0) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var alvo := maxi(mapa.gerador.nivel(a) - fundo, -3)
 	var sem := not mapa.tem_terraplenagem()
+	var sem_canal := fundo > 0 and pesquisa != null and not pesquisa.modo_liberado("escavar_canal")
 	for x in range(mini(a.x, b.x), maxi(a.x, b.x) + 1):
 		for y in range(mini(a.y, b.y), maxi(a.y, b.y) + 1):
 			var t := Vector2i(x, y)
 			var motivo := ""
 			if sem:
 				motivo = "sem_terraplenagem"
+			elif sem_canal:
+				motivo = "sem_pesquisa_canal"
 			elif mapa.gerador.eh_agua(mapa.gerador.terreno(t)):
 				motivo = "agua"
 			elif fundo > 0 and mapa.gerador.superficie_em(t) != null:
@@ -611,6 +614,8 @@ func executar(plano: Array[Dictionary]) -> Dictionary:
 				if mapa.estruturas.has(it.id):
 					var ev: Dictionary = mapa.estruturas[it.id]
 					_mexer_estoque(custo_de(ev.nome, int(ev.get("classe", 1))), 1, rel)
+					for md in ev.get("modulos", []):         # módulos encaixados voltam junto
+						_mexer_estoque({md: 1}, 1, rel)
 				_remover(it.id, rel)
 			"substituir":
 				# troca de classe (esteira básica ↔ rápida): devolve a peça velha e cobra a nova
@@ -694,6 +699,7 @@ func _colocar(it: Dictionary, rel: Dictionary) -> bool:
 	if it.get("desce", false): extras["desce"] = true
 	if int(it.get("classe", 1)) > 1: extras["classe"] = int(it.classe)
 	if not it.get("pilares", []).is_empty(): extras["pilares"] = it.pilares
+	if not it.get("modulos", []).is_empty(): extras["modulos"] = it.modulos     # desfazer a demolição: os módulos voltam encaixados
 	var id := mapa.colocar(it.nome, it.minimo, it.rot, extras)
 	if id < 0:
 		return false
@@ -727,7 +733,7 @@ func _remover(id: int, rel: Dictionary) -> void:
 func _registro(id: int) -> Dictionary:
 	var e: Dictionary = mapa.estruturas[id]
 	var extras := {}
-	for k in ["nivel", "desce", "pilares", "fontes", "classe"]:
+	for k in ["nivel", "desce", "pilares", "fontes", "classe", "modulos"]:
 		if e.has(k):
 			extras[k] = e[k]
 	return {"id": id, "nome": e.nome, "minimo": e.minimo, "rot": e.rot, "extras": extras}

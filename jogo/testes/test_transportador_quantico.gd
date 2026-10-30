@@ -2,7 +2,7 @@ extends Caso
 ## Transportador quântico (transportador_quantico, lote 17): modelo do estudo (estudo_transportador_quantico.py, do
 ## Antigravity; arte/estudos/conv_lote17.py) com os anéis em contra-rotação; o braço põe na entrada (sul) e os itens
 ## saem, sem trilho, na saída (norte) de outro transportador do mesmo canal, 5 por segundo com energia. A pesquisa
-## (colônias + computação quântica; pede o pacote quântico) está ligada mas segue "em desenvolvimento".
+## pede colônias + computação quântica (lote 11) e o pacote quântico.
 
 
 func _mapa() -> MapaOcupacao:
@@ -39,14 +39,13 @@ func test_dados_e_modelo() -> void:
 	raiz.free()
 
 
-func test_pesquisa_em_desenvolvimento() -> void:
+func test_pesquisa() -> void:
 	var p := Pesquisa.new()
 	verificar(p.jogavel("transportador_quantico"), "ligada no jogo")
 	verificar(p.arvore().transportador_quantico.get("existente", false), "marcada como existente na árvore")
-	verificar(p.em_desenvolvimento("transportador_quantico"), "em desenvolvimento")
-	verificar(not Registro.itens.has("pacote_quantico"), "o pacote quântico (forja quântica) ainda não existe")
-	verificar(p.motivo_desenvolvimento("transportador_quantico").contains("quântico"), "o motivo diz o pacote (%s)" % p.motivo_desenvolvimento("transportador_quantico"))
-	verificar(p.peca_em_desenvolvimento("transportador_quantico"), "em cinza fora da demonstração")
+	verificar(not p.em_desenvolvimento("transportador_quantico"), "fora do em desenvolvimento")
+	verificar(Registro.itens.has("pacote_quantico"), "o pacote quântico (forja quântica) existe")
+	verificar(not p.peca_em_desenvolvimento("transportador_quantico"), "a peça não fica em cinza")
 	verificar(not Pesquisa.new(true).peca_em_desenvolvimento("transportador_quantico"), "na demonstração se constrói")
 
 

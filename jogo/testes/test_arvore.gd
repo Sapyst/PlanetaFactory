@@ -35,9 +35,9 @@ func test_jogaveis_na_arvore() -> void:
 		b.sort()
 		igual(a, b, "mesmos pré-requisitos no jogo e na árvore: " + id)
 		verificar(p.arvore()[id].get("existente", false), "marcada como existente: " + id)
-	verificar(not p.jogavel("escavar_canal"), "escavação de canal ainda é em breve")
+	verificar(p.jogavel("escavar_canal"), "escavação de canal é do jogo (lote 11)")
 	p.concluidas = {"fluidos": true, "automacao": true, "bomba_agua": true}
-	verificar(not p.disponivel("escavar_canal"), "em breve não se pesquisa")
+	verificar(p.disponivel("escavar_canal"), "com a bomba d'água: pesquisável")
 
 
 func test_sem_ciclos() -> void:
@@ -67,7 +67,7 @@ const BONUS_USADOS := ["dano_torre_energia", "dano_bala", "velocidade_pesquisa",
 		"cadencia_torre_energia", "economia_tiro_torre", "cadencia_bala", "dano_foguete", "cadencia_foguete",
 		"dano_artilharia", "alcance_artilharia", "escudo_raio", "escudo_carga", "escudo_recarga",
 		"drones_bateria", "drones_frota", "drones_velocidade", "drones_carga", "drones_alcance", "drones_tempestade",
-		"drones_dano", "drones_vida"]
+		"drones_dano", "drones_vida", "grupos_ataque", "poluicao_global", "velocidade_trens", "limpeza", "reducao_energia"]
 
 
 func test_melhorias() -> void:

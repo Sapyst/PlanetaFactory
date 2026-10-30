@@ -20,6 +20,9 @@ var _acum := 0.0
 var _d: Dictionary
 
 
+var fator := 1.0                ## Simbiose: −50% de poluição em todo o planeta (o mundo põe)
+
+
 func _init(p_gerador: GeradorMundo) -> void:
 	gerador = p_gerador
 	_d = Registro.inimigos.get("poluicao", {})
@@ -27,7 +30,7 @@ func _init(p_gerador: GeradorMundo) -> void:
 
 func emitir(tile: Vector2i, pontos: float) -> void:
 	var k := Grade.chunk_de(tile)
-	valores[k] = float(valores.get(k, 0.0)) + pontos
+	valores[k] = float(valores.get(k, 0.0)) + pontos * fator
 
 
 func em_chunk(k: Vector2i) -> float:

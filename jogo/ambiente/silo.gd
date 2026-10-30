@@ -9,8 +9,8 @@ extends RefCounted
 ##    `carga` em `carga_s`;
 ##  - foguete pronto (partes + carga): `lancar` → `lancamento_s` de subida e o evento "foguete_lancado" — fim da
 ##    campanha (o silo esvazia e pode montar outro).
-## Os itens da parte (casco de foguete, processador quântico, propelente de cristal) e da carga (mapa estelar, módulo de
-## produtividade 3) ainda não existem no jogo: o silo espera por eles (a pesquisa segue em desenvolvimento).
+## O propelente entra pelo cano da boca leste (Fabrica._tick_silos_fluido). Os itens chegam por braço: casco de foguete e
+## processador quântico (parte), núcleo-semente, mapa estelar e módulo de produtividade 3 (carga).
 
 var mapa: MapaOcupacao
 var energia: Callable                         ## func(id) -> 0..1; sem ela, energia plena

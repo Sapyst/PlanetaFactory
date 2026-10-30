@@ -1,6 +1,6 @@
 # Árvore de tecnologia
 
-Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 119 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras — e as jogáveis que ainda esperam um pré-requisito ou pacote que não existe (`Pesquisa.em_desenvolvimento`) — aparecem em cinza escuro com a etiqueta **"Em desenvolvimento"** e não se escolhem nem se concluem, até a estrutura, o item ou o pacote existir. Na barra de construção, peça sem modelo ou liberada só por pesquisa em desenvolvimento fica igual (cinza escuro, etiqueta) e não se constrói fora do modo demonstração. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
+Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 166 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5): a árvore fechou no lote 11 e nada mais fica "Em desenvolvimento" (o mecanismo `Pesquisa.em_desenvolvimento` continua para o que vier: cinza escuro com a etiqueta, não se escolhe nem se conclui; peça sem modelo não se constrói). Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
 
 ## Eras e pacotes de pesquisa
 
@@ -430,7 +430,7 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Divisor com filtro | 1×1 | temos | manda um item escolhido para uma saída e dá prioridade a outra (saída do filtro e prioridade escolhidas no painel) | `divisor_filtro` |
 | Esteira rápida + rampa, passagem (6 tiles), divisor e junção rápidos | 1×1 | temos | 3,75 itens/s (as mesmas peças com classe 2: reta, curvas, início, fim, junção lateral, rampas, passagem; o divisor e a junção de 3 vias não limitam a vazão e servem às duas) | `logistica_3` |
 | Esteira expressa + rampa, passagem (8 tiles), divisor e junção expressos | 1×1 | temos | 5,625 itens/s (as mesmas peças com classe 3, faixa azul-aço; divisor e junção de 3 vias servem a todas as classes) | `logistica_4` |
-| Esteira quântica + rampa, passagem (10 tiles), divisor e junção quânticos | 1×1 | temos | 7,5 itens/s (classe 4, faixa violeta e ferro fundido); travada pela árvore (`computacao_quantica` e pacote quântico em breve) | `logistica_5` |
+| Esteira quântica + rampa, passagem (10 tiles), divisor e junção quânticos | 1×1 | temos | 7,5 itens/s (classe 4, faixa violeta e ferro fundido) | `logistica_5` |
 
 ### Braços
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
@@ -442,7 +442,7 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Baú grande | 2×2 | temos | 6.400 itens | `armazenagem` |
 | Braço com filtro | 1×1 | temos | só pega os itens escolhidos (até 5) | `braco_filtro` |
 | Braço empilhador | 1×1 | temos | pega até 4 itens iguais de uma vez (os que estão na origem) e solta um por vez | `braco_empilhador` |
-| Braço quântico | 1×1 | temos | ciclo 0,2 s, até 8 itens iguais por vez; a lança telescópica pega de 1 a 3 tiles atrás (escolhido no painel) e o campo leva ao tile da frente; travado pela árvore (`computacao_quantica` em breve) | `braco_quantico` |
+| Braço quântico | 1×1 | temos | ciclo 0,2 s, até 8 itens iguais por vez; a lança telescópica pega de 1 a 3 tiles atrás (escolhido no painel) e o campo leva ao tile da frente | `braco_quantico` |
 | Silo de granel | 3×3 | temos | 20.000 itens de um tipo só | `silo_granel` |
 
 ### Canos
@@ -467,17 +467,17 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Laboratório | 3×3 | temos | pesquisa com pacotes | início |
 | Terraplenagem | 3×3 | temos | libera aplainar (e, com pesquisa, cavar canal e recuperar solo) | início |
 | Fornalha de aço | 2×2 | temos (lote 10) | vel. 2,0 com combustível (o mesmo fogo: metade por produto), −25% de poluição por produto | `fornalha_aco` |
-| Fornalha elétrica | 2×2 | temos (lote 10) | vel. 2,0 sem combustível (180 kW), sem poluição direta, 2 módulos (vazios; boca de fluido a oeste) | `fornalha_eletrica` |
-| Fundição de cristal | 3×3 | falta | vel. 4,0, 4 módulos, minério direto em aço | `fundicao_cristal` |
-| Montadora 2 / Montadora 3 | 3×3 | temos a 2 (lote 10) / falta a 3 | vel. 1,0 e 2 módulos (encaixes vazios até os módulos existirem; boca de fluido a oeste) / vel. 1,5 e 4 módulos | `montadora_2`, `montadora_3` |
-| Montadora quântica | 3×3 | falta | vel. 2,5, 4 módulos, 2 receitas ao mesmo tempo | `montadora_4` |
-| Refinador 2 | 3×3 | temos (lote 10) | vel. 2,0, 3 módulos (vazios), metade da sujeira por produto, 2ª entrada de fluido ao sul | `refinador_2` |
-| Forja quântica | 3×3 | falta | processador quântico, pacote quântico, mapa estelar | `computacao_quantica` |
+| Fornalha elétrica | 2×2 | temos (lote 10) | vel. 2,0 sem combustível (180 kW), sem poluição direta, 2 módulos (boca de fluido a oeste sem uso) | `fornalha_eletrica` |
+| Fundição de cristal | 3×3 | temos (lote 11) | vel. 4,0 só com energia (600 kW), 4 módulos, as receitas da fornalha + minério de ferro direto em aço (5 → 1, 16 s; no painel dá para escolher placa); boca de água a leste sem uso | `fundicao_cristal` |
+| Montadora 2 / Montadora 3 | 3×3 | temos (lote 10 / lote 11) | vel. 1,0 e 2 módulos / vel. 1,5 e 4 módulos (boca de fluido a oeste sem uso) | `montadora_2`, `montadora_3` |
+| Montadora quântica | 3×3 | temos (lote 11) | vel. 2,5, 4 módulos, 2 receitas ao mesmo tempo (o braço entrega a quem pede e tira de qualquer uma); a única que faz casco de foguete | `montadora_4` |
+| Refinador 2 | 3×3 | temos (lote 10) | vel. 2,0, 3 módulos, metade da sujeira por produto, 2ª entrada de fluido ao sul | `refinador_2` |
+| Forja quântica | 3×3 | temos (lote 11) | processador quântico, pacote quântico, mapa estelar | `computacao_quantica` |
 | Broca grande | 3×3 | temos (lote 10) | 2,5× mais rápida (300 kW), −20% de poluição por minério; despeja na esteira ao sul (S1); boca de fluido a oeste | `broca_grande` |
-| Extrator ressonante | 3×3 | falta | 2× mais rápido no cristal | `extrator_2` |
-| Broca de núcleo | 3×3 | falta | jazida esgotada rende 10% para sempre | `broca_profunda` |
-| Laboratório 2 / Laboratório quântico | 3×3 | temos o 2 (lote 10) / falta o quântico | 2× e 2 módulos (vazios; 150 kW; boca de fluido a leste) / 4× e 4 módulos | `laboratorio_2`, `laboratorio_3` |
-| Irradiador de módulos | 3×3 | falta | divide 2 módulos com as máquinas em 3 tiles | `irradiador_modulos` |
+| Extrator ressonante | 3×3 | temos (lote 11) | 2× mais rápido no cristal, despeja na esteira ao sul | `extrator_2` |
+| Broca de núcleo | 3×3 | temos (lote 11) | velocidade 2,0 (4× a broca); jazida esgotada rende 10% para sempre (as jazidas do jogo ainda não se esgotam: efeito pronto, sem gatilho) | `broca_profunda` |
+| Laboratório 2 / Laboratório quântico | 3×3 | temos (lote 10 / lote 11) | 2× e 2 módulos (150 kW) / 4× e 4 módulos (400 kW); boca de fluido a leste sem uso | `laboratorio_2`, `laboratorio_3` |
+| Irradiador de módulos | 3×3 | temos (lote 11) | 480 kW: 2 módulos (só velocidade e eficiência) valem 50% nas máquinas e laboratórios a até 3 tiles; vários somam | `irradiador_modulos` |
 
 ### Limpeza
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
@@ -511,8 +511,8 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Acumulador 2 | 2×2 | temos (lote 13) | 200 MJ, 1,5 MW | `acumulacao_2` |
 | Acumulador de cristal | 2×2 | temos (lote 14) | 600 MJ, 4 MW | `acumulador_cristal` |
 | Reator de cristal | 3×3 | temos (lote 14) | 8 MW com célula de energia (240 MJ) ou cristal carregado (480 MJ) por braço na boca sul | `reator_cristal` |
-| Reator de fusão | 3×3 | temos (lote 14; em desenvolvimento) | 30 MW com água (15/s, boca oeste) e cristal carregado (1.800 MJ, boca sul); espera a `computacao_quantica` e o pacote quântico | `fusao` |
-| Núcleo de singularidade | 3×3 | temos (lote 14; em desenvolvimento) | 100 MW, sem combustível e sem poluição; espera a `fusao` e o pacote quântico | `singularidade` |
+| Reator de fusão | 3×3 | temos (lote 14) | 30 MW com água (15/s, boca oeste) e cristal carregado (1.800 MJ, boca sul) | `fusao` |
+| Núcleo de singularidade | 3×3 | temos (lote 14) | 100 MW, sem combustível e sem poluição | `singularidade` |
 
 ### Defesa
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
@@ -550,7 +550,7 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Semeador de nuvens | 2×2 | temos | 300 kW: chove ≥ 75% em 40 m (apaga fogo, nada pega fogo, enche coletores) | `semeadura_nuvens` |
 | Defletor de vento | 2×2 | temos | 250 kW: o vento de 40 m sopra para a frente da peça, entre 30% e 80% (sem tufão; fogo e poluição vão junto); pede `semeadura_nuvens` e `turbina_alta` | `controle_vento` |
 | Cúpula contra raios | 3×3 | temos | 400 kW: nenhum raio em 30 m (a cúpula pega e manda 120 MJ para os acumuladores) | `cupula_tempestade` |
-| Regulador climático | 3×3 | temos | 1,5 MW: céu firme ou chuva mansa em 80 m, sem raio nem tufão; travado pela árvore (`computacao_quantica` em breve) | `controle_clima` |
+| Regulador climático | 3×3 | temos | 1,5 MW: céu firme ou chuva mansa em 80 m, sem raio nem tufão | `controle_clima` |
 
 ### Drones (categoria nova)
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
@@ -575,10 +575,10 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Posto avançado | 3×3 | temos (jogável desde o poste alto, lote 13) | núcleo-filho: 150 kW próprios sem cabo (como o núcleo), estoque próprio de 3.200 (braço e drones logísticos); obra a até 32 m paga primeiro com ele | `posto_avancado` |
 | Lançador de sementes | 3×3 | temos (jogável depois do posto avançado) | 600 kW: recebe o núcleo-semente por braço, mira rumo + distância (60–400 m), carrega 20 s, dispara; a semente voa em arco e onde pousa nasce um posto avançado (colônia, com `colonias`) | `nucleo_semente` |
 | Receptor de cápsulas | 2×2 | temos (jogável depois do núcleo-semente) | 100 kW: destino das cápsulas das colônias (1 pacote gênese a cada 30 s por colônia); guarda 100 para os braços | `colonias` |
-| Transportador quântico | 3×3 | temos (em desenvolvimento: computação quântica e pacote quântico) | 500 kW: braço põe na entrada, sai sem trilho no outro transportador do mesmo canal (A–D), 5 itens/s | `transportador_quantico` |
-| Silo de lançamento | 3×3 | temos (em desenvolvimento: casco de foguete e propulsão de cristal) | 1 MW: monta o foguete por 100 partes (1 casco + 5 processadores quânticos por braço + 50 de propelente pelo cano, 10 s cada), depois a carga-semente (com `foguete_proliferacao`); o painel lança — fim da campanha | `silo_lancamento` |
+| Transportador quântico | 3×3 | temos | 500 kW: braço põe na entrada, sai sem trilho no outro transportador do mesmo canal (A–D), 5 itens/s | `transportador_quantico` |
+| Silo de lançamento | 3×3 | temos | 1 MW: monta o foguete por 100 partes (1 casco + 5 processadores quânticos por braço + 50 de propelente pelo cano, 10 s cada), depois a carga-semente (com `foguete_proliferacao`); o painel lança — fim da campanha | `silo_lancamento` |
 
-**Contagem:** 88 linhas "temos" e **22 linhas "falta"** (uma linha pode juntar variantes, como a família da esteira
+**Contagem:** todas as linhas "temos" desde o lote 11 (uma linha pode juntar variantes, como a família da esteira
 rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima, Drones, Lógica, Proliferação).
 
 ## Decisões e pontos em aberto
@@ -710,12 +710,40 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
   boca de fluido a leste sem uso. Dependem delas, e **seguem em desenvolvimento**: a `computacao_quantica` (o laboratório
   2 era um dos seus pré-requisitos, agora resolvido; falta ela mesma, com a forja quântica e o pacote quântico), o
   `laboratorio_3`, a `fundicao_cristal` e a `broca_profunda`. Custos de construção, kW e vida são estimativa (a árvore não dá).
-- **Em desenvolvimento (pedido de Sapyst).** Tudo o que ainda não entrou no jogo aparece em cinza escuro com a
+- **Lote 11 (produção II: fechou a árvore).** Forja quântica, fundição de cristal, montadora 3, montadora quântica, extrator
+  ressonante, broca de núcleo, laboratório quântico e irradiador, com tudo o que faltava para nada ficar preso:
+  - **Módulos.** Itens `modulo_{velocidade,eficiencia,produtividade}_{1,2,3}` (montadora; receitas da tabela; tempos 15/30/60 s
+    são estimativa). Encaixam pelo **painel** da máquina, vindos do **estoque do núcleo** (montadora → braço → núcleo); tocar no
+    encaixado tira e devolve ao núcleo; demolir a máquina devolve também. Efeitos da árvore; o nível só muda o número
+    principal (os colaterais de velocidade +50% de energia e de produtividade −15% de velocidade / +40% de poluição valem em
+    todos os níveis). Velocidade, energia e poluição não caem abaixo de 20%. Produtividade no laboratório dá unidade de graça.
+    **Irradiador**: só velocidade e eficiência, 50% de cada módulo a até 3 tiles (a área do irradiador + 3 toca a máquina).
+  - **Pacote quântico** e **processador quântico** na forja (`computacao_quantica`); **pacote gênese**, sem receita, já vinha das
+    colônias: o laboratório agora pode estocá-lo depois de `colonias`.
+  - **Foguete**: `casco_foguete` (só montadora quântica, campo `so_em` da receita), `propelente_cristal` (fluido, só refinador 2),
+    `mapa_estelar` (forja, com `navegacao`). O **cano** liga a boca leste do silo ao tanque de propelente (500). Vitória
+    alcançável no modo novo. O silo continua aceitando as peças por braço.
+  - **Combate**: `municao_perfurante` (+60%, atravessa para a aranha mais perto a até 3 m), `municao_carregada` (+60%, salta para 2
+    aranhas a até 5 m com metade do dano) e `foguete_enxame` (abre em 4 ogivas de 50% a 3 m do ponto, raio 2). A torre aceita
+    a comum e as especiais e gasta a mais forte primeiro. **Mira automática**: como a artilharia já mirava sozinha, a pesquisa
+    só faz sentido tirando isso: **sem ela, a artilharia só atira com a ordem "Disparar" do painel** (até não sobrar ninho no
+    alcance); com ela, sozinha.
+  - **Ambiente**: **Convivência com ninhos** (ninho com fúria 0 não escolhe lugar de expansão mais perto da fábrica que ele; aranhas
+    1/0,75 mais caras = −25% de grupos). **Simbiose** (−50% em toda poluição emitida; ninho com fúria 0 não manda grupo; o "abrigo
+    de musgo" é só visual e **não entrou**). **Escavação de canal**: a ferramenta Escavar, que vinha só com a Terraplenagem, agora
+    pede esta pesquisa (Aplainar continua livre).
+  - **Mente distribuída** (`rede_colonias`): colônias e núcleo viram uma rede elétrica só, sem cabo. Os laboratórios já somavam (o
+    planeta é um mapa só), então essa metade não muda nada.
+  - **Infinitas**: todas ligadas. Eficiência de rede vale em todo consumidor, até −50%; Purificação na força de coletores, filtros e
+    purificadores; Velocidade de frota em drones e no limite de velocidade dos trens.
+  - **Números estimados** (a árvore não dá): kW, vida, poluição e custo de construção das 8 peças; velocidade 2,0 da broca de núcleo;
+    os raios e frações das munições especiais. **Bocas de fluido sem função**: forja L1, fundição L1, montadora 3 O1, extrator O1,
+    broca O1, laboratório L1.
+- **Em desenvolvimento (pedido de Sapyst).** Hoje nada mais usa este estado; o mecanismo fica para o que vier. Tudo o que ainda não entrou no jogo aparece em cinza escuro com a
   etiqueta "Em desenvolvimento": na tela de pesquisa, as "em breve" e as jogáveis travadas por pacote ou pesquisa que
   ainda não existe (nó clicável só para ver o detalhe, que diz o motivo; o botão vira "Em desenvolvimento" desligado;
   não se escolhem nem se concluem — salvo antigo com uma delas ativa, o laboratório larga); na barra de construção, as
-  peças sem modelo ou que só uma pesquisa em desenvolvimento libera (hoje: esteira quântica, braço quântico,
-  regulador climático, transportador quântico, silo de lançamento, reator de fusão, núcleo de singularidade) ficam desligadas e o construtor recusa. No modo
+  peças sem modelo ou que só uma pesquisa em desenvolvimento libera ficam desligadas e o construtor recusa. No modo
   demonstração se constrói tudo o que já tem modelo.
 - **Água limpa** (`agua_limpa`, do filtro) serve em toda receita que pede água; água do rio não serve onde se pede
   limpa (pacote ecológico). Resina bebe dois fluidos: seiva por uma boca do refinador e água pela outra.

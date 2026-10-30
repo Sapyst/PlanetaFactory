@@ -271,11 +271,7 @@ func test_infinitas() -> void:
 	for id in ["mineracao_infinita", "pesquisa_infinita", "dano_energia_infinito"]:
 		verificar(p.jogavel(id) and p.infinita(id), "infinita jogável: " + id)
 		igual(p.unidades(id), 500, "nível 1 custa 500: " + id)
-	# as infinitas pedem o pacote gênese (em desenvolvimento): o laboratório não as avança de verdade
-	verificar(p.em_desenvolvimento("mineracao_infinita"), "infinita espera o pacote gênese: em desenvolvimento")
-	p.ativa = "mineracao_infinita"
-	p.avancar()
-	igual(p.ativa, "", "em desenvolvimento não avança (larga)")
+	verificar(not p.em_desenvolvimento("mineracao_infinita"), "as infinitas saíram do em desenvolvimento (lote 11)")
 	igual(p.nivel("mineracao_infinita"), 0, "nenhum nível")
 	# simula a pesquisa já com o que falta (cópia dos dados: sem pré-requisito, só pacote básico): dois níveis
 	p._d = Registro.progressao.duplicate(true)
@@ -330,6 +326,13 @@ func test_infinitas() -> void:
 ## Pedido de Sapyst: o que ainda não entrou no jogo fica "em desenvolvimento" — a pesquisa não se escolhe nem se
 ## conclui; a peça não se constrói fora do modo demonstração (que constrói tudo o que tem modelo).
 func test_em_desenvolvimento() -> void:
+	# a árvore fechou (lote 11): simula o que faltava para exercitar o mecanismo (sem a computação quântica, a escavação
+	# e o pacote quântico). Tudo volta no fim do teste.
+	var pesq_salvas: Dictionary = Registro.progressao.pesquisas.duplicate()
+	var pacote: Dictionary = Registro.itens.pacote_quantico
+	Registro.progressao.pesquisas.erase("computacao_quantica")
+	Registro.progressao.pesquisas.erase("escavar_canal")
+	Registro.itens.erase("pacote_quantico")
 	var p := Pesquisa.new()
 	verificar(p.em_desenvolvimento("escavar_canal"), "em breve (fora do progressao.json): em desenvolvimento")
 	verificar(p.em_desenvolvimento("braco_quantico"), "jogável travada pela computação quântica (em breve)")
@@ -426,3 +429,7 @@ func test_em_desenvolvimento() -> void:
 	for x in [nb, nl, tela._det]:
 		x.free()
 	tela.free()
+	Registro.progressao.pesquisas = pesq_salvas
+	Registro.itens["pacote_quantico"] = pacote
+	var real := Pesquisa.new()
+	verificar(not real.em_desenvolvimento("braco_quantico") and not real.peca_em_desenvolvimento("braco_quantico"), "de volta: nada em desenvolvimento")

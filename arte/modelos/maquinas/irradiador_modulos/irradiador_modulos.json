@@ -1,0 +1,31 @@
+{
+ "nome": "irradiador_modulos",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Irradiador de módulos 3×3 (estudo_irradiador_modulos.py): torre transmissora com carrossel de 4 antenas, cristal transmissor, 4 subestações criogênicas e baia de 2 módulos. Divide o efeito dos módulos com as máquinas a até 3 tiles.",
+ "ocupa_canto": false,
+ "portas": [],
+ "tris": 6704,
+ "dims": [
+  2.96,
+  2.96,
+  2.69
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_irradiador_modulos.py"
+}

@@ -1,8 +1,8 @@
 extends Caso
 ## Núcleo de singularidade (nucleo_singularidade, lote 14 — energia II): modelo do estudo (estudo_nucleo_singularidade.py,
 ## do Antigravity; arte/estudos/conv_lote14.py) com os 3 anéis, disco de acreção e ventoinhas; pesquisa singularidade
-## (fusão + colônias; 7 pacotes × 500, 20 s). 100 MW, sem combustível e sem poluição. Continua em desenvolvimento até a
-## computação quântica e o pacote quântico existirem; na Demonstração já se constrói.
+## (fusão + colônias; 7 pacotes × 500, 20 s). 100 MW, sem combustível e sem poluição. Pesquisável depois da fusão e das
+## colônias (a computação quântica entrou no lote 11); na Demonstração já se constrói.
 
 
 func _c() -> Dictionary:
@@ -61,9 +61,8 @@ func test_pesquisa() -> void:
 	for t in tipos:
 		custo[t] = 500
 	igual(p.custo("singularidade"), custo, "custo da árvore")
-	verificar(p.em_desenvolvimento("singularidade"), "em desenvolvimento: falta o pacote quântico e a fusão")
-	verificar(p.peca_em_desenvolvimento("nucleo_singularidade"), "peça em desenvolvimento pelo mesmo motivo")
-	verificar(p.motivo_desenvolvimento("singularidade") != "", "diz o motivo")
+	verificar(not p.em_desenvolvimento("singularidade"), "fora do em desenvolvimento")
+	verificar(not p.peca_em_desenvolvimento("nucleo_singularidade"), "a peça não fica em cinza")
 	verificar(not p.disponivel("singularidade"), "não se pesquisa")
 	var q := Pesquisa.new()
 	q.concluidas = {"singularidade": true}

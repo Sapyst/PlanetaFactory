@@ -1,5 +1,5 @@
 {
- "_nota": "tempo em segundos na velocidade 1.0 da máquina. fluidos em unidades. 'maquina' = tipo em estruturas.json",
+ "_nota": "so_em = só nessas estruturas (a máquina do tipo certo sem estar na lista não oferece a receita). tempo em segundos na velocidade 1.0 da máquina. fluidos em unidades. 'maquina' = tipo em estruturas.json",
  "extrair_cristal":  {"maquina": "extrator", "jazida": "jazida_cristal", "entradas": {}, "saidas": {"cristal_bruto": 1}, "tempo": 2.0},
  "minerar_ferro":    {"maquina": "broca", "jazida": "jazida_ferro",  "entradas": {}, "saidas": {"minerio_ferro": 1}, "tempo": 2.0},
  "minerar_cobre":    {"maquina": "broca", "jazida": "jazida_cobre",  "entradas": {}, "saidas": {"minerio_cobre": 1}, "tempo": 2.0},
@@ -56,5 +56,23 @@
  "purificar_ar":     {"maquina": "purificador", "entradas": {}, "saidas": {}, "tempo": 1.0},
  "biodigerir":       {"maquina": "biodigestor", "entradas": {"residuo": 4}, "entradas_fluido": {"agua": 40}, "saidas": {"biomassa": 2}, "saidas_fluido": {"seiva": 30}, "tempo": 10.0},
  "tratar_agua":      {"maquina": "tratamento", "entradas": {}, "saidas": {}, "saidas_fluido": {"agua_limpa": 60}, "tempo": 1.0},
- "restaurar_bioma":  {"maquina": "semeador_bioma", "entradas": {}, "entradas_fluido": {"seiva": 20}, "saidas": {}, "tempo": 10.0}
+ "restaurar_bioma":  {"maquina": "semeador_bioma", "entradas": {}, "entradas_fluido": {"seiva": 20}, "saidas": {}, "tempo": 10.0},
+ "processador_quantico": {"maquina": "forja", "entradas": {"processador": 2, "cristal_carregado": 1, "liga_leve": 1}, "saidas": {"processador_quantico": 1}, "tempo": 20.0},
+ "pacote_quantico": {"maquina": "forja", "entradas": {"processador_quantico": 1, "celula_energia": 1, "cristal_carregado": 1}, "saidas": {"pacote_quantico": 3}, "tempo": 20.0},
+ "mapa_estelar": {"maquina": "forja", "entradas": {"processador_quantico": 1, "pacote_genese": 5}, "saidas": {"mapa_estelar": 1}, "tempo": 30.0},
+ "casco_foguete": {"maquina": "montadora", "so_em": ["montadora_quantica"], "entradas": {"liga_leve": 10, "processador_quantico": 2}, "saidas": {"casco_foguete": 1}, "tempo": 30.0},
+ "propelente_cristal": {"maquina": "refinador", "so_em": ["refinador_2"], "entradas": {"cristal_carregado": 1}, "entradas_fluido": {"combustivel_seiva": 50}, "saidas": {}, "saidas_fluido": {"propelente_cristal": 50}, "tempo": 10.0},
+ "fundir_aco_direto": {"maquina": "fornalha", "so_em": ["fundicao_cristal"], "entradas": {"minerio_ferro": 5}, "saidas": {"barra_aco": 1}, "tempo": 16.0},
+ "municao_perfurante": {"maquina": "montadora", "entradas": {"municao": 1, "barra_aco": 1}, "saidas": {"municao_perfurante": 1}, "tempo": 3.0},
+ "municao_carregada": {"maquina": "montadora", "entradas": {"municao_perfurante": 1, "cristal_carregado": 1}, "saidas": {"municao_carregada": 5}, "tempo": 5.0},
+ "foguete_enxame": {"maquina": "montadora", "entradas": {"foguete": 2, "processador": 1}, "saidas": {"foguete_enxame": 1}, "tempo": 10.0},
+ "modulo_velocidade_1": {"maquina": "montadora", "entradas": {"processador": 3, "circuito": 2}, "saidas": {"modulo_velocidade_1": 1}, "tempo": 15.0},
+ "modulo_velocidade_2": {"maquina": "montadora", "entradas": {"modulo_velocidade_1": 3, "cristal_carregado": 2}, "saidas": {"modulo_velocidade_2": 1}, "tempo": 30.0},
+ "modulo_velocidade_3": {"maquina": "montadora", "entradas": {"modulo_velocidade_2": 3, "processador_quantico": 1}, "saidas": {"modulo_velocidade_3": 1}, "tempo": 60.0},
+ "modulo_eficiencia_1": {"maquina": "montadora", "entradas": {"processador": 3, "circuito": 2}, "saidas": {"modulo_eficiencia_1": 1}, "tempo": 15.0},
+ "modulo_eficiencia_2": {"maquina": "montadora", "entradas": {"modulo_eficiencia_1": 3, "cristal_carregado": 2}, "saidas": {"modulo_eficiencia_2": 1}, "tempo": 30.0},
+ "modulo_eficiencia_3": {"maquina": "montadora", "entradas": {"modulo_eficiencia_2": 3, "processador_quantico": 1}, "saidas": {"modulo_eficiencia_3": 1}, "tempo": 60.0},
+ "modulo_produtividade_1": {"maquina": "montadora", "entradas": {"processador": 3, "circuito": 2}, "saidas": {"modulo_produtividade_1": 1}, "tempo": 15.0},
+ "modulo_produtividade_2": {"maquina": "montadora", "entradas": {"modulo_produtividade_1": 3, "cristal_carregado": 2}, "saidas": {"modulo_produtividade_2": 1}, "tempo": 30.0},
+ "modulo_produtividade_3": {"maquina": "montadora", "entradas": {"modulo_produtividade_2": 3, "processador_quantico": 1}, "saidas": {"modulo_produtividade_3": 1}, "tempo": 60.0}
 }

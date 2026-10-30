@@ -39,6 +39,13 @@ var emissao: Dictionary = {}           ## id → pontos de poluição emitidos n
 var fator_kw: Dictionary = {}         ## id → fração do consumo agora (o mundo põe: lançador parado puxa 5%)
 var estoque_nucleo: Dictionary = {}    ## o mesmo dicionário do inventário do Construtor (tudo que entra no núcleo)
 var pesquisa: Pesquisa = null
+var torre_especial: Callable           ## (opcional) func(id, item) — munição especial (perfurante, carregada, enxame)
+var linha2: Dictionary = {}            ## id (montadora quântica, regra "linhas": 2) → 2ª Maquina: a segunda receita
+var _efeitos: Dictionary = {}          ## id → efeito dos módulos (próprios + irradiadores), refeito em _aplicar_melhorias
+var _modulos_rev := 0                  ## muda quando se encaixa/tira módulo
+var _reducao_energia := 0.0            ## Eficiência de rede N (refeito com as melhorias; kw_de roda muito)
+var _irradiadores: Array[int] = []     ## ids dos irradiadores de módulos
+var _silos_fluido: Array[Dictionary] = []  ## {id (silo de lançamento), rede}: cano encostado na boca de fluido
 var laboratorios: Dictionary = {}      ## id → {pacotes: {item: n}, t, energia}
 var concluidas: Array[String] = []     ## pesquisas terminadas no último tick (o mundo avisa)
 var passos := 0                        ## quantos ticks já rodaram (o desenho só refaz quando muda)
@@ -110,7 +117,7 @@ func reconstruir() -> void:
 	var vivos := {}
 	for id in mapa.estruturas:
 		vivos[id] = true
-	for d in [maquinas, bracos, baus, combustivel, fator_fogo, laboratorios, distribuidores, acumulado, carga_torre, energia_rede, agua_reator]:
+	for d in [maquinas, linha2, bracos, baus, combustivel, fator_fogo, laboratorios, distribuidores, acumulado, carga_torre, energia_rede, agua_reator]:
 		for id in d.keys():
 			if not vivos.has(id):
 				d.erase(id)
@@ -125,6 +132,7 @@ func reconstruir() -> void:
 	_montar_logica()
 	_restaurar_fluidos(fluido_salvo)
 	_restaurar_itens(guardados)
+	_melhorias_de = ""                     # velocidades voltaram à base: módulos e melhorias se reaplicam no próximo tick
 
 
 ## Nós de esteira chaveados por (tile, nível de entrada): esteira elevada e rampa (sobe/desce) entram na mesma
@@ -286,13 +294,21 @@ func _montar_maquinas() -> void:
 				"estacao_drones":
 					m.definir_receita("fabricar_drone", Registro.receitas["fabricar_drone"])
 					m.retem = ["drone"]                 # o drone pronto entra na frota (Drones), não vai para braço
+		if int(r.get("linhas", 1)) >= 2 and not linha2.has(id):
+			linha2[id] = Maquina.new(e.nome, float(r.get("velocidade", 1.0)))
+		if linha2.has(id):
+			linha2[id].velocidade = float(r.get("velocidade", 1.0)) * float(modo(id)[0])
+		maquinas[id].rende_esgotada = float(r.get("rende_esgotada", 0.0))
 		maquinas[id].velocidade = float(r.get("velocidade", 1.0)) * float(modo(id)[0])
 		maquinas[id].tanque_fluido = float(r.get("tanque_fluido", 0.0))
 		maquinas[id].transborda = bool(r.get("transborda", false))
 		if r.get("combustivel", false) and not combustivel.has(id):
 			combustivel[id] = 0.0
+	_irradiadores.clear()
 	for id in mapa.estruturas:
 		var e: Dictionary = mapa.estruturas[id]
+		if Registro.estruturas.get(e.nome, {}).has("irradiador"):
+			_irradiadores.append(id)
 		if (Registro.estruturas.get(e.nome, {}).get("grupo", "") == "armazem" or eh_posto(e.nome)) and not baus.has(id):
 			baus[id] = {}                                      # (o posto avançado guarda o estoque próprio como um baú)
 			if e.has("kit_inicial"):                           # colônia: nasce com o kit da semente
@@ -323,6 +339,10 @@ func carga_max(id: int) -> float:
 
 func _bonus(chave: String) -> float:
 	return pesquisa.bonus(chave) if pesquisa != null else 0.0
+
+
+func bonus_de(chave: String) -> float:
+	return _bonus(chave)
 
 
 ## Energia de um raio (para-raios, captador, cúpula) entrando na rede de `id`: vai para os acumuladores dela, cada um
@@ -433,7 +453,8 @@ func kw_de(id: int) -> float:
 	if not ligada(id):
 		return 0.0
 	if kw > 0.0:
-		kw *= float(modo(id)[1])
+		kw *= float(modo(id)[1]) * float(_efeito(id).energia)
+		kw *= 1.0 - _reducao_energia                      # Eficiência de rede N: −5% por nível, até −50%
 		if regra.has("escudo"):
 			kw *= 1.0 + _bonus("escudo_recarga")          # escudo 2: recarga 2×
 	if regra.has("agua_por_mj") and float(agua_reator.get(id, 0.0)) <= 0.0:
@@ -499,7 +520,26 @@ func _montar_energia() -> void:
 		for o in mapa.estruturas[id].get("fios", []):
 			if o > id:
 				rede.ligar(id, o)
+	_ligar_colonias()
 	rede.calcular()
+
+
+## Mente distribuída (rede_colonias): as colônias e o núcleo trocam energia sem cabo — a rede de cada um vira uma só.
+var _colonias_ligadas := false
+
+
+func _ligar_colonias() -> void:
+	_colonias_ligadas = pesquisa != null and pesquisa.modo_liberado("rede_colonias")
+	if not _colonias_ligadas:
+		return
+	var primeiro := -1
+	for id in _membros:
+		var e: Dictionary = mapa.estruturas[id]
+		if e.nome == "nucleo" or (eh_posto(e.nome) and bool(e.get("colonia", false))):
+			if primeiro < 0:
+				primeiro = id
+			else:
+				rede.ligar(primeiro, id)
 
 
 ## Trilho energizado (trem_eletrico): peças encostadas formam um trecho; o terceiro trilho conduz, então basta uma
@@ -547,7 +587,7 @@ func pedir_trilho(id: int, kw: float) -> void:
 ## Ponta de caminho: lateral de outra esteira (carga lateral) ou porta de entrada de máquina/estação/torre.
 ## Só extratores (broca, extrator de cristal) despejam direto na esteira em frente — como uma broca de verdade.
 ## Toda outra construção recebe e entrega itens um a um pelas mãos de um braço (nada entra ou sai sozinho).
-const DESPEJA_NA_ESTEIRA := ["broca_minerio", "broca_grande", "extrator_cristal"]
+const DESPEJA_NA_ESTEIRA := ["broca_minerio", "broca_grande", "broca_nucleo", "extrator_cristal", "extrator_ressonante"]
 
 
 func _ligar_pontas() -> void:
@@ -658,10 +698,11 @@ func _portas(id: int) -> Array[Dictionary]:
 	return out
 
 
-## Receita escolhida pelo jogador (montadora, refinador, fornalha). O que estava dentro volta para o núcleo.
-func escolher_receita(id: int, receita: String) -> void:
-	if maquinas.has(id) and Registro.receitas.has(receita):
-		var m: Maquina = maquinas[id]
+## Receita escolhida pelo jogador (montadora, refinador, fornalha, forja). O que estava dentro volta para o núcleo.
+## `linha` 2 = a segunda receita da montadora quântica.
+func escolher_receita(id: int, receita: String, linha := 1) -> void:
+	if maquinas.has(id) and Registro.receitas.has(receita) and (linha == 1 or linha2.has(id)):
+		var m: Maquina = maquinas[id] if linha == 1 else linha2[id]
 		# o que estava dentro volta para o núcleo (no modo livre, sem núcleo, some)
 		for d in [m.entradas, m.saidas]:
 			for k in d:
@@ -755,18 +796,160 @@ func por_combustivel(id: int, item: String) -> void:
 ## Melhorias pesquisadas que mudam números das máquinas: produtividade de mineração na broca e no extrator.
 ## Barato de conferir a cada tick (só refaz quando a lista de concluídas muda ou as máquinas mudam).
 func _aplicar_melhorias() -> void:
-	var assin := "%d|%d|%s" % [maquinas.size(), mapa.versao, pesquisa.assinatura() if pesquisa != null else ""]
+	var assin := "%d|%d|%d|%s|%s" % [maquinas.size(), mapa.versao, _modulos_rev, _irradiadores_ligados(), pesquisa.assinatura() if pesquisa != null else ""]
 	if assin == _melhorias_de:
 		return
 	_melhorias_de = assin
+	_reducao_energia = minf(_bonus("reducao_energia"), 0.5)
+	_recalcular_efeitos()
 	var prod := pesquisa.bonus("produtividade_mineracao") if pesquisa != null else 0.0
 	# filtro que devolve água (pesquisa filtro_agua_limpa): a mesma limpeza, soltando água limpa pelo cano
 	var filtro := "filtrar_agua_limpa" if pesquisa != null and pesquisa.receita_liberada("filtrar_agua_limpa") else "filtrar_agua"
 	for id in maquinas:
 		var tipo: String = Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("maquina", "") if mapa.estruturas.has(id) else ""
-		(maquinas[id] as Maquina).produtividade = prod if tipo in ["broca", "extrator"] else 0.0
+		var ef: Dictionary = _efeito(id)
+		var mq: Maquina = maquinas[id]
+		mq.produtividade = (prod if tipo in ["broca", "extrator"] else 0.0) + float(ef.produtividade)
+		if mapa.estruturas.has(id):
+			var base := float(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("velocidade", 1.0)) * float(modo(id)[0]) * float(ef.velocidade)
+			mq.velocidade = base
+			if linha2.has(id):
+				linha2[id].velocidade = base
+				linha2[id].produtividade = float(ef.produtividade)
 		if tipo == "filtro" and maquinas[id].receita_id != filtro:
 			maquinas[id].definir_receita(filtro, Registro.receitas[filtro])
+	for id in _membros:                         # módulos e Eficiência de rede mudam o consumo de quem já está na rede
+		var mb: Dictionary = _membros[id]
+		if not mb.livre and mb.kw >= 0.0 and mb.acum_cap <= 0.0:
+			mb.kw = kw_de(id)
+	if pesquisa != null and pesquisa.modo_liberado("rede_colonias") and not _colonias_ligadas:
+		_ligar_colonias()                       # pesquisa acabou de sair: junta as redes sem esperar obra
+		rede.calcular()
+
+
+# ------------------------------------------------------------------ módulos
+const EFEITO_NEUTRO := {"velocidade": 1.0, "energia": 1.0, "poluicao": 1.0, "produtividade": 0.0}
+const EFEITO_MINIMO := 0.2                      ## velocidade, energia e poluição não caem abaixo de 20%
+
+
+func _efeito(id: int) -> Dictionary:
+	return _efeitos.get(id, EFEITO_NEUTRO)
+
+
+## Efeito somado dos módulos que valem na estrutura (os dela e os dos irradiadores ligados perto), para o painel.
+func efeito_modulos(id: int) -> Dictionary:
+	return _efeito(id)
+
+
+static func eh_modulo(item: String) -> bool:
+	return Registro.itens.get(item, {}).has("modulo")
+
+
+## Quantos módulos a estrutura leva (máquinas e laboratórios: encaixes_modulo; irradiador: regra.irradiador.encaixes).
+static func encaixes(nome: String) -> int:
+	var r: Dictionary = Registro.estruturas.get(nome, {})
+	return int(r.irradiador.get("encaixes", 0)) if r.has("irradiador") else int(r.get("encaixes_modulo", 0))
+
+
+func modulos_de(id: int) -> Array:
+	return mapa.estruturas[id].get("modulos", []) if mapa.estruturas.has(id) else []
+
+
+## O módulo cabe nesta estrutura? Encaixe livre e, no irradiador, nada de produtividade (só velocidade e eficiência).
+func aceita_modulo(id: int, item: String) -> bool:
+	if not mapa.estruturas.has(id) or not eh_modulo(item):
+		return false
+	var nome: String = mapa.estruturas[id].nome
+	if Registro.estruturas.get(nome, {}).has("irradiador") and Registro.itens[item].modulo.has("produtividade"):
+		return false
+	return modulos_de(id).size() < encaixes(nome)
+
+
+## Encaixa um módulo do estoque do núcleo (o painel chama). `gratis` no modo demonstração, que não tem estoque.
+func por_modulo(id: int, item: String, gratis := false) -> bool:
+	if not aceita_modulo(id, item) or (not gratis and int(estoque_nucleo.get(item, 0)) <= 0):
+		return false
+	if not gratis:
+		estoque_nucleo[item] = int(estoque_nucleo[item]) - 1
+	var e: Dictionary = mapa.estruturas[id]
+	if not e.has("modulos"):
+		e["modulos"] = []
+	e.modulos.append(item)
+	_modulos_rev += 1
+	return true
+
+
+## Tira o módulo do encaixe `i`; ele volta para o estoque do núcleo. Devolve o item ("" se não havia).
+func tirar_modulo(id: int, i: int) -> String:
+	var lista := modulos_de(id)
+	if i < 0 or i >= lista.size():
+		return ""
+	var item: String = lista[i]
+	lista.remove_at(i)
+	estoque_nucleo[item] = int(estoque_nucleo.get(item, 0)) + 1
+	_modulos_rev += 1
+	return item
+
+
+## Soma o efeito de `item` (× `fator`) em `ef`.
+static func _somar_modulo(ef: Dictionary, item: String, fator: float) -> void:
+	var m: Dictionary = Registro.itens.get(item, {}).get("modulo", {})
+	for k in m:
+		ef[k] = float(ef[k]) + float(m[k]) * fator
+
+
+## Refaz o efeito de todos: módulos da própria estrutura (100%) + os dos irradiadores com energia cuja borda está a até
+## `raio` tiles (regra.irradiador.efeito cada). Só refeito quando algo muda (ver _aplicar_melhorias).
+func _recalcular_efeitos() -> void:
+	_efeitos.clear()
+	var alvos: Array = maquinas.keys() + laboratorios.keys()
+	for id in alvos:
+		if not mapa.estruturas.has(id):
+			continue
+		var lista: Array = mapa.estruturas[id].get("modulos", [])
+		if lista.is_empty():
+			continue
+		var ef: Dictionary = EFEITO_NEUTRO.duplicate()
+		for item in lista:
+			_somar_modulo(ef, item, 1.0)
+		_efeitos[id] = ef
+	for ir in _irradiadores:
+		if not mapa.estruturas.has(ir) or energia(ir) <= 0.0:
+			continue
+		var ei: Dictionary = mapa.estruturas[ir]
+		var lista: Array = ei.get("modulos", [])
+		if lista.is_empty():
+			continue
+		var cfg: Dictionary = Registro.estruturas[ei.nome].irradiador
+		var raio := int(cfg.get("raio", 3))
+		var caixa := Rect2i(ei.minimo, Grade.area_girada(ei.area, ei.rot)).grow(raio)
+		for id in alvos:
+			if not mapa.estruturas.has(id):
+				continue
+			var e: Dictionary = mapa.estruturas[id]
+			if not caixa.intersects(Rect2i(e.minimo, Grade.area_girada(e.area, e.rot))):
+				continue
+			var ef: Dictionary = _efeitos.get(id, EFEITO_NEUTRO.duplicate())
+			for item in lista:
+				_somar_modulo(ef, item, float(cfg.get("efeito", 0.5)))
+			_efeitos[id] = ef
+	for id in _efeitos:
+		for k in ["velocidade", "energia", "poluicao"]:
+			_efeitos[id][k] = maxf(float(_efeitos[id][k]), EFEITO_MINIMO)
+
+
+func _irradiadores_ligados() -> String:
+	var s := ""
+	for id in _irradiadores:
+		s += "1" if energia(id) > 0.0 else "0"
+	return s
+
+
+## A máquina está trabalhando em alguma linha? (animação; a montadora quântica tem duas.)
+func trabalhando(id: int) -> bool:
+	if maquinas.has(id) and maquinas[id].estado == Maquina.Estado.TRABALHANDO:
+		return true
+	return linha2.has(id) and linha2[id].estado == Maquina.Estado.TRABALHANDO
 
 
 # ------------------------------------------------------------------ tick
@@ -851,7 +1034,14 @@ func tick(dt: float) -> void:
 			_emitir(id, dt * m.energia)
 			if combustivel.has(id):
 				combustivel[id] = maxf(0.0, combustivel[id] - FOGO_KW / 1000.0 * dt)
+	for id in linha2:                           # montadora quântica: a segunda receita, na mesma energia
+		var m2: Maquina = linha2[id]
+		m2.energia = maquinas[id].energia
+		m2.tick(dt)
+		if m2.estado == Maquina.Estado.TRABALHANDO:
+			_emitir(id, dt * m2.energia)
 	_tick_fluidos(dt)
+	_tick_silos_fluido()
 	_tick_geradores_fluido()
 	_tick_estacoes_fluido(dt)
 	_tick_valvulas(dt)
@@ -888,7 +1078,8 @@ func tick(dt: float) -> void:
 		var lab: Dictionary = laboratorios[id]
 		if pesquisa == null or pesquisa.ativa == "" or not lab_tem_unidade(lab) or lab.energia <= 0.0:
 			continue
-		lab.t += dt * lab.energia * float(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("velocidade", 1.0))   # laboratório 2: 2×
+		var ef: Dictionary = _efeito(id)
+		lab.t += dt * lab.energia * float(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("velocidade", 1.0)) * float(ef.velocidade)   # laboratório 2: 2×; quântico: 4×
 		if lab.t >= pesquisa.tempo_por_pacote():
 			lab.t = 0.0
 			for t in pesquisa.tipos_ativa():          # uma unidade: 1 pacote de cada tipo
@@ -896,6 +1087,12 @@ func tick(dt: float) -> void:
 			var fim := pesquisa.avancar()
 			if fim != "":
 				concluidas.append(fim)
+			lab["extra"] = float(lab.get("extra", 0.0)) + float(ef.produtividade)   # módulo de produtividade: unidade de graça
+			while float(lab.extra) >= 1.0 - 1e-6:
+				lab.extra = float(lab.extra) - 1.0
+				var fim2 := pesquisa.avancar()
+				if fim2 != "":
+					concluidas.append(fim2)
 	for id in bracos:
 		bracos[id].tick(dt)
 	for s in _sens_esteira:                     # sensor de esteira: quantos estavam além da marca antes de andar
@@ -970,7 +1167,7 @@ func _emitir(id: int, segundos: float) -> void:
 	var nome: String = mapa.estruturas[id].nome
 	var p := float(Registro.estruturas.get(nome, {}).get("poluicao", 0.0)) * float(fator_fogo.get(id, 1.0))
 	if p > 0.0:
-		emissao[id] = float(emissao.get(id, 0.0)) + p / 60.0 * segundos * float(modo(id)[2])
+		emissao[id] = float(emissao.get(id, 0.0)) + p / 60.0 * segundos * float(modo(id)[2]) * float(_efeito(id).poluicao)
 
 
 ## Ponto do mundo (plano da grade) de um item na esteira: `pos` = distância da saída do caminho.
@@ -1077,6 +1274,14 @@ func _montar_fluidos() -> void:
 			var cano: int = pontas.get("%s|%s" % [p.tile_fora, -p.dir], -1)
 			if p.tipo == "FLUIDO" and p.io == "ENT" and cano >= 0:
 				_geradores_fluido.append({"id": id, "rede": _rede_do[cano]})
+	_silos_fluido.clear()
+	for id in mapa.estruturas:
+		if not Registro.estruturas.get(mapa.estruturas[id].nome, {}).has("silo"):
+			continue
+		for p in _portas(id):                  # silo de lançamento: a boca de fluido (leste) enche o tanque de propelente
+			var cano: int = pontas.get("%s|%s" % [p.tile_fora, -p.dir], -1)
+			if p.tipo == "FLUIDO" and p.io == "ENT" and cano >= 0:
+				_silos_fluido.append({"id": id, "rede": _rede_do[cano]})
 	_estacoes_fluido.clear()
 	for id in mapa.estruturas:
 		if mapa.estruturas[id].nome != "bomba_estacao":
@@ -1191,6 +1396,29 @@ func _tick_fluidos(dt: float) -> void:
 		if rede.qtd <= 0.001:
 			rede.qtd = 0.0
 			rede.fluido = ""
+
+
+## Silo de lançamento puxa da rede do cano o fluido das partes (propelente) até encher o tanque; outro fluido não entra.
+func _tick_silos_fluido() -> void:
+	for l in _silos_fluido:
+		if not mapa.estruturas.has(l.id):
+			continue
+		var e: Dictionary = mapa.estruturas[l.id]
+		var s: Dictionary = Registro.estruturas[e.nome].silo
+		var rede_f: Dictionary = redes_fluido[l.rede]
+		if not (s.get("parte_fluido", {}) as Dictionary).has(rede_f.fluido) or rede_f.qtd <= 0.0:
+			continue
+		var vem := minf(rede_f.qtd, maxf(0.0, float(s.get("tanque", 500)) - float(e.get("propelente", 0.0))))
+		rede_f.qtd -= vem
+		e["propelente"] = float(e.get("propelente", 0.0)) + vem
+		if rede_f.qtd <= 0.001:
+			rede_f.qtd = 0.0
+			rede_f.fluido = ""
+
+
+## O silo está ligado em algum cano?
+func silo_no_cano(id: int) -> bool:
+	return _silos_fluido.any(func(l): return l.id == id)
 
 
 ## Gerador a fluido: queima fluido do cano ("combustivel_fluido": fluido → MJ por unidade em estruturas.json).
@@ -1436,6 +1664,10 @@ func estado() -> Dictionary:
 		var m: Maquina = maquinas[id]
 		maq[id] = {"receita": m.receita_id, "entradas": m.entradas, "saidas": m.saidas, "progresso": m.progresso,
 				"produzidos": m.produzidos, "fluidos": m.fluidos, "extra": m.extra}
+		if linha2.has(id):
+			var l2: Maquina = linha2[id]
+			maq[id]["linha2"] = {"receita": l2.receita_id, "entradas": l2.entradas, "saidas": l2.saidas, "progresso": l2.progresso,
+					"produzidos": l2.produzidos, "fluidos": l2.fluidos, "extra": l2.extra}
 	var br := {}
 	for id in bracos:
 		var b: Braco = bracos[id]
@@ -1454,15 +1686,9 @@ func restaurar(d: Dictionary) -> void:
 			continue
 		var s: Dictionary = d.maquinas[id]
 		var m: Maquina = maquinas[id]
-		if s.receita != "" and Registro.receitas.has(s.receita):
-			m.definir_receita(s.receita, Registro.receitas[s.receita])
-		m.entradas = s.entradas
-		m.saidas = s.saidas
-		m.progresso = s.progresso
-		m.produzidos = s.produzidos
-		m.fluidos = s.get("fluidos", {})
-		m.extra = float(s.get("extra", 0.0))
-		m.acordar()
+		_restaurar_maquina(m, s)
+		if linha2.has(id) and s.has("linha2"):
+			_restaurar_maquina(linha2[id], s.linha2)
 	for id in d.get("bracos", {}):
 		if bracos.has(id):
 			var b: Braco = bracos[id]
@@ -1503,6 +1729,18 @@ func restaurar(d: Dictionary) -> void:
 	var itens: Array[Dictionary] = []
 	itens.assign(d.get("itens", []))
 	_restaurar_itens(itens)
+
+
+func _restaurar_maquina(m: Maquina, s: Dictionary) -> void:
+	if s.receita != "" and Registro.receitas.has(s.receita):
+		m.definir_receita(s.receita, Registro.receitas[s.receita])
+	m.entradas = s.entradas
+	m.saidas = s.saidas
+	m.progresso = s.progresso
+	m.produzidos = s.produzidos
+	m.fluidos = s.get("fluidos", {})
+	m.extra = float(s.get("extra", 0.0))
+	m.acordar()
 
 
 # ------------------------------------------------------------------ guardar/restaurar itens das esteiras
@@ -1559,10 +1797,12 @@ class _NaMaquina:
 	var f: Fabrica
 	var id: int
 	var m: Maquina
+	var m2: Maquina = null        ## montadora quântica: a segunda receita
 	func _init(p_f: Fabrica, p_id: int) -> void:
 		f = p_f
 		id = p_id
 		m = f.maquinas[id]
+		m2 = f.linha2.get(id)
 	func _combustivel(i: String) -> bool:
 		return f.combustivel.has(id) and Fabrica.valor_combustivel(i) > 0.0
 	func aceita(i: String) -> bool:
@@ -1570,7 +1810,7 @@ class _NaMaquina:
 			return f.combustivel[id] < Fabrica.ESTOQUE_FOGO_MJ
 		if m.receita.is_empty() and Registro.estruturas.get(m.nome, {}).get("maquina", "") == "fornalha":
 			return _receita_para(i) != ""           # as fornalhas escolhem a receita pelo que chega
-		return m.aceita(i)
+		return m.aceita(i) or (m2 != null and m2.aceita(i))
 	func receber(i: String) -> bool:
 		if not aceita(i):
 			return false
@@ -1578,23 +1818,34 @@ class _NaMaquina:
 			f.por_combustivel(id, i)
 			m.acordar()
 			return true
-		if m.receita.is_empty():
+		if m.receita.is_empty() and m2 == null:
 			var r := _receita_para(i)
 			m.definir_receita(r, Registro.receitas[r])
-		return m.receber(i)
+		if m.aceita(i):
+			return m.receber(i)
+		return m2.receber(i)
+	## Receita da fornalha para o item: a exclusiva desta máquina primeiro (fundição: minério direto em aço).
 	func _receita_para(i: String) -> String:
+		var comum := ""
 		for k in Registro.receitas_da_maquina("fornalha"):
-			if Registro.receitas[k].get("entradas", {}).has(i):
-				return k
-		return ""
-	func pegar_para_braco(filtro: String) -> String: return m.pegar_para_braco(filtro)
+			if Registro.receitas[k].get("entradas", {}).has(i) and Registro.receita_cabe(k, m.nome):
+				if Registro.receitas[k].has("so_em"):
+					return k
+				if comum == "":
+					comum = k
+		return comum
+	func pegar_para_braco(filtro: String) -> String:
+		var item := m.pegar_para_braco(filtro)
+		return item if item != "" or m2 == null else m2.pegar_para_braco(filtro)
 	func pegar_se(aceito: Callable) -> String:
-		for item in m.saidas:
-			if int(m.saidas[item]) > 0 and not item in m.retem and aceito.call(item):
-				return m.pegar_para_braco(item)
+		for q: Maquina in ([m, m2] if m2 != null else [m]):
+			for item in q.saidas:
+				if int(q.saidas[item]) > 0 and not item in q.retem and aceito.call(item):
+					return q.pegar_para_braco(item)
 		return ""
 	func devolver(i: String) -> void:
-		m.saidas[i] = int(m.saidas.get(i, 0)) + 1
+		var q: Maquina = m2 if m2 != null and m2.receita.get("saidas", {}).has(i) and not m.receita.get("saidas", {}).has(i) else m
+		q.saidas[i] = int(q.saidas.get(i, 0)) + 1
 
 
 class _NoBau:
@@ -1655,11 +1906,17 @@ class _NaTorre:
 	func _init(p_f: Fabrica, p_id: int) -> void:
 		f = p_f
 		id = p_id
+	func _especial(i: String) -> bool:
+		return f.torre_especial.is_valid() and Colonia.especiais(f.mapa.estruturas[id].nome).has(i)
 	func aceita(i: String) -> bool:
-		return f.mapa.estruturas.has(id) and i == Colonia.item_municao(f.mapa.estruturas[id].nome) \
-				and f.torre_receber.is_valid() and (not f.torre_aceita.is_valid() or f.torre_aceita.call(id))
+		if not f.mapa.estruturas.has(id) or not (i == Colonia.item_municao(f.mapa.estruturas[id].nome) or _especial(i)):
+			return false
+		return f.torre_receber.is_valid() and (not f.torre_aceita.is_valid() or f.torre_aceita.call(id))
 	func receber(i: String) -> bool:
 		if not aceita(i): return false
+		if _especial(i):
+			f.torre_especial.call(id, i)
+			return true
 		f.torre_receber.call(id, Colonia.tiros_por_item(f.mapa.estruturas[id].nome))
 		return true
 

@@ -119,6 +119,8 @@ func pacote_liberado(item: String) -> bool:
 		return true
 	if not item in TIPOS_PACOTE.values():
 		return false
+	if item == "pacote_genese":              # sem receita: quem faz é a colônia viva (pesquisa Colônias)
+		return modo_liberado("colonias")
 	for r in Registro.receitas:
 		if Registro.receitas[r].get("saidas", {}).has(item) and receita_liberada(r):
 			return true

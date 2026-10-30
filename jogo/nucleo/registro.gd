@@ -66,6 +66,13 @@ func nome_fluido(f: String) -> String:
 	return String(fluidos.get(f, {}).get("nome", f.capitalize()))
 
 
+## A estrutura `nome` faz a receita `r`? Receita com "so_em" só sai nas estruturas da lista (casco de foguete: só a
+## montadora quântica; propelente: só o refinador 2; aço direto do minério: só a fundição de cristal).
+func receita_cabe(r: String, nome: String) -> bool:
+	var so: Array = receitas.get(r, {}).get("so_em", [])
+	return so.is_empty() or nome in so
+
+
 func receitas_da_maquina(maquina: String) -> Array[String]:
 	var out: Array[String] = []
 	for k in receitas:

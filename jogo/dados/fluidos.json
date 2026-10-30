@@ -3,5 +3,6 @@
  "seiva":      {"nome": "Seiva"},
  "agua":       {"nome": "Água"},
  "agua_limpa": {"nome": "Água limpa", "serve_como": "agua"},
- "combustivel_seiva": {"nome": "Combustível de seiva"}
+ "combustivel_seiva": {"nome": "Combustível de seiva"},
+ "propelente_cristal": {"nome": "Propelente de cristal"}
 }

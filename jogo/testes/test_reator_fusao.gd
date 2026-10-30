@@ -2,8 +2,7 @@ extends Caso
 ## Reator de fusão (reator_fusao, lote 14 — energia II): modelo do estudo (estudo_reator_fusao.py, do Antigravity;
 ## arte/estudos/conv_lote14.py) com plasma, anel e fluxômetros; pesquisa fusao (reator de cristal + computação quântica;
 ## 6 pacotes × 300, 15 s). 30 MW: cristal carregado (1.800 MJ) por braço na boca sul e água pelo cano da boca oeste
-## (15/s a plena carga). Continua em desenvolvimento até a computação quântica e o pacote quântico existirem; na
-## Demonstração já se constrói.
+## (15/s a plena carga). Pesquisável depois da computação quântica (lote 11); na Demonstração já se constrói.
 
 
 func _c() -> Dictionary:
@@ -135,8 +134,8 @@ func test_pesquisa() -> void:
 	var p := Pesquisa.new()
 	verificar(p.jogavel("fusao"), "Reator de fusão ligada no progressao.json")
 	igual(p.custo("fusao"), {"pacote_pesquisa": 300, "pacote_automacao": 300, "pacote_quimico": 300, "pacote_ecologico": 300, "pacote_tempestade": 300, "pacote_quantico": 300}, "custo da árvore")
-	verificar(p.em_desenvolvimento("fusao"), "em desenvolvimento: falta a computação quântica e o pacote quântico")
-	verificar(p.peca_em_desenvolvimento("reator_fusao"), "peça em desenvolvimento pelo mesmo motivo")
+	verificar(not p.em_desenvolvimento("fusao"), "fora do em desenvolvimento")
+	verificar(not p.peca_em_desenvolvimento("reator_fusao"), "a peça não fica em cinza")
 	verificar(not p.disponivel("fusao"), "não se pesquisa")
 	var q := Pesquisa.new()
 	q.concluidas = {"fusao": true}

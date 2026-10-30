@@ -66,7 +66,7 @@ func test_pesquisas() -> void:
 	verificar(not p.disponivel("controle_vento"), "defletor pede a turbina alta pesquisada")
 	p.concluidas["turbina_alta"] = true
 	verificar(p.disponivel("controle_vento"), "com semeadura e turbina alta: defletor pesquisável")
-	verificar(not p.jogavel("computacao_quantica"), "computação quântica em breve")
+	verificar(p.jogavel("computacao_quantica"), "computação quântica é do jogo")
 	verificar(not p.disponivel("controle_clima"), "regulador travado pela computação quântica")
 	p.concluidas.merge({"semeadura_nuvens": true, "cupula_tempestade": true})
 	for par in [["semeadura_nuvens", "semeador_nuvens"], ["cupula_tempestade", "cupula_raios"], ["controle_vento", "defletor_vento"], ["controle_clima", "regulador_clima"]]:

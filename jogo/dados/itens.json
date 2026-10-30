@@ -39,5 +39,21 @@
  "drone":             {"nome": "Drone",            "grupo": "avancado",      "pilha": 20,  "modelo_de": "motor"},
  "residuo":           {"nome": "Resíduo",          "grupo": "intermediario", "pilha": 100, "modelo_de": "tijolo", "matiz": 0.12},
  "nucleo_semente":    {"nome": "Núcleo-semente",   "grupo": "avancado",      "pilha": 5,   "modelo_de": "nucleo_cristal", "matiz": 0.12},
- "pacote_genese":     {"nome": "Pacote gênese",    "grupo": "avancado",      "pilha": 200, "modelo_de": "pacote_pesquisa", "matiz": 0.16}
+ "pacote_genese":     {"nome": "Pacote gênese",    "grupo": "avancado",      "pilha": 200, "modelo_de": "pacote_pesquisa", "matiz": 0.16},
+ "processador_quantico": {"nome": "Processador quântico", "grupo": "avancado", "pilha": 50, "modelo_de": "circuito", "matiz": 0.5},
+ "pacote_quantico": {"nome": "Pacote quântico", "grupo": "avancado", "pilha": 200, "modelo_de": "pacote_pesquisa", "matiz": 0.5},
+ "mapa_estelar": {"nome": "Mapa estelar", "grupo": "avancado", "pilha": 20, "modelo_de": "circuito", "matiz": 0.6},
+ "casco_foguete": {"nome": "Casco de foguete", "grupo": "avancado", "pilha": 20, "modelo_de": "placa_cobre", "matiz": 0.1},
+ "municao_perfurante": {"nome": "Munição perfurante", "grupo": "avancado", "pilha": 200, "modelo_de": "municao", "matiz": 0.02},
+ "municao_carregada": {"nome": "Munição carregada", "grupo": "avancado", "pilha": 200, "modelo_de": "municao", "matiz": 0.75},
+ "foguete_enxame": {"nome": "Foguete de enxame", "grupo": "avancado", "pilha": 50, "modelo_de": "municao", "matiz": 0.35},
+ "modulo_velocidade_1": {"nome": "Módulo de velocidade 1", "grupo": "avancado", "pilha": 50, "modelo_de": "modulo_controle", "matiz": 0.6, "modulo": {"velocidade": 0.2, "energia": 0.5}},
+ "modulo_velocidade_2": {"nome": "Módulo de velocidade 2", "grupo": "avancado", "pilha": 50, "modelo_de": "modulo_controle", "matiz": 0.6, "modulo": {"velocidade": 0.3, "energia": 0.5}},
+ "modulo_velocidade_3": {"nome": "Módulo de velocidade 3", "grupo": "avancado", "pilha": 50, "modelo_de": "modulo_controle", "matiz": 0.6, "modulo": {"velocidade": 0.5, "energia": 0.5}},
+ "modulo_eficiencia_1": {"nome": "Módulo de eficiência 1", "grupo": "avancado", "pilha": 50, "modelo_de": "modulo_controle", "matiz": 0.33, "modulo": {"energia": -0.3, "poluicao": -0.3}},
+ "modulo_eficiencia_2": {"nome": "Módulo de eficiência 2", "grupo": "avancado", "pilha": 50, "modelo_de": "modulo_controle", "matiz": 0.33, "modulo": {"energia": -0.4, "poluicao": -0.4}},
+ "modulo_eficiencia_3": {"nome": "Módulo de eficiência 3", "grupo": "avancado", "pilha": 50, "modelo_de": "modulo_controle", "matiz": 0.33, "modulo": {"energia": -0.5, "poluicao": -0.5}},
+ "modulo_produtividade_1": {"nome": "Módulo de produtividade 1", "grupo": "avancado", "pilha": 50, "modelo_de": "modulo_controle", "matiz": 0.05, "modulo": {"produtividade": 0.04, "velocidade": -0.15, "poluicao": 0.4}},
+ "modulo_produtividade_2": {"nome": "Módulo de produtividade 2", "grupo": "avancado", "pilha": 50, "modelo_de": "modulo_controle", "matiz": 0.05, "modulo": {"produtividade": 0.06, "velocidade": -0.15, "poluicao": 0.4}},
+ "modulo_produtividade_3": {"nome": "Módulo de produtividade 3", "grupo": "avancado", "pilha": 50, "modelo_de": "modulo_controle", "matiz": 0.05, "modulo": {"produtividade": 0.1, "velocidade": -0.15, "poluicao": 0.4}}
 }

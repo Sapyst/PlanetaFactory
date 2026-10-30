@@ -1,0 +1,62 @@
+{
+ "nome": "broca_nucleo",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Broca de núcleo 3×3 (estudo_broca_nucleo.py): torre derrick com top drive, haste e trado de tungstênio, peneira vibratória, boca de fluido a oeste e esteira de saída ao sul. Jazida esgotada continua rendendo 10% para sempre.",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_SAI_S1",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    -1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_ENT_O1",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    -1.5,
+    0.0,
+    0.35
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 3784,
+ "dims": [
+  2.98,
+  2.98,
+  2.874
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_broca_nucleo.py"
+}

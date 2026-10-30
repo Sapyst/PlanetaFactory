@@ -1,0 +1,92 @@
+{
+ "nome": "fundicao_cristal",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Fundição de cristal 3×3 (estudo_fundicao_cristal.py): cadinho de metal líquido com 4 cristais de foco, corrente de lingotes ao norte, entradas sul e oeste, baia com 4 encaixes de módulo, coifa e ciclone. Velocidade 4,0; funde minério direto em aço.",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_ENT_O1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    -1.5,
+    0.0,
+    0.23
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_N1",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_ENT_L1",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    1.5,
+    0.0,
+    0.35
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 6726,
+ "dims": [
+  3.0,
+  3.0,
+  2.095
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_fundicao_cristal.py"
+}

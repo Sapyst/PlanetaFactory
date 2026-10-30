@@ -69,6 +69,7 @@ var condicoes: Dictionary = {}        ## id da estação (texto) → "tempo" | "
 var parado_em := -1                   ## estação onde está parado (PARADO)
 var retroca := -1                     ## estação onde trocar carga de novo (esperando condição; o mundo lê e zera)
 var vel_max := VEL_MAX                ## locomotiva elétrica: o mundo põe 2× no trilho energizado com energia
+var fator_vel := 1.0                  ## Velocidade de frota N: +10% por nível (o mundo põe)
 
 
 func _init(p_id: int, p_grafo: GrafoTrilhos, p_carros: Array[String]) -> void:
@@ -272,7 +273,7 @@ func _andar(dt: float) -> void:
 		if grafo.reserva[b] == id and not precisa.has(b):
 			grafo.reserva.erase(b)
 	var livre := maxf(limite - s, 0.0)
-	var vmax := minf(vel_max, sqrt(2.0 * FREIO * livre))
+	var vmax := minf(vel_max * fator_vel, sqrt(2.0 * FREIO * livre))
 	var acel := ACEL * maxf(1.0, vel_max / VEL_MAX)          # elétrica energizada: tração 2× também
 	v = move_toward(v, vmax, (acel if vmax > v else FREIO * 2.0) * dt)
 	s = minf(s + v * dt, maxf(limite, s))

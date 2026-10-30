@@ -50,6 +50,7 @@ func _ready() -> void:
 		"lote13": _roteiro_lote13()
 		"lote14": _roteiro_lote14()
 		"lote10": _roteiro_lote10()
+		"lote11": _roteiro_lote11()
 		"chegada":                                     # -- novo roteiro chegada abertura --fixed-fps 30: a cápsula cai e vira o núcleo
 			for q in [30, 150, 225, 235, 260, 330, 420, 450, 470, 490]:
 				em(q, func():
@@ -1738,6 +1739,85 @@ func _roteiro_lote10() -> void:
 			cena._detalhe()
 		print("LOTE10 broca: ", f.maquinas[ids.broca].receita_id, " na esteira ", f.caminhos.filter(func(c): return not c.esteira.itens.is_empty()).size())
 		print("LOTE10 pacotes do laboratório ", f.laboratorios[ids.lab].pacotes))
+
+
+func _chao_lote11(m: MapaOcupacao) -> Vector2i:
+	for r in range(40, 500, 4):
+		for k in 24:
+			var t := Vector2i((Vector2.from_angle(k * TAU / 24.0) * r).round())
+			var ok := true
+			for i in 26:
+				for j in 12:
+					var q := t + Vector2i(i, j)
+					if m.gerador.terreno(q) != GeradorMundo.Terreno.TERRA or m.gerador.nivel(q) != m.gerador.nivel(t) or m.gerador.em_encosta(q) or m.tiles.has(q):
+						ok = false
+			if ok:
+				for i in 26:
+					for j in 12:
+						m.limpar_obstaculo(t + Vector2i(i, j))
+				return t
+	return Vector2i(9999, 0)
+
+
+## Lote 11 (produção II): as 8 peças num pátio com fonte própria, módulos encaixados e o painel de cada uma. `-- modo demo roteiro lote11`.
+func _roteiro_lote11() -> void:
+	var ids := {}
+	em(2, func():
+		Sessao.config.fps = false
+		var m: MapaOcupacao = cena.mapa
+		var con: Construtor = cena.construtor
+		var o := _chao_lote11(m)
+		print("LOTE11 chão ", o)
+		if o.x == 9999:
+			return
+		var p := func(nome: String, d: Vector2i) -> int:
+			var plano := con.plano_peca(nome, o + d, 0)
+			if not Construtor.pode_tudo(plano):
+				print("LOTE11 não coube ", nome, " ", plano.map(func(it): return it.motivo))
+			cena.sincronizar(con.executar(plano))
+			return int(m.tiles.get(o + d, -1))
+		p.call("nucleo_singularidade", Vector2i(0, 0))
+		for x in [3, 8, 13, 18, 23]:
+			p.call("poste_energia", Vector2i(x, 4))
+		ids["forja"] = p.call("forja_quantica", Vector2i(5, 0))
+		ids["fundicao"] = p.call("fundicao_cristal", Vector2i(9, 0))
+		ids["m3"] = p.call("montadora_3", Vector2i(13, 7))
+		ids["mq"] = p.call("montadora_quantica", Vector2i(17, 0))
+		ids["lab"] = p.call("laboratorio_quantico", Vector2i(5, 5))
+		ids["irr"] = p.call("irradiador_modulos", Vector2i(9, 7))
+		print("LOTE11 construiu ", ids)
+		cena.camera.alvo = Grade.centro_mundo(o + Vector2i(11, 4))
+		cena.camera.distancia = 34.0
+		cena.camera.posicionar())
+	em(6, func():
+		var f: Fabrica = cena.fabrica
+		f.reconstruir()
+		f.por_modulo(ids.irr, "modulo_velocidade_3", true)
+		f.por_modulo(ids.m3, "modulo_produtividade_3", true)
+		f.por_modulo(ids.fundicao, "modulo_eficiencia_3", true)
+		f.escolher_receita(ids.forja, "processador_quantico")
+		f.escolher_receita(ids.mq, "fio")
+		f.escolher_receita(ids.mq, "engrenagem", 2)
+		for it in ["processador", "processador", "cristal_carregado", "liga_leve"]:
+			f.destino_em(cena.mapa.estruturas[ids.forja].minimo).receber(it)
+		for i in 5:
+			f.destino_em(cena.mapa.estruturas[ids.fundicao].minimo).receber("minerio_ferro")
+		for it in ["placa_cobre", "placa_ferro", "placa_ferro"]:
+			f.destino_em(cena.mapa.estruturas[ids.mq].minimo).receber(it)
+		cena.pesquisa.ativa = "aco"
+		f.laboratorios[ids.lab].pacotes = {"pacote_pesquisa": 10})
+	em(60, func():
+		var f: Fabrica = cena.fabrica
+		for k in ids:
+			var id: int = ids[k]
+			if id < 0:
+				continue
+			var an: Animador = cena._animador(id)
+			print("LOTE11 %s: %s kw %.0f energia %.2f efeito %s anima %s" % [k, cena.mapa.estruturas[id].nome, f.kw_de(id), f.energia(id), f.efeito_modulos(id),
+					an.ativo if an != null else "sem animador"])
+			cena._sel = {"estrutura": id}
+			cena._detalhe()
+		print("LOTE11 forja ", f.maquinas[ids.forja].estado, " fundição receita ", f.maquinas[ids.fundicao].receita_id, " linha 2 ", f.linha2[ids.mq].receita_id, " pacotes do lab ", f.laboratorios[ids.lab].pacotes))
 
 
 ## Lote 13 (energia I): gerador → poste alto → poste alto a 28 m → montadora; o fio desenhado e o anel girando.

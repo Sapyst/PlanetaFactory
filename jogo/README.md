@@ -130,9 +130,9 @@ vista. Contador de FPS embutido (ligado por padrão na fase de testes; Configura
 - Pesquisa em tela própria (`interface/tela_pesquisa.gd`): a árvore de tecnologia inteira (`dados/arvore.json`, 166
   nós, gerado por `ferramentas/gerar_arvore.py` de `docs/ARVORE_TECNOLOGIA.mmd` + tabelas do `.md`) em três faixas de
   era (chapa com listras no título), colunas por pré-requisito dentro da era, linhas ligando (verde = feito). Nós são
-  placas `Tema.botao_cor_estilo`; tipo no nó (■ estrutura, ⚗ receita, ▲ melhoria, ∞ infinita, ★ objetivo). Só as
-  pesquisas de `progressao.json` se pesquisam; o resto é "em breve". Zoom: pinça, Ctrl + roda, gesto do trackpad, − e +.
-- **Em desenvolvimento** (pedido de Sapyst): `Pesquisa.em_desenvolvimento(id)` = fora do `progressao.json`, pacote que
+  placas `Tema.botao_cor_estilo`; tipo no nó (■ estrutura, ⚗ receita, ▲ melhoria, ∞ infinita, ★ objetivo). Todas as
+  166 estão em `progressao.json` desde o lote 11. Zoom: pinça, Ctrl + roda, gesto do trackpad, − e +.
+- **Em desenvolvimento** (pedido de Sapyst; desde o lote 11 nada cai aqui, `testes/test_arvore_completa.gd` garante): `Pesquisa.em_desenvolvimento(id)` = fora do `progressao.json`, pacote que
   não existe (`Registro.itens`) ou pré-requisito em desenvolvimento (recursivo; já concluída não conta);
   `disponivel`/`escolher` recusam e `avancar` larga a ativa. `Pesquisa.peca_em_desenvolvimento(nome)` = sem modelo
   (`tem_modelo`) ou, fora da demonstração, nenhuma pesquisa que a libera dá para fazer. Visual único
@@ -311,6 +311,16 @@ Tudo que se constrói funciona — a mini-fábrica da demo é só um mapa pronto
   lista `DESPEJA_NA_ESTEIRA` e com "maquina" `broca` (jazida, produtividade); `laboratorio_2` entra em
   `Fabrica.laboratorios` pelo grupo e conta `velocidade` da regra em `lab.t` (o Animador toca enquanto
   `Fabrica.lab_trabalhando`; o laboratório 1 segue como era). `-- modo demo roteiro lote10` (use `--fixed-fps 30`).
+- **Módulos, linhas e o fim da árvore** (lote 11): módulos ficam em `modulos` na estrutura (vão no save; `Fabrica.por_modulo`,
+  `tirar_modulo`, `aceita_modulo`, `encaixes`), efeito em `_recalcular_efeitos` (próprios + irradiadores com energia, refeito por
+  `_aplicar_melhorias` quando muda obra, módulo, pesquisa ou energia dos irradiadores), aplicado em `Maquina.velocidade`/`produtividade`,
+  `kw_de`, `_emitir` e no tick do laboratório. Item de módulo: campo `modulo` em itens.json. `Fabrica.linha2[id]` é a 2ª `Maquina`
+  da montadora quântica (regra `linhas`), com `escolher_receita(id, r, 2)`, `trabalhando(id)` e save em `linha2`; `_NaMaquina` entrega
+  a quem aceita. Receita com `so_em` só sai nessas estruturas (`Registro.receita_cabe`). Máquina `forja` nova; a fundição é `fornalha`
+  (`_receita_para` prefere a exclusiva). `Maquina.rende_esgotada` (broca de núcleo): ninguém põe `jazida_restante`, as jazidas não se
+  esgotam. Munição especial: `municao_especial` na regra da torre, `Colonia.carregar_especial`, `torres[id].especial`, `especial_da_vez`;
+  `Colonia.artilharia_auto`, `ordenar_disparo`, `harmonia`, `ninhos_paz`; `Poluicao.fator`; `Trem.fator_vel`; `Fabrica._ligar_colonias`.
+  `-- modo demo roteiro lote11` (use `--fixed-fps 30`).
 - **Sensor de varredura** (lote 17; `ambiente/varredura.gd`, regra "varredura" em `estruturas.json`): consumidor de
   150 kW; `Varredura.tick` revela, por sensor, o próximo chunk de `ordem(id)` (mais perto do centro primeiro) a cada
   `intervalo_s` × energia, até `chunks` (6) ou `chunks_profunda` (16, modo `varredura_profunda` da pesquisa
@@ -346,10 +356,9 @@ Tudo que se constrói funciona — a mini-fábrica da demo é só um mapa pronto
   toca uma vez. Save: "genese" (voos).
 - **Transportador quântico** (lote 17; `ambiente/transportador.gd`, regra "transportador"): `entrada` (braço põe,
   20) e `saida` (braço tira, 200) na estrutura; com energia manda `taxa` (5) itens/s × energia para outro do mesmo
-  `canal` (A–D, painel) com lugar, em rodízio. Pesquisa em desenvolvimento (pacote quântico).
+  `canal` (A–D, painel) com lugar, em rodízio.
 - **Silo de lançamento** (lote 17; `ambiente/silo.gd` `SiloLancamento`, regra "silo"): `Fabrica._NoSilo` aceita só o
-  que `parte`/`carga` pedem (até `guarda` ×) em `silo_itens`; `abastecer` põe o propelente (tanque 500; o cano ainda
-  não liga: o fluido não existe). Com energia monta 1 parte em `parte_s` × energia até 100, depois a carga (modo
+  que `parte`/`carga` pedem (até `guarda` ×) em `silo_itens`; o propelente vem do cano da boca leste (`Fabrica._tick_silos_fluido`, tanque 500; `abastecer` faz o mesmo em código). Com energia monta 1 parte em `parte_s` × energia até 100, depois a carga (modo
   `carga_semente` da pesquisa `foguete_proliferacao`); `lancar` (painel) → `lancamento_s` de subida e
   "foguete_lancado" → `MenuPausa.abrir(false, true)` (tela de vitória; não no roteiro). Estado na estrutura
   (`partes`, `carga`, `silo_t`, `lancados`). `render/desenho_silo.gd`: foguete crescendo com as partes, ogiva com a

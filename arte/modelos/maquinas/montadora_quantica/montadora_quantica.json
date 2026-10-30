@@ -1,0 +1,92 @@
+{
+ "nome": "montadora_quantica",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Montadora quântica 3×3 (estudo_montadora_quantica.py): duas linhas cruzadas sob a matriz quântica (sul → norte e oeste → leste), anéis contra-rotativos, cubo central, 4 lasers de foco e baia com 4 encaixes de módulo. Velocidade 2,5; 2 receitas ao mesmo tempo.",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_N1",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_ENT_O1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    -1.5,
+    0.0,
+    0.23
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_L1",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    1.5,
+    0.0,
+    0.23
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 5736,
+ "dims": [
+  3.0,
+  3.0,
+  1.867
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_montadora_quantica.py"
+}

@@ -9378,6 +9378,69 @@
   "estudo": "estudo_broca.py",
   "modelo": "res://assets/modelos/maquinas/broca_minerio.glb"
  },
+ "broca_nucleo": {
+  "nome": "broca_nucleo",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Broca de núcleo 3×3 (estudo_broca_nucleo.py): torre derrick com top drive, haste e trado de tungstênio, peneira vibratória, boca de fluido a oeste e esteira de saída ao sul. Jazida esgotada continua rendendo 10% para sempre.",
+  "ocupa_canto": false,
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_SAI_S1",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     -1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_ENT_O1",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     -1.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 3784,
+  "dims": [
+   2.98,
+   2.98,
+   2.874
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "estudo": "estudo_broca_nucleo.py",
+  "modelo": "res://assets/modelos/maquinas/broca_nucleo.glb"
+ },
  "coletor_lixo": {
   "nome": "coletor_lixo",
   "categoria": "maquinas",
@@ -9582,6 +9645,69 @@
   "estudo": "estudo_extrator_cristal.py",
   "modelo": "res://assets/modelos/maquinas/extrator_cristal.glb"
  },
+ "extrator_ressonante": {
+  "nome": "extrator_ressonante",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Extrator ressonante 3×3 (estudo_extrator_ressonante.py): sonotrodo de titânio, cristal ressonador, anel de sintonia, poço sísmico, boca de fluido a oeste e esteira de saída ao sul. 2× a velocidade do extrator no cristal.",
+  "ocupa_canto": false,
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_SAI_S1",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     -1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_ENT_O1",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     -1.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 4952,
+  "dims": [
+   2.98,
+   2.98,
+   2.183
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "estudo": "estudo_extrator_ressonante.py",
+  "modelo": "res://assets/modelos/maquinas/extrator_ressonante.glb"
+ },
  "filtro_agua": {
   "nome": "filtro_agua",
   "categoria": "maquinas",
@@ -9651,6 +9777,99 @@
   "anima": true,
   "estudo": "estudo_filtro_agua.py",
   "modelo": "res://assets/modelos/maquinas/filtro_agua.glb"
+ },
+ "forja_quantica": {
+  "nome": "forja_quantica",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Forja quântica 3×3 (estudo_forja_quantica.py): vaso blindado com martelo telescópico, anel de confinamento, bigorna e carrossel óptico no teto, braços alimentador e ejetor, entradas sul e oeste, saída norte, boca de fluido a leste. Faz processador quântico, pacote quântico e mapa estelar.",
+  "ocupa_canto": false,
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_ENT_O1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     -1.5,
+     0.0,
+     0.23
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N1",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_ENT_L1",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     1.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 8020,
+  "dims": [
+   3.0,
+   3.0,
+   2.04
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "estudo": "estudo_forja_quantica.py",
+  "modelo": "res://assets/modelos/maquinas/forja_quantica.glb"
  },
  "fornalha": {
   "nome": "fornalha",
@@ -9856,6 +10075,131 @@
   "estudo": "estudo_fornalha_eletrica.py",
   "modelo": "res://assets/modelos/maquinas/fornalha_eletrica.glb"
  },
+ "fundicao_cristal": {
+  "nome": "fundicao_cristal",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Fundição de cristal 3×3 (estudo_fundicao_cristal.py): cadinho de metal líquido com 4 cristais de foco, corrente de lingotes ao norte, entradas sul e oeste, baia com 4 encaixes de módulo, coifa e ciclone. Velocidade 4,0; funde minério direto em aço.",
+  "ocupa_canto": false,
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_ENT_O1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     -1.5,
+     0.0,
+     0.23
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N1",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_ENT_L1",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     1.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 6726,
+  "dims": [
+   3.0,
+   3.0,
+   2.095
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "estudo": "estudo_fundicao_cristal.py",
+  "modelo": "res://assets/modelos/maquinas/fundicao_cristal.glb"
+ },
+ "irradiador_modulos": {
+  "nome": "irradiador_modulos",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Irradiador de módulos 3×3 (estudo_irradiador_modulos.py): torre transmissora com carrossel de 4 antenas, cristal transmissor, 4 subestações criogênicas e baia de 2 módulos. Divide o efeito dos módulos com as máquinas a até 3 tiles.",
+  "ocupa_canto": false,
+  "portas": [],
+  "tris": 6704,
+  "dims": [
+   2.96,
+   2.96,
+   2.69
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "estudo": "estudo_irradiador_modulos.py",
+  "modelo": "res://assets/modelos/maquinas/irradiador_modulos.glb"
+ },
  "laboratorio": {
   "nome": "laboratorio",
   "categoria": "maquinas",
@@ -10003,6 +10347,84 @@
   "anima": true,
   "estudo": "estudo_laboratorio_2.py",
   "modelo": "res://assets/modelos/maquinas/laboratorio_2.glb"
+ },
+ "laboratorio_quantico": {
+  "nome": "laboratorio_quantico",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Laboratório quântico 3×3 (estudo_laboratorio_quantico.py): tambor espectrométrico, carrossel óptico, braço de análise, radiador criogênico em V, entradas sul e oeste, boca de fluido a leste e baia com 4 encaixes de módulo. Velocidade 4,0.",
+  "ocupa_canto": false,
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_ENT_O1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     -1.5,
+     0.0,
+     0.23
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_ENT_L1",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     1.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 5332,
+  "dims": [
+   3.0,
+   2.98,
+   1.65
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "estudo": "estudo_laboratorio_quantico.py",
+  "modelo": "res://assets/modelos/maquinas/laboratorio_quantico.glb"
  },
  "montadora": {
   "nome": "montadora",
@@ -10166,6 +10588,177 @@
   ],
   "anima": true,
   "modelo": "res://assets/modelos/maquinas/montadora_2.glb"
+ },
+ "montadora_3": {
+  "nome": "montadora_3",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Montadora 3 3×3 (estudo_montadora_3.py): prensa dupla, 2 braços SCARA, 2 cabeçotes laser, anel quântico e exaustor no teto, esteira interna sul → norte, baia com 4 encaixes de módulo e boca de fluido a oeste. Velocidade 1,5.",
+  "ocupa_canto": false,
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N1",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_ENT_O1",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     -1.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 3764,
+  "dims": [
+   2.98,
+   3.03,
+   2.325
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "estudo": "estudo_montadora_3.py",
+  "modelo": "res://assets/modelos/maquinas/montadora_3.glb"
+ },
+ "montadora_quantica": {
+  "nome": "montadora_quantica",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Montadora quântica 3×3 (estudo_montadora_quantica.py): duas linhas cruzadas sob a matriz quântica (sul → norte e oeste → leste), anéis contra-rotativos, cubo central, 4 lasers de foco e baia com 4 encaixes de módulo. Velocidade 2,5; 2 receitas ao mesmo tempo.",
+  "ocupa_canto": false,
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N1",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_ENT_O1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     -1.5,
+     0.0,
+     0.23
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_L1",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     1.5,
+     0.0,
+     0.23
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 5736,
+  "dims": [
+   3.0,
+   3.0,
+   1.867
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "estudo": "estudo_montadora_quantica.py",
+  "modelo": "res://assets/modelos/maquinas/montadora_quantica.glb"
  },
  "nucleo": {
   "nome": "nucleo",

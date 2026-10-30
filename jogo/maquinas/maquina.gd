@@ -28,6 +28,7 @@ var tanque_fluido := 0.0     ## tanque interno maior que 2× a receita (coletor 
 var transborda := false      ## fluido que não sai pelo cano não trava a máquina (filtro: a sobra volta ao rio)
 var clima := 1.0             ## fator do clima de agora (coletor: chuva, condensador: neblina); 0 = espera
 var retem: Array = []        ## produtos que não saem por braço (estação de drones: o drone vai para a frota)
+var rende_esgotada := 0.0    ## broca de núcleo: fração do ritmo com a jazida esgotada (0,1 = 10% para sempre)
 var _dormindo := false
 
 
@@ -125,7 +126,7 @@ func tick(dt: float) -> void:
 		estado = Estado.SEM_RECEITA
 		_dormindo = true
 		return
-	if jazida_restante == 0:
+	if jazida_restante == 0 and rende_esgotada <= 0.0:
 		estado = Estado.SEM_JAZIDA
 		_dormindo = true
 		return
@@ -153,7 +154,8 @@ func tick(dt: float) -> void:
 		for f in precisa_f:
 			fluidos[f] = float(fluidos[f]) - float(precisa_f[f])
 	estado = Estado.TRABALHANDO
-	progresso += dt * velocidade * energia * clima / float(receita.get("tempo", 1.0))
+	var ritmo := rende_esgotada if jazida_restante == 0 else 1.0
+	progresso += dt * velocidade * energia * clima * ritmo / float(receita.get("tempo", 1.0))
 	if progresso >= 1.0:
 		progresso = 0.0
 		var vai: Dictionary = receita.get("saidas", {})
@@ -172,6 +174,8 @@ func tick(dt: float) -> void:
 			extra -= 1.0
 			for item in vai:
 				saidas[item] = int(saidas.get(item, 0)) + int(vai[item])
+			for f in vai_f:
+				fluidos[f] = minf(float(fluidos.get(f, 0.0)) + float(vai_f[f]), limite_fluido(f) if transborda else INF)
 
 
 ## Tem insumo para um ciclo e lugar na saída (captador esperando raio).

@@ -611,6 +611,8 @@ func _dica_parada() -> String:
 	if peca == ESCAVAR:
 		if not construtor.mapa.tem_terraplenagem():
 			return "Escavar — construa uma Terraplenagem primeiro (aba Produção)"
+		if construtor.pesquisa != null and not construtor.pesquisa.modo_liberado("escavar_canal"):
+			return "Escavar — precisa pesquisar: Escavação de canal (botão Pesquisa)"
 		return "Escavar — arraste um buraco ou canal 1 nível abaixo de onde começou · ligado a rio ou lago, enche d'água"
 	if peca == "":
 		return ""

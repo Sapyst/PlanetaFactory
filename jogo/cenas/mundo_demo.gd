@@ -150,6 +150,10 @@ func _ready() -> void:
 	fabrica.pesquisa = pesquisa
 	fabrica.torre_receber = func(id: int, n: int) -> void: colonia.carregar_torre(id, n)
 	fabrica.torre_aceita = colonia.aceita_municao               # metralhadora cheia não recebe mais
+	fabrica.torre_especial = colonia.carregar_especial          # perfurante, carregada, enxame
+	colonia.artilharia_auto = func() -> bool: return pesquisa.modo_liberado("artilharia_automatica")
+	colonia.harmonia = func() -> bool: return pesquisa.concluidas.has("harmonia_ninhos")   # (só de verdade: na demonstração as aranhas seguem atacando)
+	colonia.ninhos_paz = func() -> bool: return pesquisa.concluidas.has("simbiose")
 	colonia.torre_energia = fabrica.gastar_torre                # torre atira com a energia guardada da rede (e o escudo absorve)
 	colonia.energia = fabrica.energia                           # muro de campo regenera com energia
 	colonia.bonus = pesquisa.bonus                              # melhorias pesquisadas (dano da torre)
@@ -1062,7 +1066,8 @@ var _lancadores: Array = []                 ## lançadores de sementes (o laço 
 var _receptores: Array = []                 ## receptores de cápsulas (o laço toca uma vez por cápsula)
 var _transportadores: Array = []            ## transportadores quânticos (anéis giram enquanto trocam itens)
 var _silos: Array = []                      ## silos de lançamento (robôs e umbilicais montando ou lançando)
-var _labs_2: Array = []                     ## laboratórios 2 (carrossel, gaveta e braço enquanto pesquisam)
+var _labs_2: Array = []                     ## laboratórios 2 e quânticos (carrossel, gaveta e braço enquanto pesquisam)
+var _irradiadores: Array = []               ## irradiadores de módulos
 var _postes_altos: Array = []               ## postes altos (o anel de ressonância gira passando energia)
 var _turbinas_rio: Array = []               ## turbinas de correnteza (rotor e boia no ritmo do rio)
 var _geradores_fl: Array = []               ## geradores a fluido (ventiladores, volante e anel enquanto queimam)
@@ -1085,7 +1090,8 @@ func _animar_estruturas() -> void:
 		_transportadores = mapa.estruturas.keys().filter(func(i): return Transportador.eh_transportador(mapa.estruturas[i].nome))
 		_silos = mapa.estruturas.keys().filter(func(i): return SiloLancamento.eh_silo(mapa.estruturas[i].nome))
 		_postes_altos = mapa.estruturas.keys().filter(func(i): return mapa.estruturas[i].nome == "poste_alto")
-		_labs_2 = mapa.estruturas.keys().filter(func(i): return mapa.estruturas[i].nome == "laboratorio_2")
+		_labs_2 = mapa.estruturas.keys().filter(func(i): return mapa.estruturas[i].nome in ["laboratorio_2", "laboratorio_quantico"])
+		_irradiadores = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).has("irradiador"))
 		_paineis_2 = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).has("perda_nuvem"))
 		_singularidades = mapa.estruturas.keys().filter(func(i): return mapa.estruturas[i].nome == "nucleo_singularidade")
 		_geradores_fl = mapa.estruturas.keys().filter(func(i): return Fabrica.eh_gerador_fluido(mapa.estruturas[i].nome) or Fabrica.eh_reator(mapa.estruturas[i].nome))
@@ -1097,8 +1103,13 @@ func _animar_estruturas() -> void:
 	for id in fabrica.maquinas:
 		var a := _animador(id)
 		if a != null:
-			a.ativo = animar_tudo or fabrica.maquinas[id].estado == Maquina.Estado.TRABALHANDO
-	# laboratório 2: carrossel, gaveta e braço (laço do estudo) só enquanto pesquisa
+			a.ativo = animar_tudo or fabrica.trabalhando(id)
+	# irradiador: antenas e cristal giram com energia e módulo encaixado
+	for id in _irradiadores:
+		var a := _animador(id)
+		if a != null:
+			a.ativo = animar_tudo or (fabrica.energia(id) > 0.0 and not fabrica.modulos_de(id).is_empty())
+	# laboratório 2 e quântico: carrossel, gaveta e braço (laço do estudo) só enquanto pesquisam
 	for id in _labs_2:
 		var a := _animador(id)
 		if a != null:
@@ -1285,6 +1296,10 @@ func _tick_mundo(dt: float) -> void:
 	if _fabrica_suja:
 		fabrica.reconstruir()
 		_fabrica_suja = false
+	poluicao.fator = maxf(0.1, 1.0 + pesquisa.bonus("poluicao_global"))     # Simbiose: −50%
+	var fator_trem := 1.0 + pesquisa.bonus("velocidade_trens")              # Velocidade de frota N
+	for t in trens:
+		t.fator_vel = fator_trem
 	fabrica.tick(dt)
 	for id in fabrica.concluidas:
 		if pesquisa.infinita(id):
@@ -1504,6 +1519,46 @@ func _numero_estacao(id: int) -> int:
 	return 0
 
 
+## Munição especial guardada na torre (perfurante, carregada, enxame): gasta a mais forte primeiro.
+func _linha_especiais(t: Dictionary, linhas: Array[String]) -> void:
+	var es: Dictionary = t.get("especial", {})
+	var partes: Array[String] = []
+	for k in es:
+		if int(es[k]) > 0:
+			partes.append("%s %d" % [_nome_item(k), int(es[k])])
+	if not partes.is_empty():
+		linhas.append("Especial: %s (gasta a mais forte primeiro)" % ", ".join(partes))
+
+
+## Encaixes de módulo no painel: o que está encaixado (tocar tira e devolve ao núcleo), o efeito de agora e um botão por
+## módulo do estoque do núcleo que cabe. `vel` < 0 = sem linha de velocidade (irradiador).
+func _opcoes_modulos(id: int, e: Dictionary, vel: float, linhas: Array[String], botoes: Array) -> void:
+	var lista := fabrica.modulos_de(id)
+	var total := Fabrica.encaixes(e.nome)
+	var ef: Dictionary = fabrica.efeito_modulos(id)
+	var cab := "Módulos: %d de %d" % [lista.size(), total]
+	if vel >= 0.0:
+		cab = "Velocidade %.2f · %s" % [vel, cab]
+		if ef != Fabrica.EFEITO_NEUTRO:
+			cab += " · energia ×%.2f · poluição ×%.2f%s" % [float(ef.energia), float(ef.poluicao), (" · +%d%% de produto" % roundi(float(ef.produtividade) * 100.0)) if float(ef.produtividade) > 0.0 else ""]
+	linhas.append(cab)
+	for i in lista.size():
+		botoes.append({"texto": "✕ Tirar %s" % _nome_item(lista[i]), "acao": func(): fabrica.tirar_modulo(id, i); _detalhe()})
+	if lista.size() >= total:
+		return
+	var gratis := not construtor.cobrar
+	var tem := false
+	for item in Registro.itens:
+		if not Fabrica.eh_modulo(item) or not fabrica.aceita_modulo(id, item):
+			continue
+		var n := int(inventario.get(item, 0))
+		if (gratis and pesquisa.receita_liberada(item)) or n > 0:
+			tem = true
+			botoes.append({"texto": "＋ %s%s" % [_nome_item(item), "" if gratis else " (%d no núcleo)" % n], "acao": func(): fabrica.por_modulo(id, item, gratis); _detalhe()})
+	if not tem:
+		linhas.append("Para encaixar: leve módulos prontos ao núcleo (montadora → braço → núcleo)")
+
+
 ## Painel do silo de lançamento: partes, propelente, carga-semente e o botão de lançar.
 func _detalhe_silo(id: int, linhas: Array[String], opcoes: Array) -> void:
 	var r := SiloLancamento.regra(mapa.estruturas[id].nome)
@@ -1522,8 +1577,8 @@ func _detalhe_silo(id: int, linhas: Array[String], opcoes: Array) -> void:
 	match silo.motivo(id):
 		"": linhas.append("Montando: %d%%" % (float(mapa.estruturas[id].get("silo_t", 0.0)) / float(r.get("parte_s" if silo.partes(id) < int(r.get("partes", 100)) else "carga_s", 10)) * 100))
 		"sem_energia": linhas.append("Parado: sem energia (%d kW)" % int(Registro.estruturas[mapa.estruturas[id].nome].get("energia_kw", 0)))
-		"faltam_itens": linhas.append("Esperando as peças (braço nas bocas sul e oeste) — casco, processador quântico, mapa estelar e módulo 3 ainda estão em desenvolvimento")
-		"falta_propelente": linhas.append("Esperando o propelente de cristal (cano, boca leste) — ainda em desenvolvimento")
+		"faltam_itens": linhas.append("Esperando as peças (braço nas bocas sul e oeste)")
+		"falta_propelente": linhas.append("Esperando o propelente de cristal (cano na boca leste)%s" % ("" if fabrica.silo_no_cano(id) else " — SEM CANO na boca"))
 		"falta_pesquisa_carga": linhas.append("Partes prontas: a carga-semente espera a pesquisa Foguete de proliferação")
 		"pronto": linhas.append("PRONTO PARA LANÇAR")
 		"lancando": linhas.append("LANÇANDO…")
@@ -1706,7 +1761,7 @@ func _detalhe() -> void:
 		for fl in m.fluidos:
 			linhas.append("%s: %.0f" % [Registro.nome_fluido(fl), m.fluidos[fl]])
 		if regra.has("encaixes_modulo"):
-			linhas.append("Velocidade %.2f · encaixes de módulo: 0 de %d (os módulos ainda estão em desenvolvimento)" % [m.velocidade, int(regra.encaixes_modulo)])
+			_opcoes_modulos(id, e, m.velocidade, linhas, botoes)
 		var tipo: String = Registro.estruturas[e.nome].get("maquina", "")
 		match tipo:
 			"bomba":
@@ -1783,13 +1838,28 @@ func _detalhe() -> void:
 					var esp := ambiente.especie_do_bioma(Vector2i(c0.floor()))
 					linhas.append("Espécie do bioma: %s · mudas crescem %.0f× mais rápido" % [Registro.recursos.get("elementos", {}).get(esp, esp) if esp != "" else "a padrão (bioma sem árvore)",
 							float(Registro.estruturas[e.nome].planta.get("cresce", 1.0))])
-		if tipo in ["montadora", "refinador", "fornalha"]:
+		if tipo in ["montadora", "refinador", "fornalha", "forja"]:
+			var l2: Maquina = fabrica.linha2.get(id)
+			if l2 != null:
+				linhas.append("Linha 2: %s · %s\nDentro: %s\nPronto: %s" % [NOMES_ESTADO[l2.estado], ("%s → %s" % [_lista_receita(l2.receita, "entradas"), _lista_receita(l2.receita, "saidas")]) if l2.receita_id != "" else "sem receita",
+						_lista_itens(l2.entradas), _lista_itens(l2.saidas)])
 			for r in Registro.receitas_da_maquina(tipo):
-				if not pesquisa.receita_liberada(r):
+				if not pesquisa.receita_liberada(r) or not Registro.receita_cabe(r, e.nome):
 					continue
 				var rec: Dictionary = Registro.receitas[r]
-				botoes.append({"texto": "%s  ←  %s" % [_lista_receita(rec, "saidas"), _lista_receita(rec, "entradas")],
+				botoes.append({"texto": "%s%s  ←  %s" % ["1: " if l2 != null else "", _lista_receita(rec, "saidas"), _lista_receita(rec, "entradas")],
 						"ligado": m.receita_id == r, "acao": func(): fabrica.escolher_receita(id, r); _detalhe()})
+			if l2 != null:
+				for r in Registro.receitas_da_maquina(tipo):
+					if not pesquisa.receita_liberada(r) or not Registro.receita_cabe(r, e.nome):
+						continue
+					var rec: Dictionary = Registro.receitas[r]
+					botoes.append({"texto": "2: %s  ←  %s" % [_lista_receita(rec, "saidas"), _lista_receita(rec, "entradas")],
+							"ligado": l2.receita_id == r, "acao": func(): fabrica.escolher_receita(id, r, 2); _detalhe()})
+	elif regra.has("irradiador"):
+		var ci: Dictionary = regra.irradiador
+		linhas.append("Energia: %d%% · divide cada módulo (%d%%) com as máquinas e laboratórios a até %d tiles" % [fabrica.energia(id) * 100, float(ci.get("efeito", 0.5)) * 100, int(ci.get("raio", 3))])
+		_opcoes_modulos(id, e, -1.0, linhas, botoes)
 	elif regra.get("grupo", "") == "para_raios":
 		var cr: Dictionary = regra.capta_raio
 		linhas.append("Pega os raios a até %d m da ponta: protege o que está em volta · raios pegos: %d" % [cr.raio, int(raios.descargas.get(id, 0))])
@@ -1884,7 +1954,7 @@ func _detalhe() -> void:
 				partes.append("%s %d (parado)" % [Pesquisa.nome_tipo(t), int(lab.pacotes[t])])
 		linhas.append("Pacotes: %s\nEnergia: %d%%" % [", ".join(partes), lab.energia * 100])
 		if regra.has("velocidade"):
-			linhas.append("Velocidade %.0f× · encaixes de módulo: 0 de %d (os módulos ainda estão em desenvolvimento)" % [float(regra.velocidade), int(regra.get("encaixes_modulo", 0))])
+			_opcoes_modulos(id, e, float(regra.velocidade) * float(fabrica.efeito_modulos(id).velocidade), linhas, botoes)
 		if pesquisa.ativa != "":
 			linhas.append("Cada unidade gasta: %s" % ", ".join(tipos.map(func(t): return "1 " + Pesquisa.nome_tipo(t))))
 		opcoes.append({"texto": "⚗  Abrir a pesquisa", "acao": abrir_pesquisa})
@@ -1924,6 +1994,7 @@ func _detalhe() -> void:
 		var cad := float(regra.get("cadencia", 10)) * (1.0 + pesquisa.bonus("cadencia_bala"))
 		linhas.append("Munição: %d de %d tiros (cada munição que chega por braço = %d)" % [t.get("municao", regra.get("municao_inicial", 0)), regra.get("municao_max", 0), Fabrica.TIROS_POR_MUNICAO])
 		linhas.append("Dano por bala: %.1f · %.1f tiros/s · alcance %d m" % [float(regra.get("dano", 3)) * (1.0 + pesquisa.bonus("dano_bala")), cad, regra.get("alcance", 18)])
+		_linha_especiais(t, linhas)
 	elif e.nome in ["torre_foguetes", "artilharia"]:
 		var t: Dictionary = colonia.torres.get(id, {})
 		var item := Colonia.item_municao(e.nome)
@@ -1932,6 +2003,13 @@ func _detalhe() -> void:
 		linhas.append("Dano %.0f em área (raio %.1f m) · %.2f disparos/s · alcance %d m%s" % [float(regra.get("dano", 0)) * (1.0 + pesquisa.bonus(String(regra.get("bonus_dano", "")))),
 				float(regra.projetil.get("raio", 0)), cad, roundi(colonia.alcance_de(e.nome)),
 				(" (mínimo %d m; só mira ninhos)" % int(regra.alcance_min)) if regra.has("alcance_min") else ""])
+		_linha_especiais(t, linhas)
+		if e.nome == "artilharia":
+			if colonia.artilharia_espera_ordem(id):
+				linhas.append("Sem a pesquisa Mira automática: só atira com a sua ordem")
+				opcoes.append({"texto": "🎯 Disparar nos ninhos no alcance", "acao": func(): colonia.ordenar_disparo(id); _detalhe()})
+			elif bool(colonia.torres.get(id, {}).get("ordem", false)):
+				linhas.append("Ordem de disparo: atirando até não sobrar ninho no alcance")
 	elif e.nome == "mina_pulso":
 		var pu: Dictionary = regra.pulso
 		var rec := float(colonia.minas.get(id, {}).get("recarga", 0.0))

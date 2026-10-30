@@ -85,6 +85,8 @@ def tipo_de(i, n):
         return 'objetivo'
     if i.endswith('_infinito') or i.endswith('_infinita'):
         return 'infinita'
+    if i.startswith('modulo_'):
+        return 'receita'                                # módulo: item novo (receita) que se encaixa nas máquinas
     if i.startswith(MELHORIAS) or t[:1] in '+−':
         return 'melhoria'
     if t.lower().startswith('receita'):

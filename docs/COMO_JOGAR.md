@@ -41,7 +41,7 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
   A **Válvula** separa dois canos: passa se a entrada estiver acima de um nível, se a saída estiver abaixo, ou sempre.
 - **Baú de estoque** (Drones logísticos): os drones guardam nele o que sobra na garra e buscam nele o que um
   requisitante pede quando nenhum provedor tem.
-- **Braço quântico** (precisa da Computação quântica, ainda em desenvolvimento): a lança estica de 1 a 3 tiles para
+- **Braço quântico** (precisa da Computação quântica): a lança estica de 1 a 3 tiles para
   trás (toque nele para escolher) e o campo leva até 8 itens iguais por vez, a cada 0,2 s.
 - **Sensor de varredura** (pesquisa Sensor de varredura, depois da Eletrônica; aba Proliferação): radar 2×2 com
   energia (150 kW, poste perto). Revela os chunks em volta, **1 por minuto**, do mais perto para o mais longe, até
@@ -73,15 +73,15 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
   drones) e **fabrica 1 pacote gênese a cada 30 s** (o pacote gênese não tem receita: só as colônias fazem). O
   pacote vem por cápsula até o **Receptor de cápsulas** 2×2 com energia (100 kW) mais perto, que guarda até 100 para
   os braços (saída ao norte). Sem receptor, os pacotes esperam na colônia (até 20).
-- **Transportador quântico** (precisa da Computação quântica, ainda em desenvolvimento; só na Demonstração): 3×3 com
+- **Transportador quântico** (colônias + Computação quântica): 3×3 com
   energia (500 kW). O braço põe itens na entrada (sul) e eles saem, **sem trilho**, na saída (norte) de outro
   transportador no **mesmo canal** (A a D, no painel), 5 por segundo — para trocar itens entre colônias.
-- **Silo de lançamento** (fim da árvore; ainda em desenvolvimento, só na Demonstração): 3×3 com energia (1 MW). Monta
+- **Silo de lançamento** (fim da árvore): 3×3 com energia (1 MW). Monta
   o **foguete de proliferação** por 100 partes — cada uma pede 1 casco de foguete e 5 processadores quânticos (braço,
   bocas sul e oeste) e 50 de propelente de cristal (cano, boca leste) — e você vê o foguete crescer no poço. Com as
   100 partes e a pesquisa Foguete de proliferação, monta a **carga-semente** (núcleo-semente + mapa estelar + 10
   módulos de produtividade 3). Pronto, o painel mostra **Lançar o foguete**: ele sobe e a campanha termina (a IA se
-  proliferou); dá para continuar jogando. As peças do foguete ainda não existem no jogo.
+  proliferou); dá para continuar jogando. O caminho: forja quântica → processador quântico; montadora quântica → casco; refinador 2 → propelente (1 cristal carregado + 50 de combustível de seiva → 50, sai pelo cano até a boca leste); forja + 5 pacotes gênese → mapa estelar.
 - **Água** (pesquisa "Água como insumo", com pacote de automação): a **Bomba d'água** 2×2 fica na margem, com a tomada
   (o lado da grade) encostada num rio, lago ou canal, e solta 40 de água/s pelo cano. Água suja na tomada rende menos.
   Também dão água o **Coletor de chuva** (só quando chove; guarda 2.000), o **Condensador de neblina** (com neblina e
@@ -104,19 +104,34 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
   liga leve) dá até **600 kW**, 3× a eólica, e a torre conta como 2 níveis a mais de altura no vento do lugar. O **Reator
   de cristal** 3×3 (energia avançada + ciência de tempestade) dá **8 MW** queimando **célula de energia** ou **cristal
   carregado**: um braço na boca sul põe o combustível (a esteira só leva até o braço) e ele gasta só o que a rede pede.
-  O **Reator de fusão** (30 MW, com cristal carregado na boca sul e 15 de água por segundo no cano da boca oeste) e o
-  **Núcleo de singularidade** (100 MW, sem combustível nem poluição) ainda estão em desenvolvimento: esperam a Computação
-  quântica. Na Demonstração já se constroem.
+  O **Reator de fusão** (30 MW, com cristal carregado na boca sul e 15 de água por segundo no cano da boca oeste; pede a
+  Computação quântica) e o **Núcleo de singularidade** (100 MW, sem combustível nem poluição; pede a fusão e as colônias) fecham a energia.
 - **Máquinas 2** (aba Produção): a **Montadora 2** (automação + aço) faz as mesmas receitas da montadora, mais rápido
   (1,0 contra 0,75), e o **Refinador 2** (química + ciência de tempestade) faz as do refinador **2× mais rápido**,
-  sujando a metade por produto, com uma 2ª entrada de fluido ao sul. Os encaixes de módulo das duas ficam vazios por
-  enquanto (os módulos ainda estão em desenvolvimento). Elas não trocam a máquina antiga: construa ao lado.
+  sujando a metade por produto, com uma 2ª entrada de fluido ao sul. Elas não trocam a máquina antiga: construa ao lado.
 - **Fornalhas, broca e laboratório 2** (aba Produção; também se constroem ao lado da antiga): a **Fornalha de aço** (aço +
   automação) funde **2× mais rápido** com o mesmo carvão por segundo e polui 25% menos por produto. A **Fornalha elétrica**
   (fornalha de aço + química) funde 2× mais rápido **só com energia** (180 kW de poste perto): sem carvão e sem poluição
   direta. A **Broca grande** (mineração 1 + liga leve) fura a mesma jazida **2,5× mais rápido**, polui 20% menos por
   minério e despeja na esteira ao sul, sem braço. O **Laboratório 2** (velocidade de pesquisa 2 + processador) pesquisa
-  **2× mais rápido** com os mesmos pacotes, que um braço põe nele; a Computação quântica pede ele. Encaixes de módulo vazios por enquanto.
+  **2× mais rápido** com os mesmos pacotes, que um braço põe nele; a Computação quântica pede ele.
+- **Máquinas quânticas** (aba Produção): a **Forja quântica** (Computação quântica) faz o processador quântico, o pacote quântico
+  e, com a Navegação estelar, o mapa estelar. A **Montadora 3** (velocidade 1,5) e a **Montadora quântica** (2,5) têm 4 encaixes; a
+  quântica faz **2 receitas ao mesmo tempo** (escolha "1:" e "2:" no painel; o braço entrega a quem pede e tira de qualquer uma) e é a
+  única que faz o casco de foguete. A **Fundição de cristal** funde 4× mais rápido só com energia e leva **minério de ferro direto em
+  aço** (placa, se escolher no painel). O **Extrator ressonante** dá 2× mais cristal, a **Broca de núcleo** fura 4× mais rápido que a
+  broca (e continuaria rendendo 10% numa jazida esgotada) e o **Laboratório quântico** pesquisa 4× mais rápido.
+- **Módulos**: pesquise, faça na montadora e leve ao **núcleo** (braço). No painel da máquina com encaixes (fornalha elétrica, fundição,
+  montadoras 2/3/quântica, refinador 2, laboratórios 2/quântico) aparece um botão por módulo que você tem; tocar no encaixado tira e
+  devolve ao núcleo. **Velocidade**: mais rápido, gasta mais. **Eficiência**: menos energia e poluição. **Produtividade**: produto de
+  graça, mais devagar e mais sujo. O **Irradiador de módulos** (2 módulos de velocidade ou eficiência) reparte 50% de cada um com as
+  máquinas a até 3 tiles.
+- **Munição especial**: **perfurante** (+60%, atravessa uma aranha) e **carregada** (salta para 2 aranhas) na metralhadora, **foguete de
+  enxame** (abre em 4 ogivas) no lança-foguetes; chegam por braço como a comum e a torre gasta a mais forte primeiro.
+- **Artilharia sem a Mira automática** só atira com a sua ordem: toque nela e use **Disparar**. Com a pesquisa, atira sozinha.
+- **Escavar** (buraco ou canal) pede a pesquisa **Escavação de canal**, depois da bomba d'água; Aplainar continua livre.
+- **Fim da árvore**: Convivência com ninhos (ninho sem fúria não vem para o lado da fábrica; menos grupos), Simbiose (metade da poluição;
+  ninho sem fúria não ataca), Mente distribuída (colônias e núcleo numa rede elétrica só) e as melhorias infinitas.
 - **Clima** (aba Clima): em **tempestade** e **tufão** caem **raios** de verdade, perto da fábrica, nos pontos altos.
   Sem proteção, o raio tira 150 de vida da construção mais alta e pode pôr fogo no mato em volta (dentro da bolha de um
   gerador de escudo carregado, o escudo absorve). O **Para-raios** (automação + aço) pega todo raio que cairia a até
@@ -176,10 +191,8 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
    **Laboratório**. No botão **Pesquisa** (⚗ / T) abre a árvore: toque numa pesquisa para ver o que ela libera e
    aperte **Pesquisar**. A árvore mostra as três eras (base, meio, super avançada) lado a lado; arraste com o dedo
    para andar e use a pinça (ou − e +) para aproximar e afastar. Cada nó diz o tipo: ■ estrutura nova, ⚗ receita,
-   ▲ melhoria do que já existe. Nós em **cinza escuro com a etiqueta "Em desenvolvimento"** ainda não estão no jogo
-   (ou dependem de algo que ainda não está): dá para tocar e ver o que vão liberar, mas não se pesquisam. Na barra
-   de construção, peça em cinza escuro com a mesma etiqueta também não se constrói (no modo Demonstração se constrói
-   tudo o que já tem modelo).
+   ▲ melhoria do que já existe. Toda a árvore se pesquisa: as 166 tecnologias, as últimas com o pacote quântico
+   (forja quântica) e o pacote gênese (colônias).
 
 ## Cuidados
 - **Poluição:** máquinas poluem, e as aranhas dos ninhos vêm atrás de quem polui. A **Torre** (já liberada) defende

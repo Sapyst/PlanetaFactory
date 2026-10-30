@@ -1,0 +1,92 @@
+{
+ "nome": "forja_quantica",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Forja quântica 3×3 (estudo_forja_quantica.py): vaso blindado com martelo telescópico, anel de confinamento, bigorna e carrossel óptico no teto, braços alimentador e ejetor, entradas sul e oeste, saída norte, boca de fluido a leste. Faz processador quântico, pacote quântico e mapa estelar.",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_ENT_O1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    -1.5,
+    0.0,
+    0.23
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_N1",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_ENT_L1",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    1.5,
+    0.0,
+    0.35
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 8020,
+ "dims": [
+  3.0,
+  3.0,
+  2.04
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_forja_quantica.py"
+}

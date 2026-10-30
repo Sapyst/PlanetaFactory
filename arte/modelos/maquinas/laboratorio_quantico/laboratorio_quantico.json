@@ -1,0 +1,77 @@
+{
+ "nome": "laboratorio_quantico",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Laboratório quântico 3×3 (estudo_laboratorio_quantico.py): tambor espectrométrico, carrossel óptico, braço de análise, radiador criogênico em V, entradas sul e oeste, boca de fluido a leste e baia com 4 encaixes de módulo. Velocidade 4,0.",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_ENT_O1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    -1.5,
+    0.0,
+    0.23
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_ENT_L1",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    1.5,
+    0.0,
+    0.35
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 5332,
+ "dims": [
+  3.0,
+  2.98,
+  1.65
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_laboratorio_quantico.py"
+}

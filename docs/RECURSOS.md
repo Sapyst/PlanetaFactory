@@ -145,17 +145,25 @@ Ficha de cada peça do menu: energia, o que guarda, integridade (♥), custo e a
 | Peça | Ficha | ♥ | Custo | Libera |
 |---|---|---|---|---|
 | **Extrator de cristal** — Extrai cristal da jazida e despeja na esteira. | usa 90 kW · polui 10/min | 300 | 10 placa de ferro, 5 engrenagem, 5 placa de cobre | início |
+| **Extrator ressonante** — Extrai cristal 2× mais rápido; despeja na esteira ao sul. | usa 250 kW · polui 20/min | 500 | 20 barra de aço, 6 processador, 15 engrenagem, 10 cristal lapidado | Extrator ressonante |
 | **Broca** — Fura a jazida e despeja minério na esteira. | usa 90 kW · polui 10/min | 300 | 8 placa de ferro, 4 engrenagem, 5 pedra | início |
 | **Broca grande** — Fura a jazida 2,5× mais rápido e polui 20% menos por minério; despeja na esteira ao sul. | usa 300 kW · polui 20/min | 500 | 15 barra de aço, 10 liga leve, 15 engrenagem, 4 motor | Broca grande |
+| **Broca de núcleo** — Fura a jazida 4× mais rápido que a broca e, esgotada, continua rendendo 10% para sempre; despeja na esteira ao sul. | usa 600 kW · polui 25/min | 800 | 40 barra de aço, 20 liga leve, 4 processador quântico, 8 motor | Broca de núcleo |
 | **Fornalha** — Funde minério em placas (queima carvão). | polui 4/min | 200 | 10 pedra | início |
 | **Fornalha de aço** — Funde 2× mais rápido com o mesmo fogo e polui 25% menos por produto (queima carvão). | polui 6/min | 300 | 6 barra de aço, 10 tijolo | Fornalha de aço |
 | **Fornalha elétrica** — Funde 2× mais rápido só com energia (180 kW): sem carvão e sem poluição direta; 2 encaixes de módulo. | usa 180 kW | 350 | 10 barra de aço, 5 circuito, 10 tijolo | Fornalha elétrica |
+| **Fundição de cristal** — Funde 4× mais rápido só com energia e leva minério de ferro direto em aço; 4 encaixes de módulo. | usa 600 kW | 700 | 40 barra de aço, 30 tijolo, 8 processador, 8 cristal carregado | Fundição de cristal |
 | **Montadora** — Monta peças por receita. | usa 150 kW · polui 3/min | 300 | 12 placa de ferro, 6 engrenagem, 6 placa de cobre | início |
 | **Montadora 2** — Monta as mesmas peças mais rápido (1,0 contra 0,75), com 2 encaixes de módulo. | usa 200 kW · polui 3/min | 400 | 10 barra de aço, 10 engrenagem, 6 circuito, 2 motor | Montadora 2 |
+| **Montadora 3** — Monta as mesmas peças mais rápido (1,5), com 4 encaixes de módulo. | usa 350 kW · polui 3/min | 500 | 20 barra de aço, 20 engrenagem, 6 processador, 4 motor | Montadora 3 |
+| **Montadora quântica** — Monta 2 receitas ao mesmo tempo (velocidade 2,5, 4 encaixes). A única que faz casco de foguete. | usa 800 kW · polui 3/min | 800 | 40 barra de aço, 30 liga leve, 6 processador quântico, 8 motor, 6 cristal carregado | Montadora quântica |
+| **Forja quântica** — Faz processador quântico, pacote quântico e mapa estelar. | usa 1200 kW · polui 4/min | 800 | 60 barra de aço, 30 liga leve, 20 processador, 10 cristal carregado, 40 placa de cobre | Computação quântica |
 | **Refinador** — Processa fluidos. | usa 420 kW · polui 6/min | 350 | 5 barra de aço, 10 tubo, 5 circuito | Refino de seiva |
 | **Refinador 2** — Processa fluidos 2× mais rápido e suja a metade por produto; 2ª entrada de fluido ao sul. | usa 700 kW · polui 6/min | 500 | 30 barra de aço, 30 tubo, 6 processador, 10 liga leve, 4 motor | Refinador 2 |
 | **Laboratório** — Pesquisa com pacotes. | usa 60 kW | 150 | 10 placa de ferro, 10 placa de cobre, 5 engrenagem | início |
 | **Laboratório 2** — Pesquisa 2× mais rápido com os mesmos pacotes (2 encaixes de módulo). | usa 150 kW | 300 | 15 barra de aço, 20 placa de cobre, 4 processador, 2 motor | Laboratório 2 |
+| **Laboratório quântico** — Pesquisa 4× mais rápido com os mesmos pacotes (4 encaixes de módulo). | usa 400 kW | 500 | 30 barra de aço, 40 placa de cobre, 6 processador quântico, 4 motor, 20 vidro | Laboratório quântico |
+| **Irradiador de módulos** — Com energia, divide o efeito de 2 módulos (velocidade ou eficiência) com as máquinas a até 3 tiles. | usa 480 kW | 500 | 30 barra de aço, 40 placa de cobre, 12 processador, 8 cristal carregado | Irradiador de módulos |
 | **Terraplenagem** — Libera Aplainar o chão em qualquer lugar. | — | 400 | 30 placa de ferro, 15 engrenagem, 40 pedra | início |
 
 ### Limpeza

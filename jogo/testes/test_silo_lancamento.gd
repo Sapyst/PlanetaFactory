@@ -2,8 +2,8 @@ extends Caso
 ## Silo de lançamento (silo_lancamento, lote 17): modelo do estudo (estudo_silo_lancamento.py, do Antigravity;
 ## arte/estudos/conv_lote17.py), sem o foguete (o jogo o desenha crescendo com as partes e subindo); monta o foguete
 ## de proliferação por 100 partes (casco + 5 processadores quânticos + 50 de propelente), depois a carga-semente
-## (núcleo-semente + mapa estelar + 10 módulos de produtividade 3) e lança: fim da campanha. As peças ainda não
-## existem e as pesquisas (silo_lancamento, foguete_proliferacao) seguem em desenvolvimento.
+## (núcleo-semente + mapa estelar + 10 módulos de produtividade 3) e lança: fim da campanha. As peças e o propelente
+## pelo cano entraram no lote 11 (test_arvore_completa.gd percorre o caminho até a vitória).
 
 
 func _mapa() -> MapaOcupacao:
@@ -43,15 +43,15 @@ func test_dados_e_modelo() -> void:
 	raiz.free()
 
 
-func test_pesquisas_em_desenvolvimento() -> void:
+func test_pesquisas() -> void:
 	var p := Pesquisa.new()
 	for id in ["silo_lancamento", "foguete_proliferacao"]:
 		verificar(p.jogavel(id), "ligada no jogo: " + id)
 		verificar(p.arvore()[id].get("existente", false), "marcada como existente: " + id)
-		verificar(p.em_desenvolvimento(id), "em desenvolvimento: " + id)
+		verificar(not p.em_desenvolvimento(id), "fora do em desenvolvimento: " + id)
 	verificar(p.arvore().foguete_proliferacao.get("objetivo", false), "o foguete continua sendo o objetivo")
-	verificar(not p.jogavel("casco_foguete") and not p.jogavel("propulsao_cristal"), "casco e propulsão ainda não existem")
-	verificar(p.peca_em_desenvolvimento("silo_lancamento"), "silo em cinza fora da demonstração")
+	verificar(p.jogavel("casco_foguete") and p.jogavel("propulsao_cristal"), "casco e propulsão são do jogo (lote 11)")
+	verificar(not p.peca_em_desenvolvimento("silo_lancamento"), "o silo não fica em cinza")
 	verificar(not Pesquisa.new(true).peca_em_desenvolvimento("silo_lancamento"), "na demonstração se constrói")
 
 

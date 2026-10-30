@@ -239,7 +239,7 @@ func _limpeza(fabrica: Fabrica) -> void:
 			for i in feitos:
 				plantar_perto(c, float(pl.raio), bool(pl.get("especie_bioma", false)), float(pl.get("cresce", 1.0)))
 			continue
-		var forca: float = m.energia * float(fabrica.modo(id)[0])      # modo eco/turbo limpa menos/mais
+		var forca: float = m.energia * float(fabrica.modo(id)[0]) * (1.0 + fabrica.bonus_de("limpeza"))      # modo eco/turbo limpa menos/mais; Purificação N: +10% por nível
 		if r.has("restaura"):
 			_restaurar(id, m, c, r.restaura, forca)
 			continue
