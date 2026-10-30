@@ -12,6 +12,8 @@ extends Node
 ##   _helice   gira no eixo da nacele (turbina eólica; `ritmo` = vento)
 ##   _nacele   vira devagar até a hélice encarar o vento (`rumo_vento`: para onde o vento sopra, na grade)
 ## Cristais (P_Cristal) brilham fraco pelo `brilho` (0..1; negativo = segue `ativo`), suavizado.
+## Modelo convertido de estudo (arte/estudos/para_jogo.py, "anima" em modelos.json): traz a animação "trabalho"
+## (laço de 4 s) num AnimationPlayer; toca em laço enquanto `ativo`, na velocidade de `ritmo`; parada, congela.
 
 @export var ativo := true
 @export var ritmo := 1.0
@@ -34,6 +36,7 @@ var _brilho_posto := -1.0
 var _malhas: Array[GeometryInstance3D] = []
 var _partes: Dictionary = {}
 var _base: Dictionary = {}
+var _player: AnimationPlayer = null
 
 
 func _ready() -> void:
@@ -47,6 +50,14 @@ func _ready() -> void:
 			_base[parte] = (n as Node3D).transform
 	for g in dono.find_children("*", "GeometryInstance3D", true, false):
 		_malhas.append(g)
+	for p in dono.find_children("*", "AnimationPlayer", true, false):
+		var ap := p as AnimationPlayer
+		if ap.has_animation("trabalho"):
+			_player = ap
+			ap.get_animation("trabalho").loop_mode = Animation.LOOP_LINEAR
+			ap.play("trabalho")
+			ap.seek(randf() * ap.get_animation("trabalho").length, true)   # cada máquina no seu tempo
+			break
 
 
 func tem(parte: String) -> bool:
@@ -55,7 +66,10 @@ func tem(parte: String) -> bool:
 
 func _process(delta: float) -> void:
 	var dono := get_parent() as Node3D
-	if dono != null and not Visao.dentro(Vector2(dono.global_position.x, -dono.global_position.z), 1.1):
+	var visivel := dono == null or Visao.dentro(Vector2(dono.global_position.x, -dono.global_position.z), 1.1)
+	if _player != null:
+		_player.speed_scale = clampf(ritmo, 0.0, 2.0) if ativo and visivel else 0.0   # fora da visão: parada
+	if not visivel:
 		return                                       # fora do oval de visão: parada (só desenho; a fábrica segue)
 	if ativo:
 		tempo += delta * ritmo

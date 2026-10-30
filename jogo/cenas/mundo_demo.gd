@@ -618,7 +618,7 @@ func _criar_no(id: int, nova := false) -> Node3D:
 	n.position = pos
 	n.rotation.y = ang
 	var a: Animador = null
-	if Registro.modelos[e.nome].get("partes", []).size() > 1:      # só quem tem peça móvel (esteira não)
+	if Registro.modelos[e.nome].get("partes", []).size() > 1 or Registro.modelos[e.nome].get("anima", false):   # só quem tem peça móvel
 		a = Animador.new()
 		a.ativo = not nova
 		a.modelo = e.nome

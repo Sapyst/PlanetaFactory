@@ -168,6 +168,19 @@ func _ready() -> void:
 				var t: TelaPesquisa = cena._tela_pesquisa
 				t._rolagem.scroll_horizontal = 0
 				t._rolagem.scroll_vertical = 0)
+		"ver":                                         # câmera de perto na 1ª estrutura de um nome: -- roteiro ver fornalha
+			em(6, func():
+				Sessao.config.fps = false
+				var args := OS.get_cmdline_user_args()
+				var alvo_nome: String = args[args.find("ver") + 1] if args.find("ver") + 1 < args.size() else "fornalha"
+				for id in cena.mapa.estruturas:
+					var e: Dictionary = cena.mapa.estruturas[id]
+					if e.nome == alvo_nome:
+						var cam: CameraJogo = cena.camera
+						cam.alvo = Grade.ponto_mundo(Grade.centro_da_area(e.minimo, e.area, e.rot))
+						cam.distancia = 3.2
+						cam.posicionar()
+						break)
 		"encardido":                                   # estruturas limpas (q~30), meio sujas (q~60) e imundas (q~90)
 			for i in 3:
 				var g: float = [0.0, 0.5, 1.0][i]

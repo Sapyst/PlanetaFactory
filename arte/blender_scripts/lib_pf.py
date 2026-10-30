@@ -476,7 +476,12 @@ def rodar(construtores, relatorio):
     """Monta, verifica, exporta e gera prévia de cada modelo. Grava relatório JSON."""
     preparar_cena(); refs = referencias(); res = []
     for fn in construtores:
-        m = fn(); m.montar(); ok = m.verificar(refs)
+        m = fn()
+        j = os.path.join(RAIZ, m.categoria, m.nome, m.nome + '.json')
+        if os.path.exists(j) and json.load(open(j, encoding='utf-8')).get('estudo'):
+            print('PULA ' + m.nome + ' (convertido de estudo: arte/estudos/para_jogo.py)')
+            continue
+        m.montar(); ok = m.verificar(refs)
         dados = m.exportar(); dados['erros'] = m.erros
         render(m.objs, os.path.join(m.pasta(), m.nome + '_previa.png'), res=(480, 480))
         m.esconder(); res.append(dados)

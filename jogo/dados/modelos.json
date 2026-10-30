@@ -5237,24 +5237,6 @@
      0.0,
      0.0
     ]
-   },
-   {
-    "nome": "pistao0",
-    "pai": "corpo",
-    "pivo": [
-     -0.66,
-     0.7,
-     0.44
-    ]
-   },
-   {
-    "nome": "pistao1",
-    "pai": "corpo",
-    "pivo": [
-     -0.66,
-     -0.62,
-     0.44
-    ]
    }
   ],
   "portas": [
@@ -5289,12 +5271,14 @@
     ]
    }
   ],
-  "tris": 836,
+  "tris": 9145,
   "dims": [
-   1.9,
-   2.0,
-   1.185
+   1.975,
+   2.125,
+   3.055
   ],
+  "anima": true,
+  "estudo": "estudo_fornalha.py",
   "modelo": "res://assets/modelos/maquinas/fornalha.glb"
  },
  "laboratorio": {

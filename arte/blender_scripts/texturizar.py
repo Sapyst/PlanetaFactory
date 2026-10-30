@@ -435,6 +435,8 @@ for f in sorted(glob.glob(os.path.join(RAIZ, '**', '*.json'), recursive=True)):
     d = json.load(open(f, encoding='utf-8'))
     if d.get('tipo') not in ('estrutura', 'veiculo', 'canto', 'deco') or d['categoria'].startswith(PULAR):
         continue
+    if d.get('estudo'):                    # convertido de estudo: já vem com a textura assada do detalhado
+        continue
     if filtro and filtro not in d['categoria'] and filtro != d['nome']:
         continue
     try:
