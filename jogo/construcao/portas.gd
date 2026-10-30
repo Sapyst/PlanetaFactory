@@ -20,7 +20,9 @@ static func eh_cano(nome: String) -> bool:
 
 ## Quem tem aviso de porta solta: máquinas e o que recebe/entrega (não as próprias esteiras, canos, trilhos, braços).
 static func mostra_aviso(nome: String) -> bool:
-	return not (eh_esteira(nome) or eh_braco(nome) or eh_cano(nome) or nome.begins_with("trilho") or nome in ["pilar", "bau", "bau_grande"])
+	# torre de energia: a entrada de munição é só reserva para quando falta energia, não é obrigatória
+	return not (eh_esteira(nome) or eh_braco(nome) or eh_cano(nome) or nome.begins_with("trilho")
+			or nome in ["pilar", "bau", "bau_grande", "torre_defesa"])
 
 
 ## Frente e costas do braço (onde solta e onde pega): tile da frente = minimo + direção da rotação × alcance.
