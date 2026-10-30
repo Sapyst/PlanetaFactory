@@ -133,12 +133,14 @@ func tick(dt: float) -> void:
 		estado = Estado.SAIDA_CHEIA
 		_dormindo = true
 		return
+	# sem energia vem antes de "falta insumo": máquina sem poste e vazia mostrava a caixa laranja e escondia a causa
+	# (o braço dela, também sem energia, não traz o insumo)
+	if energia <= 0.0:
+		estado = Estado.SEM_ENERGIA
+		return
 	if progresso <= 0.0 and not _tem_insumos():
 		estado = Estado.SEM_INSUMO
 		_dormindo = true
-		return
-	if energia <= 0.0:
-		estado = Estado.SEM_ENERGIA
 		return
 	if clima <= 0.0:
 		estado = Estado.ESPERANDO_CLIMA

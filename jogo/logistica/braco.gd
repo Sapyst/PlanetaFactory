@@ -85,6 +85,8 @@ func tick(dt: float) -> void:
 
 
 func _tentar_soltar() -> void:
+	if destino == null:            # o que estava na frente saiu com o braço segurando: espera um destino novo
+		return
 	qtd = maxi(qtd, 1)
 	while qtd > 0 and destino.receber(segurando):
 		qtd -= 1
