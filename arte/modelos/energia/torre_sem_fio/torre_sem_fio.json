@@ -22,18 +22,18 @@
    "nome": "cristal",
    "pai": "corpo",
    "pivo": [
-    0.0,
-    0.0,
-    2.3
+    -0.009,
+    0.02,
+    2.757
    ]
   }
  ],
  "portas": [],
- "tris": 250,
+ "tris": 2020,
  "dims": [
+  0.939,
   0.8,
-  0.8,
-  2.895
+  2.94
  ],
  "materiais": [
   "P_Cobre",
@@ -42,5 +42,7 @@
   "P_Escuro",
   "P_Faixa",
   "P_Metal"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_poste_muro.py"
 }

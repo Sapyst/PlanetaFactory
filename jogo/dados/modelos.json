@@ -21,12 +21,14 @@
    }
   ],
   "portas": [],
-  "tris": 24,
+  "tris": 384,
   "dims": [
    0.64,
    0.64,
-   1.5
+   1.498
   ],
+  "anima": false,
+  "estudo": "estudo_poste_muro.py",
   "modelo": "res://assets/modelos/defesa/muro_centro.glb"
  },
  "muro_lado": {
@@ -51,12 +53,14 @@
    }
   ],
   "portas": [],
-  "tris": 24,
+  "tris": 88,
   "dims": [
-   0.48,
-   0.2,
-   1.26
+   0.22,
+   0.27,
+   1.262
   ],
+  "anima": false,
+  "estudo": "estudo_poste_muro.py",
   "modelo": "res://assets/modelos/defesa/muro_lado.glb"
  },
  "torre_defesa": {
@@ -67,7 +71,7 @@
    2,
    2
   ],
-  "descricao": "torre de defesa: pedestal octogonal, cabeça blindada com olho sensor e canhão de trilho duplo. Munição entra pelo sul. Partes: base, giro (gira em Z), canhao (inclina).",
+  "descricao": "torre de defesa: pedestal octogonal blindado, banco de capacitores ao norte, cabeça giratória com sensor e canhão de trilho duplo (railgun). Munição de reserva entra pelo sul. Partes: base, giro (gira em Z), canhao (filho do giro), luzg (LEDs da cabeça).",
   "ocupa_canto": false,
   "partes": [
    {
@@ -80,30 +84,21 @@
     ]
    },
    {
-    "nome": "pistao0",
-    "pai": "base",
-    "pivo": [
-     -0.66,
-     0.66,
-     0.4
-    ]
-   },
-   {
-    "nome": "pistao1",
-    "pai": "base",
-    "pivo": [
-     0.66,
-     0.66,
-     0.4
-    ]
-   },
-   {
     "nome": "giro",
     "pai": "base",
     "pivo": [
      0.0,
      0.0,
-     0.86
+     0.64
+    ]
+   },
+   {
+    "nome": "luzg",
+    "pai": "giro",
+    "pivo": [
+     0.0,
+     0.0,
+     0.64
     ]
    },
    {
@@ -111,8 +106,8 @@
     "pai": "giro",
     "pivo": [
      0.0,
-     -0.2,
-     1.2
+     0.05,
+     1.1
     ]
    }
   ],
@@ -133,12 +128,14 @@
     ]
    }
   ],
-  "tris": 688,
+  "tris": 7196,
   "dims": [
-   1.9,
-   1.95,
-   1.38
+   1.962,
+   1.981,
+   1.62
   ],
+  "anima": false,
+  "estudo": "estudo_torre_defesa.py",
   "modelo": "res://assets/modelos/defesa/torre_defesa.glb"
  },
  "acumulador": {
@@ -322,7 +319,7 @@
    1,
    1
   ],
-  "descricao": "Poste de energia: liga máquinas num raio. Ocupa só o centro do tile.",
+  "descricao": "Poste de energia: poste de concreto numa luva de aço, cruzeta com três isoladores (o fio prende neles: \"terminais\"), transformador, captor com anel de campo. Ocupa só o centro do tile.",
   "ocupa_canto": false,
   "partes": [
    {
@@ -336,12 +333,31 @@
    }
   ],
   "portas": [],
-  "tris": 94,
+  "tris": 1191,
   "dims": [
-   0.7,
-   0.4,
-   2.3
+   0.752,
+   0.43,
+   2.32
   ],
+  "terminais": [
+   [
+    -0.29,
+    -0.095,
+    2.105
+   ],
+   [
+    -0.13,
+    -0.095,
+    2.105
+   ],
+   [
+    0.29,
+    -0.095,
+    2.105
+   ]
+  ],
+  "anima": false,
+  "estudo": "estudo_poste_muro.py",
   "modelo": "res://assets/modelos/energia/poste_energia.glb"
  },
  "tanque": {
@@ -427,12 +443,14 @@
     ]
    }
   ],
-  "tris": 322,
+  "tris": 2892,
   "dims": [
    2.0,
    2.0,
-   1.7
+   1.698
   ],
+  "anima": true,
+  "estudo": "estudo_canos.py",
   "modelo": "res://assets/modelos/energia/tanque.glb"
  },
  "torre_sem_fio": {
@@ -459,19 +477,21 @@
     "nome": "cristal",
     "pai": "corpo",
     "pivo": [
-     0.0,
-     0.0,
-     2.3
+     -0.009,
+     0.02,
+     2.757
     ]
    }
   ],
   "portas": [],
-  "tris": 250,
+  "tris": 2020,
   "dims": [
+   0.939,
    0.8,
-   0.8,
-   2.895
+   2.94
   ],
+  "anima": false,
+  "estudo": "estudo_poste_muro.py",
   "modelo": "res://assets/modelos/energia/torre_sem_fio.glb"
  },
  "turbina_eolica": {
@@ -500,7 +520,16 @@
     "pivo": [
      0.0,
      0.0,
-     2.58
+     2.64
+    ]
+   },
+   {
+    "nome": "luzn",
+    "pai": "nacele",
+    "pivo": [
+     0.0,
+     0.0,
+     2.64
     ]
    },
    {
@@ -508,40 +537,51 @@
     "pai": "nacele",
     "pivo": [
      0.0,
-     -0.36,
-     2.72
+     -0.5,
+     2.81
+    ]
+   },
+   {
+    "nome": "luzh",
+    "pai": "helice",
+    "pivo": [
+     0.0,
+     -0.5,
+     2.81
     ]
    }
   ],
   "portas": [],
   "terminais": [
    [
-    -0.85,
-    -0.85,
-    0.372
+    -0.8,
+    -0.8,
+    0.22
    ],
    [
-    -0.85,
-    0.85,
-    0.372
+    -0.8,
+    0.8,
+    0.22
    ],
    [
-    0.85,
-    -0.85,
-    0.372
+    0.8,
+    -0.8,
+    0.22
    ],
    [
-    0.85,
-    0.85,
-    0.372
+    0.8,
+    0.8,
+    0.22
    ]
   ],
-  "tris": 624,
+  "tris": 7844,
   "dims": [
-   1.9,
-   1.9,
-   3.64
+   1.972,
+   1.96,
+   3.739
   ],
+  "anima": false,
+  "estudo": "estudo_turbina_eolica.py",
   "modelo": "res://assets/modelos/energia/turbina_eolica.glb"
  },
  "aranha_corpo": {
@@ -1895,15 +1935,6 @@
      0.0,
      0.0
     ]
-   },
-   {
-    "nome": "cabecote",
-    "pai": "corpo",
-    "pivo": [
-     0.0,
-     -0.08,
-     0.58
-    ]
    }
   ],
   "portas": [
@@ -1930,12 +1961,14 @@
     0.28
    ]
   ],
-  "tris": 312,
+  "tris": 2945,
   "dims": [
-   0.76,
-   0.88,
-   0.82
+   0.966,
+   1.036,
+   1.101
   ],
+  "anima": true,
+  "estudo": "estudo_canos.py",
   "modelo": "res://assets/modelos/logistica/canos/bomba.glb"
  },
  "cano_cruz": {
@@ -2021,12 +2054,14 @@
     ]
    }
   ],
-  "tris": 232,
+  "tris": 599,
   "dims": [
    1.0,
    1.0,
-   0.52
+   0.493
   ],
+  "anima": false,
+  "estudo": "estudo_canos.py",
   "modelo": "res://assets/modelos/logistica/canos/cano_cruz.glb"
  },
  "cano_curva": {
@@ -2082,12 +2117,14 @@
     ]
    }
   ],
-  "tris": 196,
+  "tris": 634,
   "dims": [
-   0.639,
-   0.639,
-   0.489
+   0.662,
+   0.655,
+   0.504
   ],
+  "anima": false,
+  "estudo": "estudo_canos.py",
   "modelo": "res://assets/modelos/logistica/canos/cano_curva.glb"
  },
  "cano_reto": {
@@ -2143,12 +2180,14 @@
     ]
    }
   ],
-  "tris": 84,
+  "tris": 417,
   "dims": [
-   0.277,
+   0.315,
    1.0,
-   0.489
+   0.495
   ],
+  "anima": false,
+  "estudo": "conv_logistica.py",
   "modelo": "res://assets/modelos/logistica/canos/cano_reto.glb"
  },
  "cano_t": {
@@ -2219,12 +2258,14 @@
     ]
    }
   ],
-  "tris": 188,
+  "tris": 1109,
   "dims": [
-   0.67,
+   0.66,
    1.0,
-   0.52
+   0.492
   ],
+  "anima": false,
+  "estudo": "estudo_canos.py",
   "modelo": "res://assets/modelos/logistica/canos/cano_t.glb"
  },
  "divisor": {

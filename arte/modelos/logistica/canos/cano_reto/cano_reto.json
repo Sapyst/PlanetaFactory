@@ -51,14 +51,16 @@
    ]
   }
  ],
- "tris": 84,
+ "tris": 417,
  "dims": [
-  0.277,
+  0.315,
   1.0,
-  0.489
+  0.495
  ],
  "materiais": [
   "P_Cobre",
   "P_Escuro"
- ]
+ ],
+ "anima": false,
+ "estudo": "conv_logistica.py"
 }

@@ -51,14 +51,16 @@
    ]
   }
  ],
- "tris": 196,
+ "tris": 634,
  "dims": [
-  0.639,
-  0.639,
-  0.489
+  0.662,
+  0.655,
+  0.504
  ],
  "materiais": [
   "P_Cobre",
   "P_Escuro"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_canos.py"
 }

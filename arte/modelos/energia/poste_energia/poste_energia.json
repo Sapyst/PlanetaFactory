@@ -6,7 +6,7 @@
   1,
   1
  ],
- "descricao": "Poste de energia: liga máquinas num raio. Ocupa só o centro do tile.",
+ "descricao": "Poste de energia: poste de concreto numa luva de aço, cruzeta com três isoladores (o fio prende neles: \"terminais\"), transformador, captor com anel de campo. Ocupa só o centro do tile.",
  "ocupa_canto": false,
  "partes": [
   {
@@ -20,11 +20,11 @@
   }
  ],
  "portas": [],
- "tris": 94,
+ "tris": 1191,
  "dims": [
-  0.7,
-  0.4,
-  2.3
+  0.752,
+  0.43,
+  2.32
  ],
  "materiais": [
   "P_Cobre",
@@ -32,5 +32,24 @@
   "P_Cristal",
   "P_Escuro",
   "P_Metal"
- ]
+ ],
+ "terminais": [
+  [
+   -0.29,
+   -0.095,
+   2.105
+  ],
+  [
+   -0.13,
+   -0.095,
+   2.105
+  ],
+  [
+   0.29,
+   -0.095,
+   2.105
+  ]
+ ],
+ "anima": false,
+ "estudo": "estudo_poste_muro.py"
 }

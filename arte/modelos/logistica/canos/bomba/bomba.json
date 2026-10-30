@@ -17,15 +17,6 @@
     0.0,
     0.0
    ]
-  },
-  {
-   "nome": "cabecote",
-   "pai": "corpo",
-   "pivo": [
-    0.0,
-    -0.08,
-    0.58
-   ]
   }
  ],
  "portas": [
@@ -52,11 +43,11 @@
    0.28
   ]
  ],
- "tris": 312,
+ "tris": 2945,
  "dims": [
-  0.76,
-  0.88,
-  0.82
+  0.966,
+  1.036,
+  1.101
  ],
  "materiais": [
   "P_Aco",
@@ -64,5 +55,7 @@
   "P_Concreto",
   "P_Cristal",
   "P_Escuro"
- ]
+ ],
+ "anima": true,
+ "estudo": "estudo_canos.py"
 }

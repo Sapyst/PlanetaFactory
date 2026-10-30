@@ -20,14 +20,16 @@
   }
  ],
  "portas": [],
- "tris": 24,
+ "tris": 384,
  "dims": [
   0.64,
   0.64,
-  1.5
+  1.498
  ],
  "materiais": [
   "P_Concreto",
   "P_Faixa"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_poste_muro.py"
 }
