@@ -46,6 +46,7 @@ var redes_fluido: Array[Dictionary] = []    ## {fluido, qtd, cap, membros: Array
 var _rede_do: Dictionary = {}          ## id (cano/tanque) → índice da rede
 var _ligacoes_fluido: Array[Dictionary] = []  ## {id (máquina), io, rede}
 var _estacoes_fluido: Array[Dictionary] = []  ## {id (estação), rede, bomba}: bomba de estação encostada nela
+var _geradores_fluido: Array[Dictionary] = []  ## {id (gerador a fluido), rede}: cano encostado na boca dele
 var bombeando: Dictionary = {}         ## id da bomba de estação → true se moveu fluido no último tick
 var _trilho_grupo: Dictionary = {}     ## id do trilho energizado → índice do trecho (peças encostadas)
 var _trechos: Array = []               ## índice do trecho → Array de ids
@@ -71,7 +72,10 @@ var acumulado: Dictionary = {}         ## id do acumulador → MJ guardados
 var carga_torre: Dictionary = {}       ## id da torre de defesa → MJ guardados para atirar (puxa da rede até encher)
 var energia_rede: Dictionary = {}      ## id de quem consome → satisfação da rede (0..1) no último tick
 var sol := 1.0                         ## 0..1: quanto os painéis solares rendem agora (o mundo passa do clima)
+var sol_limpo := 1.0                   ## 0..1: luz do dia sem o tempo (painel solar 2: "perda_nuvem" por cima)
+var encoberto := 0.0                   ## 0..1: nuvem ou chuva de agora, o que for maior (painel solar 2)
 var vento := 0.5                       ## força do vento (0..~1,6) para turbina sem valor próprio
+var rio := 1.0                         ## 0..1: vazão do rio agora (turbina de correnteza; o mundo passa do clima)
 var vento_turbina: Dictionary = {}     ## id da turbina → vento no lugar dela (clima × VentoLocal × rajada), o mundo passa
 var juncoes: Array[Dictionary] = []    ## itens que acabaram de entrar pela lateral: {caminho, pos, lado, passo} (desenho desliza)
 var _melhorias_de := ""                ## assinatura das pesquisas já aplicadas nas máquinas (refaz quando muda)
@@ -293,7 +297,7 @@ func _montar_maquinas() -> void:
 			if e.has("kit_inicial"):                           # colônia: nasce com o kit da semente
 				baus[id] = (e.kit_inicial as Dictionary).duplicate()
 				e.erase("kit_inicial")
-		if e.nome == "gerador" and not combustivel.has(id):
+		if (e.nome == "gerador" or eh_gerador_fluido(e.nome)) and not combustivel.has(id):
 			combustivel[id] = 0.0
 		if e.nome == "laboratorio" and not laboratorios.has(id):
 			laboratorios[id] = {"pacotes": {}, "t": 0.0, "energia": 0.0}
@@ -373,6 +377,11 @@ func ligada(id: int) -> bool:
 	return mapa.estruturas.has(id) and not mapa.estruturas[id].get("desligada", false) and not logica_off.has(id)
 
 
+## Está passando energia pela rede de `id` (alguma fonte entregando agora)? O poste alto anima o anel do topo assim.
+func transmitindo(id: int) -> bool:
+	return float(rede.estat_de(id).get("gera", 0.0)) > 0.0
+
+
 ## Quantos itens cabem no baú (capacidade do modelo × limite escolhido pelo jogador).
 func capacidade_bau(id: int) -> int:
 	var e: Dictionary = mapa.estruturas[id]
@@ -425,8 +434,9 @@ func kw_de(id: int) -> float:
 		if regra.has("escudo"):
 			kw *= 1.0 + _bonus("escudo_recarga")          # escudo 2: recarga 2×
 	match regra.get("renovavel", ""):
-		"sol": kw *= sol
+		"sol": kw *= sol if not regra.has("perda_nuvem") else sol_limpo * (1.0 - float(regra.perda_nuvem) * encoberto)
 		"vento": kw *= curva_turbina(float(vento_turbina.get(id, vento)))
+		"rio": kw *= rio
 	return kw
 
 
@@ -829,6 +839,7 @@ func tick(dt: float) -> void:
 			if combustivel.has(id):
 				combustivel[id] = maxf(0.0, combustivel[id] - FOGO_KW / 1000.0 * dt)
 	_tick_fluidos(dt)
+	_tick_geradores_fluido()
 	_tick_estacoes_fluido(dt)
 	_tick_valvulas(dt)
 	for id in distribuidores:
@@ -1038,6 +1049,15 @@ func _montar_fluidos() -> void:
 				_ligacoes_fluido.append({"id": id, "io": p.io, "rede": _rede_do[cano]})
 	# estações (vagão-tanque): a bomba de estação encosta na estação pelo lado de trás (o do braço de carga) e liga o
 	# tanque dela à rede do cano que encosta na boca da frente da bomba (sem cano, a bomba fica sem rede)
+	# gerador a fluido (não é máquina de receita): a boca de entrada liga na rede do cano que encosta nela
+	_geradores_fluido.clear()
+	for id in mapa.estruturas:
+		if not eh_gerador_fluido(mapa.estruturas[id].nome):
+			continue
+		for p in _portas(id):
+			var cano: int = pontas.get("%s|%s" % [p.tile_fora, -p.dir], -1)
+			if p.tipo == "FLUIDO" and p.io == "ENT" and cano >= 0:
+				_geradores_fluido.append({"id": id, "rede": _rede_do[cano]})
 	_estacoes_fluido.clear()
 	for id in mapa.estruturas:
 		if mapa.estruturas[id].nome != "bomba_estacao":
@@ -1149,6 +1169,37 @@ func _tick_fluidos(dt: float) -> void:
 					if vem > 0.0:
 						rede.qtd -= vem
 						m.receber_fluido(f, vem)
+		if rede.qtd <= 0.001:
+			rede.qtd = 0.0
+			rede.fluido = ""
+
+
+## Gerador a fluido: queima fluido do cano ("combustivel_fluido": fluido → MJ por unidade em estruturas.json).
+static func eh_gerador_fluido(nome: String) -> bool:
+	return Registro.estruturas.get(nome, {}).has("combustivel_fluido")
+
+
+## O gerador a fluido está ligado em algum cano?
+func gerador_no_cano(id: int) -> bool:
+	return _geradores_fluido.any(func(l): return l.id == id)
+
+
+## Gerador a fluido puxa da rede do cano o que cabe no estoque dele (até ESTOQUE_GERADOR_MJ), só do fluido que queima.
+func _tick_geradores_fluido() -> void:
+	for l in _geradores_fluido:
+		if not mapa.estruturas.has(l.id) or not ligada(l.id):
+			continue
+		var rede: Dictionary = redes_fluido[l.rede]
+		var tabela: Dictionary = Registro.estruturas.get(mapa.estruturas[l.id].nome, {}).get("combustivel_fluido", {})
+		var mj := float(tabela.get(rede.fluido, 0.0))
+		if mj <= 0.0 or rede.qtd <= 0.0:
+			continue
+		var falta := ESTOQUE_GERADOR_MJ - float(combustivel.get(l.id, 0.0))
+		var vem := minf(rede.qtd, falta / mj)
+		if vem <= 0.0:
+			continue
+		rede.qtd -= vem
+		combustivel[l.id] = float(combustivel.get(l.id, 0.0)) + vem * mj
 		if rede.qtd <= 0.001:
 			rede.qtd = 0.0
 			rede.fluido = ""

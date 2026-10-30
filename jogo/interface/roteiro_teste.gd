@@ -47,6 +47,7 @@ func _ready() -> void:
 		"limpeza2": _roteiro_limpeza2()
 		"lote16": _roteiro_lote16()
 		"lote17": _roteiro_lote17()
+		"lote13": _roteiro_lote13()
 		"chegada":                                     # -- novo roteiro chegada abertura --fixed-fps 30: a cápsula cai e vira o núcleo
 			for q in [30, 150, 225, 235, 260, 330, 420, 450, 470, 490]:
 				em(q, func():
@@ -1590,6 +1591,169 @@ func _bosque(especies: Array = ["arv_carvalho", "arv_betula"]) -> Vector2i:
 ## meia-noite e os faróis acendem; um silo de lançamento com o foguete montado (partes e carga postas pelo roteiro:
 ## as peças ainda não existem) lança — o roteiro não abre a tela de vitória.
 ## `-- modo demo roteiro lote17`.
+## Lote 13 (energia I): gerador → poste alto → poste alto a 28 m → montadora; o fio desenhado e o anel girando.
+func _roteiro_lote13() -> void:
+	var ids := {}
+	em(2, func():
+		Sessao.config.fps = false
+		var g := Grade.gerador
+		var m: MapaOcupacao = cena.mapa
+		var o := Vector2i(9999, 0)
+		for r in range(60, 400, 4):
+			for k in 48:
+				var t := Vector2i((Vector2.from_angle(k * TAU / 48.0) * r).round())
+				if o.x != 9999:
+					break
+				var ok := true
+				for i in range(-1, 36):
+					for j in range(-4, 5):
+						var q := t + Vector2i(i, j)
+						if g.terreno(q) != GeradorMundo.Terreno.TERRA or g.nivel(q) != g.nivel(t) or g.em_encosta(q) or m.tiles.has(q):
+							ok = false
+				if ok:
+					o = t
+		print("LOTE13 chão ", o)
+		if o.x == 9999:
+			return
+		for i in range(-1, 36):
+			for j in range(-4, 5):
+				m.limpar_obstaculo(o + Vector2i(i, j))
+		var con: Construtor = cena.construtor
+		var p := func(pl: Array[Dictionary]) -> void: cena.sincronizar(con.executar(pl))
+		p.call(con.plano_peca("gerador", o, 0))
+		p.call(con.plano_peca("poste_alto", o + Vector2i(3, 0), 0))
+		p.call(con.plano_peca("poste_alto", o + Vector2i(31, 0), 0))
+		p.call(con.plano_peca("montadora", o + Vector2i(31, 2), 0))
+		p.call(con.plano_peca("gerador_fluido", o + Vector2i(6, -2), 0))     # (cursor no centro) boca sul em (6, −4): um cano
+		p.call(con.plano_peca("cano_reto", o + Vector2i(6, -4), Construtor.rot_do_fluxo(2)))
+		ids["cano_gf"] = m.tiles.get(o + Vector2i(6, -4), -1)
+		p.call(con.plano_peca("painel_solar_2", o + Vector2i(16, -2), 0))
+		ids["ps2"] = m.tiles.get(o + Vector2i(16, -2), -1)
+		p.call(con.plano_peca("montadora_2", o + Vector2i(22, -2), 0))          # lote 10: montadora 2 na linha alta
+		p.call(con.plano_peca("poste_energia", o + Vector2i(25, 0), 0))
+		ids["m2"] = m.tiles.get(o + Vector2i(22, -2), -1)
+		p.call(con.plano_peca("refinador_2", o + Vector2i(27, -2), 0))           # lote 10: refinador 2 no mesmo poste
+		ids["r2"] = m.tiles.get(o + Vector2i(27, -2), -1)
+		for id in m.estruturas:
+			var e: Dictionary = m.estruturas[id]
+			if e.minimo == o + Vector2i(3, 0):
+				ids["a1"] = id
+			elif e.minimo == o + Vector2i(31, 0):
+				ids["a2"] = id
+			elif e.nome == "gerador_fluido":
+				ids["gf"] = id
+			elif e.nome == "gerador":
+				ids["g"] = id
+			elif e.nome == "montadora" and Fiacao.centro(e).distance_to(Vector2(o + Vector2i(31, 2))) < 4.0:
+				ids["maq"] = id
+		print("LOTE13 construiu ", ids.keys(), " fio a1-a2 ", ids.has("a1") and ids.has("a2") and m.estruturas[ids.a1].get("fios", []).has(ids.a2))
+		cena.camera.alvo = Grade.centro_mundo(o + Vector2i(17, 0))
+		cena.camera.distancia = 40.0
+		cena.camera.posicionar())
+	em(6, func():
+		var f: Fabrica = cena.fabrica
+		f.reconstruir()
+		for id in f.combustivel:
+			f.combustivel[id] = 5000.0
+		if ids.has("gf") and ids.has("g"):                 # a linha alta passa a vir só do gerador a fluido, pelo cano
+			f.combustivel[ids.g] = 0.0
+			f.combustivel[ids.gf] = 0.0
+			var rc := f.rede_de(int(ids.get("cano_gf", -1)))
+			if not rc.is_empty():
+				rc.fluido = "combustivel_seiva"
+				rc.qtd = 90.0
+			print("LOTE13 gerador a fluido no cano ", f.gerador_no_cano(ids.gf))
+		if f.maquinas.has(int(ids.get("m2", -1))):
+			f.escolher_receita(ids.m2, "engrenagem")
+		if f.maquinas.has(int(ids.get("r2", -1))):
+			f.escolher_receita(ids.r2, "resina"))
+	for q in range(8, 60, 2):                          # braço de mentira: põe placas na montadora 2 e tira as engrenagens
+		em(q, func():
+			if cena.fabrica.maquinas.has(int(ids.get("m2", -1))):
+				var mq: Maquina = cena.fabrica.maquinas[ids.m2]
+				while mq.receber("placa_ferro"):
+					pass
+				mq.saidas.erase("engrenagem")
+			if cena.fabrica.maquinas.has(int(ids.get("r2", -1))):         # (canos de mentira: seiva e água direto)
+				var mr: Maquina = cena.fabrica.maquinas[ids.r2]
+				mr.receber_fluido("seiva", 30.0)
+				mr.receber_fluido("agua", 10.0)
+				mr.saidas.erase("resina"))
+	em(60, func():
+		if ids.has("gf"):
+			var f: Fabrica = cena.fabrica
+			var an: Animador = cena._animador(ids.gf)
+			print("LOTE13 gerador a fluido %.1f MJ, ligado ao a1 %s, queimando %s, anima %s" % [f.combustivel.get(ids.gf, 0.0),
+					cena.mapa.estruturas[ids.gf].get("fios", []).has(ids.get("a1", -1)), f.transmitindo(ids.gf), an.ativo if an != null else "sem animador"])
+			cena._sel = {"estrutura": ids.gf}
+			cena._detalhe()
+		if cena.fabrica.maquinas.has(int(ids.get("m2", -1))):
+			var mq: Maquina = cena.fabrica.maquinas[ids.m2]
+			var an2: Animador = cena._animador(ids.m2)
+			print("LOTE10 montadora 2: estado %s energia %.2f velocidade %.2f anima %s" % [Maquina.Estado.keys()[mq.estado], mq.energia, mq.velocidade,
+					an2.ativo if an2 != null else "sem animador"])
+			cena._sel = {"estrutura": ids.m2}
+			cena._detalhe()
+		if cena.fabrica.maquinas.has(int(ids.get("r2", -1))):
+			var mr: Maquina = cena.fabrica.maquinas[ids.r2]
+			var an3: Animador = cena._animador(ids.r2)
+			print("LOTE10 refinador 2: estado %s energia %.2f velocidade %.2f anima %s" % [Maquina.Estado.keys()[mr.estado], mr.energia, mr.velocidade,
+					an3.ativo if an3 != null else "sem animador"])
+			cena._sel = {"estrutura": ids.r2}
+			cena._detalhe()
+		if int(ids.get("ps2", -1)) >= 0:
+			var f: Fabrica = cena.fabrica
+			var an: Animador = cena._animador(ids.ps2)
+			print("LOTE13 painel solar 2: %.0f kW (painel 1 renderia %.0f) dia %.2f encoberto %.2f anima %s" % [-f.kw_de(ids.ps2), 300.0 * f.sol,
+					f.sol_limpo, f.encoberto, an.ativo if an != null else "sem animador"])
+			cena._sel = {"estrutura": ids.ps2}
+			cena._detalhe()
+		if not ids.has("a2"):
+			return
+		var f: Fabrica = cena.fabrica
+		var an: Animador = cena._animador(ids.a2)
+		print("LOTE13 energia na montadora %.2f transmitindo %s anel %s cabos %s" % [f.rede.satisfacao(ids.get("maq", -1)), f.transmitindo(ids.a2),
+				an.ativo if an != null else "sem animador", cena._fios._cabos.mesh != null])
+		cena._sel = {"estrutura": ids.a2}
+		cena._detalhe()
+		print("LOTE13 painel poste alto"))
+	em(8, func():                                     # turbina de correnteza no rio mais perto, com um poste alto na margem
+		var m: MapaOcupacao = cena.mapa
+		var con: Construtor = cena.construtor
+		var g := Grade.gerador
+		for r in range(50, 300, 2):
+			if ids.has("turb"):
+				break
+			for k in 64:
+				var t := Vector2i((Vector2.from_angle(k * TAU / 64.0) * r).round())
+				if g.terreno(t) != GeradorMundo.Terreno.RIO or m.motivo_bloqueio("turbina_correnteza", t, 0) != "":
+					continue
+				cena.sincronizar(con.executar(con.plano_peca("turbina_correnteza", t, 0)))
+				if not m.tiles.has(t):
+					continue
+				ids["turb"] = m.tiles[t]
+				for d in [Vector2i(-2, 0), Vector2i(3, 0), Vector2i(0, -2), Vector2i(0, 3), Vector2i(-2, 1), Vector2i(3, 1), Vector2i(1, -2), Vector2i(1, 3)]:
+					m.limpar_obstaculo(t + d)
+					if m.motivo_bloqueio("poste_alto", t + d, 0) == "":
+						cena.sincronizar(con.executar(con.plano_peca("poste_alto", t + d, 0)))
+						ids["pt"] = m.tiles.get(t + d, -1)
+						break
+				print("LOTE13 turbina no rio em ", t, " poste ", ids.get("pt", -1))
+				break)
+	em(70, func():
+		if not ids.has("turb"):
+			print("LOTE13 sem rio por perto")
+			return
+		var f: Fabrica = cena.fabrica
+		var an: Animador = cena._animador(ids.turb)
+		print("LOTE13 turbina %.0f kW (vazão %.2f, %s) ligada a %d fio(s) anima %s plataforma %s" % [-f.kw_de(ids.turb), f.rio, cena.clima.nome_estacao(),
+				cena.mapa.estruturas[ids.turb].get("fios", []).size(), an.ativo if an != null else "sem animador",
+				Registro.estruturas.turbina_correnteza.flutua])
+		cena._sel = {"estrutura": ids.turb}
+		cena._detalhe()
+		print("LOTE13 painel turbina"))
+
+
 func _roteiro_lote17() -> void:
 	var ids := {}
 	var w := [Vector2i(9999, 0)]

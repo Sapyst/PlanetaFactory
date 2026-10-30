@@ -403,6 +403,7 @@
    ],
    "tempo": 6.0,
    "libera": "Montadora 2 (velocidade 1,0, 2 encaixes de módulo)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "logistica_3": {
@@ -639,6 +640,7 @@
    ],
    "tempo": 6.0,
    "libera": "Poste alto 1×1 (fio de 30 m, ligação de 3 m)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "vagao_tanque": {
@@ -864,6 +866,7 @@
    ],
    "tempo": 6.0,
    "libera": "Turbina de correnteza 2×2 no rio (150 kW, cai na seca)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "para_raios": {
@@ -1078,6 +1081,7 @@
    ],
    "tempo": 8.0,
    "libera": "Receita combustível de seiva (fluido) e gerador a fluido 3×3 (2,4 MW)",
+   "existente": true,
    "tipo": "receita"
   },
   "fornalha_eletrica": {
@@ -1537,6 +1541,7 @@
    ],
    "tempo": 8.0,
    "libera": "Painel solar 2 (2×2, 500 kW, rende 15% com nuvem)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "turbina_alta": {
@@ -2377,6 +2382,7 @@
    ],
    "tempo": 12.0,
    "libera": "Refinador 2 3×3 (velocidade 2,0, 3 encaixes, devolve 50% menos água suja)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "irradiador_modulos": {

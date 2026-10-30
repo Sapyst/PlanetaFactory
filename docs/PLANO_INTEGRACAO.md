@@ -32,7 +32,11 @@ Lista: ver docs/ARVORE_TECNOLOGIA.md (Estruturas: temos × precisamos) e arte/es
 - [x] Lote 17 (proliferação): sensor de varredura, farol de cristal, posto avançado, lançador de sementes, receptor de
   cápsulas (+ colônias), transportador quântico e silo de lançamento (estudos do Antigravity) — ver "Progresso das
   fases 3+4". Tudo depois do posto avançado segue em desenvolvimento até a **Transmissão longa** (poste alto, lote 13).
-- [ ] → 13 (energia I) → 10 (produção I) → 14 (energia II) → 11 (produção II).
+- [~] Lote 13 (energia I): poste alto, turbina de correnteza, gerador a fluido, painel solar 2 — feitos (ver "Progresso
+  das fases 3+4"); falta o acumulador 2 (estudo pronto, ficou para a próxima rodada).
+- [~] Lote 10 (produção I): montadora 2 e refinador 2 — feitos; fornalha de aço, fornalha elétrica, broca grande,
+  laboratório 2 (estudos do Antigravity ainda em produção) na próxima rodada.
+- [ ] → 14 (energia II) → 11 (produção II).
 
 ## Fase 5 — só no fim de TUDO (a árvore inteira funcional): fotos no jogo + baterias de testes
 Sapyst: "vai terminar literalmente toda a tech-tree e tudo mais. Faltando só as fotos com testes mesmo."
@@ -537,14 +541,50 @@ com a grade inteira + resultado dos testes), para ela não precisar abrir uma po
     tela (não há cena/créditos de fim); (10) o estudo `estudo_poste_alto.py` (lote 13) apareceu pronto: é ele que
     destrava a `transmissao` e, com ela, toda a proliferação.
 
+- [x] **Lote 13 (energia I): poste alto, turbina de correnteza, gerador a fluido, painel solar 2** e **lote 10 (produção
+      I): montadora 2, refinador 2** (estudos do Antigravity, sem alteração; arte/estudos/conv_lote13.py e
+      conv_lote10.py; um por vez; testes test_poste_alto.gd, test_turbina_correnteza.gd, test_gerador_fluido.gd,
+      test_painel_solar_2.gd, test_montadora_2.gd, test_refinador_2.gd; roteiro `-- modo demo roteiro lote13`). Pesquisas
+      novas em progressao.json (6, todas jogáveis): transmissao, turbina_rio, combustivel_seiva, renovavel_2,
+      montadora_2, refinador_2 — marcadas "existente" no .mmd. Com a **transmissao**, o posto avançado, o núcleo-semente
+      e as colônias saíram do "em desenvolvimento"; com o **refinador_2**, a estação de tratamento também.
+  - **Modelos**: poste alto 3.702 tris (1×1, 5,7 m; as cruzetas passam do tile, ±0,79 m lá no alto; `terminais` no pé
+    das 4 cadeias de isoladores); turbina de correnteza 5.347 (2×2; linha d'água do estudo na altura do chão do rio;
+    sem a arfagem do casco — tudo preso nele iria para a parte móvel); gerador a fluido 7.410 (3×3, FLUIDO_ENT_S1; sem
+    o tremor do motor e as manchas); painel solar 2 4.800 (2×2; orçamento 14.000 para o rastreador, que se mexe
+    inteiro, passar quase sem redução); montadora 2 11.108 (3×3, S1 → N1 + fluido O1; sem as peças em trânsito e o
+    feixe); refinador 2 11.577 (3×3, fluidos O1 e S1, L1, item N0 no tile oeste; o estudo tem 28.672; sem as células
+    ejetadas e o flare). `para_jogo.py`: peça acesa (P_Cristal/P_Fogo) que se mexe agora também marca "anima" (o anel
+    do poste alto ficava parado). Ícones pelo render Workbench do icones.py (script de um modelo só; só esses 6).
+  - **Função**: poste alto (raio_fio 30, raio_ligacao 3; `Construtor.PASSO_POSTE` 20; anel com
+    `Fabrica.transmitindo`); turbina de correnteza ("no_rio", "flutua", renovável "rio": 150 kW × `Fabrica.rio` =
+    `Clima.vazao_rio`, estação + chuva; motivo "fora_do_rio"); gerador a fluido ("combustivel_fluido", fluido novo
+    `combustivel_seiva`, receita no refinador; `Fabrica._tick_geradores_fluido`); painel solar 2 ("perda_nuvem" 0,15,
+    `Fabrica.sol_limpo`/`encoberto`); montadora 2 e refinador 2 (mesmo "maquina", velocidade 1,0 / 2,0,
+    "encaixes_modulo" só no painel).
+  - Verificação: 68.545+ verificações, 0 falhas (testar.sh); os 161 scripts compilam (carregados sem janela); a demo
+    (`--quit-after 400 -- modo demo` e `--quit-after 600 res://cenas/mundo_demo.tscn`) roda sem erro; roteiro lote13:
+    energia do gerador a fluido (cano) atravessa 28 m de linha alta até a montadora (100%), anel girando, cabos
+    desenhados; turbina no rio a 150 kW (primavera) ligada a um poste alto na margem; painel 2 a 489 kW (o 1 daria
+    278); montadora 2 e refinador 2 trabalhando. docs/RECURSOS.md regerado.
+  - Pendências / decisões para Sapyst: (1) nada visto em imagem (sem fotos); (2) **combustível de seiva** sem a água da
+    árvore (refinador só tem 2 bocas de fluido) — pôr a água quando quiser (o refinador 2 tem 3 bocas); (3) "rende 15%
+    com nuvem" do painel 2 lido como **perde só 15%**; (4) a turbina de correnteza vale em qualquer rotação (a
+    correnteza não precisa bater com o eixo do rotor) e a seca é a `vazao_rio` da estação; (5) poste alto atrai raio
+    (5,7 m: o mais alto pega) — sem para-raios próprio; (6) montadora 2 e refinador 2 não trocam a máquina antiga no
+    lugar (a árvore não prevê) e os encaixes de módulo ficam vazios; a boca de fluido da montadora 2 não tem receita;
+    o pacote de tempestade continua saindo também na montadora comum (restringir à 2 quebraria fábricas prontas);
+    (7) números (custos, 700 kW do refinador 2, 200 kW da montadora 2, poluição 45 do gerador a fluido, vazões) são
+    estimativa; (8) acumulador 2 (estudo pronto) ficou para a próxima rodada (limite de 6 por rodada).
+
 ### Lista para a fase 3 — estruturas da árvore ainda sem estudo/modelo
 (Fonte: "Estruturas: temos × precisamos" do docs/ARVORE_TECNOLOGIA.md. Entre parênteses, o que cada uma destrava do que
 já está ligado e travado.)
-- Produção: fornalha de aço, fornalha elétrica, fundição de cristal, **montadora 2** (o pacote de tempestade é da
-  montadora 2 na árvore; hoje sai na comum), montadora 3, montadora quântica, **refinador 2** (estação de tratamento),
+- Produção: fornalha de aço, fornalha elétrica, fundição de cristal, ~~montadora 2~~ (lote 10; o pacote de tempestade
+  segue saindo também na comum), montadora 3, montadora quântica, ~~refinador 2~~ (lote 10: estação de tratamento),
   **forja quântica** (computação quântica → regulador climático), broca grande, extrator ressonante, broca de núcleo,
   laboratório 2, laboratório quântico, irradiador de módulos.
-- Energia: poste alto, turbina de correnteza, gerador a fluido, painel solar 2, **turbina alta** (defletor de vento),
+- Energia: ~~poste alto, turbina de correnteza, gerador a fluido, painel solar 2~~ (lote 13), **turbina alta** (defletor de vento),
   acumulador 2, acumulador de cristal, reator de cristal, reator de fusão, núcleo de singularidade.
 - Proliferação: ~~sensor de varredura, farol de cristal, posto avançado, lançador de sementes, receptor de cápsulas,
   transportador quântico, silo de lançamento~~ (lote 17, feitos).

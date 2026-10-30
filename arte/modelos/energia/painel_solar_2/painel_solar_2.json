@@ -1,0 +1,31 @@
+{
+ "nome": "painel_solar_2",
+ "categoria": "energia",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Painel solar 2 (estudo_painel_solar_2.py): pedestal com rastreador biaxial (azimute e elevação com atuador de fuso), duas asas de células dopadas com cristal, limpadores ultrassônicos, inversor e anel condensador com 3 lentes orbitando. Até 500 kW de dia; com nuvem perde só 15%.",
+ "ocupa_canto": false,
+ "portas": [],
+ "estudo": "estudo_painel_solar_2.py",
+ "tris": 4800,
+ "dims": [
+  1.92,
+  1.93,
+  1.532
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true
+}

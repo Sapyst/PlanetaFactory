@@ -1,0 +1,31 @@
+{
+ "nome": "turbina_correnteza",
+ "categoria": "energia",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Turbina de correnteza 2×2 (estudo_turbina_correnteza.py): catamarã flutuante com grade defletora, rotor hidrocinético de 4 pás meio submerso entre os pontões, gerador com aletas, boia de vazão e cristal piezoelétrico. Vai no rio: 150 kW com a correnteza, cai na seca.",
+ "ocupa_canto": false,
+ "portas": [],
+ "estudo": "estudo_turbina_correnteza.py",
+ "tris": 5347,
+ "dims": [
+  1.837,
+  2.019,
+  1.549
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true
+}

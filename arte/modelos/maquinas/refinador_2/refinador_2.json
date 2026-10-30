@@ -1,0 +1,92 @@
+{
+ "nome": "refinador_2",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Refinador 2 3×3 (estudo_refinador_2.py): bomba centrífuga na entrada oeste, dois reatores com agitadores, torre de destilação com robô de inspeção e anel quântico, trocador duplo na saída leste, 2ª entrada de fluido ao sul, baia com 3 encaixes de módulo, flare e bica de itens ao norte. Velocidade 2,0 (o refinador faz 1,0).",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_ENT_O1",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    -1.5,
+    0.0,
+    0.35
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_SAI_L1",
+   "tipo": "FLUIDO",
+   "io": "SAI",
+   "pos": [
+    1.5,
+    0.0,
+    0.35
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_N0",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    -1.0,
+    1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_ENT_S1",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -1.5,
+    0.35
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  }
+ ],
+ "estudo": "estudo_refinador_2.py",
+ "tris": 11577,
+ "dims": [
+  2.97,
+  3.04,
+  3.69
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true
+}

@@ -31,12 +31,22 @@ Só se põe postes; os fios aparecem sozinhos (`energia/fiacao.gd`): poste ↔ p
 poste ↔ gerador e máquina até 5 m da borda. Máquina já ligada não troca de poste; no painel dela: "aceitar 1/2/3
 fontes". Remover um poste religa quem ficou sem. Fantasma do poste mostra os fios que vai criar e o anel de 9 m.
 **Torre sem fio** (pesquisa "Energia sem fio"): liga torres até 40 m e máquinas até 14 m, feixe ciano em vez de cabo.
+**Poste alto** (pesquisa "Transmissão longa", lote 13): cabo até 30 m entre postes altos (poste ↔ poste vale o menor
+`raio_fio`: com o comum, 9 m), ligação de 3 m; `terminais` no pé das 4 cadeias de isoladores; arrastado, um a cada 20
+tiles (`Construtor.PASSO_POSTE`). O anel do topo anima com `Fabrica.transmitindo(id)` (a rede dele entregando energia).
 
 ## Fontes, acumulador e opções das peças
 - `energia/rede_energia.gd`: em cada rede as fontes **grátis** (núcleo, painel solar, turbina eólica) entram primeiro;
   o gerador só queima carvão para cobrir o que falta. Sobra carrega os **acumuladores** (até `acumula_kw`), falta
   descarrega. `estat` por rede: pode gerar, gera, demanda, consumo, carga (+ carregando / − descarregando), acumulado.
 - Painel solar: `energia_kw × luz do dia × luz do clima` (nada à noite). Turbina: `energia_kw × (0,05 + 0,95 × vento)`.
+- Lote 13: **painel solar 2** ("perda_nuvem" 0,15): `energia_kw × Fabrica.sol_limpo × (1 − 0,15 × Fabrica.encoberto)`
+  (luz do dia; nuvem ou chuva, o maior). **Turbina de correnteza** ("renovavel": "rio", "no_rio", "flutua"):
+  `MapaOcupacao.no_rio` (metade da área em tile RIO; motivo "fora_do_rio"), sem plataforma (`DesenhoPlataformas`),
+  `energia_kw × Fabrica.rio` (`Clima.vazao_rio`: `vazao_rio` da estação + `chuva_vazao` × chuva). **Gerador a fluido**
+  ("combustivel_fluido": fluido → MJ por unidade): `Fabrica._geradores_fluido` liga a boca de entrada na rede do cano e
+  `_tick_geradores_fluido` enche `combustivel` (MJ) até `ESTOQUE_GERADOR_MJ`; queima como o gerador. Fluido novo
+  `combustivel_seiva` (refinador). Anima queimando para a rede.
 - Peça no mapa guarda as opções: `desligada`, `modo` (`eco`/`normal`/`turbo` → `Fabrica.MODOS`: velocidade, energia,
   poluição) e `limite` do baú (fração de `capacidade_itens`). **Reparar** custa 1 placa de ferro por 25 de integridade.
 - Ficha técnica (`BarraConstrucao.ficha`) no botão da peça; painel da peça mostra integridade, armazenamento, geração
@@ -281,7 +291,12 @@ Tudo que se constrói funciona — a mini-fábrica da demo é só um mapa pronto
   quântico**: `Fabrica.alcance_origem` (campo "alcance" 1..`alcance_max`), `Animador._lanca_quantica` e o caminho do
   item no campo (`ponto_garra`). Roteiro sem janela: `godot --headless --path jogo --quit-after 900 -- modo demo
   roteiro lote16`. Lote 17 (proliferação: sensor, farol, posto, lançador, receptor, transportador, silo):
-  `godot --headless --path jogo --fixed-fps 30 --quit-after 400 -- modo demo roteiro lote17`.
+  `godot --headless --path jogo --fixed-fps 30 --quit-after 400 -- modo demo roteiro lote17`. Lotes 13 e 10 (energia I e
+  produção I: poste alto, turbina de correnteza, gerador a fluido, painel solar 2, montadora 2, refinador 2):
+  `godot --headless --path jogo --quit-after 200 -- modo demo roteiro lote13`.
+- **Montadora 2 / Refinador 2** (lote 10): máquinas de receita com "maquina" igual à da 1 (mesmas receitas),
+  velocidade 1,0 / 2,0 e "encaixes_modulo" 2 / 3 (só mostrados no painel: os módulos não existem). O refinador 2 tem
+  uma 2ª entrada de fluido (S1) e suja o mesmo por minuto (metade por produto).
 - **Sensor de varredura** (lote 17; `ambiente/varredura.gd`, regra "varredura" em `estruturas.json`): consumidor de
   150 kW; `Varredura.tick` revela, por sensor, o próximo chunk de `ordem(id)` (mais perto do centro primeiro) a cada
   `intervalo_s` × energia, até `chunks` (6) ou `chunks_profunda` (16, modo `varredura_profunda` da pesquisa
@@ -299,8 +314,8 @@ Tudo que se constrói funciona — a mini-fábrica da demo é só um mapa pronto
   (`Fiacao.eh_nucleo`: liga máquinas sem cabo, poste por cabo, como o núcleo); estoque próprio em `Fabrica.baus`
   (`Fabrica.eh_posto`; 3.200; braço e drones logísticos — papel "estoque"); `Fabrica.posto_que_cobre(tile)` (mais perto
   a até `raio_obra` 32 m) e `Construtor.estoque_local`/`estoque_do_posto`: a obra paga primeiro com o estoque do posto
-  (`_pagar`; `rel.locais` para o desfazer devolver ao posto; saiu → núcleo). A pesquisa segue em desenvolvimento
-  (pede `transmissao`, sem poste alto).
+  (`_pagar`; `rel.locais` para o desfazer devolver ao posto; saiu → núcleo). Pesquisa jogável desde o poste alto
+  (`transmissao`, lote 13).
 - **Lançador de sementes** (lote 17; `ambiente/lancador.gd`, regra "lancador"; item `nucleo_semente`, receita na
   montadora): `Fabrica._NoLancador` põe a semente em `sementes` na estrutura; alvo `alvo_rumo` (0–7) e `alvo_dist`
   (60–400 m) na estrutura (`Lancador.mirar`, painel). Com semente, alvo com pouso (`lugar_de_pouso`: 3×3 seco, plano,

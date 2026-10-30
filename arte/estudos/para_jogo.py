@@ -465,6 +465,7 @@ def main():
     brilhantes = [o for o in malhas if any(brilha(s.material) for s in o.material_slots)]
     fixos = [o for o in malhas if o.name not in din and o not in brilhantes]
     moveis = [o for o in malhas if o.name in din and o not in brilhantes]
+    brilho_anima = any(o.name in din for o in brilhantes)   # peça acesa que se mexe (anel do poste alto) também anima
     total = sum(tris(o) for o in fixos + moveis) or 1
     # alto (detalhado) guardado para assar; baixo reduzido ao orçamento
     corpo = juntar_fixos(fixos, nome + '_' + cfg.get('corpo', 'corpo')) if fixos else None
@@ -561,7 +562,7 @@ def main():
                   dims=[round(hi.x - lo.x, 3), round(hi.y - lo.y, 3), round(hi.z - lo.z, 3)],
                   partes=[dict(nome=cfg.get('corpo', 'corpo'), pai=None, pivo=[0.0, 0.0, 0.0])] +
                   [dict(nome=pn, pai=pd.get('pai', cfg.get('corpo', 'corpo')), pivo=[round(v, 4) for v in pd.get('pivo', (0, 0, 0))])
-                   for pn, pd, _ in pecas if pn in objs_partes], anima=bool(moveis),
+                   for pn, pd, _ in pecas if pn in objs_partes], anima=bool(moveis) or brilho_anima,
                   estudo=cfg.get('estudo', cfg['script']))
     json.dump(antigo, open(os.path.join(pasta, nome + '.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     print('PARA_JOGO ok', nome, antigo['tris'], 'tris', len(moveis), 'peças móveis', len(brilhantes), 'brilhantes')

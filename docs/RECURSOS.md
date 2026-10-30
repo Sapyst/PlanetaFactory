@@ -148,7 +148,9 @@ Ficha de cada peça do menu: energia, o que guarda, integridade (♥), custo e a
 | **Broca** — Fura a jazida e despeja minério na esteira. | usa 90 kW · polui 10/min | 300 | 8 placa de ferro, 4 engrenagem, 5 pedra | início |
 | **Fornalha** — Funde minério em placas (queima carvão). | polui 4/min | 200 | 10 pedra | início |
 | **Montadora** — Monta peças por receita. | usa 150 kW · polui 3/min | 300 | 12 placa de ferro, 6 engrenagem, 6 placa de cobre | início |
+| **Montadora 2** — Monta as mesmas peças mais rápido (1,0 contra 0,75), com 2 encaixes de módulo. | usa 200 kW · polui 3/min | 400 | 10 barra de aço, 10 engrenagem, 6 circuito, 2 motor | Montadora 2 |
 | **Refinador** — Processa fluidos. | usa 420 kW · polui 6/min | 350 | 5 barra de aço, 10 tubo, 5 circuito | Refino de seiva |
+| **Refinador 2** — Processa fluidos 2× mais rápido e suja a metade por produto; 2ª entrada de fluido ao sul. | usa 700 kW · polui 6/min | 500 | 30 barra de aço, 30 tubo, 6 processador, 10 liga leve, 4 motor | Refinador 2 |
 | **Laboratório** — Pesquisa com pacotes. | usa 60 kW | 150 | 10 placa de ferro, 10 placa de cobre, 5 engrenagem | início |
 | **Terraplenagem** — Libera Aplainar o chão em qualquer lugar. | — | 400 | 30 placa de ferro, 15 engrenagem, 40 pedra | início |
 
@@ -174,10 +176,14 @@ Ficha de cada peça do menu: energia, o que guarda, integridade (♥), custo e a
 |---|---|---|---|---|
 | **Gerador** — Queima carvão e gera energia. | gera até 900 kW (combustível) · polui 30/min | 200 | 10 placa de ferro, 5 tubo, 10 pedra | início |
 | **Painel solar** — Energia do sol, sem combustível: nada à noite, menos com nuvem e chuva, mais no verão. | gera até 300 kW (sol: zero à noite) | 120 | 6 placa de ferro, 8 vidro, 3 circuito | Energia renovável |
+| **Painel solar 2** — Até 500 kW de sol, seguindo o sol: com nuvem e chuva perde só 15%; nada à noite. | gera até 500 kW (sol: zero à noite) | 160 | 8 barra de aço, 12 vidro, 2 processador, 4 cristal lapidado | Painel solar 2 |
 | **Turbina eólica** — Energia do vento, sem combustível: vira para o vento; rende mais no alto e em campo aberto, para na calmaria e se protege na ventania. | gera até 200 kW (vento) | 180 | 14 placa de ferro, 10 engrenagem, 2 motor | Energia renovável |
 | **Acumulador** — Guarda a sobra de energia da rede e devolve quando falta. | guarda 80 MJ (até 500 kW) | 250 | 10 placa de ferro, 8 bateria, 4 circuito | Acumulação |
 | **Poste** — Leva energia por cabo. | — | 40 | 1 placa de ferro, 1 placa de cobre | início |
+| **Poste alto** — Leva energia por cabo bem longe: 30 m até outro poste alto (liga máquina só a 3 m). | — | 150 | 5 barra de aço, 5 placa de cobre, 2 pedra | Transmissão longa |
 | **Torre sem fio** — Leva energia sem cabo, longe. | — | 120 | 20 placa de cobre, 10 circuito, 5 cristal lapidado | Energia sem fio |
+| **Turbina de correnteza** — Energia do rio, sem combustível: vai na água corrente; rende menos na seca (verão) e mais com chuva. | gera até 150 kW | 200 | 20 placa de ferro, 10 engrenagem, 2 motor, 10 placa de cobre | Turbina de correnteza |
+| **Gerador a fluido** — 2,4 MW queimando combustível de seiva (refinador) que chega pelo cano. | gera até 2400 kW · polui 45/min | 400 | 30 barra de aço, 20 tubo, 6 motor, 10 circuito | Combustível de seiva |
 
 ### Defesa
 

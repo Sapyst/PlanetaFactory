@@ -3,8 +3,7 @@ extends Caso
 ## arte/estudos/conv_lote17.py) com a antena girando e os pistões dos silos; núcleo-filho 3×3: 150 kW próprios sem
 ## cabo para as máquinas em volta (como o núcleo), estoque próprio de 3.200 itens por braço (estoque dos drones
 ## logísticos) e a obra perto dele paga primeiro com esse estoque. A pesquisa (transmissão + silo de granel + ciência
-## militar; básico/automação/militar × 50) está ligada, mas segue "em desenvolvimento": a Transmissão longa (poste alto)
-## ainda não existe.
+## militar; básico/automação/militar × 50) é jogável desde que a Transmissão longa (poste alto, lote 13) entrou.
 
 
 func _mapa() -> MapaOcupacao:
@@ -57,23 +56,19 @@ func test_modelo_anima() -> void:
 	raiz.free()
 
 
-func test_pesquisa_ligada_mas_em_desenvolvimento() -> void:
+func test_pesquisa_jogavel() -> void:
 	var p := Pesquisa.new()
 	verificar(p.jogavel("posto_avancado"), "pesquisa ligada no jogo")
 	verificar(p.arvore().posto_avancado.get("existente", false), "marcada como existente na árvore")
 	igual(p.custo("posto_avancado"), {"pacote_pesquisa": 50, "pacote_automacao": 50, "pacote_militar": 50}, "custo da árvore")
-	verificar(not p.jogavel("transmissao"), "Transmissão longa (poste alto) ainda não existe")
-	verificar(p.em_desenvolvimento("posto_avancado"), "segue em desenvolvimento: espera a transmissão")
-	verificar(p.motivo_desenvolvimento("posto_avancado").contains("Transmissão"), "o motivo diz quem falta (%s)" % p.motivo_desenvolvimento("posto_avancado"))
+	verificar(p.jogavel("transmissao"), "Transmissão longa (poste alto, lote 13) existe")
+	verificar(not p.em_desenvolvimento("posto_avancado"), "saiu do em desenvolvimento")
+	verificar(not p.peca_em_desenvolvimento("posto_avancado"), "a peça não fica mais em cinza")
 	p.concluidas = {"silo_granel": true, "ciencia_militar": true, "automacao": true}
-	verificar(not p.disponivel("posto_avancado"), "não se escolhe")
-	verificar(p.peca_em_desenvolvimento("posto_avancado"), "a peça fica em cinza (em desenvolvimento) fora da demonstração")
-	var livre := Pesquisa.new(true)
-	verificar(not livre.peca_em_desenvolvimento("posto_avancado"), "na demonstração se constrói")
-	# quando a transmissão existir, a árvore já leva ao posto
+	verificar(not p.disponivel("posto_avancado"), "sem a transmissão não se escolhe")
 	p.concluidas["transmissao"] = true
-	verificar(not p.em_desenvolvimento("posto_avancado") and p.disponivel("posto_avancado"), "com a transmissão: pesquisável")
-	p.concluidas.erase("transmissao")                    # (não está em progressao.json: peca_liberada lê só as ligadas)
+	verificar(p.disponivel("posto_avancado"), "com a transmissão: pesquisável")
+	verificar(not p.peca_liberada("posto_avancado"), "a peça só sai com a pesquisa")
 	p.concluidas["posto_avancado"] = true
 	verificar(p.peca_liberada("posto_avancado"), "libera o posto")
 

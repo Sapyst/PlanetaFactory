@@ -1,0 +1,53 @@
+{
+ "nome": "poste_alto",
+ "categoria": "energia",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Poste alto (torre de transmissão): torre treliçada de 5 m com duas cruzetas e quatro cadeias de isoladores (o fio prende no pé delas: \"terminais\"), para-raios e anel de ressonância girando no topo. Fio de 30 m até outro poste alto, ligação de 3 m.",
+ "ocupa_canto": false,
+ "portas": [],
+ "estudo": "estudo_poste_alto.py",
+ "terminais": [
+  [
+   -0.65,
+   0.0,
+   3.27
+  ],
+  [
+   0.65,
+   0.0,
+   3.27
+  ],
+  [
+   -0.5,
+   0.0,
+   3.92
+  ],
+  [
+   0.5,
+   0.0,
+   3.92
+  ]
+ ],
+ "tris": 3702,
+ "dims": [
+  1.502,
+  0.968,
+  5.722
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true
+}

@@ -57,6 +57,8 @@ func motivo_bloqueio(nome: String, minimo: Vector2i, rot: int) -> String:
 		return "longe_da_agua"
 	if def.get("tomada_agua", false) and tiles_da_tomada(minimo, area, rot).filter(_tem_agua).is_empty():
 		return "tomada_seca"
+	if def.get("no_rio", false) and not no_rio(minimo, area, rot):
+		return "fora_do_rio"
 	var alt := _altura(nome)
 	for t in Grade.tiles_da_area(minimo, area, rot):
 		for n in range(1, NIVEIS + 1):
@@ -78,6 +80,12 @@ func encosta_na_agua(minimo: Vector2i, area: Vector2i, rot: int) -> bool:
 				if gerador.eh_agua(gerador.terreno(n)) or gerador.superficie_em(n) != null:
 					return true
 	return false
+
+
+## Turbina de correnteza: pelo menos metade da área em tile de rio (água corrente; lago e canal não correm).
+func no_rio(minimo: Vector2i, area: Vector2i, rot: int) -> bool:
+	var tiles := Grade.tiles_da_area(minimo, area, rot)
+	return tiles.filter(func(t): return gerador.terreno(t) == GeradorMundo.Terreno.RIO).size() * 2 >= tiles.size()
 
 
 ## Bomba d'água: os tiles logo além do lado SUL do modelo (girado com a peça) — onde fica a tomada com a grade.

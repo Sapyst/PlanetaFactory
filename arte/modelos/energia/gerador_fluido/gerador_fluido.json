@@ -1,0 +1,47 @@
+{
+ "nome": "gerador_fluido",
+ "categoria": "energia",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Gerador a fluido 3×3 (estudo_gerador_fluido.py): motor a combustão de seiva com turbo, silenciador e chaminé, radiador com dois ventiladores no teto, alternador com volante e anel quântico de plasma. Combustível de seiva pelo cano ao sul: até 2,4 MW.",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_ENT_S1",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -1.5,
+    0.35
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  }
+ ],
+ "estudo": "estudo_gerador_fluido.py",
+ "tris": 7410,
+ "dims": [
+  2.88,
+  2.88,
+  3.305
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true
+}

@@ -359,9 +359,9 @@ func test_em_desenvolvimento() -> void:
 	verificar(not p.em_desenvolvimento("controle_vento"), "dependência feita: sai de em desenvolvimento")
 	# peças
 	var q := Pesquisa.new()
-	for n in ["braco_quantico", "esteira_quantica", "defletor_vento", "regulador_clima", "estacao_tratamento"]:
+	for n in ["braco_quantico", "esteira_quantica", "defletor_vento", "regulador_clima"]:
 		verificar(q.peca_em_desenvolvimento(n), "peça em desenvolvimento: " + n)
-	for n in ["esteira", "braco", "sensor_varredura", "artilharia", "torre_metralhadora"]:
+	for n in ["esteira", "braco", "sensor_varredura", "artilharia", "torre_metralhadora", "estacao_tratamento", "posto_avancado"]:
 		verificar(not q.peca_em_desenvolvimento(n), "peça do jogo: " + n)
 	verificar(q.peca_em_desenvolvimento("peca_que_nao_existe"), "sem modelo: em desenvolvimento")
 	var demo := Pesquisa.new(true)

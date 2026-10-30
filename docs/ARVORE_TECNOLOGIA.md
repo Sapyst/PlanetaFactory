@@ -1,6 +1,6 @@
 # Árvore de tecnologia
 
-Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 113 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras — e as jogáveis que ainda esperam um pré-requisito ou pacote que não existe (`Pesquisa.em_desenvolvimento`) — aparecem em cinza escuro com a etiqueta **"Em desenvolvimento"** e não se escolhem nem se concluem, até a estrutura, o item ou o pacote existir. Na barra de construção, peça sem modelo ou liberada só por pesquisa em desenvolvimento fica igual (cinza escuro, etiqueta) e não se constrói fora do modo demonstração. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
+Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 119 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras — e as jogáveis que ainda esperam um pré-requisito ou pacote que não existe (`Pesquisa.em_desenvolvimento`) — aparecem em cinza escuro com a etiqueta **"Em desenvolvimento"** e não se escolhem nem se concluem, até a estrutura, o item ou o pacote existir. Na barra de construção, peça sem modelo ou liberada só por pesquisa em desenvolvimento fica igual (cinza escuro, etiqueta) e não se constrói fora do modo demonstração. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
 
 ## Eras e pacotes de pesquisa
 
@@ -28,7 +28,7 @@ Como no Factorio, uma **unidade** de pesquisa gasta 1 pacote de cada tipo listad
 | Resina (`resina`) | 30 seiva + 10 água → 1 (3 s) | refinador | `quimica` |
 | Liga leve (`liga_leve`) | 1 barra de aço + 2 placas de cobre + 1 resina → 2 (6 s) | montadora | `liga_leve` |
 | Processador (`processador`) | 2 circuitos + 1 resina + 1 cristal lapidado + 5 água → 1 (8 s) | montadora | `processador` |
-| Combustível de seiva (`combustivel_seiva`, fluido) | 40 seiva + 10 água → 30 (4 s; 12 MJ por 10) | refinador | `combustivel_seiva` |
+| Combustível de seiva (`combustivel_seiva`, fluido) | 40 seiva + 10 água → 30 (4 s; 12 MJ por 10) — no jogo: 40 seiva → 30 (o refinador só tem 2 bocas de fluido: entra seiva, sai combustível) | refinador | `combustivel_seiva` |
 | Cristal carregado (`cristal_carregado`) | 1 cristal lapidado + 30 água por raio recebido | captador de carga | `captador_carga` |
 | Resíduo (`residuo`) | sai do coletor de lixo 2 (1 a cada 20 de sujeira) | coletor de lixo 2 | `coletor_lixo_2` |
 | Munição perfurante (`municao_perfurante`) | 1 munição + 1 barra de aço → 1 (3 s) | montadora | `municao_perfurante` |
@@ -469,9 +469,9 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Fornalha de aço | 2×2 | falta | vel. 2,0 com combustível, −25% de poluição | `fornalha_aco` |
 | Fornalha elétrica | 2×2 | falta | vel. 2,0 sem combustível, 2 módulos | `fornalha_eletrica` |
 | Fundição de cristal | 3×3 | falta | vel. 4,0, 4 módulos, minério direto em aço | `fundicao_cristal` |
-| Montadora 2 / Montadora 3 | 3×3 | falta | vel. 1,0 e 2 módulos / vel. 1,5 e 4 módulos | `montadora_2`, `montadora_3` |
+| Montadora 2 / Montadora 3 | 3×3 | temos a 2 (lote 10) / falta a 3 | vel. 1,0 e 2 módulos (encaixes vazios até os módulos existirem; boca de fluido a oeste) / vel. 1,5 e 4 módulos | `montadora_2`, `montadora_3` |
 | Montadora quântica | 3×3 | falta | vel. 2,5, 4 módulos, 2 receitas ao mesmo tempo | `montadora_4` |
-| Refinador 2 | 3×3 | falta | vel. 2,0, 3 módulos, menos água suja | `refinador_2` |
+| Refinador 2 | 3×3 | temos (lote 10) | vel. 2,0, 3 módulos (vazios), metade da sujeira por produto, 2ª entrada de fluido ao sul | `refinador_2` |
 | Forja quântica | 3×3 | falta | processador quântico, pacote quântico, mapa estelar | `computacao_quantica` |
 | Broca grande | 3×3 | falta | 2,5× mais rápida, −20% de poluição por minério | `broca_grande` |
 | Extrator ressonante | 3×3 | falta | 2× mais rápido no cristal | `extrator_2` |
@@ -491,7 +491,7 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Purificador atmosférico | 3×3 | temos | absorve 40 de poluição/min do chunk; 1 resíduo a cada 20 absorvidos | `purificador_ar_2` |
 | Viveiro 2 | 2×2 | temos | raio 12, mudas da árvore do bioma, planta no dobro do ritmo e elas crescem 2× mais rápido | `viveiro_2` |
 | Biodigestor | 3×3 | temos | 4 resíduos + 40 de água (cano sul) → 2 biomassas + 30 de seiva (cano leste), 10 s | `biodigestor` |
-| Estação de tratamento | 3×3 | temos | na margem (tomada ao sul, como a bomba d'água): limpa a água suja em 16 m e solta 60 de água limpa/s; travada pela árvore (`refinador_2` em breve) | `estacao_tratamento` |
+| Estação de tratamento | 3×3 | temos | na margem (tomada ao sul, como a bomba d'água): limpa a água suja em 16 m e solta 60 de água limpa/s; jogável depois do `refinador_2` | `estacao_tratamento` |
 | Semeador de bioma | 3×3 | temos | com seiva: tira o queimado do chão em 14 m, devolve árvores carbonizadas/caídas e planta mudas do bioma | `restauracao_bioma` |
 
 ### Energia
@@ -503,10 +503,10 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Acumulador | 2×2 | temos | 80 MJ, 500 kW | `acumulacao` |
 | Poste | 1×1 | temos | fio de 9 m | início |
 | Torre sem fio | 1×1 | temos | fio de 40 m sem cabo | `sem_fio` |
-| Poste alto | 1×1 | falta | fio de 30 m | `transmissao` |
-| Turbina de correnteza | 2×2 | falta | 150 kW no rio, cai na seca | `turbina_rio` |
-| Gerador a fluido | 3×3 | falta | 2,4 MW com combustível de seiva | `combustivel_seiva` |
-| Painel solar 2 | 2×2 | falta | 500 kW, 15% com nuvem | `renovavel_2` |
+| Poste alto | 1×1 | temos (lote 13) | fio de 30 m até outro poste alto (com poste comum, 9 m), ligação de 3 m; arrastado põe um a cada 20 tiles | `transmissao` |
+| Turbina de correnteza | 2×2 | temos (lote 13) | 150 kW × vazão do rio (metade da área em água corrente, flutua); vazão da estação (verão 35%) + chuva | `turbina_rio` |
+| Gerador a fluido | 3×3 | temos (lote 13) | 2,4 MW com combustível de seiva pelo cano da boca sul (guarda 40 MJ) | `combustivel_seiva` |
+| Painel solar 2 | 2×2 | temos (lote 13) | 500 kW; com nuvem/chuva perde só 15% | `renovavel_2` |
 | Turbina alta | 3×3 | falta | 600 kW, conta +2 níveis de altura | `turbina_alta` |
 | Acumulador 2 | 2×2 | falta | 200 MJ, 1,5 MW | `acumulacao_2` |
 | Acumulador de cristal | 2×2 | falta | 600 MJ, 4 MW | `acumulador_cristal` |
@@ -572,9 +572,9 @@ modelo do nível anterior com outra cor de luz e detalhe.
 |---|---|---|---|---|
 | Sensor de varredura | 2×2 | temos | 150 kW: revela 1 chunk por minuto (do mais perto para o mais longe) até 6 — sai da névoa, os ninhos dele passam a existir e ficam marcados no mapa enquanto o sensor está de pé; Varredura profunda: até 16 chunks e mede a riqueza das jazidas (painel e rótulos no mapa) | `sensor_varredura`, `cartografia` |
 | Farol de cristal | 1×1 | temos | 30 kW: à noite (luz do dia < 35%) acende uma luz de 10 m — ilumina, tira a névoa em volta e avisa quando uma aranha entra na luz (1 aviso a cada 30 s por farol) | `farol_cristal` |
-| Posto avançado | 3×3 | temos (pesquisa em desenvolvimento: espera a `transmissao`) | núcleo-filho: 150 kW próprios sem cabo (como o núcleo), estoque próprio de 3.200 (braço e drones logísticos); obra a até 32 m paga primeiro com ele | `posto_avancado` |
-| Lançador de sementes | 3×3 | temos (em desenvolvimento: pede o posto avançado) | 600 kW: recebe o núcleo-semente por braço, mira rumo + distância (60–400 m), carrega 20 s, dispara; a semente voa em arco e onde pousa nasce um posto avançado (colônia, com `colonias`) | `nucleo_semente` |
-| Receptor de cápsulas | 2×2 | temos (em desenvolvimento: pede o núcleo-semente) | 100 kW: destino das cápsulas das colônias (1 pacote gênese a cada 30 s por colônia); guarda 100 para os braços | `colonias` |
+| Posto avançado | 3×3 | temos (jogável desde o poste alto, lote 13) | núcleo-filho: 150 kW próprios sem cabo (como o núcleo), estoque próprio de 3.200 (braço e drones logísticos); obra a até 32 m paga primeiro com ele | `posto_avancado` |
+| Lançador de sementes | 3×3 | temos (jogável depois do posto avançado) | 600 kW: recebe o núcleo-semente por braço, mira rumo + distância (60–400 m), carrega 20 s, dispara; a semente voa em arco e onde pousa nasce um posto avançado (colônia, com `colonias`) | `nucleo_semente` |
+| Receptor de cápsulas | 2×2 | temos (jogável depois do núcleo-semente) | 100 kW: destino das cápsulas das colônias (1 pacote gênese a cada 30 s por colônia); guarda 100 para os braços | `colonias` |
 | Transportador quântico | 3×3 | temos (em desenvolvimento: computação quântica e pacote quântico) | 500 kW: braço põe na entrada, sai sem trilho no outro transportador do mesmo canal (A–D), 5 itens/s | `transportador_quantico` |
 | Silo de lançamento | 3×3 | temos (em desenvolvimento: casco de foguete e propulsão de cristal) | 1 MW: monta o foguete por 100 partes (1 casco + 5 processadores quânticos por braço + 50 de propelente pelo cano, 10 s cada), depois a carga-semente (com `foguete_proliferacao`); o painel lança — fim da campanha | `silo_lancamento` |
 
@@ -598,7 +598,7 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
   tufão (1 a cada 7 s) soltam raios a até 20 m de uma construção sorteada, as altas com mais chance (peso = altura²).
   Sem proteção, a construção mais alta a até 3 m leva 150 de dano (o escudo absorve) e a vegetação em volta pode pegar
   fogo; no chão, o mato pega fogo ou fica a marca queimada. Para-raios, captador e cúpula pegam antes. O **pacote de
-  tempestade** sai na **montadora** comum: a montadora 2 da tabela ainda não existe (sem estudo). Com ele ficam
+  tempestade** sai na **montadora** comum: a montadora 2 entrou no lote 10, mas o pacote segue saindo também na comum. Com ele ficam
   pesquisáveis dano de energia 4, cadência de energia 2, escudo 2 (e o muro de campo), balas 4/3, foguetes 2 e as
   melhorias da artilharia (estas esperam a própria artilharia). O **defletor** fica travado pela `turbina_alta` e o
   **regulador** pela `computacao_quantica` (ambas em breve); no modo demonstração os dois se constroem.
@@ -616,7 +616,7 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
   **resíduo** sai do coletor 2 (1 a cada 1,0 de sujeira/óleo/cinza recolhida, somada nos tiles) e do purificador
   atmosférico (1 a cada 20 de poluição). A **Recuperação de solo** não tem estrutura: com ela, Aplainar também limpa o
   chão do tile. O semeador de bioma devolve as árvores queimadas e o chão queimado; o bioma natural **cinzal** fica como
-  está. A estação de tratamento espera o `refinador_2` (sem estudo).
+  está. A estação de tratamento pede o `refinador_2` (lote 10).
 - **Fim da fase 2 (estruturas com estudo).** A esteira **expressa** (`logistica_4`, jogável) e a **quântica**
   (`logistica_5`) são as mesmas peças com classe 3 e 4 (`Construtor.CLASSES_ESTEIRA`): 3× e 4× a básica, passagem de 8
   e 10 tiles; traçar uma classe por cima de outra troca a peça. A quântica espera a `computacao_quantica` e o pacote
@@ -653,7 +653,8 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
   (`farol_cristal`, depois da `eletronica`) é jogável. O **posto avançado** (`posto_avancado`), o **núcleo-semente**
   (`nucleo_semente`: item, receita e lançador), as **colônias** (`colonias`: receptor de cápsulas, pacote gênese) e o
   **transportador quântico** estão ligados no jogo, mas seguem **em desenvolvimento** pela árvore: o posto pede a
-  `transmissao` (poste alto, sem estudo) e tudo da proliferação vem depois dele; o transportador pede ainda a
+  `transmissao` (poste alto) e tudo da proliferação vem depois dele — **desde o lote 13 o posto, o núcleo-semente e as
+  colônias são jogáveis**; o transportador pede ainda a
   `computacao_quantica` e o pacote quântico (forja quântica). No modo demonstração todos se constroem. Decisões: a
   receita do núcleo-semente sai na **montadora** comum (a montadora 3 ainda não existe); antes das colônias, a
   semente pousada vira um **posto avançado** (núcleo-filho), e com `colonias` vira **colônia** (posto + kit de 40
@@ -664,13 +665,31 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
   partes e a carga-semente nele mesmo e lança pelo painel (tela de vitória: fim da campanha, o jogo continua), mas as
   peças (casco de foguete, processador quântico, propelente de cristal, mapa estelar, módulo de produtividade 3)
   ainda não existem; o propelente entra pelo `abastecer` (falta ligar o cano quando o fluido existir).
+- **Lote 13 (energia I: poste alto, turbina de correnteza, gerador a fluido, painel solar 2).** O **poste alto**
+  (`transmissao`: aço + automação) leva o fio a 30 m até outro poste alto (com poste comum vale o menor, 9 m) e liga
+  máquinas a 3 m; o fio prende no pé das 4 cadeias de isoladores e o anel do topo gira enquanto passa energia. É ele
+  que tira o posto avançado, o núcleo-semente e as colônias do "em desenvolvimento". A **turbina de correnteza**
+  (`turbina_rio`) vai no rio (metade da área em água corrente; flutua, sem plataforma) e dá 150 kW × a vazão do rio
+  (`vazao_rio` da estação em clima.json: primavera 100%, verão 35%, outono 75%, inverno 85%; + 25% × a chuva de agora,
+  até 100%). O **gerador a fluido** (`combustivel_seiva`: química + briquete) queima o fluido novo **combustível de
+  seiva** (refinador: 40 seiva → 30, 4 s; 10 = 12 MJ) que chega pelo cano da boca sul, até 2,4 MW (guarda 40 MJ;
+  poluição 45/min a plena carga). Decisão: a receita da árvore pede também 10 de água, mas o refinador só tem duas bocas
+  de fluido (entra seiva, sai combustível) — ficou sem água. O **painel solar 2** (`renovavel_2`: renovável +
+  processador) dá 500 kW e com nuvem ou chuva perde só 15% (luz do dia × (1 − 0,15 × nuvem/chuva)); à noite, nada.
+- **Lote 10 (produção I: montadora 2, refinador 2).** A **montadora 2** (`montadora_2`: automação + aço) faz as
+  receitas da montadora na velocidade 1,0 (a 1 faz 0,75), com 2 encaixes de módulo (vazios: os módulos ainda não
+  existem) e a boca de fluido do estudo a oeste (nenhuma receita de montadora bebe fluido ainda). O **refinador 2**
+  (`refinador_2`: química + ciência de tempestade; 5 pacotes × 120) faz as receitas do refinador na velocidade 2,0,
+  suja o mesmo por minuto (metade por produto: "50% menos água suja"), tem 3 encaixes (vazios) e uma 2ª entrada de
+  fluido ao sul. Com ele a **estação de tratamento** sai do "em desenvolvimento". Nenhuma das duas troca a máquina
+  antiga no lugar (a árvore não prevê): constrói-se ao lado. O pacote de tempestade continua saindo também na
+  montadora comum.
 - **Em desenvolvimento (pedido de Sapyst).** Tudo o que ainda não entrou no jogo aparece em cinza escuro com a
   etiqueta "Em desenvolvimento": na tela de pesquisa, as "em breve" e as jogáveis travadas por pacote ou pesquisa que
   ainda não existe (nó clicável só para ver o detalhe, que diz o motivo; o botão vira "Em desenvolvimento" desligado;
   não se escolhem nem se concluem — salvo antigo com uma delas ativa, o laboratório larga); na barra de construção, as
   peças sem modelo ou que só uma pesquisa em desenvolvimento libera (hoje: esteira quântica, braço quântico, defletor
-  de vento, regulador climático, estação de tratamento, posto avançado, lançador de sementes, receptor de cápsulas,
-  transportador quântico, silo de lançamento) ficam desligadas e o construtor recusa. No modo
+  de vento, regulador climático, transportador quântico, silo de lançamento) ficam desligadas e o construtor recusa. No modo
   demonstração se constrói tudo o que já tem modelo.
 - **Água limpa** (`agua_limpa`, do filtro) serve em toda receita que pede água; água do rio não serve onde se pede
   limpa (pacote ecológico). Resina bebe dois fluidos: seiva por uma boca do refinador e água pela outra.

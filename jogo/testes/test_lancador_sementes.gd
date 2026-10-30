@@ -2,8 +2,8 @@ extends Caso
 ## Lançador de sementes (lancador_sementes, lote 17): modelo do estudo (estudo_lancador_sementes.py, do Antigravity;
 ## arte/estudos/conv_lote17.py) com o disparo (culatra, recuo e pistões) tocando uma vez por tiro; item e receita
 ## núcleo-semente (montadora); recebe a semente por braço, carrega com energia, dispara e a cápsula voa até o alvo
-## (rumo e distância do painel, 60–400 m); onde pousa nasce um posto avançado. A pesquisa Núcleo-semente está ligada
-## mas segue "em desenvolvimento": pede o posto avançado, que espera a Transmissão longa (poste alto).
+## (rumo e distância do painel, 60–400 m); onde pousa nasce um posto avançado. A pesquisa Núcleo-semente é jogável
+## (pede o posto avançado, que saiu do "em desenvolvimento" com a Transmissão longa — poste alto, lote 13).
 
 
 func _mapa() -> MapaOcupacao:
@@ -82,16 +82,16 @@ func test_modelo_sem_a_capsula_que_voa() -> void:
 	raiz.free()
 
 
-func test_pesquisa_ligada_mas_em_desenvolvimento() -> void:
+func test_pesquisa_jogavel() -> void:
 	var p := Pesquisa.new()
 	verificar(p.jogavel("nucleo_semente"), "pesquisa ligada no jogo")
 	verificar(p.arvore().nucleo_semente.get("existente", false), "marcada como existente na árvore")
 	igual(p.custo("nucleo_semente"), {"pacote_pesquisa": 150, "pacote_automacao": 150, "pacote_quimico": 150, "pacote_ecologico": 150,
 			"pacote_tempestade": 150}, "custo da árvore")
-	verificar(p.em_desenvolvimento("nucleo_semente"), "em desenvolvimento: o posto avançado espera a transmissão")
-	verificar(p.peca_em_desenvolvimento("lancador_sementes"), "a peça fica em cinza fora da demonstração")
-	verificar(not Pesquisa.new(true).peca_em_desenvolvimento("lancador_sementes"), "na demonstração se constrói")
-	verificar(p.em_desenvolvimento("colonias"), "Colônias (receptor de cápsulas) continua em desenvolvimento")
+	verificar(not p.em_desenvolvimento("nucleo_semente"), "saiu do em desenvolvimento (a transmissão existe)")
+	verificar(not p.peca_em_desenvolvimento("lancador_sementes"), "a peça não fica mais em cinza")
+	verificar(not p.disponivel("nucleo_semente"), "sem o posto avançado não se escolhe")
+	verificar(not p.em_desenvolvimento("colonias"), "Colônias (receptor de cápsulas) também saiu")
 	p.concluidas = {"posto_avancado": true, "drones_frota_1": true, "ciencia_tempestade": true}
 	verificar(not p.em_desenvolvimento("nucleo_semente") and p.disponivel("nucleo_semente"), "com o posto avançado: pesquisável")
 	p.concluidas["nucleo_semente"] = true

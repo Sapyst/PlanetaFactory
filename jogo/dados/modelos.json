@@ -1454,6 +1454,54 @@
   "estudo": "estudo_gerador.py",
   "modelo": "res://assets/modelos/energia/gerador.glb"
  },
+ "gerador_fluido": {
+  "nome": "gerador_fluido",
+  "categoria": "energia",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Gerador a fluido 3×3 (estudo_gerador_fluido.py): motor a combustão de seiva com turbo, silenciador e chaminé, radiador com dois ventiladores no teto, alternador com volante e anel quântico de plasma. Combustível de seiva pelo cano ao sul: até 2,4 MW.",
+  "ocupa_canto": false,
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_ENT_S1",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -1.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "estudo": "estudo_gerador_fluido.py",
+  "tris": 7410,
+  "dims": [
+   2.88,
+   2.88,
+   3.305
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "modelo": "res://assets/modelos/energia/gerador_fluido.glb"
+ },
  "painel_solar": {
   "nome": "painel_solar",
   "categoria": "energia",
@@ -1507,6 +1555,92 @@
   "anima": true,
   "estudo": "estudo_painel_solar.py",
   "modelo": "res://assets/modelos/energia/painel_solar.glb"
+ },
+ "painel_solar_2": {
+  "nome": "painel_solar_2",
+  "categoria": "energia",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Painel solar 2 (estudo_painel_solar_2.py): pedestal com rastreador biaxial (azimute e elevação com atuador de fuso), duas asas de células dopadas com cristal, limpadores ultrassônicos, inversor e anel condensador com 3 lentes orbitando. Até 500 kW de dia; com nuvem perde só 15%.",
+  "ocupa_canto": false,
+  "portas": [],
+  "estudo": "estudo_painel_solar_2.py",
+  "tris": 4800,
+  "dims": [
+   1.92,
+   1.93,
+   1.532
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "modelo": "res://assets/modelos/energia/painel_solar_2.glb"
+ },
+ "poste_alto": {
+  "nome": "poste_alto",
+  "categoria": "energia",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Poste alto (torre de transmissão): torre treliçada de 5 m com duas cruzetas e quatro cadeias de isoladores (o fio prende no pé delas: \"terminais\"), para-raios e anel de ressonância girando no topo. Fio de 30 m até outro poste alto, ligação de 3 m.",
+  "ocupa_canto": false,
+  "portas": [],
+  "estudo": "estudo_poste_alto.py",
+  "terminais": [
+   [
+    -0.65,
+    0.0,
+    3.27
+   ],
+   [
+    0.65,
+    0.0,
+    3.27
+   ],
+   [
+    -0.5,
+    0.0,
+    3.92
+   ],
+   [
+    0.5,
+    0.0,
+    3.92
+   ]
+  ],
+  "tris": 3702,
+  "dims": [
+   1.502,
+   0.968,
+   5.722
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "modelo": "res://assets/modelos/energia/poste_alto.glb"
  },
  "poste_energia": {
   "nome": "poste_energia",
@@ -1690,6 +1824,38 @@
   "anima": false,
   "estudo": "estudo_poste_muro.py",
   "modelo": "res://assets/modelos/energia/torre_sem_fio.glb"
+ },
+ "turbina_correnteza": {
+  "nome": "turbina_correnteza",
+  "categoria": "energia",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Turbina de correnteza 2×2 (estudo_turbina_correnteza.py): catamarã flutuante com grade defletora, rotor hidrocinético de 4 pás meio submerso entre os pontões, gerador com aletas, boia de vazão e cristal piezoelétrico. Vai no rio: 150 kW com a correnteza, cai na seca.",
+  "ocupa_canto": false,
+  "portas": [],
+  "estudo": "estudo_turbina_correnteza.py",
+  "tris": 5347,
+  "dims": [
+   1.837,
+   2.019,
+   1.549
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "modelo": "res://assets/modelos/energia/turbina_correnteza.glb"
  },
  "turbina_eolica": {
   "nome": "turbina_eolica",
@@ -9335,6 +9501,84 @@
   "estudo": "estudo_montadora.py",
   "modelo": "res://assets/modelos/maquinas/montadora.glb"
  },
+ "montadora_2": {
+  "nome": "montadora_2",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Montadora 2 3×3 (estudo_montadora_2.py): pórtico azul-petróleo com esteira interna sul → norte, alimentador rotativo com braço SCARA, prensa eletroidráulica dupla com travas, braço de solda a laser com cilindros de gás, baia com 2 encaixes de módulo, boca de fluido a oeste e anel focalizador com cristal no teto. Velocidade 1,0 (a montadora faz 0,75).",
+  "ocupa_canto": false,
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N1",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_ENT_O1",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     -1.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "estudo": "estudo_montadora_2.py",
+  "tris": 11108,
+  "dims": [
+   3.117,
+   3.09,
+   2.7
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "modelo": "res://assets/modelos/maquinas/montadora_2.glb"
+ },
  "nucleo": {
   "nome": "nucleo",
   "categoria": "maquinas",
@@ -9640,6 +9884,99 @@
   "anima": true,
   "estudo": "estudo_refinador.py",
   "modelo": "res://assets/modelos/maquinas/refinador.glb"
+ },
+ "refinador_2": {
+  "nome": "refinador_2",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Refinador 2 3×3 (estudo_refinador_2.py): bomba centrífuga na entrada oeste, dois reatores com agitadores, torre de destilação com robô de inspeção e anel quântico, trocador duplo na saída leste, 2ª entrada de fluido ao sul, baia com 3 encaixes de módulo, flare e bica de itens ao norte. Velocidade 2,0 (o refinador faz 1,0).",
+  "ocupa_canto": false,
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_ENT_O1",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     -1.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_L1",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     1.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     -1.0,
+     1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_ENT_S1",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -1.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "estudo": "estudo_refinador_2.py",
+  "tris": 11577,
+  "dims": [
+   2.97,
+   3.04,
+   3.69
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "modelo": "res://assets/modelos/maquinas/refinador_2.glb"
  },
  "semeador_bioma": {
   "nome": "semeador_bioma",

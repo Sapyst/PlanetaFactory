@@ -1,0 +1,77 @@
+{
+ "nome": "montadora_2",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Montadora 2 3×3 (estudo_montadora_2.py): pórtico azul-petróleo com esteira interna sul → norte, alimentador rotativo com braço SCARA, prensa eletroidráulica dupla com travas, braço de solda a laser com cilindros de gás, baia com 2 encaixes de módulo, boca de fluido a oeste e anel focalizador com cristal no teto. Velocidade 1,0 (a montadora faz 0,75).",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_N1",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_ENT_O1",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    -1.5,
+    0.0,
+    0.35
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  }
+ ],
+ "estudo": "estudo_montadora_2.py",
+ "tris": 11108,
+ "dims": [
+  3.117,
+  3.09,
+  2.7
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true
+}

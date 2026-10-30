@@ -54,20 +54,22 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
 - **Farol de cristal** (pesquisa Farol de cristal, depois da Eletrônica; aba Proliferação): torre 1×1 com energia
   (30 kW). Quando escurece, acende uma **luz de 10 m**: ilumina a fábrica, tira a névoa em volta e, quando uma
   **aranha entra na luz**, avisa de que lado ela vem (no máximo um aviso a cada 30 s por farol). De dia fica apagado.
-- **Posto avançado** (aba Proliferação; a pesquisa pede a Transmissão longa, que ainda está em desenvolvimento — por
-  enquanto só no modo Demonstração): um **núcleo-filho** 3×3. Tem energia própria, **150 kW sem cabo** para as
+- **Poste alto** (pesquisa Transmissão longa: aço + automação; aba Energia): torre 1×1 de 5 m. O fio vai **até 30 m**
+  até outro poste alto (com poste comum vale o menor, 9 m) e liga máquinas só **a 3 m** — é a linha longa para levar
+  energia a outra base. Arrastando, põe um a cada 20 tiles. O anel do topo gira enquanto passa energia.
+- **Posto avançado** (aba Proliferação; a pesquisa pede a Transmissão longa, o silo de granel e a ciência militar):
+  um **núcleo-filho** 3×3. Tem energia própria, **150 kW sem cabo** para as
   máquinas até 7 m da borda (como o núcleo), e **estoque próprio** de 3.200 itens: braços põem e tiram dele, e os
   drones logísticos o usam como estoque. **Obras a até 32 m** dele pagam primeiro com esse estoque (o que faltar sai
   do núcleo) — mande material de trem para o posto e construa a base nova ali.
-- **Lançador de sementes** (pesquisa Núcleo-semente, que pede o posto avançado; por enquanto só na Demonstração):
+- **Lançador de sementes** (pesquisa Núcleo-semente, que pede o posto avançado):
   canhão 3×3 com energia (600 kW). Faça o **núcleo-semente** na montadora (4 núcleos de cristal + 2 células de
   energia + 10 liga leve + 2 processadores, 60 s) e leve-o por braço à boca sul. No painel escolha o **rumo** (8
   direções) e a **distância** (60 a 400 m; um anel violeta marca o alvo no chão). Com semente e energia ele carrega
   20 s, dispara e a cápsula voa em arco: **onde pousa nasce um posto avançado** (no lugar seco e plano mais perto do
   alvo; árvores e pedras saem), e aquele pedaço do mapa sai da névoa — cuidado com os ninhos que aparecem ali. Se o
   alvo cai na água ou num desnível, o painel avisa e ele não dispara.
-- **Colônias e Receptor de cápsulas** (pesquisa Colônias, depois do núcleo-semente; só na Demonstração por
-  enquanto): com ela, a semente que pousa vira **colônia** — um posto avançado que já chega com um kit (material e 2
+- **Colônias e Receptor de cápsulas** (pesquisa Colônias, depois do núcleo-semente): com ela, a semente que pousa vira **colônia** — um posto avançado que já chega com um kit (material e 2
   drones) e **fabrica 1 pacote gênese a cada 30 s** (o pacote gênese não tem receita: só as colônias fazem). O
   pacote vem por cápsula até o **Receptor de cápsulas** 2×2 com energia (100 kW) mais perto, que guarda até 100 para
   os braços (saída ao norte). Sem receptor, os pacotes esperam na colônia (até 20).
@@ -90,6 +92,17 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
 - **Química** (refino + bomba d'água): **resina** (seiva por uma boca do refinador, água pela outra) e o **pacote
   químico** (resina + bateria + água), o terceiro tipo de pacote do laboratório. **Bioquímica** libera o **pacote
   ecológico**, que só sai com **água limpa**.
+- **Mais energia** (aba Energia): a **Turbina de correnteza** 2×2 (pesquisa Turbina de correnteza: bomba d'água +
+  renovável) vai **no rio** — pelo menos metade dela na água corrente (lago e canal não servem) — e dá até 150 kW sem
+  combustível; **na seca do verão** o rio cai para 35% e a chuva engrossa a correnteza. O **Gerador a fluido** 3×3
+  (pesquisa Combustível de seiva: química + briquete) queima **combustível de seiva** — faça no refinador (40 de seiva
+  → 30) e leve pelo cano até a boca sul dele — e dá até **2,4 MW** (10 de combustível = 12 MJ). O **Painel solar 2**
+  (renovável + processador) segue o sol: até **500 kW** e com nuvem ou chuva perde só 15% (o painel comum perde quase
+  tudo); à noite, nada.
+- **Máquinas 2** (aba Produção): a **Montadora 2** (automação + aço) faz as mesmas receitas da montadora, mais rápido
+  (1,0 contra 0,75), e o **Refinador 2** (química + ciência de tempestade) faz as do refinador **2× mais rápido**,
+  sujando a metade por produto, com uma 2ª entrada de fluido ao sul. Os encaixes de módulo das duas ficam vazios por
+  enquanto (os módulos ainda estão em desenvolvimento). Elas não trocam a máquina antiga: construa ao lado.
 - **Clima** (aba Clima): em **tempestade** e **tufão** caem **raios** de verdade, perto da fábrica, nos pontos altos.
   Sem proteção, o raio tira 150 de vida da construção mais alta e pode pôr fogo no mato em volta (dentro da bolha de um
   gerador de escudo carregado, o escudo absorve). O **Para-raios** (automação + aço) pega todo raio que cairia a até
@@ -122,7 +135,7 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
   ciclo: o lixo recolhido vira seiva para os viveiros); **Recuperação de solo** (Aplainar também limpa o chão);
   **Semeador de bioma** 3×3 (seiva pelo cano oeste: tira o queimado do chão em 14 m, devolve as árvores carbonizadas
   e planta mudas do bioma); **Estação de tratamento** 3×3 na margem (como a bomba d'água, a tomada encosta na água:
-  limpa a água suja em 16 m e solta 60 de água limpa/s pelo cano leste) — esta ainda espera o Refinador 2.
+  limpa a água suja em 16 m e solta 60 de água limpa/s pelo cano leste) — esta pede o Refinador 2.
 - **Defesa do meio** (aba Defesa): **Ciência militar** (metralhadora + muro de tijolo + automação) libera o **pacote
   militar** (2 munições + 1 aço + 2 tijolos na montadora), que abre as melhorias de bala e da torre de energia.
   O **Lança-foguetes** 3×3 recebe **foguetes** (resina + aço + circuito) pela boca sul e acerta grupos de aranhas

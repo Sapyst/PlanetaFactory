@@ -3,7 +3,7 @@ extends Caso
 ## (estudo_receptor_capsulas.py, do Antigravity; arte/estudos/conv_lote17.py) com garras, pistões, empurrador e roletes
 ## tocando uma vez por cápsula. Com a pesquisa Colônias, o núcleo-semente lançado vira colônia (posto com o kit) que
 ## fabrica 1 pacote gênese a cada 30 s e manda por cápsula ao receptor com energia mais perto; o pacote sai do receptor
-## por braço. A pesquisa está ligada mas segue "em desenvolvimento" (núcleo-semente → posto avançado → transmissão).
+## por braço. A pesquisa é jogável (núcleo-semente → posto avançado → transmissão, que entrou no lote 13).
 
 
 func _mapa() -> MapaOcupacao:
@@ -56,9 +56,9 @@ func test_pesquisa() -> void:
 	verificar(p.arvore().colonias.get("existente", false), "marcada como existente na árvore")
 	igual(p.custo("colonias"), {"pacote_pesquisa": 200, "pacote_automacao": 200, "pacote_quimico": 200, "pacote_ecologico": 200,
 			"pacote_tempestade": 200}, "custo da árvore")
-	verificar(p.em_desenvolvimento("colonias"), "em desenvolvimento (núcleo-semente → posto avançado → transmissão)")
-	verificar(p.peca_em_desenvolvimento("receptor_capsulas"), "receptor em cinza fora da demonstração")
-	verificar(not Pesquisa.new(true).peca_em_desenvolvimento("receptor_capsulas"), "na demonstração se constrói")
+	verificar(not p.em_desenvolvimento("colonias"), "saiu do em desenvolvimento (a transmissão existe)")
+	verificar(not p.peca_em_desenvolvimento("receptor_capsulas"), "receptor não fica mais em cinza")
+	verificar(not p.disponivel("colonias"), "sem o núcleo-semente não se escolhe")
 	p.concluidas = {"nucleo_semente": true, "drones_logisticos": true}
 	verificar(not p.em_desenvolvimento("colonias") and p.disponivel("colonias"), "com o núcleo-semente: pesquisável")
 	verificar(not p.modo_liberado("colonias"), "antes: a semente vira só posto")

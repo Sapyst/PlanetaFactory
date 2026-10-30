@@ -73,6 +73,14 @@ func secura() -> float:
 	return clampf(s * (1.0 - molhado) * (1.0 - valores.chuva), 0.0, 1.0)
 
 
+## 0..1: quanto o rio corre agora (turbina de correnteza): vazao_rio da estação (cheia na primavera, seca no verão)
+## mais um tanto com a chuva de agora.
+func vazao_rio() -> float:
+	var es: Array = _d.get("estacoes", [])
+	var v: float = float(es[estacao].get("vazao_rio", 1.0)) if not es.is_empty() else 1.0
+	return clampf(v + float(_d.get("chuva_vazao", 0.25)) * float(valores.get("chuva", 0.0)), 0.0, 1.0)
+
+
 func eh_tufao() -> bool:
 	return bool(_d.estados[atual].get("tufao", false)) and ativo
 

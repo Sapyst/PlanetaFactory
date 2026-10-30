@@ -1062,6 +1062,10 @@ var _lancadores: Array = []                 ## lançadores de sementes (o laço 
 var _receptores: Array = []                 ## receptores de cápsulas (o laço toca uma vez por cápsula)
 var _transportadores: Array = []            ## transportadores quânticos (anéis giram enquanto trocam itens)
 var _silos: Array = []                      ## silos de lançamento (robôs e umbilicais montando ou lançando)
+var _postes_altos: Array = []               ## postes altos (o anel de ressonância gira passando energia)
+var _turbinas_rio: Array = []               ## turbinas de correnteza (rotor e boia no ritmo do rio)
+var _geradores_fl: Array = []               ## geradores a fluido (ventiladores, volante e anel enquanto queimam)
+var _paineis_2: Array = []                  ## painéis solares 2 (o rastreador segue o sol de dia)
 var _arcos := ArcosEletricos.new()
 
 
@@ -1078,6 +1082,10 @@ func _animar_estruturas() -> void:
 		_receptores = mapa.estruturas.keys().filter(func(i): return Genese.eh_receptor(mapa.estruturas[i].nome))
 		_transportadores = mapa.estruturas.keys().filter(func(i): return Transportador.eh_transportador(mapa.estruturas[i].nome))
 		_silos = mapa.estruturas.keys().filter(func(i): return SiloLancamento.eh_silo(mapa.estruturas[i].nome))
+		_postes_altos = mapa.estruturas.keys().filter(func(i): return mapa.estruturas[i].nome == "poste_alto")
+		_paineis_2 = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).has("perda_nuvem"))
+		_geradores_fl = mapa.estruturas.keys().filter(func(i): return Fabrica.eh_gerador_fluido(mapa.estruturas[i].nome))
+		_turbinas_rio = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).get("renovavel", "") == "rio")
 		for id in fabrica.bracos:
 			var ab := _animador(id)
 			if ab != null and mapa.estruturas.has(id):
@@ -1127,6 +1135,28 @@ func _animar_estruturas() -> void:
 		var a := _animador(id)
 		if a != null:
 			a.ativo = silo.montando(id)
+	# poste alto: o anel de ressonância (laço do estudo) gira enquanto passa energia pela rede dele
+	for id in _postes_altos:
+		var a := _animador(id)
+		if a != null:
+			a.ativo = animar_tudo or fabrica.transmitindo(id)
+	# gerador a fluido: ventiladores, volante, rotor do visor e anel (laço do estudo) enquanto queima para a rede
+	for id in _geradores_fl:
+		var a := _animador(id)
+		if a != null:
+			a.ativo = animar_tudo or (float(fabrica.combustivel.get(id, 0.0)) > 0.0 and fabrica.transmitindo(id))
+	# painel solar 2: rastreador, limpadores e lentes (laço do estudo) de dia, com ele ligado
+	for id in _paineis_2:
+		var a := _animador(id)
+		if a != null:
+			a.ativo = animar_tudo or (fabrica.sol_limpo > 0.05 and fabrica.ligada(id))
+	# turbina de correnteza: o rotor gira (e a boia sobe e desce) no ritmo da vazão do rio; desligada, para
+	for id in _turbinas_rio:
+		var a := _animador(id)
+		if a != null:
+			var v := 1.0 if animar_tudo else (fabrica.rio if fabrica.ligada(id) else 0.0)
+			a.ativo = v > 0.0
+			a.ritmo = clampf(v, 0.2, 1.0)
 	for id in _transportadores:
 		var a := _animador(id)
 		if a != null:
@@ -1216,11 +1246,14 @@ func _animador(id: int) -> Animador:
 func _tick_mundo(dt: float) -> void:
 	# renováveis: sol (luz, menos nuvem e chuva) e vento do clima de agora
 	fabrica.sol = clampf(clima.luz_dia() * float(clima.valores.luz) * (1.0 - 0.5 * float(clima.valores.nuvens)) * (1.0 - 0.6 * float(clima.valores.chuva)), 0.0, 1.0)
+	fabrica.sol_limpo = clampf(clima.luz_dia(), 0.0, 1.0)                 # painel solar 2: perde só "perda_nuvem" com o tempo
+	fabrica.encoberto = clampf(maxf(float(clima.valores.nuvens), float(clima.valores.chuva)), 0.0, 1.0)
 	# vento: cada turbina sente o vento do lugar dela (relevo, mata, sombra de construção) e as rajadas que passam
 	clima.foco = Vector2(Grade.tile_de_mundo(camera.alvo))
 	fabrica.vento = float(clima.valores.vento)
 	fabrica.chuva = float(clima.valores.chuva)          # coletor de chuva
 	fabrica.neblina = float(clima.valores.neblina)      # condensador de neblina
+	fabrica.rio = clima.vazao_rio()                     # turbina de correnteza (seca no verão, cheia com chuva)
 	clima_local.atualizar()                             # máquinas de clima com energia mudam o tempo em volta
 	fabrica.vento_turbina.clear()
 	for id in _turbinas:
@@ -1659,6 +1692,8 @@ func _detalhe() -> void:
 			linhas.append("Combustível: %.1f MJ" % fabrica.combustivel[id])
 		for fl in m.fluidos:
 			linhas.append("%s: %.0f" % [Registro.nome_fluido(fl), m.fluidos[fl]])
+		if regra.has("encaixes_modulo"):
+			linhas.append("Velocidade %.2f · encaixes de módulo: 0 de %d (os módulos ainda estão em desenvolvimento)" % [m.velocidade, int(regra.encaixes_modulo)])
 		var tipo: String = Registro.estruturas[e.nome].get("maquina", "")
 		match tipo:
 			"bomba":
@@ -1860,6 +1895,9 @@ func _detalhe() -> void:
 		linhas.append("Fúria: %d%% %s" % [fu * 100, "— o chão sujo em volta deixa as aranhas mais rápidas e fortes" if fu > 0.05 else "(chão limpo em volta)"])
 	elif e.nome == "gerador":
 		linhas.append("Combustível: %.1f MJ (carvão ou biomassa pela porta sul ou por braço)" % fabrica.combustivel.get(id, 0.0))
+	elif Fabrica.eh_gerador_fluido(e.nome):
+		linhas.append("Combustível: %.1f de %.0f MJ (combustível de seiva pelo cano da boca sul: 10 = 12 MJ)%s" % [fabrica.combustivel.get(id, 0.0),
+				Fabrica.ESTOQUE_GERADOR_MJ, "" if fabrica.gerador_no_cano(id) else " — SEM CANO na boca"])
 	elif e.nome == "torre_metralhadora":
 		var t: Dictionary = colonia.torres.get(id, {})
 		var cad := float(regra.get("cadencia", 10)) * (1.0 + pesquisa.bonus("cadencia_bala"))
@@ -1958,7 +1996,9 @@ func _detalhe() -> void:
 				linhas.append("Na rede: %s" % ("ligado (o raio vai para os acumuladores)" if fabrica.rede.nos.has(id) and Fiacao.ligacoes(mapa, e) > 0 else "sem poste — o raio só é aterrado"))
 			else:
 				var agora: float = -fabrica.kw_de(id)
-				var nota: String = {"sol": " (sol agora: %d%%)" % (fabrica.sol * 100)}.get(regra.get("renovavel", ""), "")
+				var sol_aqui: float = -fabrica.kw_de(id) / maxf(-float(regra.get("energia_kw", -1.0)), 1.0) if fabrica.ligada(id) else fabrica.sol
+				var nota: String = {"sol": " (sol agora: %d%%%s)" % [sol_aqui * 100, ", nuvem tira só %d%%" % (float(regra.perda_nuvem) * 100) if regra.has("perda_nuvem") else ""], "rio": " (rio agora: %d%% da vazão — %s)" % [fabrica.rio * 100,
+						clima.nome_estacao()]}.get(regra.get("renovavel", ""), "")
 				linhas.append("Geração: até %d kW agora, máximo %d kW%s" % [agora, -float(regra.get("energia_kw", 0.0)), nota])
 				if regra.get("renovavel", "") == "vento":
 					var c := Grade.centro_da_area(e.minimo, e.area, e.rot)

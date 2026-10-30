@@ -15,8 +15,10 @@ const FAMILIA_ESTEIRA := ["esteira_reta", "esteira_curva_dir", "esteira_curva_es
 const TUNEIS := ["esteira_tunel_entrada", "esteira_tunel_saida"]
 const FAMILIA_CANO := ["cano_reto", "cano_curva"]
 ## Peças que se arrastam em linha reta (uma por tile, mesma rotação).
-const LINHA_RETA := ["muro_centro", "muro_tijolo", "muro_liga", "muro_escudo", "trilho_reto", "trilho_energizado", "poste_energia"]
-const PASSO_POSTE := 6     ## poste arrastado: um a cada N tiles (raio do fio 7,5)
+const LINHA_RETA := ["muro_centro", "muro_tijolo", "muro_liga", "muro_escudo", "trilho_reto", "trilho_energizado", "poste_energia",
+		"poste_alto"]
+## Poste arrastado: um a cada N tiles (até na diagonal o próximo fica no alcance do fio: 9 m e 30 m).
+const PASSO_POSTE := {"poste_energia": 6, "poste_alto": 20}
 const HISTORICO := 50
 ## Classes de esteira (pesquisa logistica_3…): as MESMAS peças (reta, curvas, início, fim, junção, rampa, passagem) com
 ## outro modelo (<peça>_<sufixo>, que tem regra própria em estruturas.json: velocidade, alcance da passagem) e o campo
@@ -189,7 +191,7 @@ func _plano_linha(nome: String, a: Vector2i, b: Vector2i, rot: int) -> Array[Dic
 	var d := direcao(cam[0], cam[1])
 	var r := rot_do_fluxo(d) if nome in GrafoTrilhos.RETOS else rot
 	for i in cam.size():
-		if nome == "poste_energia" and i % PASSO_POSTE != 0 and i != cam.size() - 1:
+		if PASSO_POSTE.has(nome) and i % int(PASSO_POSTE[nome]) != 0 and i != cam.size() - 1:
 			continue
 		out.append(_item(nome, cam[i], r))
 	return out

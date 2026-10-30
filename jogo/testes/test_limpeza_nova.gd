@@ -96,8 +96,11 @@ func test_pesquisas_usam_o_pacote_ecologico() -> void:
 	p.concluidas.merge({"recuperar_solo": true, "ciencia_tempestade": true, "purificador_ar": true, "filtro_agua_limpa": true})
 	verificar(p.disponivel("restauracao_bioma"), "semeador de bioma")
 	verificar(p.disponivel("purificador_ar_2"), "purificador atmosférico")
-	verificar(not p.jogavel("refinador_2"), "refinador 2 ainda em breve")
-	verificar(not p.disponivel("estacao_tratamento"), "tratamento travado pelo refinador 2")
+	verificar(p.jogavel("refinador_2"), "refinador 2 jogável (lote 10)")
+	verificar(not p.disponivel("estacao_tratamento"), "tratamento pede o refinador 2 pesquisado")
+	verificar(not p.em_desenvolvimento("estacao_tratamento"), "e não está mais em desenvolvimento")
+	p.concluidas.merge({"quimica": true, "refinador_2": true})
+	verificar(p.disponivel("estacao_tratamento"), "com o refinador 2: tratamento pesquisável")
 	for par in [["restauracao_bioma", "semeador_bioma"], ["estacao_tratamento", "estacao_tratamento"], ["purificador_ar_2", "purificador_ar_2"]]:
 		var q := Pesquisa.new()
 		q.concluidas = {par[0]: true}

@@ -47,6 +47,7 @@
  "bateria":          {"maquina": "refinador", "entradas": {"placa_cobre": 1, "placa_ferro": 1}, "entradas_fluido": {"seiva": 20}, "saidas": {"bateria": 1}, "tempo": 4.0},
  "aco_refrigerado":  {"maquina": "refinador", "entradas": {"placa_ferro": 10}, "entradas_fluido": {"agua": 60}, "saidas": {"barra_aco": 3}, "tempo": 32.0},
  "lapidar_refrigerado": {"maquina": "refinador", "entradas": {"cristal_bruto": 4}, "entradas_fluido": {"agua": 30}, "saidas": {"cristal_lapidado": 3}, "tempo": 4.0},
+ "combustivel_seiva": {"maquina": "refinador", "entradas": {}, "entradas_fluido": {"seiva": 40}, "saidas_fluido": {"combustivel_seiva": 30}, "tempo": 4.0},
  "resina":           {"maquina": "refinador", "entradas": {}, "entradas_fluido": {"seiva": 30, "agua": 10}, "saidas": {"resina": 1}, "tempo": 3.0},
  "pacote_quimico":   {"maquina": "refinador", "entradas": {"resina": 1, "bateria": 1}, "entradas_fluido": {"agua": 20}, "saidas": {"pacote_quimico": 2}, "tempo": 12.0},
  "processador":      {"maquina": "refinador", "entradas": {"circuito": 2, "resina": 1, "cristal_lapidado": 1}, "entradas_fluido": {"agua": 5}, "saidas": {"processador": 1}, "tempo": 8.0},

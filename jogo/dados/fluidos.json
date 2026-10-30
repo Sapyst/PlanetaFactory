@@ -2,5 +2,6 @@
  "_nota": "Fluidos que andam pelos canos (rede de canos = um fluido só). serve_como: o fluido também vale como outro nas receitas (água limpa serve onde a receita pede água).",
  "seiva":      {"nome": "Seiva"},
  "agua":       {"nome": "Água"},
- "agua_limpa": {"nome": "Água limpa", "serve_como": "agua"}
+ "agua_limpa": {"nome": "Água limpa", "serve_como": "agua"},
+ "combustivel_seiva": {"nome": "Combustível de seiva"}
 }

@@ -28,8 +28,8 @@ func _refazer() -> void:
 	var lista := {"plataforma_agua": [], "ponte_agua": []}
 	for id in mapa.estruturas:
 		var e: Dictionary = mapa.estruturas[id]
-		if not e.get("sobre_agua", false) or e.get("nivel", 0) > 0:
-			continue
+		if not e.get("sobre_agua", false) or e.get("nivel", 0) > 0 or Registro.estruturas.get(e.nome, {}).get("flutua", false):
+			continue                                   # (turbina de correnteza flutua: sem plataforma)
 		var nome: String = e.nome
 		var ponte := nome.begins_with("esteira_") or nome.begins_with("cano_") or nome == "trilho_reto"
 		for t in Grade.tiles_da_area(e.minimo, e.area, e.rot):

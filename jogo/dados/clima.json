@@ -112,7 +112,8 @@
  "chuva_absorcao": 0.8,
  "_raios": "tempestade e tufão soltam raios (raios_por_s do estado: 1 a cada 10 s / 7 s). Cada um cai a até raio_sorteio m de uma construção sorteada, as altas com mais chance (peso = altura²; Raios): para-raios/captador/cúpula pegam; sem proteção, a construção mais alta a até busca m leva dano (e a vegetação em volta pode pegar fogo, fogo_tentativas tiles); no chão, árvore/mato pega fogo ou fica a marca queimada",
  "raios": {"raio_sorteio": 20, "busca": 3.0, "dano": 150, "fogo_tentativas": 3, "altura_arvore": 4.0},
- "_nota_estacoes": "Estações: ciclo de duracao_s cada; 'pesos' multiplica o peso de ir para cada estado; 'secura' 0..1 (incêndio); 'grama' tom da grama.",
+ "_nota_estacoes": "Estações: ciclo de duracao_s cada; 'pesos' multiplica o peso de ir para cada estado; 'secura' 0..1 (incêndio); 'vazao_rio' 0..1 (correnteza do rio: turbina de correnteza; + chuva_vazao × chuva de agora, até 1); 'grama' tom da grama.",
+ "chuva_vazao": 0.25,
  "estacao_s": 604800,
  "dia_s": 720,
  "_vento": "vento_de = rumo predominante da estação (de onde vem); a direção oscila ±40° em volta; rajadas a cada 12–35 s (mais com vento forte)",
@@ -127,7 +128,7 @@
     "tempestade": 0.8,
     "limpo": 1.0
    },
-   "secura": 0.2
+   "secura": 0.2, "vazao_rio": 1.0
   },
   {
    "nome": "Verão", "vento_de": "nordeste", "dia_extra": 0.18,
@@ -138,7 +139,7 @@
     "neblina": 0.4,
     "nublado": 0.8
    },
-   "secura": 0.85
+   "secura": 0.85, "vazao_rio": 0.35
   },
   {
    "nome": "Outono", "vento_de": "oeste", "dia_extra": 0.0,
@@ -149,7 +150,7 @@
     "limpo": 0.8,
     "neblina": 1.0
    },
-   "secura": 0.5
+   "secura": 0.5, "vazao_rio": 0.75
   },
   {
    "nome": "Inverno", "vento_de": "sul", "dia_extra": -0.2,
@@ -160,7 +161,7 @@
     "limpo": 0.7,
     "tempestade": 0.6
    },
-   "secura": 0.1
+   "secura": 0.1, "vazao_rio": 0.85
   }
  ],
  "tufao_poluicao": 0.004
