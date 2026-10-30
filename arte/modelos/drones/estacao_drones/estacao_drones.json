@@ -1,0 +1,47 @@
+{
+ "nome": "estacao_drones",
+ "categoria": "drones",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Estação de drones 2×2: fabricadora com projetores de holograma (o drone novo nasce em holograma vermelho), dois berços de recarga com garras e plugue, revista de remendos com braço abastecedor, tanque d'água (50 por drone). Abriga e lança os drones de reparo, combate ou logísticos.",
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_ENT_S1",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    0.5,
+    -1.0,
+    0.35
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  }
+ ],
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "tris": 8112,
+ "dims": [
+  2.0,
+  1.995,
+  1.406
+ ],
+ "anima": true,
+ "estudo": "estudo_drones.py"
+}

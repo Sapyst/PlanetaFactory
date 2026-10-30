@@ -1,6 +1,8 @@
 # Como jogar
 
 Você é a IA do núcleo que caiu no planeta. O objetivo é crescer: extrair, fabricar, pesquisar e se espalhar.
+No jogo novo, a abertura mostra a chegada: a cápsula de reentrada despenca em brasa, bate, ejeta a ogiva, crava as
+pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
 
 ## O que você tem no começo
 - **Núcleo:** guarda tudo o que você junta (os números no canto de cima). Gera um pouco de energia sem fio: máquinas a
@@ -38,6 +40,27 @@ Você é a IA do núcleo que caiu no planeta. O objetivo é crescer: extrair, fa
   **Cúpula contra raios** (nenhum raio em 30 m), **Defletor de vento** (o vento de 40 m sopra para onde ele aponta —
   gire com R —, sem ventania de tufão) e **Regulador climático** (céu firme ou chuva mansa em 80 m, sem raio nem
   tufão); os dois últimos esperam tecnologias que ainda vão chegar.
+- **Drones** (aba Drones; pesquisa Drones de reparo: água como insumo + energia sem fio): a **Estação de drones** 2×2
+  precisa de energia e de água pelo cano (borda sul, tile leste). Ponha placas de ferro, motores e circuitos com braço:
+  cada drone (4 placas + 1 motor + 2 circuitos + 50 de água) nasce em **holograma vermelho** na fabricadora e entra na
+  frota (8 por estação; as melhorias de frota levam a 20). No painel da estação escolha o que a frota faz:
+  **Reparo** — o drone voa até o que as aranhas, o fogo ou os raios estragaram (até 45 m), corre o **scan vermelho**
+  sobre a peça e solda (25 ♥/s), gastando 1 placa de ferro do núcleo a cada 25 ♥ (como o Reparar à mão);
+  **Combate** — caça as aranhas no alcance, orbitando e atirando (cada tiro solta uma cápsula com fumacinha); aranha
+  perto morde o drone, e drone sem vida cai e vira sucata (a estação monta outro); **Logístico** (pesquisa Drones
+  logísticos) — a estação vira porto: toque num baú e escolha **Provedor** (os drones tiram dele) ou **Requisitante**
+  (escolha o item e a quantidade; os drones trazem até completar). Os drones voltam ao berço para recarregar antes de a
+  bateria acabar; com **raios** caindo ficam no hangar até a pesquisa Voo na tempestade. Melhorias: bateria, frota,
+  velocidade, logísticos 2 (4 itens por viagem, 2× alcance) e Drones de defesa (2× dano, +50% de vida).
+- **Limpeza nova** (aba Limpeza; todas pedem o **pacote ecológico**): **Coletor de lixo 2** (raio 10: sujeira, óleo e
+  a **cinza** do chão queimado, compactados em **resíduo** que o braço tira); **Purificador de ar** (tira 6 de poluição
+  por minuto do chunk) e **Purificador atmosférico** 3×3 (40 por minuto, condensa em resíduo); **Viveiro 2** (seiva pelo
+  cano: planta no dobro do ritmo, num raio de 12 m, mudas da **árvore do bioma** que crescem 2× mais rápido);
+  **Biodigestor** 3×3 (resíduo por braço + água pelo cano sul → biomassa por braço + seiva pelo cano leste — fecha o
+  ciclo: o lixo recolhido vira seiva para os viveiros); **Recuperação de solo** (Aplainar também limpa o chão);
+  **Semeador de bioma** 3×3 (seiva pelo cano oeste: tira o queimado do chão em 14 m, devolve as árvores carbonizadas
+  e planta mudas do bioma); **Estação de tratamento** 3×3 na margem (como a bomba d'água, a tomada encosta na água:
+  limpa a água suja em 16 m e solta 60 de água limpa/s pelo cano leste) — esta ainda espera o Refinador 2.
 - **Defesa do meio** (aba Defesa): **Ciência militar** (metralhadora + muro de tijolo + automação) libera o **pacote
   militar** (2 munições + 1 aço + 2 tijolos na montadora), que abre as melhorias de bala e da torre de energia.
   O **Lança-foguetes** 3×3 recebe **foguetes** (resina + aço + circuito) pela boca sul e acerta grupos de aranhas

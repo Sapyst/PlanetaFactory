@@ -6,8 +6,11 @@ extends Node3D
 ##     só em silhueta com poucos veios de luz; o núcleo se solta e despenca rumo ao planeta, esquentando.
 ##  2. Nuvens densas: a tela fecha em branco — é aí que a cena troca para o mapa de verdade (o limite do mapa
 ##     carregado nunca aparece).
-##  3. Abaixo das nuvens: o núcleo vem perto do chão, bate (estrondo, poeira, tremor), se acomoda; linhas de
-##     sistema; a câmera desce até a visão de jogo.
+##  3. Abaixo das nuvens: a cápsula de reentrada (nucleo_queda, convertida de estudo_nucleo_queda.py — pétalas
+##     recolhidas em saia ablativa e ogiva) vem perto do chão, bate (estrondo, poeira, tremor) e a animação "chegada"
+##     do estudo toca do impacto em diante: a ogiva é ejetada, as pétalas cravam no chão, os cabos-raiz descem, as
+##     esteiras saem e o monólito sobe; no fim (a pose do laço do núcleo) ela dá lugar ao núcleo do jogo. Linhas de
+##     sistema; a câmera desce até a visão de jogo. Sem o modelo da chegada, desce o próprio núcleo (como antes).
 ## A cena do espaço fica a 6 km de altura (longe do mapa) e usa um ambiente próprio na câmera.
 
 signal terminou
@@ -18,8 +21,10 @@ const T_BRANCO := 4.9        ## começa a fechar em nuvem
 const T_TROCA := 5.5         ## tela toda branca: troca espaço → mapa
 const T_CHAO := 7.6          ## impacto
 const T_TEXTO := 8.2
-const T_CAMERA := 11.8
-const T_FIM := 13.8
+const T_CAMERA := 14.4       ## a chegada (impacto → núcleo pronto) dura 7,5 s depois do impacto
+const T_FIM := 16.4
+const Q_IMPACTO_S := 59.0 / 24.0     ## tempo do impacto na animação "chegada" (quadro 60 a 24 qps)
+const Q_FECHADA_S := 0.2             ## pose da cápsula fechada (descendo)
 const ALT_NUVEM := 40.0      ## de onde o núcleo sai das nuvens, acima do chão
 const LINHAS := ["UNIDADE SEMEADORA 7 · CHEGADA CONFIRMADA", "DIRETRIZ: PROLIFERAR",
 		"ERRO 0x1F · limite da diretriz não encontrado", "…prosseguindo."]
@@ -55,10 +60,20 @@ var _sois: Array[Sprite3D] = []       ## núcleo, halo e raios do sol (reposicio
 var _centro_planeta := Vector3.ZERO
 var _raio_planeta := 0.0
 var _crescer := -1.0                  ## tempo desde o pouso (o piso de fábrica cresce em volta)
+var _queda: Node3D                    ## cápsula de reentrada (nucleo_queda) no mapa; nulo = sem o modelo
+var _anim: AnimationPlayer            ## animação "chegada" da cápsula
+var _trocou := false                  ## a cápsula já deu lugar ao núcleo do jogo
 
 
 func _ready() -> void:
 	_final = nucleo.position
+	var q := _instancia_queda()
+	if not q.is_empty():
+		_queda = q[0]
+		_anim = q[1]
+		add_child(_queda)
+		_queda.position = _final
+		_queda.visible = false
 	_tex_macia = _textura_macia()
 	_cam = Camera3D.new()
 	_cam.fov = 50.0
@@ -89,6 +104,7 @@ func _input(e: InputEvent) -> void:
 		_pulando = true                                    # pula: núcleo no lugar e a câmera desce rápido
 		_t = maxf(_t, T_CAMERA + 1.4)
 		_ir_para_mapa()
+		_trocar()
 		get_viewport().set_input_as_handled()
 
 
@@ -168,7 +184,10 @@ func _ir_para_mapa() -> void:
 	_cam.environment = null
 	_cam.near = 0.05
 	_cam.far = 900.0
-	nucleo.visible = true
+	nucleo.visible = _queda == null or _trocou
+	if _queda != null and not _trocou:
+		_queda.visible = true
+		_posar(Q_FECHADA_S)
 	for n in _nuvens:
 		n.visible = true
 
@@ -177,36 +196,43 @@ func _fase_mapa(t: float, delta: float) -> void:
 	var u := clampf((t - T_TROCA) / (T_CHAO - T_TROCA), 0.0, 1.0)
 	if _pulando:
 		u = 1.0
+	var corpo := _corpo()
 	if u < 1.0:
-		nucleo.position = _final + Vector3(0, ALT_NUVEM * (1.0 - pow(u, 1.5)), 0)
+		corpo.position = _final + Vector3(0, ALT_NUVEM * (1.0 - pow(u, 1.5)), 0)
 		var gira := 1.0 - smoothstep(0.55, 0.9, u)
-		nucleo.rotation = Vector3(sin(t * 1.7) * 0.2, t * 0.7, cos(t * 1.3) * 0.15) * gira
+		corpo.rotation = Vector3(sin(t * 1.7) * 0.2, t * 0.7, cos(t * 1.3) * 0.15) * gira
 		_rastro.emitting = u < 0.93
 	else:
-		nucleo.position = _final
-		nucleo.rotation = Vector3.ZERO
+		corpo.position = _final
+		corpo.rotation = Vector3.ZERO
 		_rastro.emitting = false
 		if not _impacto:
 			_impacto = true
 			_crescer = 0.0
+			if _anim != null:                               # a cápsula abre e vira o núcleo (animação do estudo)
+				_anim.play("chegada")
+				_anim.seek(Q_IMPACTO_S, true)
 			if not _pulando:
 				_bater()
-	_rastro.global_position = nucleo.global_position + Vector3(0, 1.2, 0)
+	if _anim != null and _impacto and not _trocou and (not _anim.is_playing()
+			or _anim.current_animation_position >= _anim.current_animation_length - 0.02):
+		_trocar()
+	_rastro.global_position = corpo.global_position + Vector3(0, 1.2, 0)
 	if _crescer >= 0.0:
 		_crescer += delta
 		_piso(5.5 * smoothstep(0.0, 2.6, _crescer))       # o piso se espalha a partir do núcleo pousado
 	var tq := t - T_CHAO
 	if tq > 0.0 and tq < 1.4 and not _pulando:
 		var s := 1.0 + sin(tq * 9.0) * 0.08 * exp(-tq * 3.0)
-		nucleo.scale = Vector3(1.0 / s, s, 1.0 / s)
+		corpo.scale = Vector3(1.0 / s, s, 1.0 / s)
 	else:
-		nucleo.scale = Vector3.ONE
+		corpo.scale = Vector3.ONE
 	# câmera olhando para baixo (o horizonte não aparece): segue a queda e para num ponto fixo antes do chão
 	var olho: Vector3
 	var mira: Vector3
 	if u < 0.75:
-		olho = nucleo.position + Vector3(5.0, 9.0, 6.0)
-		mira = nucleo.position + Vector3(0, -4.0, 0)
+		olho = corpo.position + Vector3(5.0, 9.0, 6.0)
+		mira = corpo.position + Vector3(0, -4.0, 0)
 	else:
 		olho = _final + Vector3(9.0, 12.0, 11.0)
 		mira = _final + Vector3(0, 0.8, 0)
@@ -260,7 +286,51 @@ func _piso(raio: float) -> void:
 	RenderingServer.global_shader_parameter_set("piso_crescer", Vector3(_final.x, -_final.z, raio))
 
 
+## O que desce do céu: a cápsula da chegada (se houver o modelo) ou o próprio núcleo.
+func _corpo() -> Node3D:
+	return _queda if _queda != null and not _trocou else nucleo
+
+
+## Cápsula de reentrada (nucleo_queda) com a animação "chegada": [nó, AnimationPlayer] ou [] sem o modelo.
+func _instancia_queda() -> Array:
+	if not Registro.modelos.has("nucleo_queda"):
+		return []
+	var q: Node3D = (load(Registro.modelos.nucleo_queda.modelo) as PackedScene).instantiate()
+	Materiais.converter(q)
+	for p in q.find_children("*", "AnimationPlayer", true, false):
+		var ap := p as AnimationPlayer
+		if ap.has_animation("chegada"):
+			ap.get_animation("chegada").loop_mode = Animation.LOOP_NONE
+			return [q, ap]
+	q.free()
+	return []
+
+
+## Cápsula parada numa pose da chegada (fechada, descendo).
+func _posar(tempo: float) -> void:
+	if _anim == null:
+		return
+	_anim.play("chegada")
+	_anim.seek(tempo, true)
+	_anim.pause()
+
+
+## A cápsula aberta (pose do laço do núcleo) dá lugar ao núcleo do jogo, no mesmo lugar.
+func _trocar() -> void:
+	if _queda == null or _trocou:
+		return
+	_trocou = true
+	_queda.visible = false
+	nucleo.position = _final
+	nucleo.rotation = Vector3.ZERO
+	nucleo.scale = Vector3.ONE
+	nucleo.visible = true
+
+
 func _acabar() -> void:
+	_trocar()
+	if _queda != null:
+		_queda.queue_free()
 	_piso(1.0e6)
 	if _env != null:
 		_env.fog_density = _guardado.densidade
@@ -374,10 +444,18 @@ func _criar_espaco() -> void:
 		_caixa(_nave, Vector3(9, 0.05, 0.08), Vector3(4, -1.82, z), veio)
 	for x in [-2.4, 2.4]:
 		_caixa(_nave, Vector3(0.5, 2.6, 0.5), Vector3(x, -2.9, 0), casco)
-	# núcleo de enfeite (cópia do modelo do jogo) preso sob a nave
-	_copia = nucleo.duplicate() as Node3D
+	# a cápsula fechada (modelo da chegada parado na pose da queda) presa sob a nave; sem ele, cópia do núcleo
+	var cq := _instancia_queda()
+	if not cq.is_empty():
+		_copia = cq[0]
+		_espaco.add_child(_copia)
+		(cq[1] as AnimationPlayer).play("chegada")
+		(cq[1] as AnimationPlayer).seek(Q_FECHADA_S, true)
+		(cq[1] as AnimationPlayer).pause()
+	else:
+		_copia = nucleo.duplicate() as Node3D
+		_espaco.add_child(_copia)
 	_copia.visible = true
-	_espaco.add_child(_copia)
 	# calor da reentrada: brilho e rastro
 	_calor = Sprite3D.new()
 	_calor.texture = _tex_macia

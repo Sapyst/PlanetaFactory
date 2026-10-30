@@ -35,5 +35,7 @@
  "foguete":          {"nome": "Foguete",          "grupo": "avancado",      "pilha": 50,  "modelo_de": "municao", "matiz": 0.22},
  "granada":          {"nome": "Granada de artilharia", "grupo": "avancado", "pilha": 20,  "modelo_de": "municao", "matiz": 0.58},
  "cristal_carregado": {"nome": "Cristal carregado", "grupo": "avancado",   "pilha": 50,  "modelo_de": "cristal_lapidado", "matiz": 0.80},
- "pacote_tempestade": {"nome": "Pacote de tempestade", "grupo": "avancado", "pilha": 200, "modelo_de": "pacote_pesquisa", "matiz": 0.72}
+ "pacote_tempestade": {"nome": "Pacote de tempestade", "grupo": "avancado", "pilha": 200, "modelo_de": "pacote_pesquisa", "matiz": 0.72},
+ "drone":             {"nome": "Drone",            "grupo": "avancado",      "pilha": 20,  "modelo_de": "motor"},
+ "residuo":           {"nome": "Resíduo",          "grupo": "intermediario", "pilha": 100, "modelo_de": "tijolo", "matiz": 0.12}
 }

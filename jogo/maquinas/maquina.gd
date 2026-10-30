@@ -27,6 +27,7 @@ var extra := 0.0             ## barra de produtividade: ao passar de 1, sai um c
 var tanque_fluido := 0.0     ## tanque interno maior que 2× a receita (coletor de chuva 2.000, supressor 200…)
 var transborda := false      ## fluido que não sai pelo cano não trava a máquina (filtro: a sobra volta ao rio)
 var clima := 1.0             ## fator do clima de agora (coletor: chuva, condensador: neblina); 0 = espera
+var retem: Array = []        ## produtos que não saem por braço (estação de drones: o drone vai para a frota)
 var _dormindo := false
 
 
@@ -68,7 +69,7 @@ func receber(item: String) -> bool:
 ## Interface de origem para braços.
 func pegar_para_braco(filtro := "") -> String:
 	for item in saidas:
-		if int(saidas[item]) > 0 and (filtro == "" or filtro == item):
+		if int(saidas[item]) > 0 and (filtro == "" or filtro == item) and not item in retem:
 			saidas[item] = int(saidas[item]) - 1
 			_acordar()
 			return item

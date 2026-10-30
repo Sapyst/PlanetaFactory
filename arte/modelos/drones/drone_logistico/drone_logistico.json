@@ -1,0 +1,85 @@
+{
+ "nome": "drone_logistico",
+ "categoria": "drones",
+ "tipo": "veiculo",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Drone logístico: quadricóptero com guincho e garra de quatro dedos em pêndulo; leva itens entre baús.",
+ "portas": [],
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "rotor0",
+   "pai": "corpo",
+   "pivo": [
+    0.1909,
+    0.1909,
+    0.0
+   ]
+  },
+  {
+   "nome": "rotor1",
+   "pai": "corpo",
+   "pivo": [
+    -0.1909,
+    0.1909,
+    0.0
+   ]
+  },
+  {
+   "nome": "rotor2",
+   "pai": "corpo",
+   "pivo": [
+    -0.1909,
+    -0.1909,
+    0.0
+   ]
+  },
+  {
+   "nome": "rotor3",
+   "pai": "corpo",
+   "pivo": [
+    0.1909,
+    -0.1909,
+    0.0
+   ]
+  },
+  {
+   "nome": "pendulo",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.0,
+    -0.095
+   ]
+  },
+  {
+   "nome": "carga",
+   "pai": "pendulo",
+   "pivo": [
+    0.0,
+    0.0,
+    -0.167
+   ]
+  }
+ ],
+ "tris": 2956,
+ "dims": [
+  0.596,
+  0.596,
+  0.481
+ ],
+ "anima": false,
+ "estudo": "estudo_drones_modelo.py"
+}

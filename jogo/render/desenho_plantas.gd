@@ -2,7 +2,8 @@ class_name DesenhoPlantas
 extends Node3D
 ## Mudas e árvores plantadas pelo viveiro (AmbienteVivo.plantas): um MultiMesh por modelo de vegetação, cada
 ## planta no tamanho do seu crescimento (muda pequena → árvore inteira), giro e deslocamento próprios por tile.
-## Refeito só quando `versao_plantas` muda (nasce, cai ou cresce um degrau).
+## Refeito só quando `versao_plantas` muda (nasce, cai ou cresce um degrau). Muda com espécie (viveiro 2, semeador de
+## bioma: AmbienteVivo.especies) usa um dos 6 modelos daquela espécie ("arv_salgueiro_3"…); as outras, a lista padrão.
 
 var ambiente: AmbienteVivo
 var _versao := -1
@@ -25,6 +26,12 @@ func _refazer() -> void:
 	for t: Vector2i in ambiente.plantas:
 		var cresc: float = ambiente.plantas[t]
 		var modelo: String = modelos[int(Distribuicao.h(t.x, t.y, 901) * modelos.size()) % modelos.size()]
+		if ambiente.especies.has(t):
+			var esp := "%s_%d" % [ambiente.especies[t], 1 + int(Distribuicao.h(t.x, t.y, 906) * 6.0) % 6]
+			if Registro.modelos.has(esp):
+				modelo = esp
+		if not lista.has(modelo):
+			lista[modelo] = []
 		var off := Vector2(Distribuicao.h(t.x, t.y, 902) - 0.5, Distribuicao.h(t.x, t.y, 903) - 0.5) * 0.4
 		var p := Vector2(t) + Vector2(0.5, 0.5) + off
 		var esc := (0.15 + 0.85 * smoothstep(0.0, 1.0, cresc)) * (0.85 + 0.3 * Distribuicao.h(t.x, t.y, 904))

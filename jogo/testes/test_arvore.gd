@@ -65,7 +65,9 @@ func test_sem_ciclos() -> void:
 ## Toda chave de "bonus" em progressao.json tem quem a use no jogo (senão a pesquisa não faria nada).
 const BONUS_USADOS := ["dano_torre_energia", "dano_bala", "velocidade_pesquisa", "produtividade_mineracao",
 		"cadencia_torre_energia", "economia_tiro_torre", "cadencia_bala", "dano_foguete", "cadencia_foguete",
-		"dano_artilharia", "alcance_artilharia", "escudo_raio", "escudo_carga", "escudo_recarga"]
+		"dano_artilharia", "alcance_artilharia", "escudo_raio", "escudo_carga", "escudo_recarga",
+		"drones_bateria", "drones_frota", "drones_velocidade", "drones_carga", "drones_alcance", "drones_tempestade",
+		"drones_dano", "drones_vida"]
 
 
 func test_melhorias() -> void:

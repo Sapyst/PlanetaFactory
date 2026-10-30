@@ -19,6 +19,8 @@ Opções de CONFIG além de script/cat/tris/tex/tirar:
   antes_de_exportar(sc, raiz, dados)  função chamada antes do .glb (ex.: material especial da lona; dados = .json)
   manter    nomes de empties sem malha que o jogo procura no modelo (marcadores): não são podados
   estudo    nome do estudo gravado no .json quando `script` é um conv_*.py que monta o estudo com remendos
+  quadros   duração da animação exportada em quadros (padrão 96 = laço de 4 s; a chegada do núcleo usa 240)
+  animacao  nome da animação no .glb (padrão "trabalho", que o Animador toca em laço; a chegada usa "chegada")
 
 Sempre (para todo estudo):
 - texto (curva FONT) vira malha antes da limpeza: entra no corpo, é reduzido e assado;
@@ -425,7 +427,8 @@ def main():
     w, d = antigo['area']
     montar_estudo(cfg)
     sc = bpy.context.scene
-    sc.frame_start, sc.frame_end = 1, 96
+    quadros = int(cfg.get('quadros', 96))
+    sc.frame_start, sc.frame_end = 1, quadros
     sc.frame_set(1)
     if cfg.get('centro'):                              # cena com várias estruturas: esta vem para a origem
         c = cfg['centro']
@@ -455,7 +458,8 @@ def main():
         pecas.append((pn, pd, objs))
     juntar_irmaos(usados)
     malhas = [o for o in sc.objects if o.type == 'MESH' and o.name not in usados]
-    din = dinamicos([1, 13, 25, 37, 49, 61, 73, 85]) if cfg.get('anima', True) else set()
+    amostras = [1, 13, 25, 37, 49, 61, 73, 85] if quadros == 96 else sorted({1 + round(i * (quadros - 1) / 23) for i in range(24)})
+    din = dinamicos(amostras) if cfg.get('anima', True) else set()
     brilhantes = [o for o in malhas if any(brilha(s.material) for s in o.material_slots)]
     fixos = [o for o in malhas if o.name not in din and o not in brilhantes]
     moveis = [o for o in malhas if o.name in din and o not in brilhantes]
@@ -531,12 +535,13 @@ def main():
     podar(raiz, cfg.get('manter', ()))
     nomes_neutros(nome, raiz, {po.name for po in objs_partes.values()} | ({corpo.name} if corpo else set()))
     # todas as ações numa trilha NLA de mesmo nome → o glTF junta numa animação só ("trabalho")
+    anim = cfg.get('animacao', 'trabalho')
     for o in sc.objects:
         ad = o.animation_data
         if ad and ad.action:
             tr = ad.nla_tracks.new()
-            tr.name = 'trabalho'
-            tr.strips.new('trabalho', 1, ad.action)
+            tr.name = anim
+            tr.strips.new(anim, 1, ad.action)
             ad.action = None
     if cfg.get('antes_de_exportar'):
         cfg['antes_de_exportar'](sc, raiz, antigo)

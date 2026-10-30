@@ -25,6 +25,9 @@ var clima_local: ClimaLocal             ## máquinas de clima (semeador, defleto
 var raios: Raios                        ## raios da tempestade (caem no mapa, para-raios pegam)
 var agua: AguaJogo                     ## buracos/canais escavados que enchem a partir de rio/lago
 var colonia: Colonia
+var drones: Drones                      ## drones das estações (reparo, combate, logística)
+var _desenho_drones: DesenhoDrones
+var _eventos_drones: Array[Dictionary] = []
 var grafo := GrafoTrilhos.new()
 var trens: Array[Trem] = []
 var estoques: Dictionary = {}       ## id da estação → {enviar: {item: n}, recebido: {item: n}}
@@ -126,10 +129,17 @@ func _ready() -> void:
 	colonia.torre_energia = fabrica.gastar_torre                # torre atira com a energia guardada da rede (e o escudo absorve)
 	colonia.energia = fabrica.energia                           # muro de campo regenera com energia
 	colonia.bonus = pesquisa.bonus                              # melhorias pesquisadas (dano da torre)
+	drones = Drones.new(mapa, fabrica, colonia)
+	drones.bonus = pesquisa.bonus
+	drones.livre = pesquisa.livre
+	drones.logistica_ok = func() -> bool: return pesquisa.concluidas.has("drones_logisticos")
+	drones.inventario = inventario
+	drones.raios_agora = func() -> bool: return bool(Registro.clima.estados.get(clima.atual, {}).get("raios", false))
 	_lotes = DesenhoLotes.new()
 	add_child(_lotes)
 	_criar_construcao()
 	construtor.cobrar = modo != "demo"
+	drones.cobrar = construtor.cobrar                          # reparo por drone paga placas como o reparo à mão
 	construtor.inventario = inventario
 	construtor.pesquisa = pesquisa
 	colonia.destruir = func(id: int) -> void: _destruido(id)
@@ -252,7 +262,7 @@ func salvar() -> void:
 	var ok := Salvamento.gravar({"modo": modo, "semente": semente, "tempo": _tempo,
 			"camera": [camera.alvo, camera.distancia, camera.angulo],
 			"mapa": {"estruturas": mapa.estruturas, "limpos": mapa.limpos.keys(), "prox": mapa._prox_id, "arvores": mapa.arvores},
-			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores, "clima": clima.estado(), "aplainado": gerador.aplainados(), "ambiente": ambiente.estado(), "agua": agua.estado(), "descoberta": descoberta.estado(), "raios": raios.estado(),
+			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores, "clima": clima.estado(), "aplainado": gerador.aplainados(), "ambiente": ambiente.estado(), "agua": agua.estado(), "descoberta": descoberta.estado(), "raios": raios.estado(), "drones": drones.estado(),
 			"estoques": estoques, "inventario": inventario, "pesquisa": pesquisa.estado(),
 			"trens": trens.map(func(t: Trem): return t.para_salvar()), "prox_trem": _prox_trem})
 	if ok and is_instance_valid(controle):
@@ -278,6 +288,7 @@ func _carregar(d: Dictionary) -> void:
 	agua.recalcular()
 	agua.encher_tudo()
 	colonia.restaurar(d.colonia)
+	drones.restaurar(d.get("drones", {}))
 	for id in mapa.estruturas:
 		var nome: String = mapa.estruturas[id].nome
 		if nome != "ninho_aranha" and nome != "pilar":
@@ -329,6 +340,12 @@ func _criar_desenhos() -> void:
 	_desenho_colonia.carga = func(id: int) -> float: return float(fabrica.carga_torre.get(id, 0.0))
 	_desenho_colonia.carga_max = fabrica.carga_max
 	add_child(_desenho_colonia)
+	_desenho_drones = DesenhoDrones.new()
+	_desenho_drones.drones = drones
+	_desenho_drones.mapa = mapa
+	_desenho_drones.desenho_colonia = _desenho_colonia
+	_desenho_drones.no_estrutura = func(id: int) -> Node3D: return _nos.get(id)
+	add_child(_desenho_drones)
 	_desenho_trens = DesenhoTrens.new()
 	add_child(_desenho_trens)
 	_desenho_itens = DesenhoItens.new()
@@ -602,6 +619,9 @@ func sincronizar(rel: Dictionary) -> void:
 	for ap in rel.get("aplainados", []):
 		for d in [Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(1, 1)]:
 			tocados[Grade.chunk_de(ap[0] + d)] = true
+	if pesquisa != null and (pesquisa.livre or pesquisa.concluidas.has("recuperar_solo")):
+		for ap in rel.get("aplainados", []):
+			ambiente.recuperar(ap[0])                   # recuperação de solo: o chão aplainado sai limpo
 	var centros: Array = []
 	for id in rel.colocados:
 		if mapa.estruturas.has(id):
@@ -912,6 +932,11 @@ func _process(delta: float) -> void:
 				Som.tocar("alerta")
 	_desenho_colonia.atualizar(_eventos, delta)
 	_eventos.clear()
+	for ev in _eventos_drones:
+		if ev.tipo == "drone_sem_placa" and is_instance_valid(controle):
+			controle._avisar("Drones de reparo sem placas de ferro no núcleo")
+	_desenho_drones.atualizar(_eventos_drones, delta)
+	_eventos_drones.clear()
 	_t_hud -= delta
 	if _t_hud <= 0.0:
 		_t_hud = 0.25
@@ -975,6 +1000,16 @@ func _animar_estruturas() -> void:
 		var a := _animador(id)
 		if a != null:
 			a.ativo = animar_tudo or fabrica.maquinas[id].estado == Maquina.Estado.TRABALHANDO
+	# estação de drones: garras, plugue e braço abastecedor trabalham quando um drone nasce, pousa ou decola
+	for est in drones.estacoes():
+		var a := _animador(est)
+		if a == null:
+			continue
+		var mexe: bool = animar_tudo or (fabrica.maquinas.has(est) and fabrica.maquinas[est].estado == Maquina.Estado.TRABALHANDO)
+		for dr in drones.drones.values():
+			if dr.est == est and dr.e in [Drones.E.NASCENDO, Drones.E.DECOLANDO, Drones.E.POUSANDO]:
+				mexe = true
+		a.ativo = mexe
 	# acumulador: cristal acende com a carga; faíscas entre as bobinas (mais ainda carregando/descarregando)
 	_arcos.fontes.clear()
 	for id in fabrica.acumulado:
@@ -1115,6 +1150,8 @@ func _tick_mundo(dt: float) -> void:
 	poluicao.tick(dt)
 	colonia.tick(dt, fontes_vivas)
 	_eventos.append_array(colonia.eventos)
+	drones.tick(dt)
+	_eventos_drones.append_array(drones.eventos)
 	_tempo += dt
 	if _relatorio:
 		_t_rel -= dt
@@ -1317,7 +1354,32 @@ func _detalhe() -> void:
 				linhas.append(("Fogo no raio de %d m: %d foco(s)" % [ap.get("raio", 8), focos]) if focos > 0
 						else "Com água, a vegetação num raio de %d m não pega fogo" % ap.get("raio", 8))
 			"coletor":
-				linhas.append("Aspira sujeira e óleo do chão num raio de %d m enquanto tem energia" % Registro.estruturas[e.nome].limpa.raio)
+				if regra.has("residuo"):
+					linhas.append("Aspira sujeira, óleo e cinza num raio de %d m e compacta em resíduo (1 a cada %.1f recolhido; guarda até %d)"
+							% [regra.limpa.raio, float(regra.residuo.por), int(regra.residuo.max)])
+				else:
+					linhas.append("Aspira sujeira e óleo do chão num raio de %d m enquanto tem energia" % Registro.estruturas[e.nome].limpa.raio)
+			"purificador":
+				var pu: Dictionary = regra.purifica
+				var k_c := Grade.chunk_de(Vector2i(Grade.centro_da_area(e.minimo, e.area, e.rot).floor()))
+				linhas.append("Tira %d de poluição por minuto do ar deste chunk (agora: %.1f)%s" % [pu.por_min, poluicao.em_chunk(k_c),
+						" e condensa em resíduo (1 a cada %d)" % int(pu.residuo_por) if pu.has("residuo_por") else ""])
+			"biodigestor":
+				linhas.append("Resíduo (braço) + água (cano sul) → biomassa (braço) + seiva (cano leste)")
+			"tratamento":
+				linhas.append("Limpa a água suja num raio de %d m e solta %d de água limpa/s pelo cano leste (sem cano, a sobra volta ao rio)"
+						% [regra.limpa.raio, Registro.receitas.tratar_agua.saidas_fluido.agua_limpa])
+			"semeador_bioma":
+				var rs: Dictionary = regra.restaura
+				var c_s := Grade.centro_da_area(e.minimo, e.area, e.rot)
+				var queimadas := 0
+				for t in mapa.arvores:
+					if (Vector2(t) + Vector2(0.5, 0.5)).distance_to(c_s) <= float(rs.raio):
+						queimadas += 1
+				linhas.append("Com seiva: tira o queimado do chão em %d m e, a cada ciclo, devolve até %d árvores carbonizadas e planta %d mudas do bioma · árvores queimadas no raio: %d"
+						% [rs.raio, rs.arvores, rs.mudas, queimadas])
+			"estacao_drones":
+				_detalhe_estacao_drones(id, e, linhas, opcoes)
 			"viveiro":
 				var c0 := Grade.centro_da_area(e.minimo, e.area, e.rot)
 				var r: float = Registro.estruturas[e.nome].planta.raio
@@ -1326,6 +1388,10 @@ func _detalhe() -> void:
 					if (Vector2(t) + Vector2(0.5, 0.5)).distance_to(c0) <= r + 0.5:
 						n += 1
 				linhas.append("Plantas em volta: %d (cada ciclo com 10 de seiva planta uma muda)" % n)
+				if Registro.estruturas[e.nome].planta.get("especie_bioma", false):
+					var esp := ambiente.especie_do_bioma(Vector2i(c0.floor()))
+					linhas.append("Espécie do bioma: %s · mudas crescem %.0f× mais rápido" % [Registro.recursos.get("elementos", {}).get(esp, esp) if esp != "" else "a padrão (bioma sem árvore)",
+							float(Registro.estruturas[e.nome].planta.get("cresce", 1.0))])
 		if tipo in ["montadora", "refinador", "fornalha"]:
 			for r in Registro.receitas_da_maquina(tipo):
 				if not pesquisa.receita_liberada(r):
@@ -1401,6 +1467,8 @@ func _detalhe() -> void:
 		for lim in [0.25, 0.5, 1.0]:
 			botoes.append({"texto": "Limite: %d%% (%d itens)" % [lim * 100, int(regra.get("capacidade_itens", Fabrica.BAU_MAX) * lim)],
 					"ligado": is_equal_approx(float(e.get("limite", 1.0)), lim), "acao": func(): e["limite"] = lim; _detalhe()})
+		if drones.logistica_liberada() and not fabrica.um_tipo(id):
+			_opcoes_logistica(e, linhas, opcoes, botoes)
 	elif colonia.ninhos.has(id):
 		var fu: float = colonia.ninhos[id].get("furia", 0.0)
 		linhas.append("Aranhas: %d" % colonia.aranhas_do_ninho(id).size())
@@ -1525,6 +1593,54 @@ func _detalhe() -> void:
 		linhas.append(Registro.modelos.get(Construtor.modelo_de(e), {}).get("descricao", ""))
 	barra.detalhe(titulo, "\n".join(linhas), opcoes + botoes)
 	barra.detalhe_maquina(_painel_maquina(id))
+
+
+## Estação de drones: frota, o que cada um faz e o tipo (opções internas).
+func _detalhe_estacao_drones(id: int, e: Dictionary, linhas: Array[String], opcoes: Array) -> void:
+	var tipo := drones.tipo_de(id)
+	var lista := drones.da_estacao(id)
+	var conta := {}
+	for d in lista:
+		var k: String = Drones.NOMES_ESTADO[int(d.e)]
+		conta[k] = int(conta.get(k, 0)) + 1
+	var partes: Array[String] = []
+	for k in conta:
+		partes.append("%d %s" % [conta[k], k])
+	linhas.append("Frota: %d de %d drones%s · alcance %d m" % [lista.size(), drones.frota_max(), (" (" + ", ".join(partes) + ")") if not partes.is_empty() else "", roundi(drones.alcance(id))])
+	linhas.append("Bateria: %d s de voo · %.1f m/s%s" % [roundi(drones.voo_max()), drones.velocidade(), "" if drones.pode_voar() else " — RAIOS: os drones ficam no hangar (pesquise Voo na tempestade)"])
+	match tipo:
+		"reparo":
+			linhas.append("Reparo: escaneia e solda o que estiver danificado no alcance (%d ♥/s); gasta 1 placa de ferro do núcleo a cada 25 ♥" % int(Registro.estruturas[Drones.ESTACAO].drones.reparo_ps))
+		"combate":
+			linhas.append("Combate: caça as aranhas no alcance (%.0f de dano, %.1f tiros/s, %d m); aranha perto morde o drone" % [drones.dano(), float(Registro.estruturas[Drones.ESTACAO].drones.cadencia), int(Registro.estruturas[Drones.ESTACAO].drones.alcance_tiro)])
+		"logistico":
+			linhas.append("Logístico (porto): leva %d item(ns) por viagem de baú provedor para baú requisitante no alcance; toque nos baús para escolher o papel" % drones.carga_max())
+	for t in Drones.TIPOS:
+		if t == "logistico" and not drones.logistica_liberada():
+			continue
+		opcoes.append({"texto": "Drones: %s" % Drones.NOMES_TIPO[t], "ligado": tipo == t, "acao": func(): drones.definir_tipo(id, t); _detalhe()})
+
+
+## Baú para os drones logísticos: provedor (oferece o que tem) ou requisitante (pede um item até uma quantidade).
+func _opcoes_logistica(e: Dictionary, linhas: Array[String], opcoes: Array, botoes: Array) -> void:
+	var papel := String(e.get("logistica", ""))
+	linhas.append("Drones logísticos: %s" % {"": "fora da rede", "provedor": "PROVEDOR — os drones tiram daqui", "requisitante": "REQUISITANTE — os drones trazem o pedido"}[papel])
+	for pp in [["", "Fora da rede"], ["provedor", "Provedor"], ["requisitante", "Requisitante"]]:
+		opcoes.append({"texto": "Logística: %s" % pp[1], "ligado": papel == pp[0], "acao": func():
+			if pp[0] == "": e.erase("logistica")
+			else: e["logistica"] = pp[0]
+			_detalhe()})
+	if papel != "requisitante":
+		return
+	var item := String(e.get("pede_item", ""))
+	var qtd := int(e.get("pede_qtd", 100))
+	linhas.append("Pede: %s" % ("nada (escolha o item abaixo)" if item == "" else "%s até %d" % [_nome_item(item), qtd]))
+	for q in [50, 100, 400, 1600]:
+		botoes.append({"texto": "Quantidade: %d" % q, "ligado": qtd == q, "acao": func(): e["pede_qtd"] = q; _detalhe()})
+	var itens_ord: Array = Registro.itens.keys()
+	itens_ord.sort_custom(func(a, c): return _nome_item(a) < _nome_item(c))
+	for it in itens_ord:
+		botoes.append({"texto": "Pedir: %s" % _nome_item(it), "ligado": item == it, "acao": func(): e["pede_item"] = it; _detalhe()})
 
 
 ## Divisor com filtro: item filtrado → uma saída; o resto → saída de prioridade (ou rodízio). Lados relativos à peça

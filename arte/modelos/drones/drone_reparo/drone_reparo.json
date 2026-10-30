@@ -1,0 +1,94 @@
+{
+ "nome": "drone_reparo",
+ "categoria": "drones",
+ "tipo": "veiculo",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Drone de reparo: quadricóptero de dutos com braço de solda articulado e funil de remendos; escaneia a estrutura danificada com a folha de laser vermelha e solda as rachaduras.",
+ "portas": [],
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "rotor0",
+   "pai": "corpo",
+   "pivo": [
+    0.1909,
+    0.1909,
+    0.0
+   ]
+  },
+  {
+   "nome": "rotor1",
+   "pai": "corpo",
+   "pivo": [
+    -0.1909,
+    0.1909,
+    0.0
+   ]
+  },
+  {
+   "nome": "rotor2",
+   "pai": "corpo",
+   "pivo": [
+    -0.1909,
+    -0.1909,
+    0.0
+   ]
+  },
+  {
+   "nome": "rotor3",
+   "pai": "corpo",
+   "pivo": [
+    0.1909,
+    -0.1909,
+    0.0
+   ]
+  },
+  {
+   "nome": "giro",
+   "pai": "corpo",
+   "pivo": [
+    0.035,
+    0.0,
+    -0.066
+   ]
+  },
+  {
+   "nome": "ombro",
+   "pai": "giro",
+   "pivo": [
+    0.035,
+    0.0,
+    -0.1
+   ]
+  },
+  {
+   "nome": "cotovelo",
+   "pai": "ombro",
+   "pivo": [
+    0.145,
+    0.0,
+    -0.1
+   ]
+  }
+ ],
+ "tris": 2780,
+ "dims": [
+  0.596,
+  0.596,
+  0.366
+ ],
+ "anima": false,
+ "estudo": "estudo_drones_modelo.py"
+}

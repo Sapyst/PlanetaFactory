@@ -1,0 +1,47 @@
+{
+ "nome": "semeador_bioma",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Semeador de bioma 3×3: chassi pesado com reator de solo vivo, silo de esporos, quatro injetores que cravam lanças no chão e dois espalhadores de disco. Com seiva pelo cano (oeste), devolve a vegetação ao chão queimado.",
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_ENT_O1",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    -1.5,
+    0.0,
+    0.35
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  }
+ ],
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "tris": 11852,
+ "dims": [
+  3.06,
+  3.052,
+  2.65
+ ],
+ "anima": true,
+ "estudo": "estudo_viveiro2_semeador.py"
+}

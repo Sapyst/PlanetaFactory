@@ -1,0 +1,62 @@
+{
+ "nome": "biodigestor",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Biodigestor 3×3: tanque de concreto com gasômetro de membrana, moega e rosca de resíduo, tanque de mistura com agitador, trocador de calor, queimador e flare, prensa de rosca (biomassa) e coluna de campo que clareia o líquido em seiva. Água pelo sul, seiva pelo leste.",
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_ENT_S0",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    -1.0,
+    -1.5,
+    0.3
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_SAI_L1",
+   "tipo": "FLUIDO",
+   "io": "SAI",
+   "pos": [
+    1.5,
+    0.0,
+    0.34
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  }
+ ],
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "tris": 11194,
+ "dims": [
+  2.969,
+  2.96,
+  2.207
+ ],
+ "anima": true,
+ "estudo": "estudo_biodigestor_tratamento.py"
+}

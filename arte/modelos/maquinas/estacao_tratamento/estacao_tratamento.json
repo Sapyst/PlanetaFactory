@@ -1,0 +1,47 @@
+{
+ "nome": "estacao_tratamento",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Estação de tratamento 3×3 na margem: tomada com grade e bomba vertical, tanque de aeração, dois decantadores com ponte raspadora e campo violeta, filtros de pressão, canal UV e descarga de água limpa. A tomada (sul) encosta na água.",
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_SAI_L0",
+   "tipo": "FLUIDO",
+   "io": "SAI",
+   "pos": [
+    1.5,
+    -0.87,
+    0.26
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  }
+ ],
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "tris": 11393,
+ "dims": [
+  3.0,
+  3.43,
+  2.251
+ ],
+ "anima": true,
+ "estudo": "estudo_biodigestor_tratamento.py"
+}

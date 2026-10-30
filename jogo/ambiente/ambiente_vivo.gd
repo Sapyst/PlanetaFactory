@@ -15,6 +15,10 @@ extends RefCounted
 ##    limpam o chão em volta e absorvem poluição do ar.
 ##  - água (fase 2.3): bomba d'água com água suja na tomada rende menos; supressor de incêndio com água apaga o fogo
 ##    no raio dele e, enquanto tem água, a vegetação em volta não pega fogo (molhada).
+##  - limpeza nova (fase 2.6): coletor de lixo 2 também tira a cinza (queimado) e compacta o que recolhe em resíduo;
+##    purificadores tiram poluição do ar do chunk (o atmosférico condensa em resíduo); viveiro 2 planta no dobro do
+##    ritmo mudas da espécie do bioma que crescem 2× mais rápido; semeador de bioma tira o queimado do chão, devolve as
+##    árvores carbonizadas/caídas e planta mudas do bioma; estação de tratamento limpa a água suja em 16 m.
 ##  - clima local (fase 2.5, ClimaLocal): o fogo sente a chuva e o vento do lugar (semeador de nuvens: chove ali,
 ##    nada pega fogo e o que queima apaga; defletor: o fogo anda para onde ele aponta); tufão não machuca construção
 ##    no raio do defletor ou do regulador. Os raios (Raios) acendem fogo e deixam o chão queimado.
@@ -51,6 +55,10 @@ var encardido: Dictionary = {}       ## id da estrutura → 0 limpa .. 1 imunda 
 var _estacao_ant := -1
 var _protegidos: Array[Vector3] = []  ## (x, y, raio) dos supressores com água e energia: ali não pega fogo
 var clima_local: ClimaLocal          ## (opcional) máquinas de clima: chuva/vento do lugar no fogo, tufão não machuca
+var especies: Dictionary = {}        ## tile → espécie da muda (viveiro 2 / semeador: a árvore do bioma; sem = a lista padrão)
+var rapidas: Dictionary = {}         ## tile → fator de crescimento da muda (viveiro 2: 2×)
+var residuo_acum: Dictionary = {}    ## id → o que já recolheu/absorveu e ainda não virou 1 resíduo (fração)
+var _restaurou: Dictionary = {}      ## id do semeador de bioma → ciclos já transformados em restauração
 
 
 func _init(p_gerador: GeradorMundo, p_mapa: MapaOcupacao, semente := 9) -> void:
@@ -164,41 +172,117 @@ func _encardir(fabrica: Fabrica, chuva: float) -> void:
 
 
 # ------------------------------------------------------------------ consequências e limpeza
-## Tira `v` (por s) do canal em volta de `c`: cheio no meio, metade na borda do raio.
-func _limpar(c: Vector2, raio: float, canal: int, v: float) -> void:
+## Tira `v` (por s) do canal em volta de `c`: cheio no meio, metade na borda do raio. Devolve quanto tirou (soma dos
+## tiles; o coletor 2 compacta isso em resíduo).
+func _limpar(c: Vector2, raio: float, canal: int, v: float) -> float:
 	if v <= 0.0:
-		return
+		return 0.0
 	var r := int(ceil(raio))
+	var tirou := 0.0
 	for y in range(floori(c.y) - r, floori(c.y) + r + 1):
 		for x in range(floori(c.x) - r, floori(c.x) + r + 1):
 			var d := (Vector2(x, y) + Vector2(0.5, 0.5)).distance_to(c)
 			if d < raio:
-				somar(Vector2i(x, y), canal, -v * (1.0 - 0.5 * d / raio))
+				var t := Vector2i(x, y)
+				var antes := valor(t, canal)
+				if antes <= 0.0:
+					continue
+				somar(t, canal, -v * (1.0 - 0.5 * d / raio))
+				tirou += antes - valor(t, canal)
+	return tirou
+
+
+## Recuperação de solo (pesquisa recuperar_solo): o tile aplainado fica sem sujeira, óleo e marca de queimado.
+func recuperar(t: Vector2i) -> void:
+	for canal in [SUJ, OLEO, QUEIM]:
+		if valor(t, canal) > 0.0:
+			somar(t, canal, -1.0)
+
+
+## Espécie de árvore do bioma do tile (as "arv_*" dos obstáculos do bioma, pelo peso); "" = bioma sem árvore.
+func especie_do_bioma(t: Vector2i) -> String:
+	var tipos: Dictionary = Registro.biomas.get(gerador.bioma(t), {}).get("obstaculos", {}).get("tipos", {})
+	var lista: Array[String] = []
+	for k in tipos:
+		if String(k).begins_with("arv_"):
+			for i in int(tipos[k]):
+				lista.append(String(k))
+	if lista.is_empty():
+		return ""
+	return lista[int(Distribuicao.h(t.x, t.y, 907) * lista.size()) % lista.size()]
+
+
+## O que a máquina recolheu vira resíduo (1 a cada unidade de `mais`), até `maximo` na saída (braço tira).
+func _compactar(id: int, m: Maquina, mais: float, maximo: int) -> void:
+	var a := float(residuo_acum.get(id, 0.0)) + mais
+	while a >= 1.0 - 1e-6 and int(m.saidas.get("residuo", 0)) < maximo:
+		m.saidas["residuo"] = int(m.saidas.get("residuo", 0)) + 1
+		a -= 1.0
+	residuo_acum[id] = minf(a, 1.0)                     # saída cheia: o que sobra não acumula sem fim
+	m.acordar()
 
 
 ## Coletor e filtro limpam em volta enquanto trabalham (na proporção da energia); viveiro: cada ciclo pronto = uma muda.
+## Purificador tira poluição do chunk; semeador de bioma restaura o chão queimado (fase 2.6).
 func _limpeza(fabrica: Fabrica) -> void:
 	for id in fabrica.maquinas:
 		var m: Maquina = fabrica.maquinas[id]
 		var r: Dictionary = Registro.estruturas.get(m.nome, {})
-		if not mapa.estruturas.has(id) or not (r.has("limpa") or r.has("planta")):
+		if not mapa.estruturas.has(id) or not (r.has("limpa") or r.has("planta") or r.has("purifica") or r.has("restaura")):
 			continue
 		var e: Dictionary = mapa.estruturas[id]
 		var c := Grade.centro_da_area(e.minimo, e.area, e.rot)
 		if r.has("planta"):
 			var feitos: int = m.produzidos - int(_plantou.get(id, 0))
 			_plantou[id] = m.produzidos
-			if feitos > 0:
-				plantar_perto(c, float(r.planta.raio))
+			var pl: Dictionary = r.planta
+			for i in feitos:
+				plantar_perto(c, float(pl.raio), bool(pl.get("especie_bioma", false)), float(pl.get("cresce", 1.0)))
+			continue
+		var forca: float = m.energia * float(fabrica.modo(id)[0])      # modo eco/turbo limpa menos/mais
+		if r.has("restaura"):
+			_restaurar(id, m, c, r.restaura, forca)
 			continue
 		if m.estado != Maquina.Estado.TRABALHANDO:
 			continue
+		if r.has("purifica"):
+			var pu: Dictionary = r.purifica
+			if poluicao != null:
+				var tirou := poluicao.absorver(Grade.chunk_de(Vector2i(c.floor())), float(pu.por_min) / 60.0 * forca)
+				if pu.has("residuo_por"):
+					_compactar(id, m, tirou / float(pu.residuo_por), int(pu.get("max", 10)))
+			continue
 		var l: Dictionary = r.limpa
 		var raio := float(l.raio)
-		var forca: float = m.energia * float(fabrica.modo(id)[0])      # modo eco/turbo limpa menos/mais
-		_limpar(c, raio, SUJ, float(l.get("sujeira", 0.0)) * forca)
-		_limpar(c, raio, OLEO, float(l.get("oleo", 0.0)) * forca)
+		var recolheu := _limpar(c, raio, SUJ, float(l.get("sujeira", 0.0)) * forca)
+		recolheu += _limpar(c, raio, OLEO, float(l.get("oleo", 0.0)) * forca)
+		recolheu += _limpar(c, raio, QUEIM, float(l.get("queimado", 0.0)) * forca)
 		_limpar(c, raio, AGUA, float(l.get("agua", 0.0)) * forca)
+		if r.has("residuo"):
+			_compactar(id, m, recolheu / float(r.residuo.get("por", 1.0)), int(r.residuo.get("max", 10)))
+
+
+## Semeador de bioma: trabalhando, tira o queimado do chão no raio; cada ciclo pronto devolve árvores carbonizadas ou
+## caídas (voltam inteiras) e planta mudas da espécie do bioma no chão mais queimado.
+func _restaurar(id: int, m: Maquina, c: Vector2, rs: Dictionary, forca: float) -> void:
+	var raio := float(rs.get("raio", 14.0))
+	if m.estado == Maquina.Estado.TRABALHANDO:
+		_limpar(c, raio, QUEIM, float(rs.get("queimado", 0.02)) * forca)
+	var feitos: int = m.produzidos - int(_restaurou.get(id, 0))
+	_restaurou[id] = m.produzidos
+	for k in feitos:
+		var voltaram: Array = []
+		for t: Vector2i in mapa.arvores.keys():
+			if voltaram.size() >= int(rs.get("arvores", 3)):
+				break
+			if (Vector2(t) + Vector2(0.5, 0.5)).distance_to(c) <= raio and not fogo.has(t):
+				mapa.arvores.erase(t)
+				queima_arvore.erase(t)
+				voltaram.append(t)
+		if not voltaram.is_empty():
+			eventos.append({"tipo": "arvores_mudaram", "tiles": voltaram})
+		for i in int(rs.get("mudas", 2)):
+			plantar_perto(c, raio, true, 1.0)
 
 
 ## Contaminação da poça de uma bomba (0..1): água suja perto (pesa menos com a distância), óleo e sujeira debaixo dela.
@@ -341,7 +425,8 @@ func pode_plantar(t: Vector2i) -> bool:
 
 
 ## Planta uma muda num tile livre perto de `c` (prefere o chão mais sujo/queimado). Devolve o tile ou nulo.
-func plantar_perto(c: Vector2, raio: float) -> Variant:
+## `do_bioma`: a muda é da espécie de árvore do bioma daquele tile (viveiro 2, semeador); `cresce`: fator de crescimento.
+func plantar_perto(c: Vector2, raio: float, do_bioma := false, cresce := 1.0) -> Variant:
 	if plantas.size() >= int(_d.plantas.max):
 		return null
 	var melhor: Variant = null
@@ -357,6 +442,12 @@ func plantar_perto(c: Vector2, raio: float) -> Variant:
 			melhor = t
 	if melhor != null:
 		plantas[melhor] = 0.05
+		if do_bioma:
+			var esp := especie_do_bioma(melhor)
+			if esp != "":
+				especies[melhor] = esp
+		if cresce != 1.0:
+			rapidas[melhor] = cresce
 		versao_plantas += 1
 	return melhor
 
@@ -378,7 +469,7 @@ func _plantas() -> void:
 		var g: float = plantas[t]
 		if g < 1.0:
 			var suj := clampf(valor(t, SUJ) + valor(t, OLEO), 0.0, 1.0)
-			var novo := minf(1.0, g + (1.0 - 0.6 * suj) / float(p.cresce_s))
+			var novo := minf(1.0, g + (1.0 - 0.6 * suj) / float(p.cresce_s) * float(rapidas.get(t, 1.0)))
 			if int(novo * 10.0) != int(g * 10.0):
 				versao_plantas += 1
 			plantas[t] = novo
@@ -394,6 +485,8 @@ func _plantas() -> void:
 			_limpar(meio, float(p.raio_limpa), QUEIM, float(p.limpa_queimado) * g)
 	for t in cai:
 		plantas.erase(t)
+		especies.erase(t)
+		rapidas.erase(t)
 	if not cai.is_empty():
 		versao_plantas += 1
 
@@ -624,6 +717,8 @@ func _fogo(chuva: float, vento: Vector2, secura: float, tufao: bool) -> void:
 		fogo.erase(t)
 		somar(t, QUEIM, 1.0)
 		if plantas.erase(t):
+			especies.erase(t)
+			rapidas.erase(t)
 			versao_plantas += 1
 		# árvore: fogo curto deixa de pé, carbonizada (rebrota na primavera); fogo longo derruba vento abaixo.
 		# o resto da vegetação (arbusto, cogumelo...) vira cinza e some (o mundo redesenha o chunk)
@@ -717,7 +812,7 @@ func imagem(k: Vector2i) -> Image:
 
 func estado() -> Dictionary:
 	return {"dados": dados, "fogo": fogo, "rng": _rng.state, "plantas": plantas, "plantou": _plantou, "queima_arvore": queima_arvore,
-			"encardido": encardido}
+			"encardido": encardido, "especies": especies, "rapidas": rapidas, "residuo_acum": residuo_acum, "restaurou": _restaurou}
 
 
 func restaurar(d: Dictionary) -> void:
@@ -727,6 +822,10 @@ func restaurar(d: Dictionary) -> void:
 	_plantou = d.get("plantou", {})
 	queima_arvore = d.get("queima_arvore", {})
 	encardido = d.get("encardido", {})
+	especies = d.get("especies", {})
+	rapidas = d.get("rapidas", {})
+	residuo_acum = d.get("residuo_acum", {})
+	_restaurou = d.get("restaurou", {})
 	versao_plantas += 1
 	_rng.state = d.get("rng", _rng.state)
 	for k in dados:

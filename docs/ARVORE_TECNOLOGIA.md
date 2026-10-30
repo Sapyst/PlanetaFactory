@@ -1,6 +1,6 @@
 # Árvore de tecnologia
 
-Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 77 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (algumas ainda esperam um pré-requisito ou pacote "em breve"; o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras aparecem como "em breve" até a estrutura, o item ou o pacote existir. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
+Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 96 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (algumas ainda esperam um pré-requisito ou pacote "em breve"; o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras aparecem como "em breve" até a estrutura, o item ou o pacote existir. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
 
 ## Eras e pacotes de pesquisa
 
@@ -486,13 +486,13 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Filtro de água | 2×2 | temos | limpa água suja (raio 7); com pesquisa, solta 15 de água limpa/s pelo ramal da borda norte (sem cano, a sobra volta ao rio) | `limpeza`, `filtro_agua_limpa` |
 | Viveiro | 2×2 | temos | planta mudas com seiva (raio 8) | `reflorestar` |
 | Supressor de incêndio | 1×1 | temos | com água (reservatório de 200, cano pelo leste) e 15 kW: apaga o fogo em 8 m (10 de água/s só enquanto há fogo) e a vegetação do raio não pega fogo | `supressor_fogo` |
-| Coletor de lixo 2 | 2×2 | falta | raio 10, recolhe cinza, devolve resíduo | `coletor_lixo_2` |
-| Purificador de ar | 2×2 | falta | absorve 6 de poluição/min do chunk | `purificador_ar` |
-| Purificador atmosférico | 3×3 | falta | absorve 40 de poluição/min | `purificador_ar_2` |
-| Viveiro 2 | 2×2 | falta | raio 12, espécie do bioma, 2× mais rápido | `viveiro_2` |
-| Biodigestor | 3×3 | falta | resíduo + água suja → biomassa + seiva | `biodigestor` |
-| Estação de tratamento | 3×3 | falta | água suja → limpa (60/s) e limpa o rio em 16 m | `estacao_tratamento` |
-| Semeador de bioma | 3×3 | falta | devolve cinzal e terra queimada ao bioma original | `restauracao_bioma` |
+| Coletor de lixo 2 | 2×2 | temos | raio 10: sujeira, óleo e cinza (chão queimado); o que recolhe vira resíduo (1 a cada 1,0 somado nos tiles; guarda 10, braço tira) | `coletor_lixo_2` |
+| Purificador de ar | 2×2 | temos | absorve 6 de poluição/min do chunk (com energia) | `purificador_ar` |
+| Purificador atmosférico | 3×3 | temos | absorve 40 de poluição/min do chunk; 1 resíduo a cada 20 absorvidos | `purificador_ar_2` |
+| Viveiro 2 | 2×2 | temos | raio 12, mudas da árvore do bioma, planta no dobro do ritmo e elas crescem 2× mais rápido | `viveiro_2` |
+| Biodigestor | 3×3 | temos | 4 resíduos + 40 de água (cano sul) → 2 biomassas + 30 de seiva (cano leste), 10 s | `biodigestor` |
+| Estação de tratamento | 3×3 | temos | na margem (tomada ao sul, como a bomba d'água): limpa a água suja em 16 m e solta 60 de água limpa/s; travada pela árvore (`refinador_2` em breve) | `estacao_tratamento` |
+| Semeador de bioma | 3×3 | temos | com seiva: tira o queimado do chão em 14 m, devolve árvores carbonizadas/caídas e planta mudas do bioma | `restauracao_bioma` |
 
 ### Energia
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
@@ -555,9 +555,9 @@ modelo do nível anterior com outra cor de luz e detalhe.
 ### Drones (categoria nova)
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
 |---|---|---|---|---|
-| Estação de drones | 2×2 | falta | fabrica e abriga drones de reparo (8 a 20) | `drones` |
-| Porto logístico | 2×2 | falta | base dos drones logísticos | `drones_logisticos` |
-| Baú provedor / requisitante / de estoque | 1×1 | falta | oferece, pede e guarda itens para os drones | `drones_logisticos` |
+| Estação de drones | 2×2 | temos | monta e abriga os drones (8 a 20) e escolhe o tipo: reparo (solda o que foi danificado em 45 m, 1 placa a cada 25 ♥), combate (caça aranhas) ou logístico | `drones` |
+| Porto logístico | 2×2 | temos (sem modelo próprio) | a estação de drones no modo logístico faz de porto | `drones_logisticos` |
+| Baú provedor / requisitante / de estoque | 1×1 | provedor e requisitante: temos (papel no painel do baú comum, sem modelo próprio); estoque: falta | oferece, pede e guarda itens para os drones | `drones_logisticos` |
 
 ### Lógica (categoria nova)
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
@@ -578,7 +578,8 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Transportador quântico | 3×3 | falta | troca itens entre colônias | `transportador_quantico` |
 | Silo de lançamento | 3×3 | falta | monta e lança o foguete de proliferação | `silo_lancamento` |
 
-**Contagem:** 58 linhas "temos" e **52 linhas "falta"** (uma linha pode juntar variantes, como a família da esteira
+**Contagem:** 67 linhas "temos", **42 linhas "falta"** e 1 em parte (baús logísticos: provedor e requisitante sem
+modelo próprio, estoque falta) (uma linha pode juntar variantes, como a família da esteira
 rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima, Drones, Lógica, Proliferação).
 
 ## Decisões e pontos em aberto
@@ -602,6 +603,20 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
   pesquisáveis dano de energia 4, cadência de energia 2, escudo 2 (e o muro de campo), balas 4/3, foguetes 2 e as
   melhorias da artilharia (estas esperam a própria artilharia). O **defletor** fica travado pela `turbina_alta` e o
   **regulador** pela `computacao_quantica` (ambas em breve); no modo demonstração os dois se constroem.
+- **Drones (fase 2.6).** A estação de drones é uma máquina: monta o item `drone` (receita da tabela, com a água pelo
+  cano) e cada drone pronto entra na frota dela. O **tipo** da frota é escolhido no painel: **reparo** (o drone da
+  pesquisa `drones`; paga o reparo como o botão Reparar: 1 placa de ferro do núcleo a cada 25 ♥), **combate** (a
+  árvore não tem pesquisa própria para o drone que atira: ele vem com `drones` e `drones_defesa` dá +100% de dano e +50%
+  de vida) e **logístico** (com `drones_logisticos`). O **porto logístico** e os **baús logísticos** não têm modelo
+  (sem estudo): a estação no modo logístico faz de porto e os baús comuns ganham o papel de provedor ou requisitante no
+  painel; o baú de estoque fica para depois. Com raios caindo os drones ficam no hangar até `drones_tempestade`.
+- **Limpeza nova (fase 2.6).** O **pacote ecológico** passa a ser pedido (coletor 2, purificadores, viveiro 2,
+  biodigestor, recuperação de solo, tratamento, semeador). **Água suja** não é fluido de cano: o biodigestor bebe a
+  água do cano (do rio, suja ou não) e a estação de tratamento fica na margem e limpa a água suja do rio em volta. O
+  **resíduo** sai do coletor 2 (1 a cada 1,0 de sujeira/óleo/cinza recolhida, somada nos tiles) e do purificador
+  atmosférico (1 a cada 20 de poluição). A **Recuperação de solo** não tem estrutura: com ela, Aplainar também limpa o
+  chão do tile. O semeador de bioma devolve as árvores queimadas e o chão queimado; o bioma natural **cinzal** fica como
+  está. A estação de tratamento espera o `refinador_2` (sem estudo).
 - **Água limpa** (`agua_limpa`, do filtro) serve em toda receita que pede água; água do rio não serve onde se pede
   limpa (pacote ecológico). Resina bebe dois fluidos: seiva por uma boca do refinador e água pela outra.
 - **As 14 pesquisas originais não mudam** (a 15ª, `dano_energia_1`, entrou depois como a primeira melhoria jogável: +20% de dano da torre com energia). Mesmos IDs, pré-requisitos e custos (incluindo `energia`, que existe no jogo

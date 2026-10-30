@@ -1,0 +1,31 @@
+{
+ "nome": "coletor_lixo_2",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Coletor de lixo 2×2 de nível 2: silo de duas câmaras (lodo e cinza), ciclones duplos, turbina de exaustão, prensa enfardadeira e dois braços de sucção em torres giratórias. Aspira sujeira, óleo e cinza num raio de 10 m e compacta em resíduo.",
+ "portas": [],
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "tris": 9410,
+ "dims": [
+  3.207,
+  2.052,
+  2.115
+ ],
+ "anima": true,
+ "estudo": "estudo_limpeza_2x2.py"
+}

@@ -62,9 +62,16 @@
    "nome": "Limpeza",
    "pecas": [
     "coletor_lixo",
+    "coletor_lixo_2",
     "filtro_agua",
+    "estacao_tratamento",
     "viveiro",
-    "supressor_fogo"
+    "viveiro_2",
+    "semeador_bioma",
+    "supressor_fogo",
+    "purificador_ar",
+    "purificador_ar_2",
+    "biodigestor"
    ]
   },
   {
@@ -103,6 +110,12 @@
     "defletor_vento",
     "cupula_raios",
     "regulador_clima"
+   ]
+  },
+  {
+   "nome": "Drones",
+   "pecas": [
+    "estacao_drones"
    ]
   },
   {
@@ -195,7 +208,15 @@
   "semeador_nuvens": "Semeador de nuvens",
   "defletor_vento": "Defletor de vento",
   "cupula_raios": "Cúpula contra raios",
-  "regulador_clima": "Regulador climático"
+  "regulador_clima": "Regulador climático",
+  "estacao_drones": "Estação de drones",
+  "coletor_lixo_2": "Coletor de lixo 2",
+  "purificador_ar": "Purificador de ar",
+  "purificador_ar_2": "Purificador atmosférico",
+  "viveiro_2": "Viveiro 2",
+  "semeador_bioma": "Semeador de bioma",
+  "biodigestor": "Biodigestor",
+  "estacao_tratamento": "Estação de tratamento"
  },
  "jazidas": {
   "jazida_cristal": "cristal",
@@ -287,7 +308,15 @@
   "bomba_agua": "2×2 na margem: a tomada (lado da grade) encosta na água. Solta 40 de água/s pelo cano; água suja rende menos.",
   "coletor_chuva": "2×2 em qualquer lugar: até 25 de água/s com chuva forte, nada no seco. Guarda 2.000.",
   "condensador_neblina": "2×2 com energia (80 kW): até 12 de água/s com neblina (mais no inverno).",
-  "supressor_fogo": "Com água pelo cano: apaga fogo num raio de 8 m e molha a vegetação em volta."
+  "supressor_fogo": "Com água pelo cano: apaga fogo num raio de 8 m e molha a vegetação em volta.",
+  "estacao_drones": "2×2 com energia e água pelo cano (sul): monta drones (placas, motor, circuitos) e os lança. No painel: reparo (solda o que as aranhas morderam, gasta placas), combate (caça aranhas) ou logístico (leva itens entre baús).",
+  "coletor_lixo_2": "Aspira sujeira, óleo e cinza num raio de 10 m e compacta em resíduo (braço tira).",
+  "purificador_ar": "Com energia, tira 6 de poluição por minuto do ar do chunk.",
+  "purificador_ar_2": "3×3: tira 40 de poluição por minuto do chunk e condensa em resíduo (braço tira).",
+  "viveiro_2": "Com seiva pelo cano: planta árvores da espécie do bioma num raio de 12 m, 2× mais rápido.",
+  "semeador_bioma": "3×3 com seiva pelo cano: tira o queimado do chão em 14 m, devolve as árvores carbonizadas e planta mudas do bioma.",
+  "biodigestor": "3×3: resíduo (braço) + água (cano sul) → biomassa (braço) + seiva (cano leste).",
+  "estacao_tratamento": "3×3 na margem (tomada ao sul na água): limpa a água suja em 16 m e solta 60 de água limpa/s pelo cano (leste)."
  },
  "icones_categoria": {
   "Esteiras": "categorias/esteiras",

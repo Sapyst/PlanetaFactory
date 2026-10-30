@@ -251,6 +251,17 @@ func _montar_maquinas() -> void:
 					m.definir_receita("coletar_lixo", Registro.receitas["coletar_lixo"])
 				"viveiro":
 					m.definir_receita("plantar_muda", Registro.receitas["plantar_muda"])
+				"purificador":
+					m.definir_receita("purificar_ar", Registro.receitas["purificar_ar"])
+				"biodigestor":
+					m.definir_receita("biodigerir", Registro.receitas["biodigerir"])
+				"tratamento":
+					m.definir_receita("tratar_agua", Registro.receitas["tratar_agua"])
+				"semeador_bioma":
+					m.definir_receita("restaurar_bioma", Registro.receitas["restaurar_bioma"])
+				"estacao_drones":
+					m.definir_receita("fabricar_drone", Registro.receitas["fabricar_drone"])
+					m.retem = ["drone"]                 # o drone pronto entra na frota (Drones), não vai para braço
 		maquinas[id].velocidade = float(r.get("velocidade", 1.0)) * float(modo(id)[0])
 		maquinas[id].tanque_fluido = float(r.get("tanque_fluido", 0.0))
 		maquinas[id].transborda = bool(r.get("transborda", false))
@@ -348,7 +359,7 @@ func capacidade_bau(id: int) -> int:
 
 ## Silo de granel: guarda um tipo de item só (o primeiro que entra; esvaziou, aceita outro).
 func um_tipo(id: int) -> bool:
-	return bool(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("um_tipo", false))
+	return mapa.estruturas.has(id) and bool(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("um_tipo", false))
 
 
 ## O item que está no armazém agora ("" se vazio) — para o silo, que é de um tipo só.
@@ -1116,7 +1127,7 @@ class _NaMaquina:
 	func pegar_para_braco(filtro: String) -> String: return m.pegar_para_braco(filtro)
 	func pegar_se(aceito: Callable) -> String:
 		for item in m.saidas:
-			if int(m.saidas[item]) > 0 and aceito.call(item):
+			if int(m.saidas[item]) > 0 and not item in m.retem and aceito.call(item):
 				return m.pegar_para_braco(item)
 		return ""
 	func devolver(i: String) -> void:

@@ -1,0 +1,31 @@
+{
+ "nome": "purificador_ar_2",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Purificador atmosférico 3×3: torre de tiragem em hiperboloide de treliça com três ventiladores no topo, filtros de carvão ativado, lavador de gás e núcleo de cristal que condensa a poluição em blocos de resíduo.",
+ "portas": [],
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "tris": 8446,
+ "dims": [
+  3.014,
+  3.029,
+  7.027
+ ],
+ "anima": true,
+ "estudo": "estudo_purificador_atmosferico.py"
+}

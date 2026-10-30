@@ -1,0 +1,94 @@
+{
+ "nome": "drone_defesa",
+ "categoria": "drones",
+ "tipo": "veiculo",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Drone de combate: quadricóptero blindado com torre de canhão duplo de pulso embaixo; cada tiro ejeta uma cápsula.",
+ "portas": [],
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "rotor0",
+   "pai": "corpo",
+   "pivo": [
+    0.1909,
+    0.1909,
+    0.0
+   ]
+  },
+  {
+   "nome": "rotor1",
+   "pai": "corpo",
+   "pivo": [
+    -0.1909,
+    0.1909,
+    0.0
+   ]
+  },
+  {
+   "nome": "rotor2",
+   "pai": "corpo",
+   "pivo": [
+    -0.1909,
+    -0.1909,
+    0.0
+   ]
+  },
+  {
+   "nome": "rotor3",
+   "pai": "corpo",
+   "pivo": [
+    0.1909,
+    -0.1909,
+    0.0
+   ]
+  },
+  {
+   "nome": "torre",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.0,
+    -0.066
+   ]
+  },
+  {
+   "nome": "canhao",
+   "pai": "torre",
+   "pivo": [
+    0.0,
+    0.0,
+    -0.111
+   ]
+  },
+  {
+   "nome": "boca",
+   "pai": "canhao",
+   "pivo": [
+    0.158,
+    0.0,
+    -0.111
+   ]
+  }
+ ],
+ "tris": 3038,
+ "dims": [
+  0.608,
+  0.608,
+  0.366
+ ],
+ "anima": false,
+ "estudo": "estudo_drones_modelo.py"
+}

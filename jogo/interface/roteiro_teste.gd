@@ -43,6 +43,21 @@ func _ready() -> void:
 		"agua": _roteiro_agua()
 		"combate": _roteiro_combate()
 		"clima": _roteiro_clima()
+		"drones": _roteiro_drones()
+		"limpeza2": _roteiro_limpeza2()
+		"chegada":                                     # -- novo roteiro chegada abertura --fixed-fps 30: a cápsula cai e vira o núcleo
+			for q in [30, 150, 225, 235, 260, 330, 420, 450, 470, 490]:
+				em(q, func():
+					var ab: Abertura = null
+					for c in cena.get_children():
+						if c is Abertura:
+							ab = c
+					if ab == null:
+						print("CHEGADA q%d abertura acabou; núcleo visível %s" % [q, cena._no_nucleo.visible])
+						return
+					print("CHEGADA q%d t=%.2f queda %s visível %s anim %.2f s impacto %s trocou %s núcleo visível %s" % [q, ab._t,
+							ab._queda != null, ab._queda.visible if ab._queda != null else false,
+							ab._anim.current_animation_position if ab._anim != null and ab._anim.current_animation != "" else -1.0, ab._impacto, ab._trocou, ab.nucleo.visible]))
 		"energia": _roteiro_energia()
 		"vento":                                       # rajadas passando na grama, depois a camada de vento da visão
 			em(2, func():
@@ -998,6 +1013,221 @@ func _roteiro_clima() -> void:
 			if cena.colonia.vida.has(ids[nome]):
 				vidas[nome] = snappedf(float(cena.colonia.vida[ids[nome]]), 0.1)
 		print("CLIMA vidas ", vidas, " fogo ", cena.ambiente.fogo.size()))
+
+
+## Drones (fase 2.6): três estações (reparo, combate, logística) num chão plano longe de ninhos; muro mordido, aranhas
+## soltas e dois baús (provedor → requisitante). Imprime o que os drones fizeram e o que o desenho mostrou.
+func _roteiro_drones() -> void:
+	var ids := {}
+	var cont := {}
+	var w := [Vector2i(9999, 0)]
+	em(2, func():
+		Sessao.config.fps = false
+		var g := Grade.gerador
+		var m: MapaOcupacao = cena.mapa
+		for r in range(40, 300, 3):
+			for k in 48:
+				var t := Vector2i((Vector2.from_angle(k * TAU / 48.0) * r).round())
+				if w[0].x != 9999:
+					break
+				var ok := true
+				for i in range(-2, 34):
+					for j in range(-2, 18):
+						var q := t + Vector2i(i, j)
+						if g.terreno(q) != GeradorMundo.Terreno.TERRA or g.nivel(q) != g.nivel(t) or g.em_encosta(q) or m.tiles.has(q):
+							ok = false
+				if ok:
+					w[0] = t
+		var o: Vector2i = w[0]
+		print("DRONES chão ", o)
+		if o.x == 9999:
+			return
+		_sem_ninhos(o + Vector2i(16, 8))
+		for i in range(-2, 34):
+			for j in range(-2, 18):
+				m.limpar_obstaculo(o + Vector2i(i, j))
+		var con: Construtor = cena.construtor
+		var p := func(pl: Array[Dictionary]) -> void: cena.sincronizar(con.executar(pl))
+		p.call(con.plano_peca("gerador", o + Vector2i(0, 0), 0))
+		for x in [3, 9, 15, 21, 27]:
+			p.call(con.plano_peca("poste_energia", o + Vector2i(x, 3), 0))
+		p.call(con.plano_peca("estacao_drones", o + Vector2i(4, 0), 0))
+		p.call(con.plano_peca("estacao_drones", o + Vector2i(14, 0), 0))
+		p.call(con.plano_peca("estacao_drones", o + Vector2i(24, 0), 0))
+		for x in range(4, 12):
+			p.call(con.plano_peca("muro_centro", o + Vector2i(x, 10), 0))
+		p.call(con.plano_peca("bau", o + Vector2i(22, 12), 0))
+		p.call(con.plano_peca("bau", o + Vector2i(30, 14), 0))
+		for id in m.estruturas:
+			var e: Dictionary = m.estruturas[id]
+			if e.nome == "estacao_drones":
+				ids["est_%d" % int(e.minimo.x - o.x)] = id
+			elif e.nome == "bau":
+				ids["bau_%d" % int(e.minimo.x - o.x)] = id
+			elif e.nome == "muro_centro":
+				ids["muro_%d" % int(e.minimo.x - o.x)] = id
+		print("DRONES construiu ", ids.keys())
+		cena.camera.alvo = Grade.centro_mundo(o + Vector2i(15, 6))
+		cena.camera.distancia = 26.0
+		cena.camera.posicionar())
+	em(6, func():
+		if w[0].x == 9999 or not ids.has("est_4"):
+			return
+		var f: Fabrica = cena.fabrica
+		var dr: Drones = cena.drones
+		var m: MapaOcupacao = cena.mapa
+		f.reconstruir()
+		for id in f.combustivel:
+			f.combustivel[id] = 500.0
+		var tipos := {"est_4": "reparo", "est_14": "combate", "est_24": "logistico"}
+		for k in tipos:
+			dr.definir_tipo(ids[k], tipos[k])
+			for i in 3:
+				dr.novo(ids[k])
+		var mq: Maquina = f.maquinas[ids.est_4]                 # a estação de reparo monta mais um
+		for it in ["placa_ferro", "placa_ferro", "placa_ferro", "placa_ferro", "motor", "circuito", "circuito"]:
+			mq.receber(it)
+		mq.receber_fluido("agua", 60.0)
+		for x in [4, 6, 8, 10]:                                  # muro mordido
+			cena.colonia.vida[ids["muro_%d" % x]] = 120.0
+		var o := Vector2(w[0])
+		for k in 3:                                              # aranhas soltas (sem ninho: vão morder o muro)
+			cena.colonia.aranhas[9000 + k] = {"id": 9000 + k, "pos": o + Vector2(6 + k * 2, 16), "vida": 60.0, "ninho": -1,
+					"estado": Colonia.E.PARADA, "alvo": -1, "destino": o + Vector2(6 + k * 2, 16), "mordendo": false, "t": 0.0, "preso": 0.0}
+		m.estruturas[ids.bau_22]["logistica"] = "provedor"
+		m.estruturas[ids.bau_30]["logistica"] = "requisitante"
+		m.estruturas[ids.bau_30]["pede_item"] = "engrenagem"
+		m.estruturas[ids.bau_30]["pede_qtd"] = 4
+		f.baus[ids.bau_22]["engrenagem"] = 20)
+	em(7, func():
+		var dr: Drones = cena.drones
+		print("DRONES frota ", dr.drones.size(), " tipos ", dr.estacoes().map(func(e): return dr.tipo_de(e))))
+	var t_ant := [-1.0]
+	for q in range(8, 2400):
+		em(q, func():
+			if float(cena._tempo) != t_ant[0]:                 # só conta os eventos de um tick novo
+				t_ant[0] = float(cena._tempo)
+				for e in cena.drones.eventos:
+					cont[e.tipo] = int(cont.get(e.tipo, 0)) + 1
+			var dd: DesenhoDrones = cena._desenho_drones
+			cont["max_visiveis"] = maxi(int(cont.get("max_visiveis", 0)), dd.visiveis())
+			cont["max_scan"] = maxi(int(cont.get("max_scan", 0)), dd.escaneando().size())
+			cont["max_capsulas"] = maxi(int(cont.get("max_capsulas", 0)), cena._desenho_colonia.capsulas()))
+	var k := 0
+	for nome in ["est_4", "est_14", "est_24", "bau_30"]:
+		k += 1
+		em(300 + k * 20, func():
+			if ids.has(nome) and cena.mapa.estruturas.has(ids[nome]):
+				cena._sel = {"estrutura": ids[nome]}
+				cena._detalhe()
+				print("DRONES painel ", nome))
+	em(2398, func():
+		var dr: Drones = cena.drones
+		print("DRONES tempo de jogo %.1f s" % cena._tempo)
+		var vidas := {}
+		for x in [4, 6, 8, 10]:
+			vidas[x] = cena.colonia.vida.get(ids.get("muro_%d" % x, -1), "inteiro")
+		print("DRONES eventos ", cont)
+		print("DRONES muros ", vidas, " aranhas soltas ", [9000, 9001, 9002].filter(func(a): return cena.colonia.aranhas.has(a)).size())
+		if ids.has("bau_30") and cena.fabrica.baus.has(ids.bau_30):
+			print("DRONES requisitante ", cena.fabrica.baus[ids.bau_30], " provedor ", cena.fabrica.baus.get(ids.bau_22, {}))
+		print("DRONES aranhas ", [9000, 9001, 9002].map(func(a): return cena.colonia.aranhas[a].vida if cena.colonia.aranhas.has(a) else "morta"))
+		print("DRONES estados ", dr.drones.values().map(func(d): return [d.tipo, Drones.NOMES_ESTADO[int(d.e)]])))
+
+
+
+## Limpeza nova (fase 2.6): coletor 2, purificadores, viveiro 2, semeador de bioma e biodigestor ligados num chão
+## sujo e queimado; abre o painel de cada um e imprime o efeito no ambiente.
+func _roteiro_limpeza2() -> void:
+	var ids := {}
+	var w := [Vector2i(9999, 0)]
+	em(2, func():
+		Sessao.config.fps = false
+		var g := Grade.gerador
+		var m: MapaOcupacao = cena.mapa
+		for r in range(40, 300, 3):
+			for k in 48:
+				var t := Vector2i((Vector2.from_angle(k * TAU / 48.0) * r).round())
+				if w[0].x != 9999:
+					break
+				var ok := true
+				for i in range(-2, 34):
+					for j in range(-2, 14):
+						var q := t + Vector2i(i, j)
+						if g.terreno(q) != GeradorMundo.Terreno.TERRA or g.nivel(q) != g.nivel(t) or g.em_encosta(q) or m.tiles.has(q):
+							ok = false
+				if ok:
+					w[0] = t
+		var o: Vector2i = w[0]
+		print("LIMPEZA2 chão ", o)
+		if o.x == 9999:
+			return
+		_sem_ninhos(o + Vector2i(16, 6))
+		for i in range(-2, 34):
+			for j in range(-2, 14):
+				m.limpar_obstaculo(o + Vector2i(i, j))
+		var con: Construtor = cena.construtor
+		var p := func(pl: Array[Dictionary]) -> void: cena.sincronizar(con.executar(pl))
+		p.call(con.plano_peca("gerador", o + Vector2i(0, 0), 0))
+		p.call(con.plano_peca("gerador", o + Vector2i(0, 8), 0))
+		for x in [3, 9, 15, 21, 27]:
+			p.call(con.plano_peca("poste_energia", o + Vector2i(x, 4), 0))
+		var lugares := {"coletor_lixo_2": Vector2i(4, 0), "purificador_ar": Vector2i(8, 0), "purificador_ar_2": Vector2i(12, 0),
+				"viveiro_2": Vector2i(17, 0), "semeador_bioma": Vector2i(21, 0), "biodigestor": Vector2i(26, 0)}
+		for n in lugares:
+			p.call(con.plano_peca(n, o + lugares[n], 0))
+		for id in m.estruturas:
+			if lugares.has(m.estruturas[id].nome):
+				ids[m.estruturas[id].nome] = id
+		print("LIMPEZA2 construiu ", ids.keys())
+		var a: AmbienteVivo = cena.ambiente
+		for i in range(-2, 34):
+			for j in range(-2, 14):
+				a.somar(o + Vector2i(i, j), AmbienteVivo.SUJ, 0.4)
+				a.somar(o + Vector2i(i, j), AmbienteVivo.QUEIM, 0.5)
+		cena.poluicao.emitir(o + Vector2i(13, 1), 300.0)
+		cena.camera.alvo = Grade.centro_mundo(o + Vector2i(15, 5))
+		cena.camera.distancia = 26.0
+		cena.camera.posicionar())
+	em(6, func():
+		var f: Fabrica = cena.fabrica
+		f.reconstruir()
+		for id in f.combustivel:
+			f.combustivel[id] = 500.0
+		if ids.has("biodigestor"):
+			var mq: Maquina = f.maquinas[ids.biodigestor]
+			for i in 8:
+				mq.receber("residuo")
+			mq.receber_fluido("agua", 80.0))
+	for q in range(8, 1200, 30):
+		em(q, func():
+			var f: Fabrica = cena.fabrica
+			for n in ["viveiro_2", "semeador_bioma"]:
+				if ids.has(n) and f.maquinas.has(ids[n]):
+					f.maquinas[ids[n]].receber_fluido("seiva", 40.0))
+	var k := 0
+	for nome in ["coletor_lixo_2", "purificador_ar", "purificador_ar_2", "viveiro_2", "semeador_bioma", "biodigestor"]:
+		k += 1
+		em(200 + k * 20, func():
+			if ids.has(nome) and cena.mapa.estruturas.has(ids[nome]):
+				cena._sel = {"estrutura": ids[nome]}
+				cena._detalhe()
+				print("LIMPEZA2 painel ", nome, " ", Maquina.Estado.keys()[cena.fabrica.maquinas[ids[nome]].estado]))
+	em(1190, func():
+		if w[0].x == 9999:
+			return
+		var f: Fabrica = cena.fabrica
+		var a: AmbienteVivo = cena.ambiente
+		var o: Vector2i = w[0]
+		print("LIMPEZA2 tempo %.1f s" % cena._tempo)
+		print("LIMPEZA2 sujeira perto do coletor 2 %.3f, longe %.3f" % [a.valor(o + Vector2i(5, 6), AmbienteVivo.SUJ), a.valor(o + Vector2i(33, 13), AmbienteVivo.SUJ)])
+		print("LIMPEZA2 queimado perto do semeador %.3f" % a.valor(o + Vector2i(22, 5), AmbienteVivo.QUEIM))
+		print("LIMPEZA2 poluição no chunk %.1f" % cena.poluicao.em(o + Vector2i(13, 1)))
+		print("LIMPEZA2 mudas %d com espécie %d" % [a.plantas.size(), a.especies.size()])
+		for n in ids:
+			if f.maquinas.has(ids[n]):
+				var mq: Maquina = f.maquinas[ids[n]]
+				print("LIMPEZA2 %s %s saídas %s fluidos %s" % [n, Maquina.Estado.keys()[mq.estado], mq.saidas, mq.fluidos]))
 
 
 func _roteiro_limpeza() -> void:

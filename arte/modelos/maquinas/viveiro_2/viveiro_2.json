@@ -1,0 +1,47 @@
+{
+ "nome": "viveiro_2",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Viveiro 2 2×2: pavilhão de dois níveis com canteiros-matriz da espécie do bioma, cápsulas de muda, ponte rolante e canhão pneumático de sementes; leitor de bioma crava a sonda no chão. Seiva pelo cano (oeste).",
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_ENT_O0",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    -1.0,
+    -0.5,
+    0.35
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  }
+ ],
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "tris": 11375,
+ "dims": [
+  2.307,
+  2.183,
+  2.503
+ ],
+ "anima": true,
+ "estudo": "estudo_viveiro2_semeador.py"
+}

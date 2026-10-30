@@ -1011,6 +1011,330 @@
   ],
   "modelo": "res://assets/modelos/defesa/torre_metralhadora.glb"
  },
+ "drone_defesa": {
+  "nome": "drone_defesa",
+  "categoria": "drones",
+  "tipo": "veiculo",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Drone de combate: quadricóptero blindado com torre de canhão duplo de pulso embaixo; cada tiro ejeta uma cápsula.",
+  "portas": [],
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "rotor0",
+    "pai": "corpo",
+    "pivo": [
+     0.1909,
+     0.1909,
+     0.0
+    ]
+   },
+   {
+    "nome": "rotor1",
+    "pai": "corpo",
+    "pivo": [
+     -0.1909,
+     0.1909,
+     0.0
+    ]
+   },
+   {
+    "nome": "rotor2",
+    "pai": "corpo",
+    "pivo": [
+     -0.1909,
+     -0.1909,
+     0.0
+    ]
+   },
+   {
+    "nome": "rotor3",
+    "pai": "corpo",
+    "pivo": [
+     0.1909,
+     -0.1909,
+     0.0
+    ]
+   },
+   {
+    "nome": "torre",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.0,
+     -0.066
+    ]
+   },
+   {
+    "nome": "canhao",
+    "pai": "torre",
+    "pivo": [
+     0.0,
+     0.0,
+     -0.111
+    ]
+   },
+   {
+    "nome": "boca",
+    "pai": "canhao",
+    "pivo": [
+     0.158,
+     0.0,
+     -0.111
+    ]
+   }
+  ],
+  "tris": 3038,
+  "dims": [
+   0.608,
+   0.608,
+   0.366
+  ],
+  "anima": false,
+  "estudo": "estudo_drones_modelo.py",
+  "modelo": "res://assets/modelos/drones/drone_defesa.glb"
+ },
+ "drone_logistico": {
+  "nome": "drone_logistico",
+  "categoria": "drones",
+  "tipo": "veiculo",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Drone logístico: quadricóptero com guincho e garra de quatro dedos em pêndulo; leva itens entre baús.",
+  "portas": [],
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "rotor0",
+    "pai": "corpo",
+    "pivo": [
+     0.1909,
+     0.1909,
+     0.0
+    ]
+   },
+   {
+    "nome": "rotor1",
+    "pai": "corpo",
+    "pivo": [
+     -0.1909,
+     0.1909,
+     0.0
+    ]
+   },
+   {
+    "nome": "rotor2",
+    "pai": "corpo",
+    "pivo": [
+     -0.1909,
+     -0.1909,
+     0.0
+    ]
+   },
+   {
+    "nome": "rotor3",
+    "pai": "corpo",
+    "pivo": [
+     0.1909,
+     -0.1909,
+     0.0
+    ]
+   },
+   {
+    "nome": "pendulo",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.0,
+     -0.095
+    ]
+   },
+   {
+    "nome": "carga",
+    "pai": "pendulo",
+    "pivo": [
+     0.0,
+     0.0,
+     -0.167
+    ]
+   }
+  ],
+  "tris": 2956,
+  "dims": [
+   0.596,
+   0.596,
+   0.481
+  ],
+  "anima": false,
+  "estudo": "estudo_drones_modelo.py",
+  "modelo": "res://assets/modelos/drones/drone_logistico.glb"
+ },
+ "drone_reparo": {
+  "nome": "drone_reparo",
+  "categoria": "drones",
+  "tipo": "veiculo",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Drone de reparo: quadricóptero de dutos com braço de solda articulado e funil de remendos; escaneia a estrutura danificada com a folha de laser vermelha e solda as rachaduras.",
+  "portas": [],
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "rotor0",
+    "pai": "corpo",
+    "pivo": [
+     0.1909,
+     0.1909,
+     0.0
+    ]
+   },
+   {
+    "nome": "rotor1",
+    "pai": "corpo",
+    "pivo": [
+     -0.1909,
+     0.1909,
+     0.0
+    ]
+   },
+   {
+    "nome": "rotor2",
+    "pai": "corpo",
+    "pivo": [
+     -0.1909,
+     -0.1909,
+     0.0
+    ]
+   },
+   {
+    "nome": "rotor3",
+    "pai": "corpo",
+    "pivo": [
+     0.1909,
+     -0.1909,
+     0.0
+    ]
+   },
+   {
+    "nome": "giro",
+    "pai": "corpo",
+    "pivo": [
+     0.035,
+     0.0,
+     -0.066
+    ]
+   },
+   {
+    "nome": "ombro",
+    "pai": "giro",
+    "pivo": [
+     0.035,
+     0.0,
+     -0.1
+    ]
+   },
+   {
+    "nome": "cotovelo",
+    "pai": "ombro",
+    "pivo": [
+     0.145,
+     0.0,
+     -0.1
+    ]
+   }
+  ],
+  "tris": 2780,
+  "dims": [
+   0.596,
+   0.596,
+   0.366
+  ],
+  "anima": false,
+  "estudo": "estudo_drones_modelo.py",
+  "modelo": "res://assets/modelos/drones/drone_reparo.glb"
+ },
+ "estacao_drones": {
+  "nome": "estacao_drones",
+  "categoria": "drones",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Estação de drones 2×2: fabricadora com projetores de holograma (o drone novo nasce em holograma vermelho), dois berços de recarga com garras e plugue, revista de remendos com braço abastecedor, tanque d'água (50 por drone). Abriga e lança os drones de reparo, combate ou logísticos.",
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_ENT_S1",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     0.5,
+     -1.0,
+     0.35
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "tris": 8112,
+  "dims": [
+   2.0,
+   1.995,
+   1.406
+  ],
+  "anima": true,
+  "estudo": "estudo_drones.py",
+  "modelo": "res://assets/modelos/drones/estacao_drones.glb"
+ },
  "acumulador": {
   "nome": "acumulador",
   "categoria": "energia",
@@ -6812,6 +7136,69 @@
   ],
   "modelo": "res://assets/modelos/mapa/vegetacao/junco.glb"
  },
+ "biodigestor": {
+  "nome": "biodigestor",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Biodigestor 3×3: tanque de concreto com gasômetro de membrana, moega e rosca de resíduo, tanque de mistura com agitador, trocador de calor, queimador e flare, prensa de rosca (biomassa) e coluna de campo que clareia o líquido em seiva. Água pelo sul, seiva pelo leste.",
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_ENT_S0",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     -1.0,
+     -1.5,
+     0.3
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_SAI_L1",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     1.5,
+     0.0,
+     0.34
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "tris": 11194,
+  "dims": [
+   2.969,
+   2.96,
+   2.207
+  ],
+  "anima": true,
+  "estudo": "estudo_biodigestor_tratamento.py",
+  "modelo": "res://assets/modelos/maquinas/biodigestor.glb"
+ },
  "broca_minerio": {
   "nome": "broca_minerio",
   "categoria": "maquinas",
@@ -6930,6 +7317,86 @@
   "anima": true,
   "estudo": "estudo_coletor_lixo.py",
   "modelo": "res://assets/modelos/maquinas/coletor_lixo.glb"
+ },
+ "coletor_lixo_2": {
+  "nome": "coletor_lixo_2",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Coletor de lixo 2×2 de nível 2: silo de duas câmaras (lodo e cinza), ciclones duplos, turbina de exaustão, prensa enfardadeira e dois braços de sucção em torres giratórias. Aspira sujeira, óleo e cinza num raio de 10 m e compacta em resíduo.",
+  "portas": [],
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "tris": 9410,
+  "dims": [
+   3.207,
+   2.052,
+   2.115
+  ],
+  "anima": true,
+  "estudo": "estudo_limpeza_2x2.py",
+  "modelo": "res://assets/modelos/maquinas/coletor_lixo_2.glb"
+ },
+ "estacao_tratamento": {
+  "nome": "estacao_tratamento",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Estação de tratamento 3×3 na margem: tomada com grade e bomba vertical, tanque de aeração, dois decantadores com ponte raspadora e campo violeta, filtros de pressão, canal UV e descarga de água limpa. A tomada (sul) encosta na água.",
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_SAI_L0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     1.5,
+     -0.87,
+     0.26
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "tris": 11393,
+  "dims": [
+   3.0,
+   3.43,
+   2.251
+  ],
+  "anima": true,
+  "estudo": "estudo_biodigestor_tratamento.py",
+  "modelo": "res://assets/modelos/maquinas/estacao_tratamento.glb"
  },
  "extrator_cristal": {
   "nome": "extrator_cristal",
@@ -7404,6 +7871,102 @@
   "estudo": "estudo_nucleo.py",
   "modelo": "res://assets/modelos/maquinas/nucleo.glb"
  },
+ "nucleo_queda": {
+  "nome": "nucleo_queda",
+  "categoria": "maquinas",
+  "tipo": "deco",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Chegada do núcleo (abertura do jogo novo): a cápsula de reentrada fechada — pétalas ablativas recolhidas em saia e ogiva — que bate no chão, ejeta a ogiva, crava as pétalas, solta os cabos-raiz e ergue o monólito até virar o núcleo.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 17426,
+  "dims": [
+   2.73,
+   2.73,
+   2.81
+  ],
+  "anima": true,
+  "estudo": "estudo_nucleo_queda.py",
+  "modelo": "res://assets/modelos/maquinas/nucleo_queda.glb"
+ },
+ "purificador_ar": {
+  "nome": "purificador_ar",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Purificador de ar 2×2: plenum com dois ventiladores puxando a fumaça, torre de filtros plissados enegrecidos, lavador com chuveiro e cristal da IA que atrai a fuligem. Absorve a poluição do chunk.",
+  "portas": [],
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "tris": 8729,
+  "dims": [
+   2.0,
+   2.0,
+   2.291
+  ],
+  "anima": true,
+  "estudo": "estudo_limpeza_2x2.py",
+  "modelo": "res://assets/modelos/maquinas/purificador_ar.glb"
+ },
+ "purificador_ar_2": {
+  "nome": "purificador_ar_2",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Purificador atmosférico 3×3: torre de tiragem em hiperboloide de treliça com três ventiladores no topo, filtros de carvão ativado, lavador de gás e núcleo de cristal que condensa a poluição em blocos de resíduo.",
+  "portas": [],
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "tris": 8446,
+  "dims": [
+   3.014,
+   3.029,
+   7.027
+  ],
+  "anima": true,
+  "estudo": "estudo_purificador_atmosferico.py",
+  "modelo": "res://assets/modelos/maquinas/purificador_ar_2.glb"
+ },
  "refinador": {
   "nome": "refinador",
   "categoria": "maquinas",
@@ -7498,6 +8061,54 @@
   "anima": true,
   "estudo": "estudo_refinador.py",
   "modelo": "res://assets/modelos/maquinas/refinador.glb"
+ },
+ "semeador_bioma": {
+  "nome": "semeador_bioma",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Semeador de bioma 3×3: chassi pesado com reator de solo vivo, silo de esporos, quatro injetores que cravam lanças no chão e dois espalhadores de disco. Com seiva pelo cano (oeste), devolve a vegetação ao chão queimado.",
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_ENT_O1",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     -1.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "tris": 11852,
+  "dims": [
+   3.06,
+   3.052,
+   2.65
+  ],
+  "anima": true,
+  "estudo": "estudo_viveiro2_semeador.py",
+  "modelo": "res://assets/modelos/maquinas/semeador_bioma.glb"
  },
  "supressor_fogo": {
   "nome": "supressor_fogo",
@@ -7643,6 +8254,54 @@
   "anima": true,
   "estudo": "estudo_viveiro.py",
   "modelo": "res://assets/modelos/maquinas/viveiro.glb"
+ },
+ "viveiro_2": {
+  "nome": "viveiro_2",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Viveiro 2 2×2: pavilhão de dois níveis com canteiros-matriz da espécie do bioma, cápsulas de muda, ponte rolante e canhão pneumático de sementes; leitor de bioma crava a sonda no chão. Seiva pelo cano (oeste).",
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_ENT_O0",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     -1.0,
+     -0.5,
+     0.35
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "tris": 11375,
+  "dims": [
+   2.307,
+   2.183,
+   2.503
+  ],
+  "anima": true,
+  "estudo": "estudo_viveiro2_semeador.py",
+  "modelo": "res://assets/modelos/maquinas/viveiro_2.glb"
  },
  "esteira_ht": {
   "nome": "esteira_ht",

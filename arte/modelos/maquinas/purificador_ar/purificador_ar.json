@@ -1,0 +1,31 @@
+{
+ "nome": "purificador_ar",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Purificador de ar 2×2: plenum com dois ventiladores puxando a fumaça, torre de filtros plissados enegrecidos, lavador com chuveiro e cristal da IA que atrai a fuligem. Absorve a poluição do chunk.",
+ "portas": [],
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "tris": 8729,
+ "dims": [
+  2.0,
+  2.0,
+  2.291
+ ],
+ "anima": true,
+ "estudo": "estudo_limpeza_2x2.py"
+}

@@ -497,6 +497,12 @@ func _torres(dt: float) -> void:
 			_ferir_ninho(ninho, dano)
 
 
+## Tiro de fora da colônia (drone de combate): fere a aranha se ela ainda existe.
+func ferir_aranha(a: int, dano: float) -> void:
+	if aranhas.has(a):
+		_ferir_aranha(a, dano)
+
+
 func _ferir_aranha(a: int, dano: float) -> void:
 	aranhas[a].vida -= dano
 	if aranhas[a].vida <= 0.0:

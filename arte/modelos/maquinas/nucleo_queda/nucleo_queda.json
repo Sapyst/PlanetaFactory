@@ -1,0 +1,31 @@
+{
+ "nome": "nucleo_queda",
+ "categoria": "maquinas",
+ "tipo": "deco",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Chegada do núcleo (abertura do jogo novo): a cápsula de reentrada fechada — pétalas ablativas recolhidas em saia e ogiva — que bate no chão, ejeta a ogiva, crava as pétalas, solta os cabos-raiz e ergue o monólito até virar o núcleo.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 17426,
+ "dims": [
+  2.73,
+  2.73,
+  2.81
+ ],
+ "anima": true,
+ "estudo": "estudo_nucleo_queda.py"
+}

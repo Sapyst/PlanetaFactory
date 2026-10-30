@@ -225,6 +225,29 @@ Tudo que se constrói funciona — a mini-fábrica da demo é só um mapa pronto
   (shader `campo_escudo`, acende ao pegar raio) e chuva em anel só no círculo do semeador. Escudo 2: bônus
   `escudo_raio`, `escudo_carga`, `escudo_recarga` (`Colonia.raio_escudo`, `Fabrica.carga_max`, `kw_de`). Sem janela:
   `-- modo demo roteiro clima`.
+- Drones (fase 2.6): `drones/drones.gd` (`Drones`, lógica pura) e `drones/desenho_drones.gd` (`DesenhoDrones`). A
+  estação (`estacao_drones`, regra `drones` em estruturas.json) é máquina: receita `fabricar_drone`; o drone pronto fica
+  em `Maquina.saidas` (`Maquina.retem`: braço não tira) e `Drones._montar` põe na frota (até `frota_max`). Tipo por
+  estação em `drones_tipo` na estrutura (reparo, combate, logistico). Estados `Drones.E` (HANGAR, NASCENDO, DECOLANDO,
+  INDO, TRABALHANDO, VOLTANDO, POUSANDO, CAINDO); bateria (`voo_s`, volta com folga), recarga no hangar com a energia da
+  estação; raios (`raios_agora`) seguram no hangar sem `drones_tempestade`. Reparo: `Colonia.vida` + placas do núcleo
+  (`pago`: ♥ já pagos); combate: `Colonia.ferir_aranha`, mordida das aranhas perto; logística: papel do baú em
+  `logistica` (provedor/requisitante, `pede_item`, `pede_qtd`), viagens reservadas pelo que já está a caminho. Melhorias
+  pelos bônus `drones_*`; o tipo logístico pela pesquisa `drones_logisticos` ("modos"). Desenho: modelos
+  `drone_reparo/defesa/logistico` (rotor0..3, giro/ombro/cotovelo, torre/canhao/boca, pendulo/carga), atitude por
+  mola-amortecedor, holograma (shader `render/shaders/holograma`), scan (`scan_reparo` como `material_overlay` na
+  estrutura + folha e leque em fita), traçante + cápsula (`DesenhoColonia.ejetar_capsula`), sucata fumegando. Sem janela:
+  `-- modo demo roteiro drones`.
+- Limpeza nova (fase 2.6, `AmbienteVivo._limpeza`): regra `limpa` com `queimado` (cinza) e `residuo` (o que
+  `_limpar` tira vira item resíduo, `_compactar`); `purifica` (`Poluicao.absorver` no chunk; `residuo_por`); `planta`
+  com `cresce` e `especie_bioma` (`AmbienteVivo.especies`/`rapidas`, `especie_do_bioma`; `DesenhoPlantas` usa os modelos
+  da espécie); `restaura` (semeador de bioma: queimado, `mapa.arvores` de volta, mudas do bioma). Biodigestor (receita
+  `biodigerir`) e estação de tratamento (`tomada_agua`, `limpa.agua`, `tratar_agua` com `transborda`). Recuperação de
+  solo: o tile aplainado passa por `AmbienteVivo.recuperar` (mundo_demo.sincronizar). Sem janela: `-- modo demo roteiro
+  limpeza2`.
+- Abertura (fase 2.6): `cenas/abertura.gd` desce a cápsula `nucleo_queda` (conv_nucleo.py, animação "chegada" de
+  240 quadros) e toca a chegada do impacto em diante; no fim troca pelo núcleo do jogo. Sem janela: `--fixed-fps 30
+  -- novo roteiro chegada abertura`.
 - Extrator/broca mineram a jazida de baixo; fornalha escolhe a receita pelo que chega e queima carvão/biomassa;
   montadora/refinador: receita escolhida no painel. Elétricos precisam de poste (cobertura 2,5) ligado a gerador com combustível.
 - Torre: cada munição que chega (braço ou esteira na porta sul) = 10 tiros. Quem trabalha polui (e vira alvo por 60 s).

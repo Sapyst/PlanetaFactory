@@ -249,4 +249,98 @@ com a grade inteira + resultado dos testes), para ela não precisar abrir uma po
     (9) ícones das 7 peças pelo render Workbench do icones.py (só esses); ícones do cristal carregado e do pacote de
     tempestade derivados (derivar_icone.gd); (10) diagramas por era do ARVORE_TECNOLOGIA_FLUXO.md seguem com a lista
     antiga (só a legenda foi atualizada, como nas fases anteriores).
-- [ ] 2.6 drones (estação, reparo, combate, logísticos), limpeza nova, energia/produção que tiverem estudo
+- [x] 2.6 drones, limpeza nova, chegada do núcleo (arte/estudos/conv_drones.py, conv_limpeza.py, conv_nucleo.py; testes
+      test_drones.gd, test_limpeza_nova.gd, test_nucleo_queda.gd; roteiros sem janela `-- modo demo roteiro drones`,
+      `-- modo demo roteiro limpeza2` e `--fixed-fps 30 -- novo roteiro chegada abertura`). Pesquisas novas (19), custos e
+      pré-requisitos da árvore: drones, drones_bateria_1/2, drones_frota_1/2, drones_velocidade_1/2, drones_logisticos(_2),
+      drones_tempestade, drones_defesa, coletor_lixo_2, purificador_ar, viveiro_2, biodigestor, recuperar_solo,
+      purificador_ar_2, restauracao_bioma jogáveis; estacao_tratamento ligada mas travada (`refinador_2` sem estudo).
+      O **pacote ecológico** (2.3) passou a ser pedido (coletor 2, purificadores, viveiro 2, biodigestor, recuperação de
+      solo, tratamento, semeador). Itens novos: drone (sai da estação e vai para a frota) e resíduo. Aba nova **Drones**.
+  - **Estação de drones** 2×2 (estudo_drones.py, só a coleção da estação; 8.112 triângulos): máquina (150 kW) com a
+    receita do drone da árvore (4 placas + 1 motor + 2 circuitos + 50 de água, 12 s); água por um ramal novo pela borda
+    sul, tile leste, 0,35 m (FLUIDO_ENT_S1), que desce entre as cintas e entra no costado do tanque (conferido por BVH:
+    só toca o tanque). A animação "trabalho" é o bloco POUSO/RECARGA do estudo (quadros 385–480: garras, plugue, braço
+    abastecedor) e toca quando um drone nasce, pousa ou decola. Frota 8 (+4/+8 com as melhorias), alcance 45 m.
+  - **Drones** (`drones/drones.gd`, lógica; `drones/desenho_drones.gd`, desenho): os três modelos de
+    estudo_drones_modelo.py montados sozinhos (2.780–3.038 triângulos; rotores, braço de solda, torre/canhão, pêndulo
+    como partes), 1,5× no jogo. Tipo escolhido no painel da estação: **reparo** (escaneia e solda o que foi danificado
+    no alcance a 25 ♥/s, 1 placa de ferro do núcleo a cada 25 ♥, como o Reparar), **combate** (orbita e atira nas aranhas:
+    4 de dano, 2,5 tiros/s, 8 m; aranha a 2,2 m do drone baixo morde; vida 0 = cai e vira sucata) e **logístico**
+    (pesquisa drones_logisticos: provedor → requisitante, 1 item por viagem; 4 e 2× alcance com logísticos 2). Bateria
+    120 s (volta com folga), recarga no hangar com a energia da estação; com raios caindo ficam no hangar até
+    drones_tempestade. Os desejos da Sapyst: nascem em **holograma vermelho** na fabricadora (shader `holograma`, leques
+    dos 3 projetores, monta de baixo para cima, vira matéria com a borda acesa e desce para dentro), hélices girando em
+    sentidos alternados com **atitude por mola-amortecedor** (inclina para onde acelera, passa do ponto, balança ao
+    pairar, guinada com tranco), **scan vermelho** sobre a estrutura enquanto conserta (sobreposição `scan_reparo` na
+    estrutura + folha de laser e leque do olho) com o braço de solda, faíscas e o clarão do arco, **tiro** com traçante,
+    clarão de boca, recuo e **cápsula com fumacinha** pela janela de ejeção (`DesenhoColonia.ejetar_capsula`), pêndulo
+    da carga com o item de verdade, derrubado girando com fumaça até virar sucata fumegando.
+  - **Limpeza nova** (`AmbienteVivo._limpeza`), cada uma com efeito nos sistemas que já existiam: **coletor de lixo 2**
+    2×2 (9.410 triângulos; raio 10, sujeira, óleo e a **cinza** do chão queimado; o que recolhe vira **resíduo**, 1 a
+    cada 1,0 somado nos tiles, até 10 na saída), **purificador de ar** 2×2 (8.729; 6 de poluição/min do chunk),
+    **purificador atmosférico** 3×3 (8.446; 40/min e 1 resíduo a cada 20 de poluição), **viveiro 2** 2×2 (11.375; raio
+    12, planta no dobro do ritmo, mudas da árvore do bioma — `especie_do_bioma`, desenhadas com os modelos da espécie —
+    que crescem 2× mais rápido), **biodigestor** 3×3 (11.194; 4 resíduos + 40 de água → 2 biomassas + 30 de seiva),
+    **semeador de bioma** 3×3 (11.852; com seiva tira o queimado do chão em 14 m, devolve as árvores carbonizadas/caídas
+    e planta mudas do bioma), **estação de tratamento** 3×3 (11.393; tomada ao sul como a bomba d'água, limpa a água suja
+    em 16 m e solta 60 de água limpa/s; sem cano, a sobra volta ao rio) e a **recuperação de solo** (sem estrutura: o
+    tile aplainado sai limpo).
+  - **Chegada do núcleo** (estudo_nucleo_queda.py → `nucleo_queda`, animação "chegada" de 240 quadros; o para_jogo
+    ganhou `quadros` e `animacao`): na abertura do jogo novo a cápsula fechada (pétalas em saia, ogiva) fica presa sob
+    a nave, despenca abaixo das nuvens, bate e a animação do estudo toca do impacto em diante (ogiva ejetada, pétalas
+    cravando, cabos-raiz, esteiras, monólito); no fim (pose do laço) dá lugar ao núcleo do jogo. A abertura passou de
+    ~14 s para ~16 s (um toque pula, já com o núcleo pronto).
+  - Energia/produção com estudo e fora do jogo: **nenhuma**. estudo_montadora_v1.py, estudo_terraplenagem_v1.py e
+    estudo_esteira_v1.py são as versões antigas das peças que já estão no jogo (convertidas das versões novas). Fora de
+    energia/produção, com estudo e ainda fora: esteira **expressa** e **quântica** (níveis 3 e 4 de
+    estudo_esteiras_niveis.py; logistica_4/5) e o **vagão-tanque** (modelo do estudo_trem já existe; falta o sistema e
+    a bomba de estação).
+  - Fora do escopo, mas corrigido: `Fabrica.um_tipo` quebrava com um baú que as aranhas tinham acabado de derrubar
+    (o desenho perguntava antes da fábrica remontar).
+  - Verificação: 65.577 verificações, 0 falhas (testar.sh); os 130 scripts compilam (carregados sem janela); a
+    demo, `-- modo demo roteiro drones` (reparos, 3 aranhas mortas, cápsulas, 4 engrenagens entregues), `-- modo demo
+    roteiro limpeza2` e a abertura (`--fixed-fps 30 -- novo roteiro chegada abertura`: impacto, chegada e troca pelo
+    núcleo em 15,7 s) rodam sem erro.
+  - Pendências: (1) nada visto em imagem (sem fotos): conferir o holograma, a atitude e o balanço, o scan e o braço de
+    solda, o tiro com a cápsula, o pêndulo, a sucata, a escala dos drones (0,6 m no estudo, 0,9 m no jogo) e as 9
+    silhuetas novas; (2) porto logístico e baús logísticos sem modelo próprio (a estação faz de porto; provedor e
+    requisitante são papéis do baú comum); o **baú de estoque** não foi feito; o que sobra na garra volta ao núcleo;
+    (3) drones no hangar somem com a estação desmontada (não devolvem itens) e a sucata não devolve nada; os pousados
+    entram no hangar (só 2 berços no modelo); (4) combate só caça aranhas (ninho não); a mordida é simplificada (aranha
+    a 2,2 m do drone abaixo de 3 m); o raio não cai em drone (eles só ficam no hangar); (5) saíram do modelo: borrão
+    das hélices, arco de solda, clarão de boca (efeitos do jogo) e os pistõezinhos do braço de solda (parados entrariam
+    no corpo); a garra larga do logístico passa rente aos patins (balanço até 0,3 rad; recolhe 0,10 m no pouso);
+    (6) o item drone na esteira usa o modelo do motor; drones_infinito segue em breve (colônias); (7) braços de sucção
+    do coletor 2 passam da laje na animação (3,2 m, como o coletor 1); o drone-varredor do estudo saiu (fora do tile);
+    viveiro 2 tem 84 nós e o semeador 81 (o viveiro 1 tem 93); (8) **água suja** não é fluido: o biodigestor bebe a
+    água do cano (a 0,30 m, canos do jogo a 0,35) e a água limpa da estação de tratamento sai pela flange do estudo
+    (y −0,87, z 0,26: fora do eixo do tile L0) — ver com Sapyst se a bomba numa tomada suja deveria mandar "água suja";
+    (9) **balanço**: a árvore diz "1 resíduo a cada 20 de sujeira" sem unidade — ficou 1 a cada 1,0 de sujeira somada
+    nos tiles (um tile imundo = 1); (10) o semeador devolve árvores e chão queimado, mas não a vegetação rasteira que o
+    fogo apagou nem o bioma natural cinzal; a boca dele foi para o eixo (y 0, z 0,35) e o cano contorna o injetor oeste
+    (no estudo atravessava o pórtico; conferido por BVH); o gasômetro do biodigestor não infla (shape key);
+    (11) recuperação de solo sem ferramenta própria (vale ao Aplainar); estação de tratamento travada pelo refinador 2;
+    harmonia_ninhos, simbiose e purificacao_infinita seguem em breve; (12) chegada do núcleo: a brasa da reentrada
+    (emissão animada no material) não passa para o glTF; 17.426 triângulos (só na abertura); a pose final da cápsula e
+    o núcleo do jogo saem de conversões diferentes — conferir se a troca não "pula"; (13) **melhoria do núcleo**: a árvore
+    não tem melhoria de núcleo e não há modelo de núcleo mais robusto — nada ligado; (14) ícones das 9 peças novas e do
+    item drone pelo render Workbench do icones.py (só esses); ícone do resíduo derivado do tijolo (derivar_icone.gd).
+
+### Lista para a fase 3 — estruturas da árvore ainda sem estudo/modelo
+(Fonte: "Estruturas: temos × precisamos" do docs/ARVORE_TECNOLOGIA.md. Entre parênteses, o que cada uma destrava do que
+já está ligado e travado.)
+- Braços: braço empilhador, braço quântico.
+- Produção: fornalha de aço, fornalha elétrica, fundição de cristal, **montadora 2** (o pacote de tempestade é da
+  montadora 2 na árvore; hoje sai na comum), montadora 3, montadora quântica, **refinador 2** (estação de tratamento),
+  **forja quântica** (computação quântica → regulador climático), broca grande, extrator ressonante, broca de núcleo,
+  laboratório 2, laboratório quântico, irradiador de módulos.
+- Energia: poste alto, turbina de correnteza, gerador a fluido, painel solar 2, **turbina alta** (defletor de vento),
+  acumulador 2, acumulador de cristal, reator de cristal, reator de fusão, núcleo de singularidade.
+- Trilhos: sinal em cadeia, bomba de estação, trilho energizado, locomotiva elétrica (o vagão-tanque já tem modelo).
+- Lógica: sensor de esteira, sensor de tanque, comparador, válvula.
+- Proliferação: **sensor de varredura** (cartografia → artilharia), farol de cristal, posto avançado, lançador de
+  sementes, receptor de cápsulas, transportador quântico, silo de lançamento.
+- Drones: baú de estoque (e, se Sapyst quiser modelo próprio, porto logístico e baús provedor/requisitante).
+- Com estudo mas ainda fora do jogo (não precisam de arte nova): esteira expressa e quântica (+ rampa, passagem,
+  divisor e junção de cada nível) e o sistema do vagão-tanque.

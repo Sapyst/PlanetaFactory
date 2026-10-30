@@ -926,6 +926,7 @@
    ],
    "tempo": 8.0,
    "libera": "Estação de drones 2×2 (frota de 8, alcance 45 m, 50 de água por drone)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "drones_bateria_1": {
@@ -947,6 +948,7 @@
    ],
    "tempo": 8.0,
    "libera": "+30% de tempo de voo dos drones",
+   "existente": true,
    "tipo": "melhoria"
   },
   "quimica": {
@@ -1449,6 +1451,7 @@
    ],
    "tempo": 8.0,
    "libera": "+4 drones por estação (8 → 12)",
+   "existente": true,
    "tipo": "melhoria"
   },
   "drones_velocidade_1": {
@@ -1474,6 +1477,7 @@
    ],
    "tempo": 8.0,
    "libera": "+25% de velocidade dos drones",
+   "existente": true,
    "tipo": "melhoria"
   },
   "drones_logisticos": {
@@ -1500,6 +1504,7 @@
    ],
    "tempo": 10.0,
    "libera": "Porto logístico 2×2, baú provedor, baú requisitante e baú de estoque (1×1)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "renovavel_2": {
@@ -1654,6 +1659,7 @@
    ],
    "tempo": 8.0,
    "libera": "Coletor de lixo 2 (raio 10, recolhe cinza e devolve o item resíduo)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "purificador_ar": {
@@ -1682,6 +1688,7 @@
    ],
    "tempo": 8.0,
    "libera": "Purificador de ar 2×2 (absorve 6 de poluição/min do chunk)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "viveiro_2": {
@@ -1711,6 +1718,7 @@
    ],
    "tempo": 8.0,
    "libera": "Viveiro 2 (raio 12, escolhe a espécie do bioma, mudas crescem 2× mais rápido)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "biodigestor": {
@@ -1740,6 +1748,7 @@
    ],
    "tempo": 8.0,
    "libera": "Biodigestor 3×3 (resíduo + água suja → biomassa + seiva)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "recuperar_solo": {
@@ -1769,6 +1778,7 @@
    ],
    "tempo": 8.0,
    "libera": "Terraplenagem recupera chão queimado, sujo ou com óleo",
+   "existente": true,
    "tipo": "estrutura"
   },
   "harmonia_ninhos": {
@@ -2591,6 +2601,7 @@
    ],
    "tempo": 12.0,
    "libera": "+8 drones por estação (12 → 20)",
+   "existente": true,
    "tipo": "melhoria"
   },
   "drones_bateria_2": {
@@ -2624,6 +2635,7 @@
    ],
    "tempo": 12.0,
    "libera": "+50% de tempo de voo",
+   "existente": true,
    "tipo": "melhoria"
   },
   "drones_velocidade_2": {
@@ -2657,6 +2669,7 @@
    ],
    "tempo": 12.0,
    "libera": "+35% de velocidade dos drones",
+   "existente": true,
    "tipo": "melhoria"
   },
   "drones_logisticos_2": {
@@ -2690,7 +2703,8 @@
    ],
    "tempo": 12.0,
    "libera": "Drone logístico leva 4 itens; porto com 2× alcance",
-   "tipo": "estrutura"
+   "existente": true,
+   "tipo": "melhoria"
   },
   "drones_tempestade": {
    "nome": "Voo na tempestade",
@@ -2723,7 +2737,8 @@
    ],
    "tempo": 12.0,
    "libera": "Drones blindados: voam com raios caindo na área",
-   "tipo": "estrutura"
+   "existente": true,
+   "tipo": "melhoria"
   },
   "drones_defesa": {
    "nome": "Drones de defesa",
@@ -2761,6 +2776,7 @@
    ],
    "tempo": 12.0,
    "libera": "+100% de dano dos drones em combate e +50% de vida",
+   "existente": true,
    "tipo": "melhoria"
   },
   "purificador_ar_2": {
@@ -2794,6 +2810,7 @@
    ],
    "tempo": 12.0,
    "libera": "Purificador atmosférico 3×3 (absorve 40 de poluição/min)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "estacao_tratamento": {
@@ -2827,6 +2844,7 @@
    ],
    "tempo": 12.0,
    "libera": "Estação de tratamento 3×3: água suja → água limpa (60/s), limpa o rio em 16 m",
+   "existente": true,
    "tipo": "estrutura"
   },
   "restauracao_bioma": {
@@ -2860,6 +2878,7 @@
    ],
    "tempo": 12.0,
    "libera": "Semeador de bioma 3×3: devolve cinzal e terra queimada à vegetação original",
+   "existente": true,
    "tipo": "estrutura"
   },
   "semeadura_nuvens": {

@@ -49,5 +49,10 @@
  "resina":           {"maquina": "refinador", "entradas": {}, "entradas_fluido": {"seiva": 30, "agua": 10}, "saidas": {"resina": 1}, "tempo": 3.0},
  "pacote_quimico":   {"maquina": "refinador", "entradas": {"resina": 1, "bateria": 1}, "entradas_fluido": {"agua": 20}, "saidas": {"pacote_quimico": 2}, "tempo": 12.0},
  "processador":      {"maquina": "refinador", "entradas": {"circuito": 2, "resina": 1, "cristal_lapidado": 1}, "entradas_fluido": {"agua": 5}, "saidas": {"processador": 1}, "tempo": 8.0},
- "pacote_ecologico": {"maquina": "refinador", "entradas": {"biomassa": 5, "vidro": 1}, "entradas_fluido": {"agua_limpa": 30}, "saidas": {"pacote_ecologico": 1}, "tempo": 8.0}
+ "pacote_ecologico": {"maquina": "refinador", "entradas": {"biomassa": 5, "vidro": 1}, "entradas_fluido": {"agua_limpa": 30}, "saidas": {"pacote_ecologico": 1}, "tempo": 8.0},
+ "fabricar_drone":   {"maquina": "estacao_drones", "entradas": {"placa_ferro": 4, "motor": 1, "circuito": 2}, "entradas_fluido": {"agua": 50}, "saidas": {"drone": 1}, "tempo": 12.0},
+ "purificar_ar":     {"maquina": "purificador", "entradas": {}, "saidas": {}, "tempo": 1.0},
+ "biodigerir":       {"maquina": "biodigestor", "entradas": {"residuo": 4}, "entradas_fluido": {"agua": 40}, "saidas": {"biomassa": 2}, "saidas_fluido": {"seiva": 30}, "tempo": 10.0},
+ "tratar_agua":      {"maquina": "tratamento", "entradas": {}, "saidas": {}, "saidas_fluido": {"agua_limpa": 60}, "tempo": 1.0},
+ "restaurar_bioma":  {"maquina": "semeador_bioma", "entradas": {}, "entradas_fluido": {"seiva": 20}, "saidas": {}, "tempo": 10.0}
 }
