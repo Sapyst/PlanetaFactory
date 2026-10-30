@@ -1,0 +1,47 @@
+{
+ "nome": "condensador_neblina",
+ "categoria": "logistica/canos",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Condensador de neblina 2×2: telas de malha, serpentina fria, ventiladores e compressor (80 kW). Até 12 de água/s com neblina; solta pelo cano da borda sul.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_SAI_S0",
+   "tipo": "FLUIDO",
+   "io": "SAI",
+   "pos": [
+    -0.5,
+    -1.0,
+    0.28
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  }
+ ],
+ "tris": 9553,
+ "dims": [
+  2.0,
+  1.984,
+  2.232
+ ],
+ "anima": true,
+ "estudo": "estudo_condensador_neblina.py"
+}

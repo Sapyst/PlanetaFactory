@@ -1,6 +1,6 @@
 # Árvore de tecnologia
 
-Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 42 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (algumas ainda esperam um pré-requisito ou pacote "em breve"; o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras aparecem como "em breve" até a estrutura, o item ou o pacote existir. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
+Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 49 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (algumas ainda esperam um pré-requisito ou pacote "em breve"; o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras aparecem como "em breve" até a estrutura, o item ou o pacote existir. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
 
 ## Eras e pacotes de pesquisa
 
@@ -452,9 +452,9 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Bomba (seiva) | 1×1 | temos | tira seiva da poça | `fluidos` |
 | Tanque | 2×2 | temos | guarda 25.000 | `fluidos` |
 | Cano subterrâneo: entrada / saída | 1×1 | temos | passa o cano por baixo até 9 tiles | `cano_subterraneo` |
-| Bomba d'água | 2×2 | falta | na margem de rio/lago/canal: 40 de água/s | `bomba_agua` |
-| Coletor de chuva | 2×2 | falta | até 25/s com chuva forte, tanque de 2.000 | `coletor_chuva` |
-| Condensador de neblina | 2×2 | falta | até 12/s com neblina, 80 kW | `condensador_neblina` |
+| Bomba d'água | 2×2 | temos | na margem de rio/lago/canal (a tomada, lado sul do modelo, encosta na água): 40 de água/s; água suja na tomada rende até 60% menos | `bomba_agua` |
+| Coletor de chuva | 2×2 | temos | até 25/s com chuva forte (× chuva do clima), tanque de 2.000, sem energia | `coletor_chuva` |
+| Condensador de neblina | 2×2 | temos | até 12/s com neblina (× neblina do clima), 80 kW | `condensador_neblina` |
 
 ### Produção
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
@@ -483,9 +483,9 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
 |---|---|---|---|---|
 | Coletor de lixo | 2×2 | temos | aspira sujeira e óleo (raio 6) | `limpeza` |
-| Filtro de água | 2×2 | temos | limpa água suja (raio 7); com pesquisa, solta água limpa | `limpeza`, `filtro_agua_limpa` |
+| Filtro de água | 2×2 | temos | limpa água suja (raio 7); com pesquisa, solta 15 de água limpa/s pelo ramal da borda norte (sem cano, a sobra volta ao rio) | `limpeza`, `filtro_agua_limpa` |
 | Viveiro | 2×2 | temos | planta mudas com seiva (raio 8) | `reflorestar` |
-| Supressor de incêndio | 1×1 | falta | borrifa água em 8 m, apaga fogo | `supressor_fogo` |
+| Supressor de incêndio | 1×1 | temos | com água (reservatório de 200, cano pelo leste) e 15 kW: apaga o fogo em 8 m (10 de água/s só enquanto há fogo) e a vegetação do raio não pega fogo | `supressor_fogo` |
 | Coletor de lixo 2 | 2×2 | falta | raio 10, recolhe cinza, devolve resíduo | `coletor_lixo_2` |
 | Purificador de ar | 2×2 | falta | absorve 6 de poluição/min do chunk | `purificador_ar` |
 | Purificador atmosférico | 3×3 | falta | absorve 40 de poluição/min | `purificador_ar_2` |
@@ -578,14 +578,19 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Transportador quântico | 3×3 | falta | troca itens entre colônias | `transportador_quantico` |
 | Silo de lançamento | 3×3 | falta | monta e lança o foguete de proliferação | `silo_lancamento` |
 
-**Contagem:** 41 linhas "temos" e **69 linhas "falta"** (uma linha pode juntar variantes, como a família da esteira
+**Contagem:** 45 linhas "temos" e **65 linhas "falta"** (uma linha pode juntar variantes, como a família da esteira
 rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima, Drones, Lógica, Proliferação).
 
 ## Decisões e pontos em aberto
 
 - **Água na base continua seca (decidido).** Fundir aço e lapidar cristal ficam sem água, como hoje. A pesquisa
   `bomba_agua` libera as versões **refrigeradas** dessas duas receitas (com água, +50% de produto). Assim nada que já
-  funciona quebra.
+  funciona quebra. **No jogo (fase 2.3):** as refrigeradas rodam no **refinador**, a máquina das receitas com fluido —
+  a fornalha e a montadora não têm boca de cano (a montadora não tem nem lugar livre na borda para uma):
+  `aco_refrigerado` 10 placas de ferro + 60 água → 3 barras (32 s) e `lapidar_refrigerado` 4 cristais brutos + 30
+  água → 3 lapidados (4 s). Precisam do refinador (`refino`), que não é pré-requisito da bomba d'água.
+- **Água limpa** (`agua_limpa`, do filtro) serve em toda receita que pede água; água do rio não serve onde se pede
+  limpa (pacote ecológico). Resina bebe dois fluidos: seiva por uma boca do refinador e água pela outra.
 - **As 14 pesquisas originais não mudam** (a 15ª, `dano_energia_1`, entrou depois como a primeira melhoria jogável: +20% de dano da torre com energia). Mesmos IDs, pré-requisitos e custos (incluindo `energia`, que existe no jogo
   mesmo fora da lista do pedido). `refino`, `acumulacao` e `energia` ficam na era do meio, ainda pagas só com pacote
   básico, como hoje.

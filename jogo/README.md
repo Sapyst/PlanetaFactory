@@ -192,6 +192,14 @@ Tudo que se constrói funciona — a mini-fábrica da demo é só um mapa pronto
   `saida_filtro`; o resto tenta a `prioridade` primeiro (Frente/Direita/Esquerda no painel; sem = rodízio).
   **Silo de granel** 3×3: armazém de 20.000 de um tipo só (`um_tipo`). **Cano subterrâneo**: a entrada liga na
   primeira saída alinhada à frente, mesma rotação, até 9 tiles livres — uma rede de fluido só.
+- Água e química (fase 2.3): fluidos em `dados/fluidos.json` (`agua`, `agua_limpa` — serve onde se pede água —,
+  `seiva`; `Registro.fluido_serve`). **Bomba d'água** 2×2 (`tomada_agua`: água encostada no lado sul do modelo,
+  `MapaOcupacao.tiles_da_tomada`; água suja na tomada rende menos), **coletor de chuva** e **condensador de neblina**
+  (`Fabrica.chuva`/`neblina` vêm do clima → `Maquina.clima`; 0 = `ESPERANDO_CLIMA`; `tanque_fluido` = tanque interno),
+  **filtro** com `transborda` (solta água limpa com a pesquisa; sem cano não trava), **supressor de incêndio**
+  (`AmbienteVivo._supressores`: apaga o fogo no raio e protege a vegetação; `Fabrica.jatos` → jato em `Efeitos`).
+  Receitas refrigeradas (+50%), resina, pacote químico e ecológico no refinador; saída de fluido de receita que não
+  solta fluido vira 2ª entrada (resina: seiva numa boca, água na outra). Sem janela: `-- roteiro agua`.
 - Extrator/broca mineram a jazida de baixo; fornalha escolhe a receita pelo que chega e queima carvão/biomassa;
   montadora/refinador: receita escolhida no painel. Elétricos precisam de poste (cobertura 2,5) ligado a gerador com combustível.
 - Torre: cada munição que chega (braço ou esteira na porta sul) = 10 tiros. Quem trabalha polui (e vira alvo por 60 s).
@@ -253,7 +261,7 @@ Traçar por cima de uma esteira existente troca as peças (continuar a partir de
 | `interface/` | `ControleConstrucao` (toda a entrada: separa gesto de construir de gesto de câmera), `BarraConstrucao` (UI por código), `Fantasma` (prévia verde/vermelha), `RoteiroTeste` (cliques/toques injetados) |
 | `cenas/` | `menu` (menu inicial), `mundo_demo` (o jogo: modos novo/continuar/demonstração), `CameraJogo` |
 | `progressao/` | `Pesquisa` (árvore, pacotes, o que libera) |
-| `testes/` | `executar.gd` + `test_*.gd` (8.600+ verificações) |
+| `testes/` | `executar.gd` + `test_*.gd` (64.000+ verificações) |
 | `dados/` | `itens`, `receitas`, `estruturas` (regras), `biomas`, `inimigos` (poluição, ninhos, aranhas, expansão, torre), `menu_construcao` (abas, nomes, textos de bloqueio), `modelos` (gerado) |
 
 ## Decisões de arquitetura

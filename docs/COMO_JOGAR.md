@@ -16,6 +16,16 @@ Você é a IA do núcleo que caiu no planeta. O objetivo é crescer: extrair, fa
 - Mais tarde (pesquisas com pacote de automação): **Esteira rápida** (o dobro de itens; arraste por cima da comum
   para trocar), **Braço com filtro** e **Divisor com filtro** (toque neles para escolher os itens), **Silo de
   granel** (20.000 de um tipo só) e **Cano subterrâneo** (passa o cano por baixo da terra, até 9 tiles).
+- **Água** (pesquisa "Água como insumo", com pacote de automação): a **Bomba d'água** 2×2 fica na margem, com a tomada
+  (o lado da grade) encostada num rio, lago ou canal, e solta 40 de água/s pelo cano. Água suja na tomada rende menos.
+  Também dão água o **Coletor de chuva** (só quando chove; guarda 2.000), o **Condensador de neblina** (com neblina e
+  energia) e o **Filtro de água** depois da pesquisa "Filtro que devolve água" (água limpa pelo cano).
+  Com água no **Refinador** saem o **aço refrigerado** e a **lapidação refrigerada** (+50%); a fornalha e a montadora
+  continuam fazendo os dois sem água. O **Supressor de incêndio** (aba Limpeza), com água pelo cano, apaga o fogo em
+  8 m e não deixa a vegetação em volta pegar fogo.
+- **Química** (refino + bomba d'água): **resina** (seiva por uma boca do refinador, água pela outra) e o **pacote
+  químico** (resina + bateria + água), o terceiro tipo de pacote do laboratório. **Bioquímica** libera o **pacote
+  ecológico**, que só sai com **água limpa**.
 
 ## Primeiros passos
 1. **Ache as jazidas:** aperte **V** (ou o botão **Recursos**). Cada jazida aparece colorida, com o nome, a quantidade

@@ -40,6 +40,7 @@ func _ready() -> void:
 		"enxurrada": _roteiro_enxurrada()
 		"canal": _roteiro_canal()
 		"limpeza": _roteiro_limpeza()
+		"agua": _roteiro_agua()
 		"energia": _roteiro_energia()
 		"vento":                                       # rajadas passando na grama, depois a camada de vento da visão
 			em(2, func():
@@ -156,9 +157,9 @@ func _ready() -> void:
 				t._atualizar())
 			em(50, func():                             # quadro ~70: pesquisa "em breve" da era do meio
 				var t: TelaPesquisa = cena._tela_pesquisa
-				t._sel = "bomba_agua"
+				t._sel = "escavar_canal"
 				t._atualizar()
-				var r: Rect2 = t._pos["bomba_agua"]
+				var r: Rect2 = t._pos["escavar_canal"]
 				t._rolagem.scroll_horizontal = int(r.position.x * t._zoom - 200.0)
 				t._rolagem.scroll_vertical = int(maxf(0.0, r.position.y * t._zoom - 120.0)))
 			em(62, func():                             # quadro ~75: zoom afastado (visão das eras)
@@ -687,6 +688,89 @@ func _roteiro_canal() -> void:
 
 ## Limpeza: margem de rio suja (chão, óleo, água), filtro na margem, coletor, viveiro com mudas e árvores, gerador
 ## ligando tudo; o tempo corre 6× para ver a sujeira sumindo e as mudas crescendo.
+## Fase 2.3 (água): bomba d'água na margem → cano → supressor de incêndio; coletor de chuva e condensador de neblina
+## com chuva forçada; um foco de fogo perto do supressor; abre o painel de cada peça nova. Sem janela serve de
+## verificação (imprime "AGUA ..."): godot --headless --path jogo --quit-after 420 -- roteiro agua
+func _roteiro_agua() -> void:
+	var ids := {}
+	em(2, func():
+		Sessao.config.fps = false
+		var g := Grade.gerador
+		var m: MapaOcupacao = cena.mapa
+		var w := Vector2i(9999, 0)
+		for r in range(8, 260, 2):
+			for k in 64:
+				var t := Vector2i((Vector2.from_angle(k * TAU / 64.0) * r).round())
+				if w.x != 9999 or g.terreno(t) != GeradorMundo.Terreno.TERRA or not g.eh_agua(g.terreno(t + Vector2i(0, -1))):
+					continue
+				var ok := true
+				for i in range(0, 10):
+					for j in range(0, 11):
+						var q := t + Vector2i(i, j)
+						if g.terreno(q) != GeradorMundo.Terreno.TERRA or g.nivel(q) != g.nivel(t) or g.em_encosta(q):
+							ok = false
+				if ok:
+					w = t
+		print("AGUA margem ", w)
+		if w.x == 9999:
+			return
+		for i in range(-1, 11):
+			for j in range(0, 12):
+				m.limpar_obstaculo(w + Vector2i(i, j))
+		var con: Construtor = cena.construtor
+		var p := func(pl: Array[Dictionary]) -> void: cena.sincronizar(con.executar(pl))
+		p.call(con.plano_peca("bomba_agua", w, 0))
+		p.call(con.plano_linha("cano", w + Vector2i(1, 2), w + Vector2i(1, 7), 0))
+		var rs := 0                                  # supressor girado com a boca para o cano que chega do sul
+		for rr in 4:
+			if Grade.porta_no_mundo(Registro.modelos.supressor_fogo.portas[0], w + Vector2i(1, 8), Vector2i.ONE, rr).tile_fora == w + Vector2i(1, 7):
+				rs = rr
+		p.call(con.plano_peca("supressor_fogo", w + Vector2i(1, 8), rs))
+		p.call(con.plano_peca("coletor_chuva", w + Vector2i(4, 3), 0))
+		p.call(con.plano_linha("cano", w + Vector2i(5, 2), w + Vector2i(5, 1), 2))
+		p.call(con.plano_peca("condensador_neblina", w + Vector2i(7, 7), 0))
+		p.call(con.plano_linha("cano", w + Vector2i(7, 6), w + Vector2i(7, 5), 2))
+		p.call(con.plano_peca("gerador", w + Vector2i(4, 8), 0))
+		p.call(con.plano_peca("poste_energia", w + Vector2i(3, 6), 0))
+		p.call(con.plano_peca("poste_energia", w + Vector2i(3, 2), 0))
+		p.call(con.plano_peca("poste_energia", w + Vector2i(6, 6), 0))
+		for id in m.estruturas:
+			ids[m.estruturas[id].nome] = id
+		print("AGUA construiu ", ids.keys())
+		cena.clima.forcar("chuva", true)
+		var a: AmbienteVivo = cena.ambiente
+		for r in range(2, 7):
+			for k in 16:
+				var t := w + Vector2i(1, 8) + Vector2i((Vector2.from_angle(k * TAU / 16.0) * r).round())
+				if a.fogo.is_empty() and a._inflamavel(t):
+					a._acender(t)
+		print("AGUA fogo ", a.fogo.keys())
+		cena.camera.alvo = Grade.centro_mundo(w + Vector2i(4, 5))
+		cena.camera.distancia = 16.0
+		cena.camera.posicionar())
+	em(6, func():
+		cena.fabrica.reconstruir()
+		for id in cena.fabrica.combustivel:
+			cena.fabrica.combustivel[id] = 500.0)
+	var k := 0
+	for nome in ["bomba_agua", "coletor_chuva", "condensador_neblina", "supressor_fogo", "cano_reto"]:
+		k += 1
+		em(40 + k * 60, func():
+			if ids.has(nome):
+				cena._sel = {"estrutura": ids[nome]}
+				cena._detalhe()
+				print("AGUA painel ", nome))
+	em(1100, func():
+		var f: Fabrica = cena.fabrica
+		var est := {}
+		for id in f.maquinas:
+			est[cena.mapa.estruturas[id].nome] = [Maquina.Estado.keys()[f.maquinas[id].estado], f.maquinas[id].fluidos,
+					snappedf(f.maquinas[id].velocidade, 0.01), snappedf(f.maquinas[id].energia, 0.01), f.maquinas[id].produzidos]
+		print("AGUA estados ", est)
+		print("AGUA redes ", f.redes_fluido.map(func(rd): return "%s %.0f/%.0f" % [rd.fluido, rd.qtd, rd.cap]))
+		print("AGUA fogo restante ", cena.ambiente.fogo.size(), " jatos ", f.jatos))
+
+
 func _roteiro_limpeza() -> void:
 	em(2, func():
 		var w := Vector2i(9999, 0)

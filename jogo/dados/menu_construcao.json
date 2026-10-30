@@ -40,6 +40,9 @@
     "cano_subterraneo_entrada",
     "cano_subterraneo_saida",
     "bomba",
+    "bomba_agua",
+    "coletor_chuva",
+    "condensador_neblina",
     "tanque"
    ]
   },
@@ -60,7 +63,8 @@
    "pecas": [
     "coletor_lixo",
     "filtro_agua",
-    "viveiro"
+    "viveiro",
+    "supressor_fogo"
    ]
   },
   {
@@ -156,7 +160,11 @@
   "trilho_fim": "Fim de linha",
   "estacao": "Estação",
   "sinal_trem": "Sinal",
-  "trem": "Trem"
+  "trem": "Trem",
+  "bomba_agua": "Bomba d'água",
+  "coletor_chuva": "Coletor de chuva",
+  "condensador_neblina": "Condensador de neblina",
+  "supressor_fogo": "Supressor de incêndio"
  },
  "jazidas": {
   "jazida_cristal": "cristal",
@@ -188,7 +196,8 @@
   "nivel_chao": "Para descer, escolha um nível elevado (botão Nível)",
   "nivel_maximo": "Já está no nível mais alto (1,0 m)",
   "longe_da_agua": "O filtro precisa encostar num rio, lago ou canal",
-  "sem_trilho": "O trem precisa ser posto em cima de um trilho reto livre"
+  "sem_trilho": "O trem precisa ser posto em cima de um trilho reto livre",
+  "tomada_seca": "A tomada (lado da grade) precisa encostar num rio, lago ou canal"
  },
  "explicacoes": {
   "esteira": "Leva itens. Arraste para traçar o caminho.",
@@ -243,7 +252,11 @@
   "trilho_fim": "Fim da linha.",
   "estacao": "Trem carrega e descarrega aqui.",
   "sinal_trem": "Divide a linha em blocos.",
-  "trem": "Trem sobre um trilho reto."
+  "trem": "Trem sobre um trilho reto.",
+  "bomba_agua": "2×2 na margem: a tomada (lado da grade) encosta na água. Solta 40 de água/s pelo cano; água suja rende menos.",
+  "coletor_chuva": "2×2 em qualquer lugar: até 25 de água/s com chuva forte, nada no seco. Guarda 2.000.",
+  "condensador_neblina": "2×2 com energia (80 kW): até 12 de água/s com neblina (mais no inverno).",
+  "supressor_fogo": "Com água pelo cano: apaga fogo num raio de 8 m e molha a vegetação em volta."
  },
  "icones_categoria": {
   "Esteiras": "categorias/esteiras",

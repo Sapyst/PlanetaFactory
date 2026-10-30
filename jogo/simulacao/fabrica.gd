@@ -57,6 +57,9 @@ var vento := 0.5                       ## força do vento (0..~1,6) para turbina
 var vento_turbina: Dictionary = {}     ## id da turbina → vento no lugar dela (clima × VentoLocal × rajada), o mundo passa
 var juncoes: Array[Dictionary] = []    ## itens que acabaram de entrar pela lateral: {caminho, pos, lado, passo} (desenho desliza)
 var _melhorias_de := ""                ## assinatura das pesquisas já aplicadas nas máquinas (refaz quando muda)
+var chuva := 0.0                       ## 0..1: chuva do clima de agora (coletor de chuva; o mundo passa)
+var neblina := 0.0                     ## 0..1: neblina do clima de agora (condensador; o mundo passa)
+var jatos: Dictionary = {}             ## id do supressor → ponto (grade) do fogo que ele está molhando (o ambiente põe)
 
 const DISTRIBUIDORES := ["divisor", "juncao", "divisor_filtro"]
 ## Saídas do divisor pelo lado do modelo (porta PORTA_ITEM_SAI_<lado>): o item entra pelo sul e segue para o norte.
@@ -229,6 +232,14 @@ func _montar_maquinas() -> void:
 						m.definir_receita(rec, Registro.receitas[rec])
 				"bomba":
 					m.definir_receita("bombear_seiva", Registro.receitas["bombear_seiva"])
+				"bomba_agua":
+					m.definir_receita("bombear_agua", Registro.receitas["bombear_agua"])
+				"coletor_chuva":
+					m.definir_receita("coletar_chuva", Registro.receitas["coletar_chuva"])
+				"condensador":
+					m.definir_receita("condensar_neblina", Registro.receitas["condensar_neblina"])
+				"supressor":
+					m.definir_receita("borrifar_agua", Registro.receitas["borrifar_agua"])
 				"filtro":
 					m.definir_receita("filtrar_agua", Registro.receitas["filtrar_agua"])
 				"coletor":
@@ -236,6 +247,8 @@ func _montar_maquinas() -> void:
 				"viveiro":
 					m.definir_receita("plantar_muda", Registro.receitas["plantar_muda"])
 		maquinas[id].velocidade = float(r.get("velocidade", 1.0)) * float(modo(id)[0])
+		maquinas[id].tanque_fluido = float(r.get("tanque_fluido", 0.0))
+		maquinas[id].transborda = bool(r.get("transborda", false))
 		if r.get("combustivel", false) and not combustivel.has(id):
 			combustivel[id] = 0.0
 	for id in mapa.estruturas:
@@ -547,9 +560,13 @@ func _aplicar_melhorias() -> void:
 		return
 	_melhorias_de = assin
 	var prod := pesquisa.bonus("produtividade_mineracao") if pesquisa != null else 0.0
+	# filtro que devolve água (pesquisa filtro_agua_limpa): a mesma limpeza, soltando água limpa pelo cano
+	var filtro := "filtrar_agua_limpa" if pesquisa != null and pesquisa.receita_liberada("filtrar_agua_limpa") else "filtrar_agua"
 	for id in maquinas:
 		var tipo: String = Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("maquina", "") if mapa.estruturas.has(id) else ""
 		(maquinas[id] as Maquina).produtividade = prod if tipo in ["broca", "extrator"] else 0.0
+		if tipo == "filtro" and maquinas[id].receita_id != filtro:
+			maquinas[id].definir_receita(filtro, Registro.receitas[filtro])
 
 
 # ------------------------------------------------------------------ tick
@@ -595,6 +612,13 @@ func tick(dt: float) -> void:
 		var m: Maquina = maquinas[id]
 		if combustivel.has(id):
 			m.energia = 1.0 if combustivel[id] > 0.0 and ligada(id) else 0.0
+		match m.receita_id:
+			"coletar_chuva":
+				m.clima = chuva if ligada(id) else 0.0
+			"condensar_neblina":
+				m.clima = neblina
+			"borrifar_agua":
+				continue                        # supressor: o ambiente decide quando borrifa (há fogo no raio?)
 		m.tick(dt)
 		if m.estado == Maquina.Estado.TRABALHANDO:
 			_emitir(id, dt * m.energia)
@@ -816,12 +840,15 @@ func par_subterraneo(id: int) -> int:
 	return -1
 
 
+## Saída de fluido de máquina cuja receita não solta fluido vira 2ª entrada (refinador com resina: seiva por uma
+## boca, água pela outra — cada rede leva um fluido só). Água limpa serve onde a receita pede água.
 func _tick_fluidos(dt: float) -> void:
 	for l in _ligacoes_fluido:
 		var rede: Dictionary = redes_fluido[l.rede]
 		var m: Maquina = maquinas[l.id]
-		if l.io == "SAI":
-			for f in m.receita.get("saidas_fluido", {}):
+		var sai_fluido: Dictionary = m.receita.get("saidas_fluido", {})
+		if l.io == "SAI" and not sai_fluido.is_empty():
+			for f in sai_fluido:
 				var q := float(m.fluidos.get(f, 0.0))
 				if q > 0.0 and (rede.fluido == "" or rede.fluido == f):
 					var vai := minf(q, rede.cap - rede.qtd)
@@ -832,7 +859,7 @@ func _tick_fluidos(dt: float) -> void:
 						m.acordar()
 		else:
 			for f in m.receita.get("entradas_fluido", {}):
-				if rede.fluido == f and rede.qtd > 0.0:
+				if Registro.fluido_serve(rede.fluido, f) and rede.qtd > 0.0:
 					var vem := minf(rede.qtd, m.falta_fluido(f))
 					if vem > 0.0:
 						rede.qtd -= vem

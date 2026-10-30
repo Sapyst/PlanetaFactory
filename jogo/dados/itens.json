@@ -25,5 +25,8 @@
  "celula_energia":   {"nome": "Célula de energia","grupo": "avancado",      "pilha": 50},
  "pacote_pesquisa":  {"nome": "Pacote de pesquisa","grupo": "avancado",     "pilha": 200},
  "pacote_automacao": {"nome": "Pacote de automação","grupo": "avancado",    "pilha": 200, "modelo_de": "pacote_pesquisa", "matiz": 0.07},
- "briquete":         {"nome": "Briquete",         "grupo": "intermediario", "pilha": 50, "combustivel_mj": 10.0, "poluicao_queima": 0.7, "modelo_de": "tijolo", "matiz": 0.78}
+ "briquete":         {"nome": "Briquete",         "grupo": "intermediario", "pilha": 50, "combustivel_mj": 10.0, "poluicao_queima": 0.7, "modelo_de": "tijolo", "matiz": 0.78},
+ "resina":           {"nome": "Resina",           "grupo": "intermediario", "pilha": 100, "modelo_de": "cristal_bruto", "matiz": 0.09},
+ "pacote_quimico":   {"nome": "Pacote químico",   "grupo": "avancado",      "pilha": 200, "modelo_de": "pacote_pesquisa", "matiz": 0.62},
+ "pacote_ecologico": {"nome": "Pacote ecológico", "grupo": "avancado",      "pilha": 200, "modelo_de": "pacote_pesquisa", "matiz": 0.30}
 }

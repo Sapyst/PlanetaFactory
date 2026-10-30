@@ -13,6 +13,8 @@ extends RefCounted
 ##    deixa as aranhas furiosas (furia_em, lida pela Colonia);
 ##  - limpeza: coletor aspira sujeira e óleo, filtro limpa a água, viveiro planta mudas que crescem, viram árvore,
 ##    limpam o chão em volta e absorvem poluição do ar.
+##  - água (fase 2.3): bomba d'água com água suja na tomada rende menos; supressor de incêndio com água apaga o fogo
+##    no raio dele e, enquanto tem água, a vegetação em volta não pega fogo (molhada).
 ## Os valores são por tile (dado de simulação); o desenho é contínuo (mistura suave + ruído, nunca em quadrados).
 ## Só existem chunks com algum valor: o custo segue a sujeira, não o tamanho do mapa.
 
@@ -44,6 +46,7 @@ var _versao_mapa := -1
 var queima_arvore: Dictionary = {}   ## tile → segundos que a árvore já queimou (fogo longo derruba)
 var encardido: Dictionary = {}       ## id da estrutura → 0 limpa .. 1 imunda (tempo e trabalho sujam, chuva lava)
 var _estacao_ant := -1
+var _protegidos: Array[Vector3] = []  ## (x, y, raio) dos supressores com água e energia: ali não pega fogo
 
 
 func _init(p_gerador: GeradorMundo, p_mapa: MapaOcupacao, semente := 9) -> void:
@@ -124,6 +127,7 @@ func _passo(fabrica: Fabrica, clima: Clima) -> void:
 				_acender(alvo)
 	_limpeza(fabrica)
 	_bombas(fabrica)
+	_supressores(fabrica)
 	_plantas()
 	_escorrer(chuva)
 	_agua()
@@ -211,11 +215,28 @@ func contaminacao_bomba(e: Dictionary) -> float:
 	return clampf(c, 0.0, 1.0)
 
 
+## Água suja na tomada da bomba d'água (0..1): o pior dos tiles de água logo além do lado sul e dos vizinhos deles.
+func contaminacao_tomada(e: Dictionary) -> float:
+	var c := 0.0
+	for t in MapaOcupacao.tiles_da_tomada(e.minimo, e.area, e.rot):
+		for y in range(-1, 2):
+			for x in range(-1, 2):
+				c = maxf(c, valor(t + Vector2i(x, y), AGUA))
+	return clampf(c, 0.0, 1.0)
+
+
 ## Bomba com poça contaminada: rende menos (velocidade) e se desgasta trabalhando (perde vida).
+## Bomba d'água com água suja na tomada: só rende menos (`agua_suja_perde` em estruturas.json).
 func _bombas(fabrica: Fabrica) -> void:
 	var b: Dictionary = _d.get("bomba", {})
 	for id in fabrica.maquinas:
 		var m: Maquina = fabrica.maquinas[id]
+		if m.nome == "bomba_agua" and mapa.estruturas.has(id):
+			var ca := contaminacao_tomada(mapa.estruturas[id])
+			contaminacao[id] = ca
+			var r: Dictionary = Registro.estruturas.bomba_agua
+			m.velocidade = float(r.get("velocidade", 1.0)) * float(fabrica.modo(id)[0]) * (1.0 - float(r.get("agua_suja_perde", 0.6)) * ca)
+			continue
 		if m.nome != "bomba" or not mapa.estruturas.has(id):
 			continue
 		var c := contaminacao_bomba(mapa.estruturas[id])
@@ -228,6 +249,58 @@ func _bombas(fabrica: Fabrica) -> void:
 	for id in contaminacao.keys():
 		if not fabrica.maquinas.has(id):
 			contaminacao.erase(id)
+
+
+## Supressor de incêndio (passo de 1 s): com energia e água no reservatório vigia o raio; havendo fogo, gasta
+## `agua_por_s` e tira `segundos_por_s` de cada foco no raio (apaga em 1–2 passos). Enquanto tiver água, o raio fica
+## protegido (a vegetação molhada não pega fogo). O alvo (foco mais perto) vai em `fabrica.jatos` para o desenho.
+func _supressores(fabrica: Fabrica) -> void:
+	_protegidos.clear()
+	fabrica.jatos.clear()
+	for id in fabrica.maquinas:
+		var m: Maquina = fabrica.maquinas[id]
+		if m.receita_id != "borrifar_agua" or not mapa.estruturas.has(id):
+			continue
+		var e: Dictionary = mapa.estruturas[id]
+		var ap: Dictionary = Registro.estruturas.get(e.nome, {}).get("apaga", {})
+		var raio := float(ap.get("raio", 8.0))
+		var gasto := float(ap.get("agua_por_s", 10.0))
+		var c := Grade.centro_da_area(e.minimo, e.area, e.rot)
+		var agua := float(m.fluidos.get("agua", 0.0))
+		if m.energia <= 0.0 or not fabrica.ligada(id):
+			m.estado = Maquina.Estado.SEM_ENERGIA
+			continue
+		if agua < gasto:
+			m.estado = Maquina.Estado.SEM_INSUMO
+			continue
+		_protegidos.append(Vector3(c.x, c.y, raio))
+		var focos: Array[Vector2i] = []
+		for t in fogo:
+			if (Vector2(t) + Vector2(0.5, 0.5)).distance_to(c) <= raio:
+				focos.append(t)
+		if focos.is_empty():
+			m.estado = Maquina.Estado.PRONTIDAO
+			continue
+		m.estado = Maquina.Estado.TRABALHANDO
+		m.fluidos["agua"] = agua - gasto
+		m.produzidos += 1
+		var perto: Vector2i = focos[0]
+		for t in focos:
+			if (Vector2(t) + Vector2(0.5, 0.5)).distance_to(c) < (Vector2(perto) + Vector2(0.5, 0.5)).distance_to(c):
+				perto = t
+			fogo[t] = float(fogo[t]) - float(ap.get("segundos_por_s", 25.0))
+			if fogo[t] <= 0.0:
+				fogo[t] = 0.001                     # o passo do fogo apaga (cinza, árvore queimada) no mesmo segundo
+		fabrica.jatos[id] = Vector2(perto) + Vector2(0.5, 0.5)
+
+
+## Tile dentro do raio de um supressor com água (molhado: não pega fogo).
+func protegido(t: Vector2i) -> bool:
+	var p := Vector2(t) + Vector2(0.5, 0.5)
+	for s in _protegidos:
+		if p.distance_to(Vector2(s.x, s.y)) <= s.z:
+			return true
+	return false
 
 
 ## Fúria das aranhas de um ninho (0..1): média de sujeira + óleo + água suja num raio em volta (amostra a cada 3 tiles).
@@ -494,6 +567,8 @@ func _inflamavel(t: Vector2i) -> bool:
 		if not o.is_empty() and float(mad.get(o.nome, mad.get(Distribuicao.especie(o.nome), 1.0))) <= 0.0:
 			return false
 	if fogo.has(t) or mapa.tiles.has(t) or gerador.terreno(t) != GeradorMundo.Terreno.TERRA:
+		return false
+	if not _protegidos.is_empty() and protegido(t):
 		return false
 	if not gerador.distribuicao.jazida(t).is_empty() or valor(t, QUEIM) > 0.6:
 		return false

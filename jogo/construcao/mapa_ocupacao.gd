@@ -55,6 +55,8 @@ func motivo_bloqueio(nome: String, minimo: Vector2i, rot: int) -> String:
 		return "sem_jazida"
 	if def.get("perto_agua", false) and not encosta_na_agua(minimo, area, rot):
 		return "longe_da_agua"
+	if def.get("tomada_agua", false) and tiles_da_tomada(minimo, area, rot).filter(_tem_agua).is_empty():
+		return "tomada_seca"
 	var alt := _altura(nome)
 	for t in Grade.tiles_da_area(minimo, area, rot):
 		for n in range(1, NIVEIS + 1):
@@ -76,6 +78,19 @@ func encosta_na_agua(minimo: Vector2i, area: Vector2i, rot: int) -> bool:
 				if gerador.eh_agua(gerador.terreno(n)) or gerador.superficie_em(n) != null:
 					return true
 	return false
+
+
+## Bomba d'água: os tiles logo além do lado SUL do modelo (girado com a peça) — onde fica a tomada com a grade.
+static func tiles_da_tomada(minimo: Vector2i, area: Vector2i, rot: int) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for i in area.x:
+		var p := {"nome": "", "tipo": "", "io": "", "pos": [-area.x * 0.5 + 0.5 + i, -area.y * 0.5, 0.0], "dir": [0, -1, 0]}
+		out.append(Grade.porta_no_mundo(p, minimo, area, rot).tile_fora)
+	return out
+
+
+func _tem_agua(t: Vector2i) -> bool:
+	return gerador.eh_agua(gerador.terreno(t)) or gerador.superficie_em(t) != null
 
 
 ## Algum tile da área é água (rio, lago ou buraco cheio)? Então a construção vai sobre plataforma com pilares.

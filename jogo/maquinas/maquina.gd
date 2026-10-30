@@ -3,7 +3,9 @@ extends RefCounted
 ## Máquina de receita (fornalha, montadora, refinador, extrator…). Estados explícitos para a interface e o animador.
 ## Dorme quando não pode trabalhar: `tick` sai cedo e só acorda quando recebe insumo ou alguém tira produto.
 
-enum Estado { SEM_RECEITA, SEM_INSUMO, SAIDA_CHEIA, SEM_ENERGIA, SEM_JAZIDA, TRABALHANDO }
+## ESPERANDO_CLIMA: coletor de chuva / condensador parados porque não chove / não há neblina (`clima` = 0).
+## PRONTIDAO: supressor com água, vigiando (só trabalha quando há fogo no raio).
+enum Estado { SEM_RECEITA, SEM_INSUMO, SAIDA_CHEIA, SEM_ENERGIA, SEM_JAZIDA, TRABALHANDO, ESPERANDO_CLIMA, PRONTIDAO }
 
 const LIMITE_SAIDA := 2      ## em "receitas": acumula até 2× a saída antes de travar
 const LIMITE_ENTRADA := 2    ## aceita até 2× cada insumo
@@ -22,6 +24,9 @@ var jazida_restante := -1    ## -1 = não usa jazida
 var produzidos := 0
 var produtividade := 0.0     ## fração extra de produto por ciclo (melhoria de mineração: 0,1 = +10%)
 var extra := 0.0             ## barra de produtividade: ao passar de 1, sai um ciclo de graça
+var tanque_fluido := 0.0     ## tanque interno maior que 2× a receita (coletor de chuva 2.000, supressor 200…)
+var transborda := false      ## fluido que não sai pelo cano não trava a máquina (filtro: a sobra volta ao rio)
+var clima := 1.0             ## fator do clima de agora (coletor: chuva, condensador: neblina); 0 = espera
 var _dormindo := false
 
 
@@ -75,7 +80,7 @@ func falta_fluido(f: String) -> float:
 	var precisa: Dictionary = receita.get("entradas_fluido", {})
 	if not precisa.has(f):
 		return 0.0
-	return maxf(0.0, float(precisa[f]) * LIMITE_ENTRADA - float(fluidos.get(f, 0.0)))
+	return maxf(0.0, maxf(float(precisa[f]) * LIMITE_ENTRADA, tanque_fluido) - float(fluidos.get(f, 0.0)))
 
 
 func receber_fluido(f: String, q: float) -> void:
@@ -96,15 +101,20 @@ func _tem_insumos() -> bool:
 
 
 func _saida_cheia() -> bool:
-	var vai_f: Dictionary = receita.get("saidas_fluido", {})
+	var vai_f: Dictionary = receita.get("saidas_fluido", {}) if not transborda else {}
 	for f in vai_f:
-		if float(fluidos.get(f, 0.0)) + float(vai_f[f]) > float(vai_f[f]) * LIMITE_SAIDA:
+		if float(fluidos.get(f, 0.0)) + float(vai_f[f]) > limite_fluido(f):
 			return true
 	var vai: Dictionary = receita.get("saidas", {})
 	for item in vai:
 		if int(saidas.get(item, 0)) + int(vai[item]) > int(vai[item]) * LIMITE_SAIDA:
 			return true
 	return false
+
+
+## Quanto do fluido de saída a máquina guarda antes de travar (2× a receita, ou o tanque interno).
+func limite_fluido(f: String) -> float:
+	return maxf(float(receita.get("saidas_fluido", {}).get(f, 0.0)) * LIMITE_SAIDA, tanque_fluido)
 
 
 func tick(dt: float) -> void:
@@ -129,6 +139,9 @@ func tick(dt: float) -> void:
 	if energia <= 0.0:
 		estado = Estado.SEM_ENERGIA
 		return
+	if clima <= 0.0:
+		estado = Estado.ESPERANDO_CLIMA
+		return
 	if progresso <= 0.0:   # começa um ciclo: consome os insumos
 		var precisa: Dictionary = receita.get("entradas", {})
 		for item in precisa:
@@ -137,7 +150,7 @@ func tick(dt: float) -> void:
 		for f in precisa_f:
 			fluidos[f] = float(fluidos[f]) - float(precisa_f[f])
 	estado = Estado.TRABALHANDO
-	progresso += dt * velocidade * energia / float(receita.get("tempo", 1.0))
+	progresso += dt * velocidade * energia * clima / float(receita.get("tempo", 1.0))
 	if progresso >= 1.0:
 		progresso = 0.0
 		var vai: Dictionary = receita.get("saidas", {})
@@ -146,6 +159,8 @@ func tick(dt: float) -> void:
 		var vai_f: Dictionary = receita.get("saidas_fluido", {})
 		for f in vai_f:
 			fluidos[f] = float(fluidos.get(f, 0.0)) + float(vai_f[f])
+			if transborda:
+				fluidos[f] = minf(float(fluidos[f]), limite_fluido(f))    # a sobra volta ao rio
 		produzidos += 1
 		if jazida_restante > 0:
 			jazida_restante -= 1

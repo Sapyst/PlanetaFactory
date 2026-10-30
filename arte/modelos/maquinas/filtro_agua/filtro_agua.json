@@ -6,7 +6,7 @@
   2,
   2
  ],
- "descricao": "filtro de água: três colunas de vidro com água limpa, coletor por cima e bomba de impulsor que gira; tomada d'água pelo ralo da borda sul.",
+ "descricao": "filtro de água: três colunas de vidro com água limpa, coletor por cima e bomba de impulsor que gira; tomada d'água pelo ralo da borda sul; com a pesquisa \"Filtro que devolve água\", solta água limpa pelo ramal da borda norte.",
  "ocupa_canto": false,
  "partes": [
   {
@@ -19,7 +19,23 @@
    ]
   }
  ],
- "portas": [],
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_SAI_N1",
+   "tipo": "FLUIDO",
+   "io": "SAI",
+   "pos": [
+    0.5,
+    1.0,
+    0.35
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  }
+ ],
  "terminais": [
   [
    -0.85,
@@ -42,7 +58,7 @@
    0.372
   ]
  ],
- "tris": 7771,
+ "tris": 7736,
  "dims": [
   2.18,
   2.465,

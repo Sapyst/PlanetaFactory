@@ -1,0 +1,47 @@
+{
+ "nome": "coletor_chuva",
+ "categoria": "logistica/canos",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Coletor de chuva 2×2: flor de chapa (dez pétalas-calha com pistões) sobre um tanque de 2.000. Até 25 de água/s com chuva forte, nada no seco; solta pelo cano da borda sul.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_SAI_S1",
+   "tipo": "FLUIDO",
+   "io": "SAI",
+   "pos": [
+    0.5,
+    -1.0,
+    0.35
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  }
+ ],
+ "tris": 5738,
+ "dims": [
+  1.985,
+  1.994,
+  3.581
+ ],
+ "anima": true,
+ "estudo": "estudo_coletor_chuva.py"
+}

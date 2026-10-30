@@ -732,6 +732,7 @@
    ],
    "tempo": 6.0,
    "libera": "Bomba d'água 2×2 (40/s na margem), fluido água, receitas refrigeradas (aço e lapidação com +50%)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "filtro_agua_limpa": {
@@ -753,6 +754,7 @@
    ],
    "tempo": 6.0,
    "libera": "Filtro de água passa a soltar água limpa pelo cano enquanto limpa",
+   "existente": true,
    "tipo": "estrutura"
   },
   "coletor_chuva": {
@@ -773,6 +775,7 @@
    ],
    "tempo": 6.0,
    "libera": "Coletor de chuva 2×2 (até 25/s com chuva forte, tanque de 2.000)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "condensador_neblina": {
@@ -793,6 +796,7 @@
    ],
    "tempo": 6.0,
    "libera": "Condensador de neblina 2×2 (até 12/s com neblina, usa 80 kW)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "escavar_canal": {
@@ -834,6 +838,7 @@
    ],
    "tempo": 6.0,
    "libera": "Supressor 1×1: borrifa água em 8 m, apaga fogo e molha grama seca",
+   "existente": true,
    "tipo": "estrutura"
   },
   "turbina_rio": {
@@ -961,6 +966,7 @@
    ],
    "tempo": 8.0,
    "libera": "Receitas resina e pacote químico (refinador)",
+   "existente": true,
    "tipo": "receita"
   },
   "liga_leve": {
@@ -1036,6 +1042,7 @@
    ],
    "tempo": 8.0,
    "libera": "Receita pacote ecológico",
+   "existente": true,
    "tipo": "receita"
   },
   "combustivel_seiva": {

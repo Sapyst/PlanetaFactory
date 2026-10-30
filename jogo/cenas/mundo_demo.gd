@@ -988,6 +988,8 @@ func _tick_mundo(dt: float) -> void:
 	# vento: cada turbina sente o vento do lugar dela (relevo, mata, sombra de construção) e as rajadas que passam
 	clima.foco = Vector2(Grade.tile_de_mundo(camera.alvo))
 	fabrica.vento = float(clima.valores.vento)
+	fabrica.chuva = float(clima.valores.chuva)          # coletor de chuva
+	fabrica.neblina = float(clima.valores.neblina)      # condensador de neblina
 	fabrica.vento_turbina.clear()
 	for id in _turbinas:
 		if mapa.estruturas.has(id):
@@ -1070,7 +1072,8 @@ func _tick_mundo(dt: float) -> void:
 # ------------------------------------------------------------------ seleção (painel de detalhe)
 const NOMES_ESTADO := {Maquina.Estado.SEM_RECEITA: "sem receita — escolha abaixo", Maquina.Estado.SEM_INSUMO: "esperando insumo",
 		Maquina.Estado.SAIDA_CHEIA: "saída cheia (tire os produtos)", Maquina.Estado.SEM_ENERGIA: "sem energia",
-		Maquina.Estado.SEM_JAZIDA: "jazida esgotada", Maquina.Estado.TRABALHANDO: "trabalhando"}
+		Maquina.Estado.SEM_JAZIDA: "jazida esgotada", Maquina.Estado.TRABALHANDO: "trabalhando",
+		Maquina.Estado.ESPERANDO_CLIMA: "esperando o tempo mudar", Maquina.Estado.PRONTIDAO: "de prontidão (com água, vigiando)"}
 
 
 ## Clique/toque de mão vazia: trem perto do ponto, senão a estrutura do tile. Vector2.INF fecha.
@@ -1105,6 +1108,18 @@ func selecionar(p: Vector2) -> void:
 
 func _nome_item(i: String) -> String:
 	return Registro.itens.get(i, {}).get("nome", i)
+
+
+## Itens e fluidos de um lado da receita ("1 Resina + 20 Água").
+func _lista_receita(rec: Dictionary, lado: String) -> String:
+	var partes: Array[String] = []
+	var it := _lista_itens(rec.get(lado, {}))
+	if it != "—":
+		partes.append(it)
+	var fl: Dictionary = rec.get(lado + "_fluido", {})
+	for f in fl:
+		partes.append("%d %s" % [fl[f], Registro.nome_fluido(f)])
+	return ", ".join(partes) if not partes.is_empty() else "—"
 
 
 func _lista_itens(d: Dictionary) -> String:
@@ -1184,12 +1199,12 @@ func _detalhe() -> void:
 		var m: Maquina = fabrica.maquinas[id]
 		linhas.append("Estado: %s" % NOMES_ESTADO[m.estado])
 		if m.receita_id != "":
-			linhas.append("Receita: %s → %s" % [_lista_itens(m.receita.get("entradas", {})), _lista_itens(m.receita.get("saidas", {}))])
+			linhas.append("Receita: %s → %s" % [_lista_receita(m.receita, "entradas"), _lista_receita(m.receita, "saidas")])
 		linhas.append("Dentro: %s\nPronto: %s" % [_lista_itens(m.entradas), _lista_itens(m.saidas)])
 		if fabrica.combustivel.has(id):
 			linhas.append("Combustível: %.1f MJ" % fabrica.combustivel[id])
 		for fl in m.fluidos:
-			linhas.append("%s: %.0f" % [fl.capitalize(), m.fluidos[fl]])
+			linhas.append("%s: %.0f" % [Registro.nome_fluido(fl), m.fluidos[fl]])
 		var tipo: String = Registro.estruturas[e.nome].get("maquina", "")
 		match tipo:
 			"bomba":
@@ -1198,6 +1213,29 @@ func _detalhe() -> void:
 						% [c * 100, c * float(Registro.ambiente.bomba.perda_producao) * 100])
 			"filtro":
 				linhas.append("Limpa a água suja num raio de %d m enquanto tem energia" % Registro.estruturas[e.nome].limpa.raio)
+				if m.receita_id == "filtrar_agua_limpa":
+					linhas.append("Solta %d de água limpa/s pelo cano enquanto limpa (sem cano, a sobra volta ao rio)" % Registro.receitas.filtrar_agua_limpa.saidas_fluido.agua_limpa)
+			"bomba_agua":
+				var ca: float = ambiente.contaminacao.get(id, 0.0)
+				linhas.append("Tomada limpa: %d de água/s" % Registro.receitas.bombear_agua.saidas_fluido.agua if ca <= 0.0
+						else "Água suja na tomada: %d%% — rende %d%% menos (um Filtro de água perto limpa)" % [ca * 100, ca * float(regra.get("agua_suja_perde", 0.6)) * 100])
+			"coletor_chuva":
+				linhas.append("Chuva agora: %d%% → %.0f de água/s (até %d com chuva forte); tanque %.0f de %d"
+						% [fabrica.chuva * 100, fabrica.chuva * Registro.receitas.coletar_chuva.saidas_fluido.agua, Registro.receitas.coletar_chuva.saidas_fluido.agua,
+						float(m.fluidos.get("agua", 0.0)), m.tanque_fluido])
+			"condensador":
+				linhas.append("Neblina agora: %d%% → %.0f de água/s (até %d com neblina; mais no inverno)"
+						% [fabrica.neblina * 100, fabrica.neblina * Registro.receitas.condensar_neblina.saidas_fluido.agua, Registro.receitas.condensar_neblina.saidas_fluido.agua])
+			"supressor":
+				var ap: Dictionary = regra.get("apaga", {})
+				var c0s := Grade.centro_da_area(e.minimo, e.area, e.rot)
+				var focos := 0
+				for t in ambiente.fogo:
+					if (Vector2(t) + Vector2(0.5, 0.5)).distance_to(c0s) <= float(ap.get("raio", 8)):
+						focos += 1
+				linhas.append("Reservatório: %.0f de %d de água · gasta %d/s só quando há fogo" % [float(m.fluidos.get("agua", 0.0)), m.tanque_fluido, ap.get("agua_por_s", 10)])
+				linhas.append(("Fogo no raio de %d m: %d foco(s)" % [ap.get("raio", 8), focos]) if focos > 0
+						else "Com água, a vegetação num raio de %d m não pega fogo" % ap.get("raio", 8))
 			"coletor":
 				linhas.append("Aspira sujeira e óleo do chão num raio de %d m enquanto tem energia" % Registro.estruturas[e.nome].limpa.raio)
 			"viveiro":
@@ -1213,7 +1251,7 @@ func _detalhe() -> void:
 				if not pesquisa.receita_liberada(r):
 					continue
 				var rec: Dictionary = Registro.receitas[r]
-				botoes.append({"texto": "%s  ←  %s" % [_lista_itens(rec.get("saidas", {})), _lista_itens(rec.get("entradas", {}))],
+				botoes.append({"texto": "%s  ←  %s" % [_lista_receita(rec, "saidas"), _lista_receita(rec, "entradas")],
 						"ligado": m.receita_id == r, "acao": func(): fabrica.escolher_receita(id, r); _detalhe()})
 	elif e.nome == "nucleo":
 		var linhas_n: Array[String] = []
@@ -1226,7 +1264,7 @@ func _detalhe() -> void:
 		linhas.append("\n".join(linhas_n) if not linhas_n.is_empty() else "vazio")
 	elif not fabrica.rede_de(id).is_empty():
 		var r: Dictionary = fabrica.rede_de(id)
-		linhas.append("Rede de canos: %s %.0f de %.0f" % [r.fluido if r.fluido != "" else "vazia", r.qtd, r.cap])
+		linhas.append("Rede de canos: %s %.0f de %.0f" % [Registro.nome_fluido(r.fluido) if r.fluido != "" else "vazia", r.qtd, r.cap])
 		if e.nome == "cano_subterraneo_entrada":
 			var par := fabrica.par_subterraneo(id)
 			linhas.append("Passa por baixo até a saída a %d tile(s)" % (absi(mapa.estruturas[par].minimo.x - e.minimo.x) + absi(mapa.estruturas[par].minimo.y - e.minimo.y))

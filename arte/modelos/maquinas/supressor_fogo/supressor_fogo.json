@@ -1,0 +1,47 @@
+{
+ "nome": "supressor_fogo",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Supressor de incêndio 1×1: canhão monitor numa torre giratória com sensores de fumaça e calor. Com água pelo cano (leste), apaga fogo num raio de 8 m e molha a vegetação em volta.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_ENT_L0",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    0.5,
+    0.0,
+    0.35
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 6412,
+ "dims": [
+  1.002,
+  1.002,
+  1.341
+ ],
+ "anima": true,
+ "estudo": "estudo_supressor_fogo.py"
+}

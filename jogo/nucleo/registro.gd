@@ -15,6 +15,7 @@ var arvore: Dictionary = {}       ## árvore de tecnologia completa (eras, 166 n
 var clima: Dictionary = {}        ## estados do clima dinâmico
 var recursos: Dictionary = {}     ## nomes e cores da visão de recursos
 var ambiente: Dictionary = {}     ## sujeira, óleo, despejo, fogo, tufão
+var fluidos: Dictionary = {}      ## fluidos dos canos (nome, serve_como)
 
 
 func _init() -> void:
@@ -32,6 +33,7 @@ func carregar(pasta := "res://dados") -> void:
 	clima = _ler(pasta + "/clima.json")
 	recursos = _ler(pasta + "/recursos.json")
 	ambiente = _ler(pasta + "/ambiente.json")
+	fluidos = _sem_notas(_ler(pasta + "/fluidos.json"))
 	var regras := _sem_notas(_ler(pasta + "/estruturas.json"))
 	estruturas.clear()
 	for nome in regras:
@@ -53,6 +55,15 @@ func area(nome: String) -> Vector2i:
 	var m: Dictionary = modelos.get(nome, {})
 	var a: Array = m.get("area", [1, 1])
 	return Vector2i(int(a[0]), int(a[1]))
+
+
+## O fluido `tem` (o que está na rede) serve onde a receita pede `pede`? (água limpa serve como água.)
+func fluido_serve(tem: String, pede: String) -> bool:
+	return tem == pede or (tem != "" and String(fluidos.get(tem, {}).get("serve_como", "")) == pede)
+
+
+func nome_fluido(f: String) -> String:
+	return String(fluidos.get(f, {}).get("nome", f.capitalize()))
 
 
 func receitas_da_maquina(maquina: String) -> Array[String]:

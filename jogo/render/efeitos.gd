@@ -5,7 +5,8 @@ extends Node3D
 ##    poluição visível;
 ##  - ícone de estado em cima da máquina parada: sem energia (raio), sem insumo (caixa vazia), saída cheia
 ##    (caixa cheia), sem receita (engrenagem); pisca devagar, só com a câmera perto;
-##  - marca de destruição: chão queimado + sucata onde algo foi derrubado (some em 90 s).
+##  - marca de destruição: chão queimado + sucata onde algo foi derrubado (some em 90 s);
+##  - jato do supressor de incêndio: arco de água do canhão até o foco que ele está apagando (`fabrica.jatos`).
 
 const DIST_ICONES := 60.0
 const VIDA_MARCA := 90.0
@@ -17,6 +18,7 @@ var _fumaca: Dictionary = {}       ## id → CPUParticles3D
 var _icones: Dictionary = {}       ## id → Sprite3D
 var _tex: Dictionary = {}          ## estado → Texture2D
 var _marcas: Array[Dictionary] = []
+var _jatos: Dictionary = {}        ## id do supressor → CPUParticles3D
 var _mat_fumaca: StandardMaterial3D
 var _mat_marca: StandardMaterial3D
 
@@ -34,6 +36,7 @@ func _process(delta: float) -> void:
 	if fabrica == null:
 		return
 	_atualizar_fumaca()
+	_atualizar_jatos()
 	_atualizar_icones()
 	_atualizar_marcas(delta)
 
@@ -82,6 +85,44 @@ func _atualizar_fumaca() -> void:
 			_fumaca.erase(id)
 			continue
 		p.emitting = fabrica.emissao.has(id) and Visao.dentro(Vector2(p.position.x, -p.position.z), 1.1)   # fora da visão: calado
+
+
+## Supressor apagando: gotas e névoa em arco (lançadas a 35°, alcance = distância até o foco).
+func _atualizar_jatos() -> void:
+	for id in fabrica.jatos:
+		if not _jatos.has(id) and mapa.estruturas.has(id):
+			var p := CPUParticles3D.new()
+			p.amount = 48
+			p.spread = 5.0
+			p.gravity = Vector3(0, -9.8, 0)
+			p.damping_min = 0.0
+			p.damping_max = 0.3
+			Fumaca.configurar(p, [Color(0.78, 0.86, 0.92, 0.0), Color(0.82, 0.9, 0.96, 0.75), Color(0.9, 0.94, 0.97, 0.0)], 0.10, 0.22, 2.2)
+			add_child(p)
+			_jatos[id] = p
+	for id in _jatos.keys():
+		var p: CPUParticles3D = _jatos[id]
+		if not mapa.estruturas.has(id):
+			p.queue_free()
+			_jatos.erase(id)
+			continue
+		var ativo: bool = fabrica.jatos.has(id) and Visao.dentro(Vector2(p.position.x, -p.position.z), 1.1)
+		p.emitting = ativo
+		if not ativo:
+			continue
+		var e: Dictionary = mapa.estruturas[id]
+		var dims: Array = Registro.modelos.get(e.nome, {}).get("dims", [1, 1, 1])
+		var c := Grade.centro_da_area(e.minimo, e.area, e.rot)
+		p.position = Grade.ponto_mundo(c, float(dims[2]) * 0.8)
+		var alvo: Vector2 = fabrica.jatos[id]
+		var h := Grade.ponto_mundo(alvo) - Grade.ponto_mundo(c)
+		var alcance := maxf(1.0, h.length())
+		var ang := deg_to_rad(35.0)
+		var v := sqrt(alcance * 9.8 / sin(2.0 * ang))
+		p.direction = (h.normalized() * cos(ang) + Vector3.UP * sin(ang)).normalized()
+		p.initial_velocity_min = v * 0.92
+		p.initial_velocity_max = v * 1.04
+		p.lifetime = 2.0 * v * sin(ang) / 9.8 + 0.15
 
 
 func _criar_fumaca(id: int) -> CPUParticles3D:

@@ -18,6 +18,7 @@ Opções de CONFIG além de script/cat/tris/tex/tirar:
   depois_de_montar(sc)       função chamada com a cena já na origem e limpa (ajustes do estudo: tirar, mover, renomear)
   antes_de_exportar(sc, raiz, dados)  função chamada antes do .glb (ex.: material especial da lona; dados = .json)
   manter    nomes de empties sem malha que o jogo procura no modelo (marcadores): não são podados
+  estudo    nome do estudo gravado no .json quando `script` é um conv_*.py que monta o estudo com remendos
 
 Sempre (para todo estudo):
 - texto (curva FONT) vira malha antes da limpeza: entra no corpo, é reduzido e assado;
@@ -554,7 +555,7 @@ def main():
                   partes=[dict(nome=cfg.get('corpo', 'corpo'), pai=None, pivo=[0.0, 0.0, 0.0])] +
                   [dict(nome=pn, pai=pd.get('pai', cfg.get('corpo', 'corpo')), pivo=[round(v, 4) for v in pd.get('pivo', (0, 0, 0))])
                    for pn, pd, _ in pecas if pn in objs_partes], anima=bool(moveis),
-                  estudo=cfg['script'])
+                  estudo=cfg.get('estudo', cfg['script']))
     json.dump(antigo, open(os.path.join(pasta, nome + '.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     print('PARA_JOGO ok', nome, antigo['tris'], 'tris', len(moveis), 'peças móveis', len(brilhantes), 'brilhantes')
 

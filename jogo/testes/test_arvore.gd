@@ -35,9 +35,9 @@ func test_jogaveis_na_arvore() -> void:
 		b.sort()
 		igual(a, b, "mesmos pré-requisitos no jogo e na árvore: " + id)
 		verificar(p.arvore()[id].get("existente", false), "marcada como existente: " + id)
-	verificar(not p.jogavel("bomba_agua"), "bomba d'água ainda é em breve")
-	p.concluidas = {"fluidos": true, "automacao": true}
-	verificar(not p.disponivel("bomba_agua"), "em breve não se pesquisa")
+	verificar(not p.jogavel("escavar_canal"), "escavação de canal ainda é em breve")
+	p.concluidas = {"fluidos": true, "automacao": true, "bomba_agua": true}
+	verificar(not p.disponivel("escavar_canal"), "em breve não se pesquisa")
 
 
 func test_sem_ciclos() -> void:

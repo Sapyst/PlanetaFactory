@@ -2377,6 +2377,54 @@
   "estudo": "estudo_canos.py",
   "modelo": "res://assets/modelos/logistica/canos/bomba.glb"
  },
+ "bomba_agua": {
+  "nome": "bomba_agua",
+  "categoria": "logistica/canos",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Bomba d'água 2×2: estação de captação encostada na água (a tomada, com a grade de barras, fica ao sul). Tira 40 de água/s e solta pelo cano da borda norte; água suja na tomada rende menos.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_SAI_N1",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     1.0,
+     0.35
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 8981,
+  "dims": [
+   2.0,
+   2.453,
+   2.994
+  ],
+  "anima": true,
+  "estudo": "estudo_bomba_agua.py",
+  "modelo": "res://assets/modelos/logistica/canos/bomba_agua.glb"
+ },
  "cano_cruz": {
   "nome": "cano_cruz",
   "categoria": "logistica/canos",
@@ -2769,6 +2817,102 @@
   "anima": false,
   "estudo": "estudo_canos.py",
   "modelo": "res://assets/modelos/logistica/canos/cano_t.glb"
+ },
+ "coletor_chuva": {
+  "nome": "coletor_chuva",
+  "categoria": "logistica/canos",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Coletor de chuva 2×2: flor de chapa (dez pétalas-calha com pistões) sobre um tanque de 2.000. Até 25 de água/s com chuva forte, nada no seco; solta pelo cano da borda sul.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_SAI_S1",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     -1.0,
+     0.35
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 5738,
+  "dims": [
+   1.985,
+   1.994,
+   3.581
+  ],
+  "anima": true,
+  "estudo": "estudo_coletor_chuva.py",
+  "modelo": "res://assets/modelos/logistica/canos/coletor_chuva.glb"
+ },
+ "condensador_neblina": {
+  "nome": "condensador_neblina",
+  "categoria": "logistica/canos",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Condensador de neblina 2×2: telas de malha, serpentina fria, ventiladores e compressor (80 kW). Até 12 de água/s com neblina; solta pelo cano da borda sul.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_SAI_S0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     -0.5,
+     -1.0,
+     0.28
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 9553,
+  "dims": [
+   2.0,
+   1.984,
+   2.232
+  ],
+  "anima": true,
+  "estudo": "estudo_condensador_neblina.py",
+  "modelo": "res://assets/modelos/logistica/canos/condensador_neblina.glb"
  },
  "divisor": {
   "nome": "divisor",
@@ -6180,7 +6324,7 @@
    2,
    2
   ],
-  "descricao": "filtro de água: três colunas de vidro com água limpa, coletor por cima e bomba de impulsor que gira; tomada d'água pelo ralo da borda sul.",
+  "descricao": "filtro de água: três colunas de vidro com água limpa, coletor por cima e bomba de impulsor que gira; tomada d'água pelo ralo da borda sul; com a pesquisa \"Filtro que devolve água\", solta água limpa pelo ramal da borda norte.",
   "ocupa_canto": false,
   "partes": [
    {
@@ -6193,7 +6337,23 @@
     ]
    }
   ],
-  "portas": [],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_SAI_N1",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     1.0,
+     0.35
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
   "terminais": [
    [
     -0.85,
@@ -6216,7 +6376,7 @@
     0.372
    ]
   ],
-  "tris": 7771,
+  "tris": 7736,
   "dims": [
    2.18,
    2.465,
@@ -6653,6 +6813,54 @@
   "anima": true,
   "estudo": "estudo_refinador.py",
   "modelo": "res://assets/modelos/maquinas/refinador.glb"
+ },
+ "supressor_fogo": {
+  "nome": "supressor_fogo",
+  "categoria": "maquinas",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Supressor de incêndio 1×1: canhão monitor numa torre giratória com sensores de fumaça e calor. Com água pelo cano (leste), apaga fogo num raio de 8 m e molha a vegetação em volta.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_ENT_L0",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     0.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 6412,
+  "dims": [
+   1.002,
+   1.002,
+   1.341
+  ],
+  "anima": true,
+  "estudo": "estudo_supressor_fogo.py",
+  "modelo": "res://assets/modelos/maquinas/supressor_fogo.glb"
  },
  "terraplenagem": {
   "nome": "terraplenagem",

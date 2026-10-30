@@ -1,0 +1,47 @@
+{
+ "nome": "bomba_agua",
+ "categoria": "logistica/canos",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Bomba d'água 2×2: estação de captação encostada na água (a tomada, com a grade de barras, fica ao sul). Tira 40 de água/s e solta pelo cano da borda norte; água suja na tomada rende menos.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_SAI_N1",
+   "tipo": "FLUIDO",
+   "io": "SAI",
+   "pos": [
+    0.5,
+    1.0,
+    0.35
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  }
+ ],
+ "tris": 8981,
+ "dims": [
+  2.0,
+  2.453,
+  2.994
+ ],
+ "anima": true,
+ "estudo": "estudo_bomba_agua.py"
+}
