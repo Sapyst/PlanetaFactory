@@ -8,6 +8,8 @@ extends Node
 ##   _cristal  pulsa em escala (extrator)   _braco    vai e volta em Y (montadora)
 ##   _antena   gira (laboratório)           _cabecote sobe/desce (bomba)
 ##   _giro/_braco1/_braco2/_garra           braço mecânico (pega atrás, solta na frente)
+##   _estagio2/_estagio3                    braço 2 telescópico (braço longo: estica no eixo dele)
+##   _camisa/_haste                         pistão de elevação da lança (camisa no giro, haste no braço 1)
 ##   _giro/_canhao                          torre (mira `alvo`)
 ##   _helice   gira no eixo da nacele (turbina eólica; `ritmo` = vento)
 ##   _nacele   vira devagar até a hélice encarar o vento (`rumo_vento`: para onde o vento sopra, na grade)
@@ -143,11 +145,29 @@ func _braco_mecanico() -> void:
 	# giro: origem fica atrás (π), destino na frente (0); a volta desfaz o mesmo caminho
 	var ang := PI * (1.0 - gira) if ida else PI * gira
 	_gira("giro", ang)
-	var sol := _resolver(r, h)
+	h += float(_ik.dz)
+	var sol := _resolver_telescopico(r, h) if tem("estagio2") else _resolver(r, h)
 	var b1: Transform3D = _base["braco1"]
 	(_partes["braco1"] as Node3D).transform = Transform3D(Basis(Vector3.RIGHT, sol.x) * b1.basis, b1.origin)
 	var b2: Transform3D = _base["braco2"]
 	(_partes["braco2"] as Node3D).transform = Transform3D(Basis(Vector3.RIGHT, sol.y) * b2.basis, b2.origin)
+	if tem("estagio2"):
+		# cada estágio corre metade da extensão para a frente do braço 2 (Blender +y = −z local)
+		var ext := (float(_ik.l2_atual) - float(_ik.l2)) * 0.5
+		for st in ["estagio2", "estagio3"]:
+			if tem(st):
+				_desloca(st, Vector3(0, 0, -ext))
+	if tem("camisa") and tem("haste"):
+		# pistão da lança: o olhal da haste anda com o braço 1; camisa e haste miram uma na outra
+		var sh: Vector2 = _ik.ombro
+		var olhal: Vector2 = _ik.olhal
+		var pino: Vector2 = _ik.pino
+		var p: Vector2 = sh + (olhal - sh).rotated(sol.x)
+		var th := (p - pino).angle() - float(_ik.th0)
+		var bc: Transform3D = _base["camisa"]
+		(_partes["camisa"] as Node3D).transform = Transform3D(Basis(Vector3.RIGHT, th) * bc.basis, bc.origin)
+		var bh: Transform3D = _base["haste"]
+		(_partes["haste"] as Node3D).transform = Transform3D(Basis(Vector3.RIGHT, th - sol.x) * bh.basis, bh.origin)
 	if tem("garra"):
 		var bg: Transform3D = _base["garra"]
 		(_partes["garra"] as Node3D).transform = Transform3D(Basis(Vector3.RIGHT, -(sol.x + sol.y)) * bg.basis, bg.origin)
@@ -162,6 +182,34 @@ func _preparar_ik() -> void:
 	var el: Vector2 = piv.get("braco2", Vector2(0.1, 0.66))
 	var wr: Vector2 = piv.get("garra", Vector2(0.3, 0.32))
 	_ik = {"ombro": sh, "l1": (el - sh).length(), "l2": (wr - el).length(), "f1": (el - sh).angle(), "f2": (wr - el).angle()}
+	_ik.l2_atual = _ik.l2
+	# garra do modelo: quanto o pulso desce do alvo (o alvo é a altura do pulso da garra antiga) e onde o item fica
+	var g: Dictionary = Registro.modelos.get(modelo, {}).get("garra", {})
+	_ik.dz = float(g.get("pulso_dz", 0.0))
+	_ik.item = float(g.get("item", 0.06))
+	if piv.has("camisa") and piv.has("haste"):
+		var pino: Vector2 = piv.camisa
+		var olhal: Vector2 = piv.haste
+		_ik.pino = pino
+		_ik.olhal = olhal
+		_ik.th0 = (olhal - pino).angle()
+
+
+## Braço longo (braço 2 telescópico): a lança deita conforme a distância (85° perto → 15° no alcance de 2 tiles) e o
+## braço 2 estica o que falta até o pulso (de l2 recolhido até l2 + 2 estágios de EXT_ESTAGIO).
+const EXT_ESTAGIO := 0.40
+
+
+func _resolver_telescopico(r: float, h: float) -> Vector2:
+	var sh: Vector2 = _ik.ombro
+	var l1: float = _ik.l1
+	var f1 := lerpf(deg_to_rad(85.0), deg_to_rad(15.0), clampf((r - 0.36) / 1.64, 0.0, 1.0))
+	var el := sh + Vector2(cos(f1), sin(f1)) * l1
+	var v := Vector2(r, h) - el
+	_ik.l2_atual = clampf(v.length(), float(_ik.l2), float(_ik.l2) + 2.0 * EXT_ESTAGIO)
+	var r1 := f1 - float(_ik.f1)
+	var r2abs := v.angle() - float(_ik.f2)
+	return Vector2(r1, r2abs - r1)
 
 
 ## Ângulos (rot. do elo 1, rot. relativa do elo 2) para o pulso ir a (distância, altura); cotovelo para cima.
@@ -181,7 +229,9 @@ func _resolver(r: float, h: float) -> Vector2:
 func ponto_garra() -> Vector3:
 	if not tem("garra"):
 		return Vector3.INF
-	return (_partes["garra"] as Node3D).global_transform * Vector3(0, -0.06, 0)
+	if _ik.is_empty():
+		_preparar_ik()
+	return (_partes["garra"] as Node3D).global_transform * Vector3(0, -float(_ik.item), 0)
 
 
 func _mirar() -> void:

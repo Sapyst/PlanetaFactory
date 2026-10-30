@@ -81,11 +81,11 @@
    ]
   }
  ],
- "tris": 260,
+ "tris": 2828,
  "dims": [
   1.0,
   1.0,
-  0.61
+  0.566
  ],
  "materiais": [
   "P_Cristal",
@@ -93,5 +93,7 @@
   "P_Esteira",
   "P_Faixa",
   "P_Metal"
- ]
+ ],
+ "anima": true,
+ "estudo": "estudo_esteira_acessorios.py"
 }

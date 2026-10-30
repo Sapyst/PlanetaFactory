@@ -51,16 +51,18 @@
    ]
   }
  ],
- "tris": 300,
+ "tris": 848,
  "dims": [
-  0.96,
-  0.96,
-  0.225
+  0.841,
+  0.841,
+  0.168
  ],
  "materiais": [
   "P_Escuro",
   "P_Esteira",
   "P_Faixa",
   "P_Metal"
- ]
+ ],
+ "anima": false,
+ "estudo": "conv_esteiras_bracos.py"
 }

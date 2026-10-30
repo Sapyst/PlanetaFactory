@@ -1632,36 +1632,36 @@
     "nome": "giro",
     "pai": "base",
     "pivo": [
-     0.0,
-     0.0,
-     0.22
+     0,
+     0,
+     0.225
     ]
    },
    {
     "nome": "braco1",
     "pai": "giro",
     "pivo": [
-     0.0,
-     0.0,
-     0.36
+     0,
+     0,
+     0.37
     ]
    },
    {
     "nome": "braco2",
     "pai": "braco1",
     "pivo": [
-     0.0,
+     0,
      0.1,
-     0.91
+     0.92
     ]
    },
    {
     "nome": "garra",
     "pai": "braco2",
     "pivo": [
-     0.0,
+     0,
      0.286,
-     0.321
+     0.3305
     ]
    }
   ],
@@ -1701,15 +1701,21 @@
    [
     0.33,
     -0.33,
-    0.18
+    0.19
    ]
   ],
-  "tris": 252,
+  "tris": 1962,
   "dims": [
-   0.677,
-   0.726,
-   0.96
+   0.686,
+   0.752,
+   0.98
   ],
+  "garra": {
+   "pulso_dz": -0.044,
+   "item": 0.086
+  },
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/bracos/braco.glb"
  },
  "braco_longo": {
@@ -1736,36 +1742,72 @@
     "nome": "giro",
     "pai": "base",
     "pivo": [
-     0.0,
-     0.0,
-     0.22
+     0,
+     0,
+     0.36
     ]
    },
    {
     "nome": "braco1",
     "pai": "giro",
     "pivo": [
-     0.0,
-     0.0,
-     0.36
+     0,
+     0,
+     0.57
     ]
    },
    {
     "nome": "braco2",
     "pai": "braco1",
     "pivo": [
-     0.0,
-     0.1,
-     1.41
+     0,
+     0.2,
+     1.33
+    ]
+   },
+   {
+    "nome": "estagio2",
+    "pai": "braco2",
+    "pivo": [
+     0,
+     0.2,
+     1.33
+    ]
+   },
+   {
+    "nome": "estagio3",
+    "pai": "estagio2",
+    "pivo": [
+     0,
+     0.2,
+     1.33
     ]
    },
    {
     "nome": "garra",
-    "pai": "braco2",
+    "pai": "estagio3",
     "pivo": [
-     0.0,
-     0.436,
-     0.346
+     0,
+     0.84,
+     1.33
+    ]
+   },
+   {
+    "nome": "camisa",
+    "pai": "giro",
+    "pivo": [
+     0,
+     0.16,
+     0.45
+    ]
+   },
+   {
+    "nome": "haste",
+    "pai": "braco1",
+    "pivo": [
+     0,
+     -0.1,
+     1.05
     ]
    }
   ],
@@ -1808,12 +1850,18 @@
     0.18
    ]
   ],
-  "tris": 252,
+  "tris": 3555,
   "dims": [
-   0.677,
-   0.876,
-   1.46
+   0.88,
+   1.362,
+   1.462
   ],
+  "garra": {
+   "pulso_dz": -0.06,
+   "item": 0.07
+  },
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/bracos/braco_longo.glb"
  },
  "braco_rapido": {
@@ -1840,36 +1888,36 @@
     "nome": "giro",
     "pai": "base",
     "pivo": [
-     0.0,
-     0.0,
-     0.22
+     0,
+     0,
+     0.225
     ]
    },
    {
     "nome": "braco1",
     "pai": "giro",
     "pivo": [
-     0.0,
-     0.0,
-     0.36
+     0,
+     0,
+     0.4
     ]
    },
    {
     "nome": "braco2",
     "pai": "braco1",
     "pivo": [
-     0.0,
-     0.1,
-     0.91
+     0,
+     0,
+     0.95
     ]
    },
    {
     "nome": "garra",
     "pai": "braco2",
     "pivo": [
-     0.0,
-     0.286,
-     0.321
+     0,
+     0.62,
+     0.95
     ]
    }
   ],
@@ -1909,15 +1957,21 @@
    [
     0.33,
     -0.33,
-    0.18
+    0.222
    ]
   ],
-  "tris": 272,
+  "tris": 3110,
   "dims": [
-   0.677,
-   0.726,
-   0.96
+   0.8,
+   1.199,
+   1.028
   ],
+  "garra": {
+   "pulso_dz": -0.045,
+   "item": 0.105
+  },
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/bracos/braco_rapido.glb"
  },
  "bomba": {
@@ -2355,12 +2409,14 @@
     ]
    }
   ],
-  "tris": 260,
+  "tris": 2828,
   "dims": [
    1.0,
    1.0,
-   0.61
+   0.566
   ],
+  "anima": true,
+  "estudo": "estudo_esteira_acessorios.py",
   "modelo": "res://assets/modelos/logistica/esteira/divisor.glb"
  },
  "esteira_curva_dir": {
@@ -2416,12 +2472,14 @@
     ]
    }
   ],
-  "tris": 300,
+  "tris": 848,
   "dims": [
-   0.96,
-   0.96,
-   0.225
+   0.841,
+   0.841,
+   0.168
   ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_curva_dir.glb"
  },
  "esteira_curva_esq": {
@@ -2477,12 +2535,14 @@
     ]
    }
   ],
-  "tris": 300,
+  "tris": 848,
   "dims": [
-   0.96,
-   0.96,
-   0.225
+   0.841,
+   0.841,
+   0.168
   ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_curva_esq.glb"
  },
  "esteira_fim": {
@@ -2523,12 +2583,14 @@
     ]
    }
   ],
-  "tris": 100,
+  "tris": 770,
   "dims": [
-   0.92,
-   0.96,
-   0.24
+   0.75,
+   1.0,
+   0.236
   ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_fim.glb"
  },
  "esteira_inicio": {
@@ -2569,12 +2631,14 @@
     ]
    }
   ],
-  "tris": 110,
+  "tris": 920,
   "dims": [
-   0.92,
-   0.96,
-   0.38
+   0.769,
+   1.0,
+   0.204
   ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_inicio.glb"
  },
  "esteira_juncao": {
@@ -2630,12 +2694,14 @@
     ]
    }
   ],
-  "tris": 108,
+  "tris": 844,
   "dims": [
-   0.92,
+   0.75,
    1.25,
    0.315
   ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_juncao.glb"
  },
  "esteira_rampa": {
@@ -2691,12 +2757,14 @@
     ]
    }
   ],
-  "tris": 48,
+  "tris": 676,
   "dims": [
-   0.92,
-   1.0,
-   0.685
+   0.75,
+   1.055,
+   0.666
   ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_rampa.glb"
  },
  "esteira_reta": {
@@ -2752,12 +2820,14 @@
     ]
    }
   ],
-  "tris": 48,
+  "tris": 526,
   "dims": [
-   0.92,
+   0.75,
    1.0,
-   0.225
+   0.168
   ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_reta.glb"
  },
  "esteira_tunel_entrada": {
@@ -2798,12 +2868,14 @@
     ]
    }
   ],
-  "tris": 132,
+  "tris": 1671,
   "dims": [
-   0.92,
-   0.96,
-   0.475
+   0.941,
+   1.004,
+   0.606
   ],
+  "anima": false,
+  "estudo": "estudo_esteira_acessorios.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_tunel_entrada.glb"
  },
  "esteira_tunel_saida": {
@@ -2844,12 +2916,14 @@
     ]
    }
   ],
-  "tris": 132,
+  "tris": 1674,
   "dims": [
-   0.92,
-   0.96,
-   0.475
+   0.942,
+   1.002,
+   0.606
   ],
+  "anima": false,
+  "estudo": "estudo_esteira_acessorios.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_tunel_saida.glb"
  },
  "juncao": {
@@ -2935,12 +3009,14 @@
     ]
    }
   ],
-  "tris": 260,
+  "tris": 2240,
   "dims": [
    1.0,
    1.0,
-   0.61
+   0.55
   ],
+  "anima": true,
+  "estudo": "estudo_esteira_acessorios.py",
   "modelo": "res://assets/modelos/logistica/esteira/juncao.glb"
  },
  "pilar_base": {

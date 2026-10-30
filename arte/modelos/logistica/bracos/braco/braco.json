@@ -22,36 +22,36 @@
    "nome": "giro",
    "pai": "base",
    "pivo": [
-    0.0,
-    0.0,
-    0.22
+    0,
+    0,
+    0.225
    ]
   },
   {
    "nome": "braco1",
    "pai": "giro",
    "pivo": [
-    0.0,
-    0.0,
-    0.36
+    0,
+    0,
+    0.37
    ]
   },
   {
    "nome": "braco2",
    "pai": "braco1",
    "pivo": [
-    0.0,
+    0,
     0.1,
-    0.91
+    0.92
    ]
   },
   {
    "nome": "garra",
    "pai": "braco2",
    "pivo": [
-    0.0,
+    0,
     0.286,
-    0.321
+    0.3305
    ]
   }
  ],
@@ -91,19 +91,25 @@
   [
    0.33,
    -0.33,
-   0.18
+   0.19
   ]
  ],
- "tris": 252,
+ "tris": 1962,
  "dims": [
-  0.677,
-  0.726,
-  0.96
+  0.686,
+  0.752,
+  0.98
  ],
  "materiais": [
   "P_Cobre",
   "P_Escuro",
   "P_Faixa",
   "P_Metal"
- ]
+ ],
+ "garra": {
+  "pulso_dz": -0.044,
+  "item": 0.086
+ },
+ "anima": false,
+ "estudo": "conv_esteiras_bracos.py"
 }

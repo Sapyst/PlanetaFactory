@@ -36,11 +36,11 @@
    ]
   }
  ],
- "tris": 132,
+ "tris": 1671,
  "dims": [
-  0.92,
-  0.96,
-  0.475
+  0.941,
+  1.004,
+  0.606
  ],
  "materiais": [
   "P_Aco",
@@ -48,5 +48,7 @@
   "P_Escuro",
   "P_Esteira",
   "P_Faixa"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_esteira_acessorios.py"
 }
