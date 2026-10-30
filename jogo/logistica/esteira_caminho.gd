@@ -17,6 +17,7 @@ var livre_fim := 1.0          ## distância do último item até a entrada
 var proximo: EsteiraCaminho = null   ## para onde os itens saem (outra esteira); se nulo, `saida` decide
 var saida: Callable           ## func(item) -> bool: entrega a máquina/braço; true se aceitou
 var _primeiro_movel := 0      ## índice do primeiro espaço que pode encolher (cache)
+var saidos := 0               ## itens entregues pela saída desde sempre (o sensor de esteira conta por ele)
 
 
 func _init(p_comprimento := 1.0, p_velocidade := 1.875) -> void:
@@ -94,6 +95,18 @@ func posicoes() -> PackedFloat32Array:
 	return out
 
 
+## Quantos itens já passaram do ponto `m` (distância da saída): os que estão entre ele e a saída.
+func a_frente(m: float) -> int:
+	var acum := 0.0
+	var n := 0
+	for e in espacos:
+		acum += e
+		if acum >= m:
+			break
+		n += 1
+	return n
+
+
 ## Retira o item mais perto de `pos` (até `raio`). Devolve "" se não houver.
 func retirar_perto(pos: float, raio := 0.5) -> String:
 	var ps := posicoes()
@@ -125,6 +138,7 @@ func tick(dt: float) -> void:
 		if espacos[0] <= 1e-6:
 			var e0 := espacos[0]
 			if _entregar():
+				saidos += 1
 				itens.remove_at(0)
 				espacos.remove_at(0)
 				if itens.is_empty():

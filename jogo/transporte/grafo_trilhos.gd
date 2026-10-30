@@ -4,14 +4,20 @@ extends RefCounted
 ## (pontos no meio da borda de tile). Duas peças se ligam quando as pontas coincidem.
 ## Rotas por A* (custo = comprimento). Sinais dividem a malha em blocos; um trem reserva os blocos da rota
 ## à frente e só entra num bloco livre — dois trens nunca ocupam o mesmo bloco.
+## Sinal em cadeia (pesquisa trem_automatico) divide igual, mas o trem só passa por ele se também conseguir a SAÍDA:
+## os blocos da rota até o próximo sinal comum e o bloco depois dele (Trem._trecho_cadeia) — ninguém para no meio
+## do cruzamento.
 
 var arestas: Dictionary = {}       ## ponto (Vector2, chave arredondada) → Array[{para: Vector2, custo: float, peca: int}]
 var pecas: Array[Dictionary] = []  ## {nome, a: Vector2, b: Vector2, comprimento, bloco, pontos: PackedVector2Array (de a até b), estrutura}
 var sinais: Dictionary = {}        ## ponto → true (sinal na ponta)
+var cadeia: Dictionary = {}        ## ponto → true (o sinal da ponta é em cadeia)
 var reserva: Dictionary = {}       ## bloco → id do trem
 var estacoes: Array[Dictionary] = []   ## {estrutura, ponto: Vector2 (parada no eixo da linha), peca, nome}
 
 const SEG_CURVA := 12
+## Peças retas de 1 tile (trem se põe nelas, sinal se encosta nelas): o trilho comum e o energizado (trem_eletrico).
+const RETOS := ["trilho_reto", "trilho_energizado"]
 
 
 static func chave(p: Vector2) -> Vector2:
@@ -35,8 +41,10 @@ func adicionar_peca(nome: String, a: Vector2, b: Vector2, comprimento: float, po
 	return id
 
 
-func adicionar_sinal(p: Vector2) -> void:
+func adicionar_sinal(p: Vector2, em_cadeia := false) -> void:
 	sinais[chave(p)] = true
+	if em_cadeia:
+		cadeia[chave(p)] = true
 
 
 ## Recalcula blocos: peças ligadas sem atravessar sinal formam um bloco.
@@ -121,17 +129,18 @@ func liberar(trem: int, bloco := -1) -> void:
 static func de_mapa(mapa: MapaOcupacao) -> GrafoTrilhos:
 	var g := GrafoTrilhos.new()
 	var sinais_pend: Array[Vector2i] = []
+	var cadeia_pend: Dictionary = {}     ## tile do sinal → true (sinal em cadeia)
 	for id in mapa.estruturas:
 		var e: Dictionary = mapa.estruturas[id]
 		var area := Registro.area(e.nome)
 		var c := Grade.centro_da_area(e.minimo, area, e.rot)
 		match e.nome:
-			"trilho_reto", "trilho_curva", "trilho_fim":
+			"trilho_reto", "trilho_curva", "trilho_fim", "trilho_energizado":
 				var portas: Array = Registro.modelos[e.nome].portas
 				var a: Vector2 = Grade.porta_no_mundo(portas[0], e.minimo, area, e.rot).pos
 				var b: Vector2
 				var pts := PackedVector2Array()
-				if e.nome == "trilho_reto":
+				if e.nome in RETOS:
 					b = Grade.porta_no_mundo(portas[1], e.minimo, area, e.rot).pos
 				elif e.nome == "trilho_fim":
 					b = c + Grade.girar(Vector2(0, 0.30), e.rot)          # para-choque
@@ -147,17 +156,19 @@ static func de_mapa(mapa: MapaOcupacao) -> GrafoTrilhos:
 					pts[SEG_CURVA] = chave(b)
 				var comp := 2.5 * PI / 2.0 if e.nome == "trilho_curva" else a.distance_to(b)
 				g.adicionar_peca(e.nome, a, b, comp, pts, id, e.nome == "trilho_fim")
-			"sinal_trem":
+			"sinal_trem", "sinal_cadeia":
 				sinais_pend.append(e.minimo)
+				if e.nome == "sinal_cadeia":
+					cadeia_pend[e.minimo] = true
 			"estacao":
 				g.estacoes.append({"estrutura": id, "ponto": c + Grade.girar(Vector2(-1.5, 0), e.rot), "peca": -1})
 	for t in sinais_pend:
 		for d in Grade.DIRECOES:
 			var v: int = mapa.tiles.get(t + d, -1)
-			if v >= 0 and mapa.estruturas[v].nome == "trilho_reto":
+			if v >= 0 and mapa.estruturas[v].nome in RETOS:
 				var e: Dictionary = mapa.estruturas[v]
 				var p: Dictionary = Registro.modelos["trilho_reto"].portas[0]
-				g.adicionar_sinal(Grade.porta_no_mundo(p, e.minimo, Vector2i.ONE, e.rot).pos)
+				g.adicionar_sinal(Grade.porta_no_mundo(p, e.minimo, Vector2i.ONE, e.rot).pos, cadeia_pend.has(t))
 				break
 	for est in g.estacoes:
 		est.peca = g.peca_no_ponto(est.ponto).get("peca", -1)

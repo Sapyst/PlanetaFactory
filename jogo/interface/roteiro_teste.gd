@@ -45,6 +45,7 @@ func _ready() -> void:
 		"clima": _roteiro_clima()
 		"drones": _roteiro_drones()
 		"limpeza2": _roteiro_limpeza2()
+		"lote16": _roteiro_lote16()
 		"chegada":                                     # -- novo roteiro chegada abertura --fixed-fps 30: a cápsula cai e vira o núcleo
 			for q in [30, 150, 225, 235, 260, 330, 420, 450, 470, 490]:
 				em(q, func():
@@ -786,6 +787,155 @@ func _roteiro_agua() -> void:
 		print("AGUA estados ", est)
 		print("AGUA redes ", f.redes_fluido.map(func(rd): return "%s %.0f/%.0f" % [rd.fluido, rd.qtd, rd.cap]))
 		print("AGUA fogo restante ", cena.ambiente.fogo.size(), " jatos ", f.jatos))
+
+
+## Lote 16 (trilhos, drones e lógica) sem janela: num chão plano monta uma linha com trilho energizado, sinal em
+## cadeia, duas estações com bomba de estação, cano e tanque; põe um trem elétrico e um trem-tanque; uma esteira com
+## sensor e um comparador mandando num braço; sensor de tanque e válvula entre duas redes; baú de estoque; braço
+## quântico com alcance 3. Abre o painel de cada peça nova e imprime o estado. `-- modo demo roteiro lote16`.
+func _roteiro_lote16() -> void:
+	var ids := {}
+	var w := [Vector2i(9999, 0)]
+	em(2, func():
+		Sessao.config.fps = false
+		var g := Grade.gerador
+		var m: MapaOcupacao = cena.mapa
+		for r in range(40, 300, 3):
+			for k in 48:
+				var t := Vector2i((Vector2.from_angle(k * TAU / 48.0) * r).round())
+				if w[0].x != 9999:
+					break
+				var ok := true
+				for i in range(-2, 22):
+					for j in range(-2, 34):
+						var q := t + Vector2i(i, j)
+						if g.terreno(q) != GeradorMundo.Terreno.TERRA or g.nivel(q) != g.nivel(t) or g.em_encosta(q) or m.tiles.has(q):
+							ok = false
+				if ok:
+					w[0] = t
+		var o: Vector2i = w[0]
+		print("LOTE16 chão ", o)
+		if o.x == 9999:
+			return
+		_sem_ninhos(o + Vector2i(10, 16))
+		for i in range(-2, 22):
+			for j in range(-2, 34):
+				m.limpar_obstaculo(o + Vector2i(i, j))
+		var con: Construtor = cena.construtor
+		var p := func(pl: Array[Dictionary]) -> void: cena.sincronizar(con.executar(pl))
+		var leste := Construtor.rot_do_fluxo(1)
+		# ferrovia: x = o.x, de y 0 a 31, energizada no meio; sinal em cadeia; estações A (y 22) e B (y 4)
+		p.call(con.plano_peca("trilho_fim", o + Vector2i(0, 0), 2))
+		p.call(con.plano_linha("trilho_reto", o + Vector2i(0, 1), o + Vector2i(0, 9), 0))
+		p.call(con.plano_linha("trilho_energizado", o + Vector2i(0, 10), o + Vector2i(0, 20), 0))
+		p.call(con.plano_linha("trilho_reto", o + Vector2i(0, 21), o + Vector2i(0, 30), 0))
+		p.call(con.plano_peca("trilho_fim", o + Vector2i(0, 31), 0))
+		p.call(con.plano_peca("sinal_cadeia", o + Vector2i(-1, 14), 0))
+		p.call(con.plano_peca("sinal_trem", o + Vector2i(-1, 17), 0))
+		p.call(con.plano_peca("estacao", o + Vector2i(1, 22), 0))
+		p.call(con.plano_peca("estacao", o + Vector2i(1, 4), 0))
+		p.call(con.plano_peca("bomba_estacao", o + Vector2i(3, 23), leste))
+		p.call(con.plano_linha("cano", o + Vector2i(4, 23), o + Vector2i(5, 23), leste))
+		p.call(con.plano_peca("tanque", o + Vector2i(6, 23), 0))
+		p.call(con.plano_peca("bomba_estacao", o + Vector2i(3, 5), leste))
+		p.call(con.plano_linha("cano", o + Vector2i(4, 5), o + Vector2i(5, 5), leste))
+		p.call(con.plano_peca("tanque", o + Vector2i(6, 5), 0))
+		p.call(con.plano_peca("gerador", o + Vector2i(9, 14), 0))
+		for y in [6, 12, 18, 24]:
+			p.call(con.plano_peca("poste_energia", o + Vector2i(2, y), 0))
+		p.call(con.plano_peca("poste_energia", o + Vector2i(7, 14), 0))
+		p.call(con.plano_peca("poste_energia", o + Vector2i(11, 10), 0))
+		p.call(con.plano_peca("poste_energia", o + Vector2i(14, 15), 0))
+		p.call(con.plano_peca("poste_energia", o + Vector2i(11, 5), 0))
+		# lógica: esteira com sensor e comparador mandando num braço; sensor de tanque + válvula entre duas redes
+		p.call(con.plano_linha("esteira", o + Vector2i(10, 2), o + Vector2i(18, 2), leste))
+		p.call(con.plano_peca("sensor_esteira", o + Vector2i(14, 1), 0))
+		p.call(con.plano_peca("bau", o + Vector2i(12, 4), 0))
+		p.call(con.plano_peca("braco", o + Vector2i(12, 3), 0))
+		p.call(con.plano_peca("comparador", o + Vector2i(13, 3), 0))
+		p.call(con.plano_peca("cano_reto", o + Vector2i(10, 8), leste))
+		p.call(con.plano_peca("sensor_tanque", o + Vector2i(11, 8), leste))
+		p.call(con.plano_peca("valvula", o + Vector2i(12, 8), leste))
+		p.call(con.plano_peca("cano_reto", o + Vector2i(13, 8), leste))
+		p.call(con.plano_peca("bau_estoque", o + Vector2i(16, 10), 0))
+		p.call(con.plano_peca("bau", o + Vector2i(16, 13), 0))
+		p.call(con.plano_peca("braco_quantico", o + Vector2i(16, 16), 0))
+		p.call(con.plano_peca("bau", o + Vector2i(16, 17), 0))
+		for id in m.estruturas:
+			ids[m.estruturas[id].nome] = id
+		var bq: int = ids.get("braco_quantico", -1)
+		if bq >= 0:
+			m.estruturas[bq]["alcance"] = 3
+		p.call(con.plano_peca("trem_eletrico", o + Vector2i(0, 14), 0))
+		p.call(con.plano_peca("trem_tanque", o + Vector2i(0, 1), 0))
+		print("LOTE16 construiu ", ids.keys(), " trens ", cena.trens.map(func(t): return t.peca()))
+		cena.camera.alvo = Grade.centro_mundo(o + Vector2i(8, 14))
+		cena.camera.distancia = 26.0
+		cena.camera.posicionar())
+	em(6, func():
+		if w[0].x == 9999:
+			return
+		var f: Fabrica = cena.fabrica
+		f.reconstruir()
+		for id in f.combustivel:
+			f.combustivel[id] = 5000.0
+		var o: Vector2i = w[0]
+		if ids.has("bau_estoque"):
+			f.baus[ids.bau_estoque]["engrenagem"] = 20
+		var bq: int = ids.get("braco_quantico", -1)
+		if bq >= 0:
+			var de: int = cena.mapa.tiles.get(o + Vector2i(16, 13), -1)
+			if de >= 0:
+				f.baus[de]["placa_ferro"] = 64
+		var est: Dictionary = cena.estoques
+		for e in cena.grafo.estacoes:
+			Fabrica.tanque_estacao(est[e.estrutura])
+		var ea: int = cena.mapa.tiles.get(o + Vector2i(1, 22), -1)
+		if ea >= 0:
+			est[ea].fluido.modo = "carregar"
+		var r := f.rede_de(cena.mapa.tiles.get(o + Vector2i(5, 23), -1))
+		if not r.is_empty():
+			r.fluido = "agua"
+			r.qtd = 20000.0
+		var eb: int = cena.mapa.tiles.get(o + Vector2i(1, 4), -1)
+		for t in cena.trens:
+			if t.peca() != "trem":                    # os da linha nova rodam entre as duas estações dela
+				t.rota.assign([ea, eb])
+				t.condicoes[str(ea)] = "tempo"
+				t.planejar()
+		var rs := f.rede_de(cena.mapa.tiles.get(o + Vector2i(10, 8), -1))
+		if not rs.is_empty():
+			rs.fluido = "seiva"
+			rs.qtd = 250.0)
+	for q in range(10, 400, 8):                       # itens passando pelo sensor de esteira
+		em(q, func():
+			if w[0].x == 9999:
+				return
+			var t: Vector2i = w[0] + Vector2i(10, 2)
+			if cena.fabrica._no_tile.has(t):
+				var a: Array = cena.fabrica._no_tile[t]
+				cena.fabrica.caminhos[a[0]].esteira.inserir_na_entrada("pedra"))
+	var k := 0
+	for nome in ["sinal_cadeia", "bomba_estacao", "trilho_energizado", "sensor_esteira", "sensor_tanque", "comparador", "valvula",
+			"bau_estoque", "braco_quantico"]:
+		k += 1
+		em(30 + k * 20, func():
+			if ids.has(nome):
+				cena._sel = {"estrutura": ids[nome]}
+				cena._detalhe()
+				print("LOTE16 painel ", nome))
+	em(260, func():
+		for t in cena.trens:
+			cena._sel = {"trem": t.id}
+			cena._detalhe()
+			print("LOTE16 painel trem ", t.peca()))
+	em(890, func():
+		var f: Fabrica = cena.fabrica
+		print("LOTE16 trens ", cena.trens.map(func(t): return "%s %s v=%.1f vmax=%.1f fluido %.0f" % [t.peca(), Trem.Estado.keys()[t.estado], t.v, t.vel_max, t.fluido_qtd]))
+		print("LOTE16 canais ", f.canais, " desligados ", f.logica_off.keys(), " sensores ", f.sensores)
+		print("LOTE16 bombas ", f.bombeando, " válvulas ", f.valvula_passou, " estoques ", cena.estoques.values().map(func(e): return e.get("fluido", {})))
+		if ids.has("braco_quantico"):
+			print("LOTE16 braço quântico entregou ", f.bracos[ids.braco_quantico].entregues, " energia ", f.bracos[ids.braco_quantico].energia))
 
 
 ## Combate do meio (fase 2.4) sem janela: num chão plano longe do spawn monta lança-foguetes, artilharia, mina, muros de

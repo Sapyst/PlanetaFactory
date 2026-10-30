@@ -15,7 +15,7 @@ static func eh_braco(nome: String) -> bool:
 
 
 static func eh_cano(nome: String) -> bool:
-	return nome.begins_with("cano") or nome in ["bomba", "tanque"]
+	return nome.begins_with("cano") or nome in ["bomba", "tanque", "sensor_tanque", "valvula"]
 
 
 ## Quem tem aviso de porta solta: máquinas e o que recebe/entrega (não as próprias esteiras, canos, trilhos, braços).
@@ -29,6 +29,8 @@ static func frente_braco(e: Dictionary) -> Vector2i:
 
 
 static func costas_braco(e: Dictionary) -> Vector2i:
+	if Registro.estruturas.get(e.nome, {}).has("alcance_max"):          # braço quântico: alcance escolhido atrás
+		return Vector2i(e.minimo) - Grade.girar_i(Vector2i(0, 1), int(e.rot)) * Fabrica.alcance_origem(e)
 	return Vector2i(e.minimo) - Grade.girar_i(Vector2i(0, 1), int(e.rot)) * _alcance(e.nome)
 
 

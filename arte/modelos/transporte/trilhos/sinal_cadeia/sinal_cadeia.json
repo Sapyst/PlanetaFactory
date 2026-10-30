@@ -1,0 +1,31 @@
+{
+ "nome": "sinal_cadeia",
+ "categoria": "transporte/trilhos",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Sinal em cadeia (estudo_sinal_cadeia.py): fica no tile ao lado da linha, como o sinal de bloco; só libera a entrada se a saída do cruzamento (o bloco depois do próximo sinal) estiver livre.",
+ "ocupa_canto": false,
+ "portas": [],
+ "tris": 2151,
+ "dims": [
+  0.651,
+  0.696,
+  1.587
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": false,
+ "estudo": "estudo_sinal_cadeia.py"
+}

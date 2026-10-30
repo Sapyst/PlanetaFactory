@@ -1,0 +1,31 @@
+{
+ "nome": "comparador",
+ "categoria": "logica",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Comparador (estudo_comparador.py): balança de braço entre a esfera do valor do canal e os pesos do número; liga/desliga as máquinas, braços e bombas encostadas pelas tomadas de comando das 4 bordas.",
+ "ocupa_canto": false,
+ "portas": [],
+ "tris": 5130,
+ "dims": [
+  0.99,
+  0.99,
+  1.02
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_comparador.py"
+}

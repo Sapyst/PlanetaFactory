@@ -15,7 +15,7 @@ const FAMILIA_ESTEIRA := ["esteira_reta", "esteira_curva_dir", "esteira_curva_es
 const TUNEIS := ["esteira_tunel_entrada", "esteira_tunel_saida"]
 const FAMILIA_CANO := ["cano_reto", "cano_curva"]
 ## Peças que se arrastam em linha reta (uma por tile, mesma rotação).
-const LINHA_RETA := ["muro_centro", "muro_tijolo", "muro_liga", "muro_escudo", "trilho_reto", "poste_energia"]
+const LINHA_RETA := ["muro_centro", "muro_tijolo", "muro_liga", "muro_escudo", "trilho_reto", "trilho_energizado", "poste_energia"]
 const PASSO_POSTE := 6     ## poste arrastado: um a cada N tiles (raio do fio 7,5)
 const HISTORICO := 50
 ## Classes de esteira (pesquisa logistica_3…): as MESMAS peças (reta, curvas, início, fim, junção, rampa, passagem) com
@@ -182,7 +182,7 @@ func _plano_linha(nome: String, a: Vector2i, b: Vector2i, rot: int) -> Array[Dic
 		return _plano_peca(nome, a, rot)
 	var cam := caminho_reto(a, b)
 	var d := direcao(cam[0], cam[1])
-	var r := rot_do_fluxo(d) if nome == "trilho_reto" else rot
+	var r := rot_do_fluxo(d) if nome in GrafoTrilhos.RETOS else rot
 	for i in cam.size():
 		if nome == "poste_energia" and i % PASSO_POSTE != 0 and i != cam.size() - 1:
 			continue
@@ -907,7 +907,7 @@ func _portas(e: Dictionary) -> Array[Dictionary]:
 ## Trem: vai em cima de um trilho reto já construído (fica na direção do trilho).
 func _item_trem(tile: Vector2i, nome := "trem") -> Dictionary:
 	var e := _estrutura_em(tile)
-	var ok: bool = not e.is_empty() and e.nome == "trilho_reto"
+	var ok: bool = not e.is_empty() and e.nome in GrafoTrilhos.RETOS
 	return {"nome": nome, "minimo": tile, "rot": e.rot if ok else 0, "motivo": "" if ok else "sem_trilho",
 			"acao": "trem", "id_antigo": -1}
 

@@ -28,6 +28,8 @@ Lista: ver docs/ARVORE_TECNOLOGIA.md (Estruturas: temos × precisamos) e arte/es
 
 ## Fase 3 — artes que faltam (lotes 16, 17, 13, 10, 14, 11), 1 por vez, mais enxutas no processo
 ## Fase 4 — inserir essas no jogo, 1 por vez, como na fase 2
+- [x] **Lote 16 (trilhos, drones e lógica)** — ver "Progresso das fases 3+4" abaixo.
+- [ ] Lote 17 (proliferação) → 13 (energia I) → 10 (produção I) → 14 (energia II) → 11 (produção II).
 
 ## Fase 5 — só no fim de TUDO (a árvore inteira funcional): fotos no jogo + baterias de testes
 Sapyst: "vai terminar literalmente toda a tech-tree e tudo mais. Faltando só as fotos com testes mesmo."
@@ -379,21 +381,77 @@ com a grade inteira + resultado dos testes), para ela não precisar abrir uma po
     rotas com condição — fase 3); (7) empilhador: a garra desenha um item só (a pilha não aparece); o contador de LEDs
     e a prensa/pinças ficam parados (sem animação do estudo); pega só o que já está na origem (não espera completar 4).
 
+### Progresso das fases 3+4
+- [x] **Lote 16: trilhos, drones e lógica** (estudos novos estudo_sinal_cadeia.py, estudo_bomba_estacao.py,
+      estudo_trilho_energizado.py, estudo_locomotiva_eletrica.py, estudo_sensor_esteira.py, estudo_sensor_tanque.py,
+      estudo_comparador.py, estudo_valvula.py, estudo_bau_estoque.py — os de lógica com a base comum lote16_base.py —
+      e o braço quântico do estudo_bracos_novos.py; conversão em arte/estudos/conv_lote16.py; testes
+      test_trem_automatico.gd, test_trem_eletrico.gd, test_rede_logica.gd, test_bau_estoque.gd, test_braco_quantico.gd
+      e test_vagao_tanque.gd refeito para a bomba; roteiro sem janela `-- modo demo roteiro lote16`). Pesquisas novas
+      em progressao.json (4): trem_automatico, trem_eletrico, rede_logica (jogáveis) e braco_quantico (travada:
+      `computacao_quantica` sem estudo); vagao_tanque passa a ser pesquisável e drones_logisticos libera o baú de estoque.
+      Categoria nova **Lógica** no menu. Cada estudo foi montado em cima do estudo aprovado da peça parecida (o script
+      roda o estudo-base e acrescenta o que é novo), no mesmo nível, sem fotos (conferido por vistas rápidas internas,
+      apagadas).
+  - **Sinal em cadeia** (trem_automatico): o sinal de bloco com cabeça de cadeia (3 LEDs violeta que correm / anel
+    vermelho), elos estampados, lidar da saída, módulo de cadeia e faixa violeta. Divide blocos como o sinal; o trem só
+    passa se reservar, tudo ou nada, os blocos até o próximo sinal comum e o bloco depois dele (`GrafoTrilhos.cadeia`,
+    `Trem._trecho_cadeia`). **Rotas com condição** no painel do trem (parada curta, 30 s, até encher, até esvaziar, por
+    estação; esperando, troca carga a cada 1 s). Destrava o vagão-tanque.
+  - **Bomba de estação** (vagao_tanque): bomba de lóbulos reversível com motor deitado, braço de carga com junta
+    giratória e acoplador de engate seco na borda das costas, boca de cano na frente. Faz o papel que o cano fazia (o
+    cano encostado direto não liga mais); 40 kW, vazão 1.000/s × energia; anima bombeando.
+  - **Trilho energizado** + **locomotiva elétrica** (trem_eletrico): via reta do estudo dos trilhos com terceiro trilho
+    em isoladores, tampa baixa (0,18 m: o estrado dos trens passa por cima) e eletroduto de alimentação com luz violeta
+    (terminal do fio); peças encostadas formam um trecho e um poste perto de uma energiza o trecho. A locomotiva do
+    estudo do trem sem o diesel, com caixa de resistores, buchas, sapatas coletoras por dentro da tampa e pintura
+    grafite azulada; peça **trem elétrico**: 2× velocidade e tração no trilho energizado com energia (puxa 400 kW),
+    1,5 m/s na bateria fora dele. A diesel agora polui andando (6 pontos/min por locomotiva).
+  - **Rede lógica** (rede_logica): sensor de esteira (ao lado da esteira; cortina de luz, apalpador, contador de
+    tambores; itens/min da média de 10 s), sensor de tanque (peça de cano; coluna de levitação com bolha âmbar; nível da
+    rede em %), comparador (balança de braço atrás de grade: esfera do valor × pesos do número; tomadas de comando nas 4
+    bordas; liga/desliga as estruturas encostadas) e válvula (gaveta com atuador e pressostato; entre duas redes:
+    acima/abaixo de um nível ou sempre). Canais A–D somam os sensores; o desligado pelo comparador entra em
+    `Fabrica.ligada` (energia, bombas, braços, válvula).
+  - **Baú de estoque** (drones_logisticos): o baú 1×1 em verde-oliva com plataforma de pouso, escotilha de teto e
+    farol. A sobra da garra vai para o estoque mais perto com lugar (antes voltava ao núcleo); requisitante sem provedor
+    é servido do estoque.
+  - **Braço quântico** (braco_quantico, travado): convertido com a lança de pé e as partes lanca1..4, ponta, cabo,
+    carretel e anel1..8; `Animador._lanca_quantica` estica a lança até o alcance (1 a 3 tiles, painel do braço) e o
+    item voa pelo caminho do campo (`ponto_garra`). Ciclo 0,2 s, até 8 iguais por vez.
+  - Verificação: 67.572 verificações, 0 falhas (testar.sh); os 137 scripts compilam (carregados sem janela); a demo
+    (`--quit-after 400`), `-- modo demo roteiro trem` e `-- modo demo roteiro lote16` (trem elétrico a 12 m/s parando
+    na estação, sensor contando, bomba enchendo a estação, válvula, braço quântico entregando 64 placas) rodam sem
+    erro.
+  - Pendências: (1) nada visto em imagem (sem fotos): conferir as 10 silhuetas no zoom normal, as listras da tampa do
+    terceiro trilho (no assado viraram manchas escuras), a pintura azulada da elétrica e o verde-oliva do estoque;
+    ícones dos 10 pelo render Workbench do icones.py (só esses; o do braço quântico sem o rastro de anéis);
+    (2) **mudanças de regra a confirmar com Sapyst**: o cano encostado na estação não liga mais (precisa da bomba de
+    estação, com energia); a locomotiva diesel passou a poluir; (3) trem que não acha caminho para a próxima estação
+    (malhas separadas, estações de outra linha) fica "sem rota" — já era assim; no painel, ligar só as estações da
+    linha resolve; (4) o sensor de esteira conta pela fila: item que um braço põe ou tira entre o sensor e a saída
+    pode errar a conta em 1; só olha esteira no chão (não a elevada); (5) as peças de lógica não gastam energia; o
+    comparador não manda em outro comparador; não há fios de sinal visíveis (os canais são "sem fio"); (6) o sensor de
+    tanque e a válvula animam o laço do estudo (a bolha não segue o nível de verdade); (7) a locomotiva elétrica não
+    tem faísca nas sapatas nem som próprio; o trem elétrico fora do trilho energizado usa a bateria sem limite de
+    tempo; (8) braço quântico: o campo translúcido saiu (o item voa sem o tubo violeta), as lâminas das ventoinhas
+    seguem o laço do estudo, os anéis da descida ao norte passam por cima do tile da frente (como no estudo) e
+    7.860 triângulos (mais que os outros braços, ~4.000); segue travado pela `computacao_quantica`; (9) o
+    baú de estoque não tem limite por item nem filtro; a escotilha do teto anima no laço (não abre só quando o drone
+    chega); (10) porto logístico e baús provedor/requisitante seguem sem modelo próprio (a estação e o baú comum fazem o
+    papel).
+
 ### Lista para a fase 3 — estruturas da árvore ainda sem estudo/modelo
 (Fonte: "Estruturas: temos × precisamos" do docs/ARVORE_TECNOLOGIA.md. Entre parênteses, o que cada uma destrava do que
 já está ligado e travado.)
-- Braços: braço quântico (tem estudo em estudo_bracos_novos.py, falta a animação própria — ver 2.7).
 - Produção: fornalha de aço, fornalha elétrica, fundição de cristal, **montadora 2** (o pacote de tempestade é da
   montadora 2 na árvore; hoje sai na comum), montadora 3, montadora quântica, **refinador 2** (estação de tratamento),
   **forja quântica** (computação quântica → regulador climático), broca grande, extrator ressonante, broca de núcleo,
   laboratório 2, laboratório quântico, irradiador de módulos.
 - Energia: poste alto, turbina de correnteza, gerador a fluido, painel solar 2, **turbina alta** (defletor de vento),
   acumulador 2, acumulador de cristal, reator de cristal, reator de fusão, núcleo de singularidade.
-- Trilhos: sinal em cadeia (destrava o trem automático e, com ele, o vagão-tanque), trilho energizado, locomotiva
-  elétrica; modelo próprio da bomba de estação, se Sapyst quiser (hoje o cano encostado faz o papel dela).
-- Lógica: sensor de esteira, sensor de tanque, comparador, válvula.
 - Proliferação: **sensor de varredura** (cartografia → artilharia), farol de cristal, posto avançado, lançador de
   sementes, receptor de cápsulas, transportador quântico, silo de lançamento.
-- Drones: baú de estoque (e, se Sapyst quiser modelo próprio, porto logístico e baús provedor/requisitante).
-- Com estudo mas ainda fora do jogo: braço quântico (animação própria) e divisor/junção de cada nível (hoje os de 3
-  vias servem a todas as classes).
+- Drones: se Sapyst quiser modelo próprio, porto logístico e baús provedor/requisitante (o estoque já tem, lote 16).
+- Com estudo mas ainda fora do jogo: divisor/junção de cada nível (hoje os de 3 vias servem a todas as classes).
+- Travados por pesquisa sem estudo (lote 16 pronto, esperando): braço quântico (`computacao_quantica`).

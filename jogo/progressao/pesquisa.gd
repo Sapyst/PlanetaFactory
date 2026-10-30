@@ -189,6 +189,16 @@ func receita_liberada(r: String) -> bool:
 	return false
 
 
+## Modo/opção que depende de pesquisa ("modos" em progressao.json; ex.: "trem_condicao", "drones_logistico").
+func modo_liberado(m: String) -> bool:
+	if livre:
+		return true
+	for id in concluidas:
+		if m in pesquisas().get(id, {}).get("modos", []):
+			return true
+	return false
+
+
 ## Camada da visão de recursos que depende de pesquisa ("camadas" em progressao.json; ex.: "poluicao").
 func camada_liberada(nome: String) -> bool:
 	if livre:

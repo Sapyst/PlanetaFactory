@@ -755,7 +755,7 @@ static func parede_de_campo(cp: Dictionary) -> MeshInstance3D:
 
 # ------------------------------------------------------------------ trens
 static func _eh_ferrovia(nome: String) -> bool:
-	return nome.begins_with("trilho") or nome == "sinal_trem" or nome == "estacao"
+	return nome.begins_with("trilho") or nome in ["sinal_trem", "sinal_cadeia", "estacao"]
 
 
 ## Remonta o grafo depois de mudança na malha; trem sem trilho embaixo some (descarrilou).
@@ -824,12 +824,12 @@ func _atualizar_rotulos() -> void:
 ## Vagão-tanque: tanque da estação e o modo do cano (só aparece com cano encostado ou fluido no tanque).
 func _opcoes_estacao_fluido(id: int, linhas: Array[String], botoes: Array) -> void:
 	var tq := Fabrica.tanque_estacao(estoques[id])
-	if not fabrica.estacao_tem_cano(id) and float(tq.qtd) <= 0.0:
-		linhas.append("Fluido (vagão-tanque): encoste a boca de um cano na estação")
+	if not fabrica.estacao_tem_bomba(id) and float(tq.qtd) <= 0.0:
+		linhas.append("Fluido (vagão-tanque): encoste uma bomba de estação e ligue um cano nela")
 		return
 	var cap := float(Registro.estruturas.get("estacao", {}).get("tanque_fluido", 25000))
 	linhas.append("Tanque: %s %.0f de %.0f" % [Registro.nome_fluido(tq.f) if tq.f != "" else "vazio", float(tq.qtd), cap])
-	for m in [["desligado", "Cano desligado"], ["carregar", "Cano → trem (carregar)"], ["descarregar", "Trem → cano (descarregar)"]]:
+	for m in [["desligado", "Bomba desligada"], ["carregar", "Cano → trem (carregar)"], ["descarregar", "Trem → cano (descarregar)"]]:
 		var modo: String = m[0]
 		botoes.append({"texto": m[1], "ligado": tq.get("modo", "desligado") == modo, "acao": func():
 			tq["modo"] = modo
@@ -971,6 +971,9 @@ func _process(delta: float) -> void:
 ## do centro (a garra para em cima da borda, não dentro do corpo).
 func _posar_braco(a: Animador, e: Dictionary) -> void:
 	var alc := float(Registro.estruturas.get(e.nome, {}).get("alcance", 1))
+	if Registro.estruturas.get(e.nome, {}).has("alcance_max"):     # braço quântico: a lança estica até a origem escolhida
+		a.alcance = float(Fabrica.alcance_origem(e))
+		return
 	var fr := Grade.DIRECOES[Construtor.fluxo_da_rot(e.rot)] * int(alc)
 	var ponta := func(t: Vector2i) -> Vector2:
 		var id: int = mapa.tiles.get(t, -1)
@@ -1006,6 +1009,8 @@ func _fontes_calor() -> Array:
 var _versao_bracos := -1
 var _turbinas: Array = []
 var _maq_clima: Array = []                  ## semeador, defletor, cúpula, regulador (animam com a zona ativa)
+var _bombas_est: Array = []                 ## bombas de estação (animam bombeando)
+var _logica: Array = []                     ## sensores, comparadores e válvulas (rede lógica)
 var _arcos := ArcosEletricos.new()
 
 
@@ -1014,6 +1019,8 @@ func _animar_estruturas() -> void:
 		_versao_bracos = mapa.versao
 		_turbinas = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).get("renovavel", "") == "vento")
 		_maq_clima = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).has("clima_local"))
+		_bombas_est = mapa.estruturas.keys().filter(func(i): return mapa.estruturas[i].nome == "bomba_estacao")
+		_logica = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).get("grupo", "") == "logica")
 		for id in fabrica.bracos:
 			var ab := _animador(id)
 			if ab != null and mapa.estruturas.has(id):
@@ -1022,6 +1029,21 @@ func _animar_estruturas() -> void:
 		var a := _animador(id)
 		if a != null:
 			a.ativo = animar_tudo or fabrica.maquinas[id].estado == Maquina.Estado.TRABALHANDO
+	# bomba de estação: ventoinha, ponteiro e setas trabalham enquanto ela move fluido
+	for id in _bombas_est:
+		var a := _animador(id)
+		if a != null:
+			a.ativo = animar_tudo or fabrica.bomba_ativa(id)
+	# rede lógica: sensor de esteira anima contando; válvula, passando fluido; comparador, ligado
+	for id in _logica:
+		var a := _animador(id)
+		if a == null or not mapa.estruturas.has(id):
+			continue
+		match mapa.estruturas[id].nome:
+			"sensor_esteira": a.ativo = animar_tudo or fabrica.sensor_contando(id)
+			"valvula": a.ativo = animar_tudo or fabrica.valvula_passou.has(id)
+			"comparador": a.ativo = animar_tudo or fabrica.ligada(id)
+			"sensor_tanque": a.ativo = animar_tudo or float(fabrica.rede_de(id).get("qtd", 0.0)) > 0.0
 	# estação de drones: garras, plugue e braço abastecedor trabalham quando um drone nasce, pousa ou decola
 	for est in drones.estacoes():
 		var a := _animador(est)
@@ -1193,13 +1215,24 @@ func _tick_mundo(dt: float) -> void:
 					trens.map(func(t): return "%s/%d" % [Trem.Estado.keys()[t.estado], t.total_carga()]),
 					colonia.torres.values().map(func(t): return t.municao), mapa.estruturas.size(), maq,
 					fabrica.combustivel.values().map(func(v): return snappedf(v, 0.1)), estoques.values()])
+	var energia_trilho := fabrica.energia_trilho
 	for t in trens:
+		var alimenta := t.energizar(energia_trilho)          # elétrica: 2× no trilho energizado com energia
+		if alimenta >= 0 and t.v > 0.05:
+			fabrica.pedir_trilho(alimenta, Trem.KW_ELETRICA)
+		var diesel := t.locomotivas_diesel()
+		if diesel > 0 and t.v > 0.05:                     # a diesel polui andando (a elétrica não)
+			poluicao.emitir(Vector2i((t.ponto_em(t.s).pos as Vector2).floor()), Trem.POLUICAO_DIESEL * diesel / 60.0 * dt)
 		t.tick(dt)
 		if t.chegada >= 0:
 			Som.tocar("apito_trem", Grade.ponto_mundo(t.ponto_em(t.s).pos), -3.0)
 			if estoques.has(t.chegada):
 				t.trocar_carga(estoques[t.chegada], t.chegada)
 			t.chegada = -1
+		if t.retroca >= 0:                       # esperando a condição da rota: troca de novo (sem apito)
+			if estoques.has(t.retroca):
+				t.trocar_carga(estoques[t.retroca], t.retroca)
+			t.retroca = -1
 
 
 # ------------------------------------------------------------------ seleção (painel de detalhe)
@@ -1282,7 +1315,7 @@ func _detalhe() -> void:
 		if t == null:
 			_sel = {}
 		else:
-			var est := {Trem.Estado.ANDANDO: "andando", Trem.Estado.PARADO: "parado na estação",
+			var est := {Trem.Estado.ANDANDO: "andando", Trem.Estado.PARADO: "parado na estação" + (" (esperando a condição)" if t.espera <= 1.0 and t.condicao(t.parado_em) in ["cheio", "vazio"] else ""),
 					Trem.Estado.ESPERANDO_BLOCO: "esperando sinal", Trem.Estado.SEM_ROTA: "sem rota"}
 			var texto := "Estado: %s\nCarga: %s (%d de %d)\nRota: toque nas estações para ligar/desligar.\nSem nenhuma ligada, passa por todas." % [
 					est[t.estado], _lista_itens(t.carga), t.total_carga(), t.capacidade()]
@@ -1301,6 +1334,22 @@ func _detalhe() -> void:
 							t.proxima = 0
 							t.planejar()
 							_detalhe()})
+			if pesquisa.modo_liberado("trem_condicao"):
+				# rotas com condição (trem_automatico): toque troca a espera da parada (parada curta → 30 s → até encher
+				# → até esvaziar)
+				var nomes_c := {"": "parada curta", "tempo": "espera %d s" % int(Trem.ESPERA_TEMPO), "cheio": "até encher",
+						"vazio": "até esvaziar"}
+				for e in t.paradas():
+					var id_c: int = e.estrutura
+					var c_atual := t.condicao(id_c)
+					botoes.append({"texto": "Estação %d: %s" % [_numero_estacao(id_c), nomes_c[c_atual]], "acao": func():
+						var i := Trem.CONDICOES.find(c_atual)
+						var prox: String = Trem.CONDICOES[(i + 1) % Trem.CONDICOES.size()]
+						if prox == "":
+							t.condicoes.erase(str(id_c))
+						else:
+							t.condicoes[str(id_c)] = prox
+						_detalhe()})
 			botoes.append({"texto": "Desmontar trem (devolve o material)", "acao": func():
 				trens.erase(t)
 				grafo.liberar(t.id)
@@ -1456,6 +1505,8 @@ func _detalhe() -> void:
 				linhas_n.append("%s: %d" % [_nome_item(k), inventario[k]])
 		linhas.append("Estoque (o que entra pelas bocas vira material de construção):")
 		linhas.append("\n".join(linhas_n) if not linhas_n.is_empty() else "vazio")
+	elif Registro.estruturas.get(e.nome, {}).get("grupo", "") == "logica":
+		_opcoes_logica(id, e, linhas, botoes)
 	elif not fabrica.rede_de(id).is_empty():
 		var r: Dictionary = fabrica.rede_de(id)
 		linhas.append("Rede de canos: %s %.0f de %.0f" % [Registro.nome_fluido(r.fluido) if r.fluido != "" else "vazia", r.qtd, r.cap])
@@ -1542,6 +1593,18 @@ func _detalhe() -> void:
 		linhas.append("Segurando: %s\nEnergia: %d%%\nEntregues: %d" % [(_nome_item(b.segurando) + (" × %d" % b.qtd if b.qtd > 1 else "")) if b.segurando != "" else "nada", b.energia * 100, b.entregues])
 		if b.pilha_max > 1:
 			linhas.append("Empilha: até %d itens iguais por vez" % b.pilha_max)
+		if regra.has("alcance_max"):                  # braço quântico: até onde a lança estica
+			var alc_q := Fabrica.alcance_origem(e)
+			linhas.append("Lança: pega a %d tile(s) atrás, solta no tile da frente" % alc_q)
+			for n in range(1, int(regra.alcance_max) + 1):
+				var nn: int = n
+				botoes.append({"texto": "Alcance: %d tile(s)" % nn, "ligado": alc_q == nn, "acao": func():
+					e["alcance"] = nn
+					_fabrica_suja = true
+					var ab := _animador(id)
+					if ab != null:
+						_posar_braco(ab, e)
+					_detalhe()})
 		var filtros: Array = e.get("filtros", [])
 		var mx := int(regra.get("filtro_max", 0))
 		if mx <= 0 and filtros.is_empty():
@@ -1607,7 +1670,9 @@ func _detalhe() -> void:
 	if e.nome != "pilar" and e.get("nivel", 0) == 0:
 		opcoes.append({"texto": "⟲  Girar", "acao": func(): girar_estrutura(id)})
 	# opções internas: ligar/desligar (tudo que usa ou gera energia, e máquinas) e modo de trabalho (máquinas elétricas)
-	if Fiacao.papel(e.nome) in ["consumo", "fonte"] or fabrica.maquinas.has(id):
+	if fabrica.logica_off.has(id):
+		linhas.append("Desligada pelo comparador encostado (a condição dele não vale agora)")
+	if Fiacao.papel(e.nome) in ["consumo", "fonte"] or fabrica.maquinas.has(id) or e.nome in ["comparador", "valvula"]:
 		var liga: bool = not e.get("desligada", false)
 		opcoes.append({"texto": "Ligada" if liga else "Desligada (toque para ligar)", "ligado": liga,
 				"acao": func(): e["desligada"] = liga; _fabrica_suja = true; _detalhe()})
@@ -1651,6 +1716,9 @@ func _detalhe_estacao_drones(id: int, e: Dictionary, linhas: Array[String], opco
 
 ## Baú para os drones logísticos: provedor (oferece o que tem) ou requisitante (pede um item até uma quantidade).
 func _opcoes_logistica(e: Dictionary, linhas: Array[String], opcoes: Array, botoes: Array) -> void:
+	if e.nome == "bau_estoque":
+		linhas.append("Drones logísticos: ESTOQUE — guarda o que sobra na garra e serve o requisitante quando nenhum provedor tem")
+		return
 	var papel := String(e.get("logistica", ""))
 	linhas.append("Drones logísticos: %s" % {"": "fora da rede", "provedor": "PROVEDOR — os drones tiram daqui", "requisitante": "REQUISITANTE — os drones trazem o pedido"}[papel])
 	for pp in [["", "Fora da rede"], ["provedor", "Provedor"], ["requisitante", "Requisitante"]]:
@@ -1669,6 +1737,52 @@ func _opcoes_logistica(e: Dictionary, linhas: Array[String], opcoes: Array, boto
 	itens_ord.sort_custom(func(a, c): return _nome_item(a) < _nome_item(c))
 	for it in itens_ord:
 		botoes.append({"texto": "Pedir: %s" % _nome_item(it), "ligado": item == it, "acao": func(): e["pede_item"] = it; _detalhe()})
+
+
+## Rede lógica (rede_logica): canal dos sensores; canal, condição e número do comparador; modo e nível da válvula.
+func _opcoes_logica(id: int, e: Dictionary, linhas: Array[String], botoes: Array) -> void:
+	var canal := Fabrica.canal_de(e)
+	match e.nome:
+		"sensor_esteira":
+			var s: Dictionary = fabrica.sensores.get(id, {})
+			var olha := fabrica._sens_esteira.any(func(x): return x.id == id)
+			linhas.append(("Contou %d itens · agora %.0f itens/min" % [int(s.get("total", 0)), fabrica.valor_sensor(id)]) if olha
+					else "Sem esteira na frente: vire a cabeça (⟲) para a esteira")
+		"sensor_tanque":
+			var r := fabrica.rede_de(id)
+			linhas.append("Nível da rede: %.0f%% (%s %.0f de %.0f)" % [fabrica.valor_sensor(id), Registro.nome_fluido(r.fluido) if r.get("fluido", "") != "" else "vazia",
+					float(r.get("qtd", 0.0)), float(r.get("cap", 0.0))])
+		"comparador":
+			var op := String(e.get("op", ">"))
+			var n := int(e.get("numero", 50))
+			var ok := fabrica.condicao_comparador(id)
+			linhas.append("Canal %s = %.0f  %s  %d → vizinhos %s" % [canal, float(fabrica.canais.get(canal, 0.0)), op, n, "LIGADOS" if ok else "DESLIGADOS"])
+			var nomes: Array = []
+			for c in fabrica._comparadores:
+				if c.id == id:
+					nomes = c.vizinhos.map(func(v): return controle.barra.rotulo(mapa.estruturas[v].nome))
+			linhas.append("Comanda: %s" % (", ".join(nomes) if not nomes.is_empty() else "ninguém — encoste máquinas, braços ou bombas nele"))
+			for o in [[">", "Liga quando o canal passa do número"], ["<", "Liga quando o canal fica abaixo"]]:
+				var op_o: String = o[0]
+				botoes.append({"texto": o[1], "ligado": op == op_o, "acao": func(): e["op"] = op_o; _detalhe()})
+			for d in [-10, -1, 1, 10]:
+				var dd: int = d
+				botoes.append({"texto": "Número %+d (agora %d)" % [dd, n], "acao": func(): e["numero"] = clampi(int(e.get("numero", 50)) + dd, 0, 9999); _detalhe()})
+		"valvula":
+			var modo := String(e.get("modo_valvula", "acima"))
+			var nv := int(e.get("nivel_valvula", 50))
+			linhas.append("Agora: %s" % ("passando" if fabrica.valvula_passou.has(id) else ("aberta" if fabrica.valvula_abre(id) else "fechada")))
+			for o in [["acima", "Passa se a entrada estiver acima do nível"], ["abaixo", "Passa se a saída estiver abaixo do nível"], ["sempre", "Sempre aberta (só o comparador fecha)"]]:
+				var mo: String = o[0]
+				botoes.append({"texto": o[1], "ligado": modo == mo, "acao": func(): e["modo_valvula"] = mo; _detalhe()})
+			for d in [-10, 10]:
+				var dd: int = d
+				botoes.append({"texto": "Nível %+d%% (agora %d%%)" % [dd, nv], "acao": func(): e["nivel_valvula"] = clampi(int(e.get("nivel_valvula", 50)) + dd, 0, 100); _detalhe()})
+			return
+	if e.nome != "valvula":
+		for c in Fabrica.CANAIS:
+			var cc: String = c
+			botoes.append({"texto": "Canal %s" % cc, "ligado": canal == cc, "acao": func(): e["canal"] = cc; _detalhe()})
 
 
 ## Divisor com filtro: item filtrado → uma saída; o resto → saída de prioridade (ou rodízio). Lados relativos à peça

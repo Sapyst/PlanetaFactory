@@ -21,7 +21,7 @@ func sincronizar(trens: Array[Trem]) -> void:
 			var dir := Vector3(p.dir.x, 0, -p.dir.y)
 			var ang := atan2(-dir.x, -dir.z)
 			# a locomotiva do fim olha para trás
-			if p.nome == "locomotiva" and i == poses.size() - 1 and poses.size() > 1:
+			if p.nome.begins_with("locomotiva") and i == poses.size() - 1 and poses.size() > 1:
 				ang += PI
 			no.position = Grade.ponto_mundo(p.pos)
 			no.rotation.y = ang

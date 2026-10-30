@@ -1,6 +1,6 @@
 # Árvore de tecnologia
 
-Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 100 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (algumas ainda esperam um pré-requisito ou pacote "em breve"; o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras aparecem como "em breve" até a estrutura, o item ou o pacote existir. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
+Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 104 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (algumas ainda esperam um pré-requisito ou pacote "em breve"; o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras aparecem como "em breve" até a estrutura, o item ou o pacote existir. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
 
 ## Eras e pacotes de pesquisa
 
@@ -442,7 +442,7 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Baú grande | 2×2 | temos | 6.400 itens | `armazenagem` |
 | Braço com filtro | 1×1 | temos | só pega os itens escolhidos (até 5) | `braco_filtro` |
 | Braço empilhador | 1×1 | temos | pega até 4 itens iguais de uma vez (os que estão na origem) e solta um por vez | `braco_empilhador` |
-| Braço quântico | 1×1 | falta | ciclo 0,2 s, 8 itens, alcance ajustável 1–3 | `braco_quantico` |
+| Braço quântico | 1×1 | temos | ciclo 0,2 s, até 8 itens iguais por vez; a lança telescópica pega de 1 a 3 tiles atrás (escolhido no painel) e o campo leva ao tile da frente; travado pela árvore (`computacao_quantica` em breve) | `braco_quantico` |
 | Silo de granel | 3×3 | temos | 20.000 itens de um tipo só | `silo_granel` |
 
 ### Canos
@@ -535,11 +535,11 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Estação | 2×3 | temos | trem carrega e descarrega | `ferrovia` |
 | Sinal | 1×1 | temos | divide a linha em blocos | `ferrovia` |
 | Trem (locomotiva) | sobre trilho | temos | leva carga | `ferrovia` |
-| Sinal em cadeia | 1×1 | falta | só libera a entrada se a saída do cruzamento estiver livre | `trem_automatico` |
-| Vagão-tanque | sobre trilho | temos | trem-tanque (2 vagões-tanque × 25.000 de fluido); troca com o tanque da estação ao parar; travado pela árvore (`trem_automatico` em breve) | `vagao_tanque` |
-| Bomba de estação | 1×1 | temos (sem modelo próprio) | o cano encostado na estação faz de bomba: enche (carregar) ou esvazia (descarregar) o tanque dela (25.000) a 1.000/s | `vagao_tanque` |
-| Trilho energizado | 1×1 | falta | dá energia à locomotiva elétrica | `trem_eletrico` |
-| Locomotiva elétrica | sobre trilho | falta | 2× velocidade, sem poluição | `trem_eletrico` |
+| Sinal em cadeia | 1×1 | temos | divide como o sinal, mas o trem só passa se conseguir também a saída (os blocos até o próximo sinal comum e o bloco depois dele); com ele vêm as rotas com condição (parada curta, 30 s, até encher, até esvaziar, por estação) | `trem_automatico` |
+| Vagão-tanque | sobre trilho | temos | trem-tanque (2 vagões-tanque × 25.000 de fluido); troca com o tanque da estação ao parar; troca com o tanque da estação ao parar | `vagao_tanque` |
+| Bomba de estação | 1×1 | temos | encosta na estação pelas costas (braço de carga) e liga o tanque dela (25.000) ao cano da boca: enche (carregar) ou esvazia (descarregar) a 1.000/s × energia (40 kW) | `vagao_tanque` |
+| Trilho energizado | 1×1 | temos | trilho reto com terceiro trilho; peças encostadas formam um trecho e um poste perto de uma energiza o trecho todo; cada trem elétrico andando puxa 400 kW | `trem_eletrico` |
+| Locomotiva elétrica | sobre trilho | temos | peça **trem elétrico** (2 locomotivas elétricas + 2 vagões): 2× velocidade e tração no trilho energizado com energia, devagar (bateria) fora dele; não polui (a diesel polui andando) | `trem_eletrico` |
 
 ### Clima (categoria nova)
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
@@ -557,15 +557,15 @@ modelo do nível anterior com outra cor de luz e detalhe.
 |---|---|---|---|---|
 | Estação de drones | 2×2 | temos | monta e abriga os drones (8 a 20) e escolhe o tipo: reparo (solda o que foi danificado em 45 m, 1 placa a cada 25 ♥), combate (caça aranhas) ou logístico | `drones` |
 | Porto logístico | 2×2 | temos (sem modelo próprio) | a estação de drones no modo logístico faz de porto | `drones_logisticos` |
-| Baú provedor / requisitante / de estoque | 1×1 | provedor e requisitante: temos (papel no painel do baú comum, sem modelo próprio); estoque: falta | oferece, pede e guarda itens para os drones | `drones_logisticos` |
+| Baú provedor / requisitante / de estoque | 1×1 | temos (provedor e requisitante: papel no painel do baú comum, sem modelo próprio; estoque: modelo próprio) | oferece, pede e guarda itens para os drones (a sobra da garra vai para o estoque; o requisitante sem provedor é servido dele) | `drones_logisticos` |
 
 ### Lógica (categoria nova)
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
 |---|---|---|---|---|
-| Sensor de esteira | 1×1 | falta | conta itens que passam | `rede_logica` |
-| Sensor de tanque | 1×1 | falta | lê o nível de um tanque | `rede_logica` |
-| Comparador | 1×1 | falta | liga/desliga máquinas, braços e bombas por condição | `rede_logica` |
-| Válvula | 1×1 | falta | só deixa passar fluido acima/abaixo de um nível | `rede_logica` |
+| Sensor de esteira | 1×1 | temos | ao lado da esteira, olhando para ela: conta os itens que passam no tile da frente e manda itens/min (média de 10 s) pelo canal A–D | `rede_logica` |
+| Sensor de tanque | 1×1 | temos | peça de cano: lê o nível da rede dela (tanque incluso) e manda 0–100% pelo canal | `rede_logica` |
+| Comparador | 1×1 | temos | canal maior/menor que um número → liga; senão desliga as estruturas dos 4 tiles encostados (máquinas, braços, bombas, válvulas…) | `rede_logica` |
+| Válvula | 1×1 | temos | entre duas redes de cano: passa 1.000/s se a entrada está acima do nível, se a saída está abaixo, ou sempre (o comparador fecha) | `rede_logica` |
 
 ### Proliferação (categoria nova)
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
@@ -578,8 +578,7 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Transportador quântico | 3×3 | falta | troca itens entre colônias | `transportador_quantico` |
 | Silo de lançamento | 3×3 | falta | monta e lança o foguete de proliferação | `silo_lancamento` |
 
-**Contagem:** 72 linhas "temos", **37 linhas "falta"** e 1 em parte (baús logísticos: provedor e requisitante sem
-modelo próprio, estoque falta) (uma linha pode juntar variantes, como a família da esteira
+**Contagem:** 81 linhas "temos" e **29 linhas "falta"** (uma linha pode juntar variantes, como a família da esteira
 rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima, Drones, Lógica, Proliferação).
 
 ## Decisões e pontos em aberto
@@ -609,7 +608,8 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
   árvore não tem pesquisa própria para o drone que atira: ele vem com `drones` e `drones_defesa` dá +100% de dano e +50%
   de vida) e **logístico** (com `drones_logisticos`). O **porto logístico** e os **baús logísticos** não têm modelo
   (sem estudo): a estação no modo logístico faz de porto e os baús comuns ganham o papel de provedor ou requisitante no
-  painel; o baú de estoque fica para depois. Com raios caindo os drones ficam no hangar até `drones_tempestade`.
+  painel; o **baú de estoque** (lote 16) tem modelo e papel fixo. Com raios caindo os drones ficam no hangar até
+  `drones_tempestade`.
 - **Limpeza nova (fase 2.6).** O **pacote ecológico** passa a ser pedido (coletor 2, purificadores, viveiro 2,
   biodigestor, recuperação de solo, tratamento, semeador). **Água suja** não é fluido de cano: o biodigestor bebe a
   água do cano (do rio, suja ou não) e a estação de tratamento fica na margem e limpa a água suja do rio em volta. O
@@ -628,6 +628,17 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
   de outra estação, um fluido só de cada lado. Fica travado pelo `trem_automatico` (sinal em cadeia e rotas com
   condição, sem estudo); no modo demonstração se constrói. O **braço empilhador** (`braco_empilhador`, jogável) pega
   até 4 itens iguais que estão na origem e solta um por vez.
+- **Lote 16 (fases 3+4: trilhos, drones e lógica).** O **trem automático** (`trem_automatico`) traz o **sinal em
+  cadeia** (o trem só passa por ele se conseguir, tudo ou nada, os blocos até o próximo sinal comum e o bloco depois
+  dele) e as **rotas com condição** (no painel do trem, por estação: parada curta, 30 s, até encher, até esvaziar;
+  esperando, o trem troca carga de novo a cada segundo) e destrava o **vagão-tanque**. A **bomba de estação** tem
+  modelo e faz o papel que o cano fazia (o cano encostado direto não liga mais): gasta 40 kW e a vazão segue a energia.
+  A **locomotiva elétrica** (`trem_eletrico`) vem na peça trem elétrico; no **trilho energizado** com energia anda e
+  acelera no dobro, fora dele só na bateria de manobra (1,5 m/s); a diesel passou a poluir andando (6 pontos/min por
+  locomotiva). A **rede lógica** (`rede_logica`, categoria nova Lógica): sensores mandam valores por 4 canais (A–D,
+  somados) e o comparador liga/desliga os vizinhos; a válvula separa duas redes. O **baú de estoque** completa os
+  baús logísticos. O **braço quântico** (`braco_quantico`) tem a lança telescópica animada, mas segue travado pela
+  `computacao_quantica` (sem estudo); no modo demonstração se constrói.
 - **Água limpa** (`agua_limpa`, do filtro) serve em toda receita que pede água; água do rio não serve onde se pede
   limpa (pacote ecológico). Resina bebe dois fluidos: seiva por uma boca do refinador e água pela outra.
 - **As 14 pesquisas originais não mudam** (a 15ª, `dano_energia_1`, entrou depois como a primeira melhoria jogável: +20% de dano da torre com energia). Mesmos IDs, pré-requisitos e custos (incluindo `energia`, que existe no jogo

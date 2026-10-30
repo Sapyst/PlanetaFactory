@@ -1,0 +1,47 @@
+{
+ "nome": "bomba_estacao",
+ "categoria": "transporte/trilhos",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Bomba de estação (estudo_bomba_estacao.py): encosta na estação pelo lado sul (acoplador do braço de carga) e liga o tanque dela à rede de canos pela boca norte; bomba de lóbulos reversível enche (carregar) ou esvazia (descarregar).",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_SAI_N0",
+   "tipo": "FLUIDO",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    0.5,
+    0.35
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  }
+ ],
+ "tris": 4040,
+ "dims": [
+  0.95,
+  1.007,
+  0.851
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_bomba_estacao.py"
+}

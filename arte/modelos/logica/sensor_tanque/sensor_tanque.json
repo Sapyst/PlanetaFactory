@@ -1,0 +1,62 @@
+{
+ "nome": "sensor_tanque",
+ "categoria": "logica",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Sensor de tanque (estudo_sensor_tanque.py): peça de cano (S → N) que lê o nível da rede dela (tanque incluso) e manda pelo canal; coluna de levitação com bolha âmbar.",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_ENT_S0",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -0.5,
+    0.35
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_SAI_N0",
+   "tipo": "FLUIDO",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    0.5,
+    0.35
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  }
+ ],
+ "tris": 4376,
+ "dims": [
+  0.597,
+  1.0,
+  0.982
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_sensor_tanque.py"
+}

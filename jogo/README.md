@@ -259,6 +259,19 @@ Tudo que se constrói funciona — a mini-fábrica da demo é só um mapa pronto
   entre a rede e o tanque da estação (`tanque_fluido` 25.000) conforme o modo do painel (desligado/carregar/
   descarregar). **Braço empilhador** (`braco_empilhador`, conv_bracos_novos.py): `Braco.pilha_max` = regra `pilha`
   (4): pega na origem os iguais que já estão lá e solta um por vez (`Braco.qtd`, salvo).
+- Lote 16 (trilhos, drones e lógica; arte/estudos/conv_lote16.py): **sinal em cadeia** (`GrafoTrilhos.cadeia`;
+  `Trem._trecho_cadeia` reserva tudo ou nada os blocos até o próximo sinal comum e o bloco depois dele) e **rotas com
+  condição** (`Trem.condicoes` por estação: "tempo"/"cheio"/"vazio"; `Trem.retroca` pede ao mundo outra troca de carga a
+  cada 1 s; `Pesquisa.modo_liberado("trem_condicao")`). **Bomba de estação** (`bomba_estacao`): `_estacoes_fluido`
+  agora vem dela (costas na estação, boca no cano), vazão × energia, `Fabrica.bomba_ativa` anima. **Trilho
+  energizado** (`GrafoTrilhos.RETOS`; `Fabrica._trechos`, `energia_trilho`, `pedir_trilho`) e **trem elétrico**
+  (`Trem.COMPOSICOES.trem_eletrico`, `Trem.energizar` põe `vel_max` 12 ou `VEL_BATERIA`; tração no dobro); a diesel
+  emite `Trem.POLUICAO_DIESEL`. **Rede lógica** (grupo "logica"): `Fabrica.canais`, `valor_sensor`, `logica_off` (entra em
+  `ligada`), `_tick_sensores` (por `EsteiraCaminho.a_frente`/`saidos`), `_tick_valvulas`; o painel em
+  `_opcoes_logica`. **Baú de estoque**: `Drones.papel` = "estoque", `_mais_perto_com`, `estoque_livre`. **Braço
+  quântico**: `Fabrica.alcance_origem` (campo "alcance" 1..`alcance_max`), `Animador._lanca_quantica` e o caminho do
+  item no campo (`ponto_garra`). Roteiro sem janela: `godot --headless --path jogo --quit-after 900 -- modo demo
+  roteiro lote16`.
 - Extrator/broca mineram a jazida de baixo; fornalha escolhe a receita pelo que chega e queima carvão/biomassa;
   montadora/refinador: receita escolhida no painel. Elétricos precisam de poste (cobertura 2,5) ligado a gerador com combustível.
 - Torre: cada munição que chega (braço ou esteira na porta sul) = 10 tiros. Quem trabalha polui (e vira alvo por 60 s).

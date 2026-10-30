@@ -1,0 +1,31 @@
+{
+ "nome": "sensor_esteira",
+ "categoria": "logica",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Sensor de esteira (estudo_sensor_esteira.py): ao lado da esteira, a cabeça (cortina de luz, olho, apalpador) olha o tile da frente e conta os itens que passam; contador de tambores; manda pelo canal da rede lógica.",
+ "ocupa_canto": false,
+ "portas": [],
+ "tris": 3284,
+ "dims": [
+  0.602,
+  0.865,
+  0.89
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_sensor_esteira.py"
+}

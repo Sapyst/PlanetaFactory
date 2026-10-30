@@ -14,7 +14,9 @@ extends RefCounted
 ##                       aranha a menos de `alcance_mordida` morde o drone (vida 0 = derrubado, cai e vira sucata);
 ##            logistico  (pesquisa drones_logisticos) leva itens de baú provedor para baú requisitante no alcance
 ##                       (papel escolhido no painel do baú: "logistica" = provedor/requisitante; o requisitante pede
-##                       um item até uma quantidade). A estação é o porto. O que sobra na garra volta ao núcleo.
+##                       um item até uma quantidade). A estação é o porto. O que sobra na garra vai para o baú de
+##                       estoque mais perto com lugar (lote 16; sem ele, volta ao núcleo); requisitante que nenhum
+##                       provedor atende é servido do estoque.
 ##  bateria   voando gasta 1 s por s; volta para o berço antes de acabar (distância / velocidade + folga).
 ##  raios     com raios caindo (tempestade, tufão) os drones não voam — os que estão no ar voltam — até a pesquisa
 ##            drones_tempestade ("drones blindados").
@@ -491,9 +493,13 @@ func _mordidas(d: Dictionary, dt: float) -> void:
 
 
 # ------------------------------------------------------------------ logística
-## Papel do baú para os drones ("logistica" na estrutura): "", "provedor" ou "requisitante".
+## Papel do baú para os drones ("logistica" na estrutura): "", "provedor" ou "requisitante"; o baú de estoque é sempre
+## "estoque" (lote 16: guarda a sobra da garra e serve o requisitante quando nenhum provedor tem o item).
 func papel(id: int) -> String:
-	return String(mapa.estruturas.get(id, {}).get("logistica", ""))
+	var e: Dictionary = mapa.estruturas.get(id, {})
+	if e.get("nome", "") == "bau_estoque":
+		return "estoque"
+	return String(e.get("logistica", ""))
 
 
 func _baus_no_alcance(est: int, papel_q: String) -> Array[int]:
@@ -519,7 +525,7 @@ func _a_caminho(campo: String, id: int, item: String) -> int:
 ## Próxima viagem do porto: requisitante no alcance pedindo um item que algum provedor no alcance tem.
 func tarefa_logistica(est: int) -> Dictionary:
 	var provs := _baus_no_alcance(est, "provedor")
-	if provs.is_empty():
+	if provs.is_empty() and _baus_no_alcance(est, "estoque").is_empty():
 		return {}
 	for req in _baus_no_alcance(est, "requisitante"):
 		var e: Dictionary = mapa.estruturas[req]
@@ -530,23 +536,49 @@ func tarefa_logistica(est: int) -> Dictionary:
 		if falta <= 0:
 			continue
 		var cr := Grade.centro_da_area(e.minimo, e.area, e.rot)
-		var melhor := -1
-		var md := INF
-		for p in provs:
-			if p == req:
-				continue
-			var tem := int(fabrica.baus[p].get(item, 0)) - _a_caminho("de", p, item)
-			if tem <= 0:
-				continue
-			var ep: Dictionary = mapa.estruturas[p]
-			var dd := Grade.centro_da_area(ep.minimo, ep.area, ep.rot).distance_to(cr)
-			if dd < md:
-				md = dd
-				melhor = p
+		var melhor := _mais_perto_com(provs, req, item, cr)
+		if melhor < 0:
+			melhor = _mais_perto_com(_baus_no_alcance(est, "estoque"), req, item, cr)   # nenhum provedor: o estoque
 		if melhor >= 0:
 			var tem2 := int(fabrica.baus[melhor].get(item, 0)) - _a_caminho("de", melhor, item)
 			return {"de": melhor, "para": req, "item": item, "n": mini(carga_max(), mini(falta, tem2))}
 	return {}
+
+
+## Baú da lista mais perto de `cr` que tem `item` (descontado o que já está a caminho), fora `req`; -1 se nenhum.
+func _mais_perto_com(lista: Array[int], req: int, item: String, cr: Vector2) -> int:
+	var melhor := -1
+	var md := INF
+	for p in lista:
+		if p == req:
+			continue
+		var tem := int(fabrica.baus[p].get(item, 0)) - _a_caminho("de", p, item)
+		if tem <= 0:
+			continue
+		var ep: Dictionary = mapa.estruturas[p]
+		var dd := Grade.centro_da_area(ep.minimo, ep.area, ep.rot).distance_to(cr)
+		if dd < md:
+			md = dd
+			melhor = p
+	return melhor
+
+
+## Baú de estoque no alcance da estação, mais perto de `de`, com lugar para `n` itens; -1 se nenhum.
+func estoque_livre(est: int, de: Vector2, n: int) -> int:
+	var melhor := -1
+	var md := INF
+	for id in _baus_no_alcance(est, "estoque"):
+		var tem := 0
+		for k in fabrica.baus[id]:
+			tem += int(fabrica.baus[id][k])
+		if fabrica.capacidade_bau(id) - tem < n:
+			continue
+		var e: Dictionary = mapa.estruturas[id]
+		var dd := Grade.centro_da_area(e.minimo, e.area, e.rot).distance_to(de)
+		if dd < md:
+			md = dd
+			melhor = id
+	return melhor
 
 
 func _logistico(d: Dictionary, dt: float) -> void:
@@ -590,7 +622,12 @@ func _logistico(d: Dictionary, dt: float) -> void:
 		d.n = int(d.n) - poe
 		eventos.append({"tipo": "drone_entregou", "id": d.id, "item": d.item, "n": poe})
 		if int(d.n) > 0:
-			_voltar(d)                                  # não coube: a sobra volta com ele (vai para o núcleo)
+			var sobra := estoque_livre(d.est, c, int(d.n)) if papel(alvo) != "estoque" else -1
+			if sobra >= 0:                              # não coube: a sobra vai para o baú de estoque
+				d.para = sobra
+				d.e = E.INDO
+				return
+			_voltar(d)                                  # sem estoque com lugar: a sobra volta com ele (vai para o núcleo)
 			return
 		d.item = ""
 		var t := tarefa_logistica(d.est)                # emenda a próxima viagem se a bateria deixar

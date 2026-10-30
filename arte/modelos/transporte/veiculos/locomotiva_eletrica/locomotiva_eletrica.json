@@ -1,0 +1,49 @@
+{
+ "nome": "locomotiva_eletrica",
+ "categoria": "transporte/veiculos",
+ "tipo": "veiculo",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Locomotiva elétrica (3 m, estudo_locomotiva_eletrica.py): a locomotiva do estudo_trem sem escapamento, com caixa de resistores e buchas no teto, sapatas coletoras do terceiro trilho nos dois truques, pintura grafite azulada com faixa violeta. Partes: corpo + 2 truques.",
+ "ocupa_canto": false,
+ "portas": [],
+ "tris": 7755,
+ "dims": [
+  0.806,
+  3.08,
+  1.112
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "truque0",
+   "pai": "corpo",
+   "pivo": [
+    0,
+    -0.85,
+    0.27
+   ]
+  },
+  {
+   "nome": "truque1",
+   "pai": "corpo",
+   "pivo": [
+    0,
+    0.85,
+    0.27
+   ]
+  }
+ ],
+ "anima": false,
+ "estudo": "estudo_locomotiva_eletrica.py"
+}

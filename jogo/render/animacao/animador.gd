@@ -10,6 +10,9 @@ extends Node
 ##   _giro/_braco1/_braco2/_garra           braço mecânico (pega atrás, solta na frente)
 ##   _estagio2/_estagio3                    braço 2 telescópico (braço longo: estica no eixo dele)
 ##   _camisa/_haste                         pistão de elevação da lança (camisa no giro, haste no braço 1)
+##   _lanca1.._lanca4/_ponta/_cabo/_carretel/_anel1..  braço quântico: a lança telescópica estica até a origem
+##             (`alcance` 1 a 3 tiles: cada seção k anda k·e, a ponta 4e, o cabo estica, o carretel gira, os anéis
+##             do rastro aparecem quando a ponta passa); o item voa pelo campo (ponto_garra segue `fase_braco`)
 ##   _giro/_canhao                          torre (mira `alvo`)
 ##   _tambor   feixe de canos da metralhadora: gira no eixo dele ("eixo_tambor" em modelos.json) durante a
 ##             `rajada` (s) que o desenho dos tiros acende; acelera e desacelera
@@ -112,6 +115,8 @@ func _process(delta: float) -> void:
 		_gira("braco", sin(t * 1.7) * 0.9)
 	if tem("braco1"):
 		_braco_mecanico()
+	if tem("lanca1"):
+		_lanca_quantica(delta)
 	# pistões: comprimem e descomprimem em fases alternadas (só trabalhando)
 	var k := 0
 	while tem("pistao%d" % k):
@@ -233,8 +238,74 @@ func _resolver(r: float, h: float) -> Vector2:
 	return Vector2(r1, r2abs - r1)
 
 
-## Onde o item fica preso: entre os dedos da garra (mundo). INF se não é braço.
+## Braço quântico: extensão atual de cada estágio (m), andando até a do alcance escolhido.
+var _ext := -1.0
+
+
+func _lanca_quantica(delta: float) -> void:
+	var q: Dictionary = Registro.modelos.get(modelo, {}).get("lanca", {})
+	var emax := float(q.get("emax", 0.5))
+	var alvo_e := clampf((alcance - 1.0) / 4.0, 0.0, emax)
+	_ext = alvo_e if _ext < 0.0 else move_toward(_ext, alvo_e, delta * 0.4)
+	var e := _ext
+	for k in range(1, 5):                          # Blender −y (para a origem) = +z local do Godot
+		_desloca("lanca%d" % k, Vector3(0, 0, k * e))
+	if tem("ponta"):
+		_desloca("ponta", Vector3(0, 0, 4.0 * e))
+	if tem("cabo"):
+		var l0 := float(q.get("cabo_l0", 0.43))
+		var bc: Transform3D = _base["cabo"]
+		(_partes["cabo"] as Node3D).transform = Transform3D(bc.basis.scaled(Vector3(1, 1, (l0 + 4.0 * e) / l0)), bc.origin)
+	if tem("carretel"):
+		var br: Transform3D = _base["carretel"]
+		(_partes["carretel"] as Node3D).transform = Transform3D(Basis(Vector3.RIGHT, 4.0 * e / 0.056) * br.basis, br.origin)
+	var ponta := float(q.get("ponta_y", 1.0)) + 4.0 * e - 0.12
+	var aneis: Array = q.get("aneis", [])
+	for i in aneis.size():
+		var nome := "anel%d" % (i + 1)
+		if not tem(nome):
+			continue
+		var s := clampf((ponta - float(aneis[i])) / 0.12, 0.0, 1.0)
+		var n := _partes[nome] as Node3D
+		n.visible = s > 0.03
+		var ba: Transform3D = _base[nome]
+		n.transform = Transform3D(ba.basis.scaled(Vector3.ONE * maxf(s, 0.02)), ba.origin)
+
+
+## Caminho do item no braço quântico (modelo, Blender: y para a frente/destino, z para cima): sobe da origem pela
+## coluna de campo da ponta, corre por cima da lança, desce em curva e pousa no tile da frente.
+func _caminho_quantico() -> PackedVector3Array:
+	var q: Dictionary = Registro.modelos.get(modelo, {}).get("lanca", {})
+	var e := maxf(_ext, 0.0)
+	var yp := float(q.get("ponta_y", 1.0)) + 4.0 * e
+	var ez := float(q.get("eixo_z", 1.16))
+	var zc := float(q.get("fluxo_z", 1.38))
+	var zi := 0.24
+	var pts := PackedVector3Array([Vector3(0, -yp, zi), Vector3(0, -yp, ez + 0.12), Vector3(0, -yp + 0.1, zc),
+			Vector3(0, 0.2, zc), Vector3(0, 0.62, zc - 0.1), Vector3(0, 0.95, zc - 0.45), Vector3(0, 1.0, zi)])
+	return pts
+
+
+## Onde o item fica preso: entre os dedos da garra (mundo); no braço quântico, no campo (pelo caminho do item, conforme
+## a fase do ciclo). INF se não é braço.
 func ponto_garra() -> Vector3:
+	if tem("lanca1"):
+		var pts := _caminho_quantico()
+		var tot := 0.0
+		for i in pts.size() - 1:
+			tot += pts[i].distance_to(pts[i + 1])
+		var alvo := clampf(fase_braco * 2.0, 0.0, 1.0) * tot
+		var p := pts[0]
+		for i in pts.size() - 1:
+			var l := pts[i].distance_to(pts[i + 1])
+			if alvo <= l:
+				p = pts[i].lerp(pts[i + 1], alvo / maxf(l, 1e-6))
+				break
+			alvo -= l
+			p = pts[i + 1]
+		var dono := get_parent() as Node3D
+		var t := dono.global_transform if dono.is_inside_tree() else dono.transform
+		return t * Vector3(p.x, p.z, -p.y)
 	if not tem("garra"):
 		return Vector3.INF
 	if _ik.is_empty():

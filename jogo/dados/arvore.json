@@ -549,6 +549,7 @@
    ],
    "tempo": 6.0,
    "libera": "Rotas com condição (esperar cheio, vazio ou tempo) e sinal em cadeia",
+   "existente": true,
    "tipo": "estrutura"
   },
   "silo_granel": {
@@ -1229,6 +1230,7 @@
    ],
    "tempo": 8.0,
    "libera": "Sensor de esteira, sensor de tanque, comparador e válvula (1×1)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "modulo_velocidade_1": {
@@ -1608,6 +1610,7 @@
    ],
    "tempo": 8.0,
    "libera": "Trilho energizado e locomotiva elétrica (2× velocidade, sem poluição)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "cartografia": {
@@ -3802,6 +3805,7 @@
    ],
    "tempo": 15.0,
    "libera": "Braço quântico (ciclo 0,2 s, 8 itens por vez, alcance 1 a 3)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "broca_profunda": {

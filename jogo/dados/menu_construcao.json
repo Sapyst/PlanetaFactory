@@ -37,6 +37,7 @@
     "braco_longo",
     "braco_filtro",
     "braco_empilhador",
+    "braco_quantico",
     "bau",
     "bau_grande",
     "silo_granel"
@@ -126,7 +127,17 @@
   {
    "nome": "Drones",
    "pecas": [
-    "estacao_drones"
+    "estacao_drones",
+    "bau_estoque"
+   ]
+  },
+  {
+   "nome": "Lógica",
+   "pecas": [
+    "sensor_esteira",
+    "sensor_tanque",
+    "comparador",
+    "valvula"
    ]
   },
   {
@@ -135,10 +146,14 @@
     "trilho_reto",
     "trilho_curva",
     "trilho_fim",
+    "trilho_energizado",
     "estacao",
+    "bomba_estacao",
     "sinal_trem",
+    "sinal_cadeia",
     "trem",
-    "trem_tanque"
+    "trem_tanque",
+    "trem_eletrico"
    ]
   }
  ],
@@ -148,6 +163,7 @@
   "cano": "cano_reto",
   "trem": "locomotiva",
   "trem_tanque": "vagao_tanque",
+  "trem_eletrico": "locomotiva_eletrica",
   "esteira_rapida": "esteira_reta_rapida",
   "rampa_desce_rapida": "esteira_rampa_rapida",
   "esteira_expressa": "esteira_reta_expressa",
@@ -184,6 +200,7 @@
   "braco_longo": "Braço longo",
   "braco_filtro": "Braço com filtro",
   "braco_empilhador": "Braço empilhador",
+  "braco_quantico": "Braço quântico",
   "bau": "Baú",
   "bau_grande": "Baú grande",
   "silo_granel": "Silo de granel",
@@ -218,9 +235,18 @@
   "trilho_curva": "Curva de trilho",
   "trilho_fim": "Fim de linha",
   "estacao": "Estação",
+  "bomba_estacao": "Bomba de estação",
   "sinal_trem": "Sinal",
+  "sinal_cadeia": "Sinal em cadeia",
   "trem": "Trem",
   "trem_tanque": "Trem-tanque",
+  "trem_eletrico": "Trem elétrico",
+  "bau_estoque": "Baú de estoque",
+  "sensor_esteira": "Sensor de esteira",
+  "sensor_tanque": "Sensor de tanque",
+  "comparador": "Comparador",
+  "valvula": "Válvula",
+  "trilho_energizado": "Trilho energizado",
   "bomba_agua": "Bomba d'água",
   "coletor_chuva": "Coletor de chuva",
   "condensador_neblina": "Condensador de neblina",
@@ -309,6 +335,7 @@
   "braco_longo": "Braço que alcança 2 tiles.",
   "braco_filtro": "Só pega os itens que você escolher (até 5). Toque nele para escolher.",
   "braco_empilhador": "Leva até 4 itens iguais por vez (o que estiver na origem).",
+  "braco_quantico": "Lança telescópica: pega de 1 a 3 tiles atrás (toque nele para escolher) e o campo leva até 8 itens iguais por vez ao tile da frente, a cada 0,2 s.",
   "bau": "Guarda itens; braços põem e tiram.",
   "bau_grande": "Baú 2×2: guarda 4× mais.",
   "silo_granel": "Silo 3×3: 20.000 itens de um tipo só.",
@@ -344,8 +371,17 @@
   "trilho_fim": "Fim da linha.",
   "estacao": "Trem carrega e descarrega aqui.",
   "sinal_trem": "Divide a linha em blocos.",
+  "sinal_cadeia": "Ao lado da linha, antes de um cruzamento: o trem só entra se a saída também estiver livre.",
   "trem": "Trem sobre um trilho reto.",
-  "trem_tanque": "Trem com 2 vagões-tanque (25.000 de fluido cada) sobre um trilho reto. Cano encostado na estação enche ou esvazia.",
+  "trem_tanque": "Trem com 2 vagões-tanque (25.000 de fluido cada) sobre um trilho reto. A bomba de estação enche ou esvazia.",
+  "bau_estoque": "Estoque dos drones logísticos: guarda o que sobra na garra e atende o requisitante quando nenhum provedor tem.",
+  "sensor_esteira": "Ao lado da esteira, olhando para ela: conta os itens que passam e manda (itens/min) por um canal.",
+  "sensor_tanque": "Peça de cano: lê o nível da rede (com o tanque) e manda (0–100%) por um canal.",
+  "comparador": "Liga ou desliga as máquinas, braços e bombas encostadas conforme o valor do canal (maior/menor que um número).",
+  "valvula": "Entre dois canos: só deixa o fluido passar acima ou abaixo de um nível (ou quando o comparador manda).",
+  "trem_eletrico": "Locomotivas elétricas: no dobro da velocidade sobre trilho energizado com energia, sem poluir (fora dele, devagar na bateria).",
+  "trilho_energizado": "Trilho reto com terceiro trilho: um poste perto energiza todas as peças encostadas.",
+  "bomba_estacao": "Encoste as costas (braço de carga) na estação e ligue um cano na boca: enche ou esvazia o tanque dela (40 kW).",
   "bomba_agua": "2×2 na margem: a tomada (lado da grade) encosta na água. Solta 40 de água/s pelo cano; água suja rende menos.",
   "coletor_chuva": "2×2 em qualquer lugar: até 25 de água/s com chuva forte, nada no seco. Guarda 2.000.",
   "condensador_neblina": "2×2 com energia (80 kW): até 12 de água/s com neblina (mais no inverno).",

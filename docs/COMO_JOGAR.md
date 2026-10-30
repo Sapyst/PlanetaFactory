@@ -22,10 +22,27 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
   **Braço empilhador** (pega até 4 itens iguais de uma vez e solta um por um). Como a rápida, arraste a expressa por
   cima de outra esteira para trocar. A **Esteira quântica** (o quádruplo, faixa violeta, passagem até 10 tiles) já
   aparece na árvore, mas espera a Computação quântica.
-- **Trem-tanque** (pesquisa Vagão-tanque; espera o Trem automático): locomotiva + 2 vagões-tanque (25.000 de fluido
-  cada), posto num trilho reto como o trem. Encoste a boca de um cano na estação e toque nela: **Cano → trem**
-  (carregar) enche o tanque da estação (25.000) com o que vem pelo cano e o trem leva ao parar; **Trem → cano**
-  (descarregar) recebe o fluido que o trem trouxe de outra estação e solta no cano. Começa desligado (não puxa nada).
+- **Trem automático** (pesquisa): **Sinal em cadeia** — ponha antes de um cruzamento, ao lado da linha como o sinal;
+  o trem só entra se a saída também estiver livre (ninguém para no meio do cruzamento). No painel do trem, cada
+  estação da rota ganha a espera: parada curta, 30 s, **até encher** ou **até esvaziar** (enquanto espera, os braços
+  vão enchendo a estação e o trem vai levando).
+- **Trem-tanque** (pesquisa Vagão-tanque, depois do Trem automático): locomotiva + 2 vagões-tanque (25.000 de fluido
+  cada), posto num trilho reto como o trem. Encoste as costas (o braço de carga) de uma **Bomba de estação** na
+  estação, ligue um cano na boca dela e um poste perto (40 kW). Toque na estação: **Cano → trem** (carregar) enche o
+  tanque da estação (25.000) e o trem leva ao parar; **Trem → cano** (descarregar) recebe o fluido que o trem trouxe
+  de outra estação e solta no cano. Começa desligado (não puxa nada).
+- **Locomotiva elétrica** (com liga leve): **Trilho energizado** é um trilho reto com terceiro trilho — basta um poste
+  perto de uma peça para energizar todas as peças encostadas. O **Trem elétrico** anda e acelera no dobro sobre ele
+  (fora dele, devagarinho na bateria) e não polui; a locomotiva comum solta um pouco de poluição andando.
+- **Rede lógica** (com processador; categoria Lógica): o **Sensor de esteira** fica ao lado da esteira, olhando para
+  ela, e conta os itens que passam (itens/min); o **Sensor de tanque** é uma peça de cano e lê o nível da rede (0–100%).
+  Cada sensor manda pelo canal escolhido (A a D; sensores do mesmo canal somam). O **Comparador** liga ou desliga tudo
+  o que está encostado nele (máquinas, braços, bombas, válvulas) quando o canal fica maior ou menor que o número dele.
+  A **Válvula** separa dois canos: passa se a entrada estiver acima de um nível, se a saída estiver abaixo, ou sempre.
+- **Baú de estoque** (Drones logísticos): os drones guardam nele o que sobra na garra e buscam nele o que um
+  requisitante pede quando nenhum provedor tem.
+- **Braço quântico** (precisa da Computação quântica, ainda em breve): a lança estica de 1 a 3 tiles para trás (toque
+  nele para escolher) e o campo leva até 8 itens iguais por vez, a cada 0,2 s.
 - **Água** (pesquisa "Água como insumo", com pacote de automação): a **Bomba d'água** 2×2 fica na margem, com a tomada
   (o lado da grade) encostada num rio, lago ou canal, e solta 40 de água/s pelo cano. Água suja na tomada rende menos.
   Também dão água o **Coletor de chuva** (só quando chove; guarda 2.000), o **Condensador de neblina** (com neblina e

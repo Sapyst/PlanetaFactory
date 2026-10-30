@@ -1,0 +1,31 @@
+{
+ "nome": "bau_estoque",
+ "categoria": "logistica/armazenagem",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Baú de estoque (estudo_bau_estoque.py): o baú 1×1 em verde-oliva com plataforma de pouso no teto (alvo, LEDs, balizas), escotilha de duas folhas para a garra do drone e farol de aproximação; guarda a sobra dos drones logísticos e serve os requisitantes sem provedor.",
+ "ocupa_canto": false,
+ "portas": [],
+ "tris": 3624,
+ "dims": [
+  1.0,
+  1.0,
+  0.736
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_bau_estoque.py"
+}

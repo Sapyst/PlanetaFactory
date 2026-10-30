@@ -1,0 +1,214 @@
+{
+ "nome": "braco_quantico",
+ "categoria": "logistica/bracos",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Braço quântico (estudo_bracos_novos.py): base pesada, servos, capacitores e lança telescópica de cinco seções que estica de 1 a 3 tiles até a origem; o campo violeta leva os itens por cima da lança até a frente. Partes: lanca1..4 (seções + hastes do cilindro), ponta (emissor de anéis), cabo, carretel, anel1..8 (rastro de anéis que aparece com a lança).",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S0",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -0.5,
+    0.16
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_N0",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    0.5,
+    0.16
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  }
+ ],
+ "lanca": {
+  "eixo_z": 1.16,
+  "fluxo_z": 1.38,
+  "ponta_y": 1.0,
+  "emax": 0.5,
+  "aneis": [
+   1.05,
+   1.3,
+   1.55,
+   1.8,
+   2.05,
+   2.3,
+   2.55,
+   2.8
+  ],
+  "cabo_l0": 0.43
+ },
+ "tris": 7860,
+ "dims": [
+  0.89,
+  3.943,
+  1.502
+ ],
+ "partes": [
+  {
+   "nome": "base",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "lanca1",
+   "pai": "corpo",
+   "pivo": [
+    0,
+    0,
+    1.16
+   ]
+  },
+  {
+   "nome": "lanca2",
+   "pai": "corpo",
+   "pivo": [
+    0,
+    0,
+    1.16
+   ]
+  },
+  {
+   "nome": "lanca3",
+   "pai": "corpo",
+   "pivo": [
+    0,
+    0,
+    1.16
+   ]
+  },
+  {
+   "nome": "lanca4",
+   "pai": "corpo",
+   "pivo": [
+    0,
+    0,
+    1.16
+   ]
+  },
+  {
+   "nome": "ponta",
+   "pai": "corpo",
+   "pivo": [
+    0,
+    -1.0,
+    1.16
+   ]
+  },
+  {
+   "nome": "cabo",
+   "pai": "corpo",
+   "pivo": [
+    0.125,
+    -0.42,
+    1.098
+   ]
+  },
+  {
+   "nome": "carretel",
+   "pai": "corpo",
+   "pivo": [
+    0.125,
+    -0.42,
+    1.16
+   ]
+  },
+  {
+   "nome": "anel1",
+   "pai": "corpo",
+   "pivo": [
+    0,
+    -1.05,
+    1.38
+   ]
+  },
+  {
+   "nome": "anel2",
+   "pai": "corpo",
+   "pivo": [
+    0,
+    -1.3,
+    1.38
+   ]
+  },
+  {
+   "nome": "anel3",
+   "pai": "corpo",
+   "pivo": [
+    0,
+    -1.55,
+    1.38
+   ]
+  },
+  {
+   "nome": "anel4",
+   "pai": "corpo",
+   "pivo": [
+    0,
+    -1.8,
+    1.38
+   ]
+  },
+  {
+   "nome": "anel5",
+   "pai": "corpo",
+   "pivo": [
+    0,
+    -2.05,
+    1.38
+   ]
+  },
+  {
+   "nome": "anel6",
+   "pai": "corpo",
+   "pivo": [
+    0,
+    -2.3,
+    1.38
+   ]
+  },
+  {
+   "nome": "anel7",
+   "pai": "corpo",
+   "pivo": [
+    0,
+    -2.55,
+    1.38
+   ]
+  },
+  {
+   "nome": "anel8",
+   "pai": "corpo",
+   "pivo": [
+    0,
+    -2.8,
+    1.38
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_bracos_novos.py"
+}

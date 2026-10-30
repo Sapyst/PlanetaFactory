@@ -14,6 +14,14 @@ extends RefCounted
 ##  - Vagão-tanque (pesquisa vagao_tanque): leva um fluido só, até 25.000 por vagão. Na estação, o tanque dela
 ##    (estoque.fluido, cheio/esvaziado por cano pela Fabrica) troca com o trem conforme o modo da estação:
 ##    "carregar" enche o trem, "descarregar" esvazia o trem (fluido que veio de outra estação), "desligado" nada.
+##  - Sinal em cadeia (pesquisa trem_automatico): para passar por ele o trem reserva, tudo ou nada, os blocos da rota
+##    até o próximo sinal comum e o bloco depois dele (a saída do cruzamento). Sem a saída livre, espera antes dele.
+##  - Rotas com condição (trem_automatico): por estação da rota, "tempo" (espera ESPERA_TEMPO), "cheio" (espera
+##    encher os vagões que tem) ou "vazio" (espera esvaziar). Parado esperando, troca carga de novo a cada
+##    segundo (`retroca`: o mundo chama trocar_carga) — os braços vão enchendo a estação e o trem vai levando.
+##  - Locomotiva elétrica (pesquisa trem_eletrico): com trilho energizado embaixo e energia na rede dele, anda no
+##    dobro (VEL_MAX × 2 × energia, e acelera no dobro); fora dele, só na bateria de manobra (VEL_BATERIA). Não polui; a diesel solta
+##    POLUICAO_DIESEL por locomotiva enquanto anda (o mundo emite).
 
 const CARRO := 3.0            ## m por carro (engate a engate)
 const TRUQUE := 0.85          ## truques a ±0,85 m do centro do carro (modelo)
@@ -25,8 +33,14 @@ const CAPACIDADE_VAGAO := 40
 const CAPACIDADE_TANQUE := 25000.0      ## fluido por vagão-tanque (árvore: vagao_tanque)
 ## Peças de menu que põem um trem no trilho → composição (o custo é o da peça em progressao.custos).
 const COMPOSICOES := {"trem": ["locomotiva", "vagao_carga", "vagao_carga", "locomotiva"],
-		"trem_tanque": ["locomotiva", "vagao_tanque", "vagao_tanque", "locomotiva"]}
+		"trem_tanque": ["locomotiva", "vagao_tanque", "vagao_tanque", "locomotiva"],
+		"trem_eletrico": ["locomotiva_eletrica", "vagao_carga", "vagao_carga", "locomotiva_eletrica"]}
+const VEL_BATERIA := 1.5              ## locomotiva elétrica fora do trilho energizado (bateria de manobra)
+const KW_ELETRICA := 400.0            ## o que o trem elétrico puxa do trilho energizado andando
+const POLUICAO_DIESEL := 6.0          ## pontos/min por locomotiva diesel andando (a elétrica não polui)
 const FOLGA_SINAL := 0.3
+const ESPERA_TEMPO := 30.0            ## condição "tempo" (trem_automatico)
+const CONDICOES := ["", "tempo", "cheio", "vazio"]
 
 enum Estado { ANDANDO, PARADO, ESPERANDO_BLOCO, SEM_ROTA }
 
@@ -51,6 +65,10 @@ var fluido := ""                      ## vagões-tanque: um fluido só no trem
 var fluido_qtd := 0.0
 var origem_fluido := -1               ## estrutura da estação onde encheu
 var _tentar := 0.0
+var condicoes: Dictionary = {}        ## id da estação (texto) → "tempo" | "cheio" | "vazio"; sem = só a parada curta
+var parado_em := -1                   ## estação onde está parado (PARADO)
+var retroca := -1                     ## estação onde trocar carga de novo (esperando condição; o mundo lê e zera)
+var vel_max := VEL_MAX                ## locomotiva elétrica: o mundo põe 2× no trilho energizado com energia
 
 
 func _init(p_id: int, p_grafo: GrafoTrilhos, p_carros: Array[String]) -> void:
@@ -76,7 +94,38 @@ func peca() -> String:
 	for k in COMPOSICOES:
 		if ",".join(PackedStringArray(carros)) == ",".join(PackedStringArray(COMPOSICOES[k])):
 			return k
+	if eletrico():
+		return "trem_eletrico"
 	return "trem_tanque" if carros.has("vagao_tanque") else "trem"
+
+
+func eletrico() -> bool:
+	return carros.has("locomotiva_eletrica")
+
+
+func locomotivas_diesel() -> int:
+	return carros.count("locomotiva")
+
+
+## Locomotiva elétrica: acha o trilho energizado debaixo do trem com mais energia (`energia_de(id da estrutura)` →
+## 0..1, -1 se não é trilho energizado) e põe a velocidade máxima. Devolve a estrutura que alimenta (-1 = nenhuma).
+func energizar(energia_de: Callable) -> int:
+	if not eletrico():
+		vel_max = VEL_MAX
+		return -1
+	var L := comprimento()
+	var melhor := -1
+	var en := 0.0
+	for sg in segs:
+		if sg.s1 <= s - L or sg.s0 >= s or sg.peca < 0:
+			continue
+		var est: int = grafo.pecas[sg.peca].get("estrutura", -1)
+		var e := float(energia_de.call(est)) if est >= 0 else -1.0
+		if e > en or (e >= 0.0 and melhor < 0):
+			en = maxf(e, 0.0)
+			melhor = est
+	vel_max = maxf(VEL_BATERIA, VEL_MAX * 2.0 * en) if melhor >= 0 else VEL_BATERIA
+	return melhor
 
 
 func total_carga() -> int:
@@ -88,7 +137,7 @@ func total_carga() -> int:
 
 # ------------------------------------------------------------------ salvamento
 const CAMPOS := ["carros", "pontos", "acum", "segs", "s", "v", "s_alvo", "proxima", "espera", "carga", "origem_carga", "rota",
-		"fluido", "fluido_qtd", "origem_fluido"]
+		"fluido", "fluido_qtd", "origem_fluido", "condicoes", "parado_em"]
 
 
 func para_salvar() -> Dictionary:
@@ -147,8 +196,13 @@ func tick(dt: float) -> void:
 		Estado.PARADO:
 			espera -= dt
 			if espera <= 0.0:
-				proxima += 1
-				planejar()
+				if condicao_cumprida():
+					proxima += 1
+					parado_em = -1
+					planejar()
+				else:
+					espera = 1.0                    # olha de novo daqui a 1 s, trocando carga
+					retroca = parado_em
 		Estado.SEM_ROTA:
 			_tentar -= dt
 			if _tentar <= 0.0:
@@ -183,7 +237,8 @@ func _andar(dt: float) -> void:
 	var olhar := v * v / (2.0 * FREIO) + 2.0
 	var limite := s_alvo
 	var precisa := {}
-	for sg in segs:
+	for k in segs.size():
+		var sg: Dictionary = segs[k]
 		if sg.s1 <= s - L:
 			continue
 		if sg.s0 > s + olhar:
@@ -191,6 +246,20 @@ func _andar(dt: float) -> void:
 		if sg.peca < 0:
 			limite = minf(limite, sg.s0 - FOLGA_SINAL)
 			break
+		if grafo.cadeia.has(sg.de):
+			# sinal em cadeia: a saída do cruzamento vem junto (tudo ou nada); já passou dele = segura o que pegou
+			var trecho := _trecho_cadeia(k)
+			var meu := true
+			for pc in trecho:
+				if grafo.reserva.get(grafo.pecas[pc].bloco, -1) != id:
+					meu = false
+					break
+			if not meu and sg.s0 > s and not grafo.reservar(id, trecho):
+				limite = minf(limite, sg.s0 - FOLGA_SINAL)
+				break
+			for pc in trecho:
+				if grafo.reserva.get(grafo.pecas[pc].bloco, -1) == id:
+					precisa[grafo.pecas[pc].bloco] = true
 		var b: int = grafo.pecas[sg.peca].bloco
 		if precisa.has(b) or grafo.reserva.get(b, -1) == id:
 			precisa[b] = true
@@ -203,8 +272,9 @@ func _andar(dt: float) -> void:
 		if grafo.reserva[b] == id and not precisa.has(b):
 			grafo.reserva.erase(b)
 	var livre := maxf(limite - s, 0.0)
-	var vmax := minf(VEL_MAX, sqrt(2.0 * FREIO * livre))
-	v = move_toward(v, vmax, (ACEL if vmax > v else FREIO * 2.0) * dt)
+	var vmax := minf(vel_max, sqrt(2.0 * FREIO * livre))
+	var acel := ACEL * maxf(1.0, vel_max / VEL_MAX)          # elétrica energizada: tração 2× também
+	v = move_toward(v, vmax, (acel if vmax > v else FREIO * 2.0) * dt)
 	s = minf(s + v * dt, maxf(limite, s))
 	if limite - s <= 0.001:
 		v = 0.0
@@ -223,6 +293,46 @@ func _chegar() -> void:
 	var ps := paradas()
 	if not ps.is_empty():
 		chegada = ps[proxima % ps.size()].estrutura
+		parado_em = chegada
+		if condicao(parado_em) == "tempo":
+			espera = ESPERA_TEMPO
+
+
+## Peças do trecho que o sinal em cadeia na entrada de segs[k] exige: da peça dele em diante, pela rota planejada,
+## até o próximo sinal comum, e o bloco depois dele inteiro (até onde a rota já está planejada).
+func _trecho_cadeia(k: int) -> Array[int]:
+	var out: Array[int] = []
+	var saida := -1                       # bloco da saída (depois do sinal comum)
+	for j in range(k, segs.size()):
+		var sg: Dictionary = segs[j]
+		if sg.peca < 0:
+			break
+		var b: int = grafo.pecas[sg.peca].bloco
+		if saida >= 0 and b != saida:
+			break
+		if j > k and saida < 0 and grafo.sinais.has(sg.de) and not grafo.cadeia.has(sg.de):
+			saida = b
+		out.append(sg.peca)
+	return out
+
+
+## Condição escolhida para a estação (rotas com condição, trem_automatico): "" = só a parada curta.
+func condicao(estacao: int) -> String:
+	return String(condicoes.get(str(estacao), ""))
+
+
+func condicao_cumprida() -> bool:
+	match condicao(parado_em):
+		"cheio":
+			var ok := true
+			if capacidade() > 0:
+				ok = total_carga() >= capacidade()
+			if capacidade_fluido() > 0.0:
+				ok = ok and fluido_qtd >= capacidade_fluido() - 0.5
+			return ok
+		"vazio":
+			return total_carga() == 0 and fluido_qtd <= 0.001
+	return true
 
 
 ## Troca de carga numa estação. `estoque` = {enviar: {item: n}, recebido: {item: n}} da estação.

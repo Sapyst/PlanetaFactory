@@ -44,7 +44,22 @@ var passos := 0                        ## quantos ticks já rodaram (o desenho s
 var redes_fluido: Array[Dictionary] = []    ## {fluido, qtd, cap, membros: Array[int]}
 var _rede_do: Dictionary = {}          ## id (cano/tanque) → índice da rede
 var _ligacoes_fluido: Array[Dictionary] = []  ## {id (máquina), io, rede}
-var _estacoes_fluido: Array[Dictionary] = []  ## {id (estação), rede}: cano com a boca virada para a estação
+var _estacoes_fluido: Array[Dictionary] = []  ## {id (estação), rede, bomba}: bomba de estação encostada nela
+var bombeando: Dictionary = {}         ## id da bomba de estação → true se moveu fluido no último tick
+var _trilho_grupo: Dictionary = {}     ## id do trilho energizado → índice do trecho (peças encostadas)
+var _trechos: Array = []               ## índice do trecho → Array de ids
+var demanda_trilho: Dictionary = {}    ## índice do trecho → kW que os trens elétricos pediram (o mundo põe; gasto no tick)
+# rede lógica (pesquisa rede_logica): sensores mandam um valor por canal; o comparador liga/desliga os vizinhos
+const CANAIS := ["A", "B", "C", "D"]
+var canais: Dictionary = {}            ## canal → soma dos valores dos sensores dele (último tick)
+var logica_off: Dictionary = {}        ## id → true: desligado por um comparador encostado
+var sensores: Dictionary = {}          ## id do sensor de esteira → {total, janela: Array (itens por segundo), seg, t} (salvo)
+var _sens_esteira: Array[Dictionary] = []   ## {id, caminho (índice), marca (m da saída), antes, saidos}
+var _comparadores: Array[Dictionary] = []   ## {id, vizinhos: Array[int]}
+var _comandados: Dictionary = {}       ## id → true: encostado num comparador (kW refeito a cada tick)
+var _valvulas: Array[Dictionary] = []  ## {id, ent: rede, sai: rede}
+var valvula_passou: Dictionary = {}    ## id da válvula → true se passou fluido no último tick
+var _pontas_fluido: Dictionary = {}    ## "tile_dentro|dir" → id do cano (montado em _montar_fluidos)
 var distribuidores: Dictionary = {}    ## id (divisor/junção) → {buffer: Array[String], vez: int}
 var _saidas_dist: Dictionary = {}      ## id → Array[{caminho, idx}]
 var _no_tile: Dictionary = {}          ## tile → [caminho, índice do tile no caminho] (só esteira no chão)
@@ -96,10 +111,12 @@ func reconstruir() -> void:
 	_montar_esteiras()
 	_montar_maquinas()
 	_montar_energia()
+	_montar_trilhos_energizados()
 	_ligar_pontas()
 	_montar_portas()
 	_montar_bracos()
 	_montar_fluidos()
+	_montar_logica()
 	_restaurar_fluidos(fluido_salvo)
 	_restaurar_itens(guardados)
 
@@ -349,7 +366,7 @@ func modo(id: int) -> Array:
 
 
 func ligada(id: int) -> bool:
-	return mapa.estruturas.has(id) and not mapa.estruturas[id].get("desligada", false)
+	return mapa.estruturas.has(id) and not mapa.estruturas[id].get("desligada", false) and not logica_off.has(id)
 
 
 ## Quantos itens cabem no baú (capacidade do modelo × limite escolhido pelo jogador).
@@ -445,6 +462,48 @@ func _montar_energia() -> void:
 	rede.calcular()
 
 
+## Trilho energizado (trem_eletrico): peças encostadas formam um trecho; o terceiro trilho conduz, então basta uma
+## peça do trecho ligada a um poste para o trecho todo ter energia.
+func _montar_trilhos_energizados() -> void:
+	_trilho_grupo.clear()
+	_trechos.clear()
+	for id in mapa.estruturas:
+		if mapa.estruturas[id].nome != "trilho_energizado" or _trilho_grupo.has(id):
+			continue
+		var g := _trechos.size()
+		var lista: Array[int] = [id]
+		_trilho_grupo[id] = g
+		var i := 0
+		while i < lista.size():
+			var t: Vector2i = mapa.estruturas[lista[i]].minimo
+			for d in Grade.DIRECOES:
+				var o: int = mapa.tiles.get(t + d, -1)
+				if o >= 0 and not _trilho_grupo.has(o) and mapa.estruturas.has(o) and mapa.estruturas[o].nome == "trilho_energizado":
+					_trilho_grupo[o] = g
+					lista.append(o)
+			i += 1
+		_trechos.append(lista)
+
+
+## Energia (0..1) do trecho de trilho energizado da estrutura `id`: a melhor entre as peças dele ligadas a poste.
+## -1 se `id` não é trilho energizado.
+func energia_trilho(id: int) -> float:
+	if not _trilho_grupo.has(id):
+		return -1.0
+	var m := 0.0
+	for k in _trechos[_trilho_grupo[id]]:
+		m = maxf(m, energia(k))
+	return m
+
+
+## Trem elétrico andando sobre o trilho `id`: soma `kw` na conta do trecho (gasto no próximo tick, repartido entre as
+## peças ligadas a poste).
+func pedir_trilho(id: int, kw: float) -> void:
+	if _trilho_grupo.has(id):
+		var g: int = _trilho_grupo[id]
+		demanda_trilho[g] = float(demanda_trilho.get(g, 0.0)) + kw
+
+
 ## Ponta de caminho: lateral de outra esteira (carga lateral) ou porta de entrada de máquina/estação/torre.
 ## Só extratores (broca, extrator de cristal) despejam direto na esteira em frente — como uma broca de verdade.
 ## Toda outra construção recebe e entrega itens um a um pelas mãos de um braço (nada entra ou sai sozinho).
@@ -524,14 +583,23 @@ func _montar_bracos() -> void:
 		if b == null:
 			b = Braco.new(float(r.ciclo_s))
 			bracos[id] = b
-		var f := Grade.DIRECOES[Construtor.fluxo_da_rot(e.rot)] * int(r.get("alcance", 1))
+		var d := Grade.DIRECOES[Construtor.fluxo_da_rot(e.rot)]
 		b.pilha_max = int(r.get("pilha", 1))
 		b.filtros = Fabrica.filtros_de(e)
 		b.filtro = b.filtros[0] if b.filtros.size() == 1 else ""
-		b.origem = origem_em(e.minimo - f)
-		b.destino = destino_em(e.minimo + f)
+		b.origem = origem_em(e.minimo - d * alcance_origem(e))
+		b.destino = destino_em(e.minimo + d * (1 if r.has("alcance_max") else int(r.get("alcance", 1))))
 		if b.destino == null and b.segurando == "":
 			b.estado = Braco.Estado.ESPERANDO_ITEM
+
+
+## Até onde o braço alcança atrás (a origem): o fixo do modelo ou, no braço quântico ("alcance_max"), o escolhido no
+## painel (campo "alcance" da estrutura, 1 a alcance_max); a frente dele é sempre o tile vizinho.
+static func alcance_origem(e: Dictionary) -> int:
+	var r: Dictionary = Registro.estruturas.get(e.nome, {})
+	if r.has("alcance_max"):
+		return clampi(int(e.get("alcance", r.get("alcance", 1))), 1, int(r.alcance_max))
+	return int(r.get("alcance", 1))
 
 
 ## Itens que o braço pega. O Braço com filtro escolhe até `filtro_max` (estruturas.json); os outros braços pegam o
@@ -647,6 +715,7 @@ func tick(dt: float) -> void:
 	while not juncoes.is_empty() and passos - int(juncoes[0].passo) > 6:
 		juncoes.pop_front()
 	emissao.clear()
+	_tick_comparadores()
 	for id in _membros:
 		var mb: Dictionary = _membros[id]
 		if mb.livre:
@@ -656,6 +725,14 @@ func tick(dt: float) -> void:
 		if carga_torre.has(id):                 # torre: puxa da rede só enquanto não está cheia
 			var cap := carga_max(id)
 			mb.kw = kw_de(id) if float(carga_torre[id]) < cap - 1e-4 else 0.0
+		elif _comandados.has(id) and not mb.livre and mb.kw >= 0.0 and mb.acum_cap <= 0.0:
+			mb.kw = kw_de(id)                   # comparador ligou/desligou: o consumo acompanha
+	for g in _trechos.size():                   # trens elétricos puxando do trilho energizado
+		var ligados: Array = _trechos[g].filter(func(k): return _membros.has(k))
+		var extra := float(demanda_trilho.get(g, 0.0)) / maxf(ligados.size(), 1)
+		for k in ligados:
+			_membros[k].kw = kw_de(k) + extra
+	demanda_trilho.clear()
 	rede.tick(dt)
 	for id in carga_torre:
 		if _membros.has(id) and float(_membros[id].kw) > 0.0:
@@ -707,6 +784,7 @@ func tick(dt: float) -> void:
 				combustivel[id] = maxf(0.0, combustivel[id] - FOGO_KW / 1000.0 * dt)
 	_tick_fluidos(dt)
 	_tick_estacoes_fluido(dt)
+	_tick_valvulas(dt)
 	for id in distribuidores:
 		var d: Dictionary = distribuidores[id]
 		var saidas: Array = _saidas_dist.get(id, [])
@@ -750,8 +828,13 @@ func tick(dt: float) -> void:
 				concluidas.append(fim)
 	for id in bracos:
 		bracos[id].tick(dt)
+	for s in _sens_esteira:                     # sensor de esteira: quantos estavam além da marca antes de andar
+		var est: EsteiraCaminho = caminhos[s.caminho].esteira
+		s.antes = est.a_frente(s.marca)
+		s.saidos = est.saidos
 	for c in caminhos:
 		c.esteira.tick(dt)
+	_tick_sensores(dt)
 
 
 ## Em que ordem o distribuidor tenta as saídas (índices de `saidas`) para `item`. Rodízio a partir de `vez`; no
@@ -866,7 +949,7 @@ func _montar_fluidos() -> void:
 	var canos: Array[int] = []
 	for id in mapa.estruturas:
 		var nome: String = mapa.estruturas[id].nome
-		if nome.begins_with("cano") or nome == "tanque":
+		if nome.begins_with("cano") or nome == "tanque" or nome == "sensor_tanque":
 			canos.append(id)
 			for p in _portas(id):
 				if p.tipo == "FLUIDO":
@@ -898,6 +981,7 @@ func _montar_fluidos() -> void:
 		rede.cap += float(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("capacidade", 100))
 		rede.membros.append(id)
 		_rede_do[id] = idx[r]
+	_pontas_fluido = pontas
 	# máquinas com porta de fluido encostada num cano que abre para elas
 	for id in maquinas:
 		for p in _portas(id):
@@ -906,19 +990,20 @@ func _montar_fluidos() -> void:
 			var cano: int = pontas.get("%s|%s" % [p.tile_fora, -p.dir], -1)
 			if cano >= 0:
 				_ligacoes_fluido.append({"id": id, "io": p.io, "rede": _rede_do[cano]})
-	# estações (vagão-tanque): cano com a boca virada para um tile da estação liga o tanque dela à rede
+	# estações (vagão-tanque): a bomba de estação encosta na estação pelo lado de trás (o do braço de carga) e liga o
+	# tanque dela à rede do cano que encosta na boca da frente da bomba (sem cano, a bomba fica sem rede)
 	_estacoes_fluido.clear()
-	var visto := {}
-	for id in canos:
+	for id in mapa.estruturas:
+		if mapa.estruturas[id].nome != "bomba_estacao":
+			continue
 		for p in _portas(id):
 			if p.tipo != "FLUIDO":
 				continue
-			var o: int = mapa.tiles.get(p.tile_fora, -1)
-			if o >= 0 and mapa.estruturas.has(o) and mapa.estruturas[o].nome == "estacao":
-				var chave := "%d|%d" % [o, _rede_do[id]]
-				if not visto.has(chave):
-					visto[chave] = true
-					_estacoes_fluido.append({"id": o, "rede": _rede_do[id]})
+			var est: int = mapa.tiles.get(p.tile_dentro - p.dir, -1)
+			if est < 0 or not mapa.estruturas.has(est) or mapa.estruturas[est].nome != "estacao":
+				continue
+			var cano: int = pontas.get("%s|%s" % [p.tile_fora, -p.dir], -1)
+			_estacoes_fluido.append({"id": est, "rede": _rede_do[cano] if cano >= 0 else -1, "bomba": id})
 
 
 ## Tanque da estação (vagão-tanque): {modo: "desligado" | "carregar" | "descarregar", f, qtd}. Cria se faltar
@@ -929,22 +1014,32 @@ static func tanque_estacao(es: Dictionary) -> Dictionary:
 	return es.fluido
 
 
-## Estações ligadas por cano a alguma rede de fluido (o painel da estação mostra o modo só nelas).
-func estacao_tem_cano(id: int) -> bool:
+## Estações com bomba de estação encostada (o painel da estação mostra o modo só nelas).
+func estacao_tem_bomba(id: int) -> bool:
 	return _estacoes_fluido.any(func(l): return l.id == id)
 
 
-## Modo "carregar": a estação puxa da rede para o tanque dela (o trem enche ao chegar); "descarregar": o tanque
-## dela (enchido pelo trem) solta na rede. Vazão e tanque em estruturas.json (estacao: vazao_fluido, tanque_fluido).
+## A bomba de estação moveu fluido no último tick? (o desenho toca a animação dela)
+func bomba_ativa(id: int) -> bool:
+	return bool(bombeando.get(id, false))
+
+
+## Modo "carregar": a bomba puxa da rede para o tanque da estação (o trem enche ao chegar); "descarregar": o tanque
+## (enchido pelo trem) volta para a rede. Tanque em estruturas.json (estacao.tanque_fluido); vazão na bomba de
+## estação (bomba_estacao.vazao × energia dela: sem energia ou desligada não bombeia).
 func _tick_estacoes_fluido(dt: float) -> void:
-	var regra: Dictionary = Registro.estruturas.get("estacao", {})
-	var cap := float(regra.get("tanque_fluido", 25000.0))
-	var vaz := float(regra.get("vazao_fluido", 1000.0)) * dt
+	var cap := float(Registro.estruturas.get("estacao", {}).get("tanque_fluido", 25000.0))
+	var vaz0 := float(Registro.estruturas.get("bomba_estacao", {}).get("vazao", 1000.0)) * dt
+	bombeando.clear()
 	for l in _estacoes_fluido:
-		if not estoques.has(l.id):
+		if not estoques.has(l.id) or l.rede < 0:
+			continue
+		var vaz := vaz0 * (energia(l.bomba) if ligada(l.bomba) else 0.0)
+		if vaz <= 0.0:
 			continue
 		var tq := tanque_estacao(estoques[l.id])
 		var rede: Dictionary = redes_fluido[l.rede]
+		var antes := float(tq.qtd)
 		match String(tq.get("modo", "desligado")):
 			"carregar":
 				if rede.qtd > 0.0 and (tq.f == "" or tq.f == rede.fluido):
@@ -960,6 +1055,8 @@ func _tick_estacoes_fluido(dt: float) -> void:
 						rede.fluido = tq.f
 						rede.qtd += vai
 						tq.qtd = float(tq.qtd) - vai
+		if absf(float(tq.qtd) - antes) > 1e-6:
+			bombeando[l.bomba] = true
 		if float(tq.qtd) <= 0.001:
 			tq.qtd = 0.0
 			tq.f = ""
@@ -1037,6 +1134,169 @@ func _restaurar_fluidos(salvo: Dictionary) -> void:
 				rede.qtd = minf(rede.cap, rede.qtd + float(salvo[id][1]))
 
 
+# ------------------------------------------------------------------ rede lógica
+## Sensor de esteira: a cabeça olha o tile da frente (só esteira no chão). Comparador: os vizinhos que ele comanda
+## são as estruturas dos 4 tiles encostados. Válvula: duas redes de cano (a da boca de entrada e a da saída).
+func _montar_logica() -> void:
+	_sens_esteira.clear()
+	_comparadores.clear()
+	_comandados.clear()
+	_valvulas.clear()
+	for id in sensores.keys():
+		if not mapa.estruturas.has(id):
+			sensores.erase(id)
+	for id in mapa.estruturas:
+		var e: Dictionary = mapa.estruturas[id]
+		match e.nome:
+			"sensor_esteira":
+				if not sensores.has(id):
+					sensores[id] = {"total": 0, "janela": [], "seg": 0, "t": 0.0}
+				var t: Vector2i = e.minimo + Grade.DIRECOES[Construtor.fluxo_da_rot(e.rot)]
+				if _no_tile.has(t):
+					var a: Array = _no_tile[t]
+					_sens_esteira.append({"id": id, "caminho": a[0], "marca": caminhos[a[0]].esteira.comprimento - a[1] - 0.5,
+							"antes": 0, "saidos": 0})
+			"comparador":
+				var viz: Array[int] = []
+				for d in Grade.DIRECOES:
+					var o: int = mapa.tiles.get(e.minimo + d, -1)
+					if o >= 0 and o != id and not viz.has(o) and mapa.estruturas.has(o) and mapa.estruturas[o].nome != "comparador":
+						viz.append(o)
+						_comandados[o] = true
+				_comparadores.append({"id": id, "vizinhos": viz})
+			"valvula":
+				var redes := {}
+				for p in _portas(id):
+					var cano: int = _pontas_fluido.get("%s|%s" % [p.tile_fora, -p.dir], -1)
+					if cano >= 0 and _rede_do.has(cano):
+						redes[p.io] = _rede_do[cano]
+				_valvulas.append({"id": id, "ent": redes.get("ENT", -1), "sai": redes.get("SAI", -1)})
+
+
+## Valor que o sensor manda pelo canal: sensor de esteira = itens por minuto (média dos últimos `janela_s` s);
+## sensor de tanque = nível da rede dele em % (0–100). -1 se não é sensor.
+func valor_sensor(id: int) -> float:
+	if not mapa.estruturas.has(id):
+		return -1.0
+	match mapa.estruturas[id].nome:
+		"sensor_esteira":
+			var s: Dictionary = sensores.get(id, {})
+			var soma := 0
+			for n in s.get("janela", []):
+				soma += int(n)
+			var jan := float(Registro.estruturas.get("sensor_esteira", {}).get("janela_s", 10))
+			return float(soma) * 60.0 / jan
+		"sensor_tanque":
+			var r := rede_de(id)
+			return 100.0 * float(r.qtd) / float(r.cap) if not r.is_empty() and float(r.cap) > 0.0 else 0.0
+	return -1.0
+
+
+static func canal_de(e: Dictionary) -> String:
+	return String(e.get("canal", "A"))
+
+
+## Condição do comparador agora (o canal dele contra o número escolhido).
+func condicao_comparador(id: int) -> bool:
+	var e: Dictionary = mapa.estruturas[id]
+	var v := float(canais.get(canal_de(e), 0.0))
+	var n := float(e.get("numero", 50))
+	return v < n if String(e.get("op", ">")) == "<" else v > n
+
+
+func _tick_comparadores() -> void:
+	canais.clear()
+	for c in CANAIS:
+		canais[c] = 0.0
+	for id in mapa.estruturas:
+		var nome: String = mapa.estruturas[id].nome
+		if nome == "sensor_esteira" or nome == "sensor_tanque":
+			var k := canal_de(mapa.estruturas[id])
+			canais[k] = float(canais.get(k, 0.0)) + valor_sensor(id)
+	logica_off.clear()
+	for c in _comparadores:
+		if not mapa.estruturas.has(c.id) or mapa.estruturas[c.id].get("desligada", false):
+			continue                            # comparador desligado não manda em ninguém
+		if not condicao_comparador(c.id):
+			for v in c.vizinhos:
+				logica_off[v] = true
+
+
+func _tick_sensores(dt: float) -> void:
+	for s in _sens_esteira:
+		var est: EsteiraCaminho = caminhos[s.caminho].esteira
+		var passou := maxi(0, est.a_frente(s.marca) - int(s.antes) + est.saidos - int(s.saidos))
+		var sd: Dictionary = sensores[s.id]
+		sd.total = int(sd.total) + passou
+		sd.seg = int(sd.seg) + passou
+	var jan := int(Registro.estruturas.get("sensor_esteira", {}).get("janela_s", 10))
+	for id in sensores:
+		var sd: Dictionary = sensores[id]
+		sd.t = float(sd.t) + dt
+		while float(sd.t) >= 1.0:
+			sd.t = float(sd.t) - 1.0
+			(sd.janela as Array).append(int(sd.seg))
+			sd.seg = 0
+			while (sd.janela as Array).size() > jan:
+				(sd.janela as Array).pop_front()
+
+
+## O sensor de esteira contou item nos últimos 2 s? (o desenho anima a cabeça)
+func sensor_contando(id: int) -> bool:
+	var j: Array = sensores.get(id, {}).get("janela", [])
+	return int(sensores.get(id, {}).get("seg", 0)) > 0 or (not j.is_empty() and int(j[-1]) > 0)
+
+
+## Válvula: passa da rede de entrada para a de saída (vazão de estruturas.json) quando ligada (pelo jogador e pelo
+## comparador) e a condição dela vale: "acima" = entrada acima do nível, "abaixo" = saída abaixo do nível,
+## "sempre" = aberta. Um fluido só de cada lado.
+func valvula_abre(id: int) -> bool:
+	var v: Dictionary = {}
+	for x in _valvulas:
+		if x.id == id:
+			v = x
+	if v.is_empty() or v.ent < 0 or v.sai < 0 or not ligada(id):
+		return false
+	var e: Dictionary = mapa.estruturas[id]
+	var nivel := float(e.get("nivel_valvula", 50)) / 100.0
+	var ent: Dictionary = redes_fluido[v.ent]
+	var sai: Dictionary = redes_fluido[v.sai]
+	match String(e.get("modo_valvula", "acima")):
+		"acima":
+			return float(ent.cap) > 0.0 and float(ent.qtd) / float(ent.cap) > nivel
+		"abaixo":
+			return float(sai.cap) > 0.0 and float(sai.qtd) / float(sai.cap) < nivel
+	return true
+
+
+func _tick_valvulas(dt: float) -> void:
+	valvula_passou.clear()
+	var vaz := float(Registro.estruturas.get("valvula", {}).get("vazao", 1000.0)) * dt
+	for v in _valvulas:
+		if v.ent == v.sai or not valvula_abre(v.id):
+			continue
+		var ent: Dictionary = redes_fluido[v.ent]
+		var sai: Dictionary = redes_fluido[v.sai]
+		if float(ent.qtd) <= 0.0 or (sai.fluido != "" and sai.fluido != ent.fluido):
+			continue
+		var e: Dictionary = mapa.estruturas[v.id]
+		var limite := float(sai.cap) - float(sai.qtd)
+		if String(e.get("modo_valvula", "acima")) == "acima":     # não deixa a entrada cair abaixo do nível
+			limite = minf(limite, float(ent.qtd) - float(ent.cap) * float(e.get("nivel_valvula", 50)) / 100.0)
+		elif String(e.get("modo_valvula", "")) == "abaixo":       # nem encher a saída além dele
+			limite = minf(limite, float(sai.cap) * float(e.get("nivel_valvula", 50)) / 100.0 - float(sai.qtd))
+		var vai := minf(minf(vaz, float(ent.qtd)), limite)
+		if vai <= 0.0:
+			continue
+		sai.fluido = ent.fluido
+		sai.qtd = float(sai.qtd) + vai
+		ent.qtd = float(ent.qtd) - vai
+		if float(ent.qtd) <= 0.001:
+			ent.qtd = 0.0
+			ent.fluido = ""
+		valvula_passou[v.id] = true
+
+
 # ------------------------------------------------------------------ salvamento
 func estado() -> Dictionary:
 	var maq := {}
@@ -1049,7 +1309,8 @@ func estado() -> Dictionary:
 		var b: Braco = bracos[id]
 		br[id] = {"segurando": b.segurando, "estado": b.estado, "t": b.t, "qtd": b.qtd}
 	return {"maquinas": maq, "bracos": br, "baus": baus, "combustivel": combustivel, "fator_fogo": fator_fogo, "laboratorios": laboratorios, "acumulado": acumulado,
-			"distribuidores": distribuidores, "fluidos": _guardar_fluidos(), "itens": _guardar_itens(), "carga_torre": carga_torre}
+			"distribuidores": distribuidores, "fluidos": _guardar_fluidos(), "itens": _guardar_itens(), "carga_torre": carga_torre,
+			"sensores": sensores}
 
 
 ## Depois de mapa restaurado: remonta e devolve o conteúdo de cada um (os dicionários de baú são preenchidos
@@ -1101,6 +1362,9 @@ func restaurar(d: Dictionary) -> void:
 		if laboratorios.has(id):
 			laboratorios[id].merge(d.laboratorios[id], true)
 			_lab_normalizar(laboratorios[id])
+	for id in d.get("sensores", {}):
+		if sensores.has(id):
+			sensores[id].merge(d.sensores[id], true)
 	var itens: Array[Dictionary] = []
 	itens.assign(d.get("itens", []))
 	_restaurar_itens(itens)

@@ -1,8 +1,9 @@
 extends Caso
 ## Vagão-tanque (pesquisa vagao_tanque): trem-tanque (locomotiva + 2 vagões-tanque + locomotiva, 25.000 de fluido por
-## vagão). Cano com a boca virada para a estação liga o tanque dela (25.000) à rede: "carregar" puxa da rede e o
-## trem enche ao parar; "descarregar" esvazia o trem (fluido de outra estação) no tanque, que solta na rede a
-## 1.000/s; "desligado" não mexe. Como o vagão de carga faz com itens (Trem.trocar_carga).
+## vagão). A bomba de estação (lote 16) encostada na estação liga o tanque dela (25.000) à rede do cano da boca
+## dela: "carregar" puxa da rede e o trem enche ao parar; "descarregar" esvazia o trem (fluido de outra estação) no
+## tanque, que volta para a rede a 1.000/s × energia da bomba; "desligado" não mexe. Como o vagão de carga faz com
+## itens (Trem.trocar_carga).
 
 func _tanque() -> Array[String]:
 	var c: Array[String] = ["locomotiva", "vagao_tanque", "vagao_tanque", "locomotiva"]
@@ -16,10 +17,10 @@ func _por(c: Construtor, nome: String, t: Vector2i, rot: int) -> int:
 
 
 ## Linha norte–sul (como test_trens._linha) com estação A (y 8..10) e B (y −12..−10) a leste; cada estação com
-## um cano reto encostado no leste e um tanque atrás dele.
+## uma bomba de estação encostada no leste (boca para o leste), um cano reto e um tanque atrás dela.
 func _linha() -> Construtor:
 	var m := MapaOcupacao.new(GeradorMundo.new(1337))
-	for x in range(-2, 9):
+	for x in range(-2, 12):
 		for y in range(-18, 19):
 			m.limpar_obstaculo(Vector2i(x, y))
 	var c := Construtor.new(m)
@@ -30,10 +31,16 @@ func _linha() -> Construtor:
 	_por(c, "estacao", Vector2i(1, 8), 0)
 	_por(c, "estacao", Vector2i(1, -12), 0)
 	var leste := Construtor.rot_do_fluxo(1)
-	_por(c, "cano_reto", Vector2i(3, 9), leste)
-	_por(c, "tanque", Vector2i(4, 9), 0)
-	_por(c, "cano_reto", Vector2i(3, -12), leste)
-	_por(c, "tanque", Vector2i(4, -12), 0)
+	_por(c, "bomba_estacao", Vector2i(3, 9), leste)
+	_por(c, "cano_reto", Vector2i(4, 9), leste)
+	_por(c, "tanque", Vector2i(5, 9), 0)
+	_por(c, "bomba_estacao", Vector2i(3, -12), leste)
+	_por(c, "cano_reto", Vector2i(4, -12), leste)
+	_por(c, "tanque", Vector2i(5, -12), 0)
+	_por(c, "gerador", Vector2i(8, 12), 0)                     # energia das bombas: gerador + poste
+	_por(c, "poste_energia", Vector2i(4, 12), 0)
+	_por(c, "gerador", Vector2i(8, -16), 0)
+	_por(c, "poste_energia", Vector2i(4, -15), 0)
 	return c
 
 
@@ -62,10 +69,14 @@ func _montar() -> Dictionary:
 		Fabrica.tanque_estacao(est[e.estrutura])
 	f.estoques = est
 	f.reconstruir()
+	for t in [Vector2i(8, 12), Vector2i(8, -16)]:
+		f.combustivel[c.mapa.tiles[t]] = 1.0e6
 	var a: int = c.mapa.tiles[Vector2i(1, 8)]
 	var b: int = c.mapa.tiles[Vector2i(1, -12)]
-	return {"c": c, "g": g, "f": f, "a": a, "b": b, "ra": f.rede_de(c.mapa.tiles[Vector2i(3, 9)]),
-			"rb": f.rede_de(c.mapa.tiles[Vector2i(3, -12)])}
+	var ba: int = c.mapa.tiles[Vector2i(3, 9)]
+	var bb: int = c.mapa.tiles[Vector2i(3, -12)]
+	return {"c": c, "g": g, "f": f, "a": a, "b": b, "ba": ba, "bb": bb, "ga": c.mapa.tiles[Vector2i(8, 12)], "ra": f.rede_de(c.mapa.tiles[Vector2i(4, 9)]),
+			"rb": f.rede_de(c.mapa.tiles[Vector2i(4, -12)])}
 
 
 func _total(m: Dictionary, trens: Array[Trem]) -> float:
@@ -91,7 +102,12 @@ func test_dados() -> void:
 	verificar(ResourceLoader.exists("res://assets/icones/%s.png" % Registro.menu.icones.trem_tanque), "ícone")
 	verificar(not Construtor.custo_de("trem_tanque").is_empty(), "tem custo")
 	igual(int(Registro.estruturas.estacao.tanque_fluido), 25000, "tanque da estação")
-	igual(int(Registro.estruturas.estacao.vazao_fluido), 1000, "vazão do cano da estação")
+	igual(int(Registro.estruturas.bomba_estacao.vazao), 1000, "vazão da bomba de estação")
+	verificar(Registro.modelos.has("bomba_estacao"), "modelo da bomba de estação (estudo_bomba_estacao.py)")
+	igual(Registro.area("bomba_estacao"), Vector2i(1, 1), "bomba de estação 1×1 (árvore)")
+	verificar(Registro.menu.categorias.any(func(cat): return "bomba_estacao" in cat.pecas), "bomba de estação no menu")
+	verificar(ResourceLoader.exists("res://assets/icones/bomba_estacao.png"), "ícone da bomba")
+	verificar(Fiacao.papel("bomba_estacao") == "consumo", "a bomba gasta energia (poste liga nela)")
 
 
 func test_pesquisa() -> void:
@@ -101,9 +117,12 @@ func test_pesquisa() -> void:
 	igual(p.custo("vagao_tanque"), {"pacote_pesquisa": 30, "pacote_automacao": 30}, "básico × 30 + automação × 30 (árvore)")
 	verificar(not p.peca_liberada("trem_tanque"), "travado no início")
 	p.concluidas = {"ferrovia": true, "fluidos": true, "automacao": true}
-	verificar(not p.disponivel("vagao_tanque"), "trem automático (sinal em cadeia, sem estudo) ainda não existe: travado")
+	verificar(not p.disponivel("vagao_tanque"), "sem o trem automático: travado")
+	p.concluidas["trem_automatico"] = true
+	verificar(p.disponivel("vagao_tanque"), "com o trem automático (lote 16) fica pesquisável")
 	p.concluidas["vagao_tanque"] = true
 	verificar(p.peca_liberada("trem_tanque"), "libera o trem-tanque")
+	verificar(p.peca_liberada("bomba_estacao"), "e a bomba de estação")
 	verificar(Pesquisa.new(true).peca_liberada("trem_tanque"), "modo demonstração constrói")
 
 
@@ -122,22 +141,50 @@ func test_construtor() -> void:
 	igual(int(c.inventario.tubo), 100 - int(Construtor.custo_de("trem_tanque").tubo), "cobra o custo do trem-tanque")
 
 
-func test_cano_liga_na_estacao() -> void:
+func test_bomba_liga_na_estacao() -> void:
 	var m := _montar()
-	verificar(m.f.estacao_tem_cano(m.a), "cano encostado no leste da estação A")
-	verificar(m.f.estacao_tem_cano(m.b), "e na B")
-	perto(float(m.ra.cap), 25100.0, 1e-3, "rede A: cano + tanque")
-	# cano de lado (paralelo à estação) não liga
+	verificar(m.f.estacao_tem_bomba(m.a), "bomba encostada no leste da estação A")
+	verificar(m.f.estacao_tem_bomba(m.b), "e na B")
+	perto(float(m.ra.cap), 25100.0, 1e-3, "rede A: cano + tanque (a bomba não guarda fluido)")
+	# bomba virada de lado (o braço de carga não encosta na estação) não liga; cano direto também não
 	var c2 := _linha()
 	var est2 := {}
 	var f2 := Fabrica.new(c2.mapa)
 	_por(c2, "estacao", Vector2i(1, -2), 0)
-	_por(c2, "cano_reto", Vector2i(3, -1), 0)                 # norte–sul: nenhuma boca para a estação
+	_por(c2, "bomba_estacao", Vector2i(3, -1), 0)               # boca para o norte: as costas dão no tile (3, −2)
+	_por(c2, "cano_reto", Vector2i(3, 0), 0)
+	_por(c2, "cano_reto", Vector2i(3, -2), Construtor.rot_do_fluxo(1))   # cano com a boca na estação: não é bomba
 	var s2: int = c2.mapa.tiles[Vector2i(1, -2)]
 	est2[s2] = {"enviar": {}, "recebido": {}}
 	f2.estoques = est2
 	f2.reconstruir()
-	verificar(not f2.estacao_tem_cano(s2), "cano paralelo não liga")
+	verificar(not f2.estacao_tem_bomba(s2), "bomba de lado e cano encostado não ligam")
+
+
+## Sem energia (ou desligada pelo jogador/comparador) a bomba não bombeia; a animação segue o bombeamento.
+func test_bomba_precisa_de_energia() -> void:
+	var m := _montar()
+	var f: Fabrica = m.f
+	m.ra.fluido = "agua"
+	m.ra.qtd = 5000.0
+	var ta: Dictionary = f.estoques[m.a].fluido
+	ta.modo = "carregar"
+	verificar(m.c.mapa.estruturas[m.ba].get("fios", []).size() > 0, "o poste ligou na bomba")
+	f.combustivel[m.ga] = 0.0
+	for i in 30:
+		f.tick(1.0 / 30.0)
+	perto(float(ta.qtd), 0.0, 1e-6, "sem energia (gerador sem combustível): nada")
+	verificar(not f.bomba_ativa(m.ba), "parada")
+	f.combustivel[m.ga] = 1.0e6
+	for i in 30:
+		f.tick(1.0 / 30.0)
+	perto(float(ta.qtd), 1000.0, 40.0, "com energia: 1.000/s")
+	verificar(f.bomba_ativa(m.ba), "bombeando")
+	m.c.mapa.estruturas[m.ba]["desligada"] = true
+	var antes := float(ta.qtd)
+	for i in 30:
+		f.tick(1.0 / 30.0)
+	perto(float(ta.qtd), antes, 1e-6, "desligada: nada")
 
 
 func test_modos_da_estacao() -> void:
