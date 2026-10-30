@@ -58,6 +58,9 @@ var vento_turbina: Dictionary = {}     ## id da turbina → vento no lugar dela 
 var juncoes: Array[Dictionary] = []    ## itens que acabaram de entrar pela lateral: {caminho, pos, lado, passo} (desenho desliza)
 var _melhorias_de := ""                ## assinatura das pesquisas já aplicadas nas máquinas (refaz quando muda)
 
+const DISTRIBUIDORES := ["divisor", "juncao", "divisor_filtro"]
+## Saídas do divisor pelo lado do modelo (porta PORTA_ITEM_SAI_<lado>): o item entra pelo sul e segue para o norte.
+const LADOS_DIVISOR := {"N": "Frente", "L": "Direita", "O": "Esquerda"}
 const EXTRA_JUNCAO := 0.375            ## m além da borda na rampa de junção (o item para a 0,25 m do eixo da vizinha)
 
 
@@ -96,8 +99,11 @@ func reconstruir() -> void:
 
 ## Nós de esteira chaveados por (tile, nível de entrada): esteira elevada e rampa (sobe/desce) entram na mesma
 ## conta — um caminho pode subir e descer. `_no_tile` (braços, portas) só vê o que está no chão.
+## Classes diferentes (básica → rápida) não se juntam num caminho só: cada trecho anda na velocidade da sua classe e o
+## fim de um entrega na entrada do outro (`elos`). A passagem subterrânea só liga entrada e saída da mesma classe.
 func _montar_esteiras() -> void:
-	var cinta := {}       # Vector3i(x, y, n_entrada) → {tile, entra, sai, n_in, n_out, chao}
+	var cinta := {}       # Vector3i(x, y, n_entrada) → {tile, entra, sai, n_in, n_out, chao, classe}
+	var elos := {}        # chave do último tile de um trecho → chave do primeiro do trecho seguinte (troca de classe)
 	for id in mapa.estruturas:
 		var e: Dictionary = mapa.estruturas[id]
 		var no := Construtor.no_esteira(e)
@@ -112,17 +118,22 @@ func _montar_esteiras() -> void:
 		if no.sai < 0:
 			return Vector3i(0, 0, -1)
 		if no.get("tunel", "") == "entrada":
-			# passagem subterrânea: liga na primeira saída alinhada à frente, até `alcance` tiles
-			for i in range(1, int(Registro.estruturas["esteira_tunel_entrada"].get("alcance", 5)) + 1):
+			# passagem subterrânea: liga na primeira saída alinhada à frente, da mesma classe, até `alcance` tiles
+			var alc := int(Construtor.regra_esteira("esteira_tunel_entrada", no.classe).get("alcance", 5))
+			for i in range(1, alc + 1):
 				var tt: Vector2i = no.tile + Grade.DIRECOES[no.sai] * i
 				var kk := Vector3i(tt.x, tt.y, no.n_out)
-				if cinta.has(kk) and cinta[kk].get("tunel", "") == "saida" and cinta[kk].entra == no.sai:
+				if cinta.has(kk) and cinta[kk].get("tunel", "") == "saida" and cinta[kk].entra == no.sai \
+						and cinta[kk].classe == no.classe:
 					return kk
 			return Vector3i(0, 0, -1)
 		var t: Vector2i = no.tile + Grade.DIRECOES[no.sai]
 		var n := Vector3i(t.x, t.y, no.n_out)
 		if cinta.has(n) and cinta[n].entra == no.sai and cinta[n].get("tunel", "") != "saida" \
 				and mapa.gerador.nivel(t) == mapa.gerador.nivel(no.tile):
+			if cinta[n].classe != no.classe:
+				elos[k] = n                   # outra velocidade: outro caminho, ligado pela ponta
+				return Vector3i(0, 0, -1)
 			return n
 		return Vector3i(0, 0, -1)
 	var tem_antes := {}
@@ -131,6 +142,8 @@ func _montar_esteiras() -> void:
 		if n.z >= 0:
 			tem_antes[n] = true
 	var visto := {}
+	var comeco := {}      # chave do 1º tile → índice do caminho
+	var final := {}       # chave do último tile → índice do caminho
 	for passada in 2:                     # primeiro os começos; o que sobrar é volta fechada
 		for k0 in cinta:
 			if visto.has(k0) or (passada == 0 and tem_antes.has(k0)):
@@ -175,7 +188,9 @@ func _montar_esteiras() -> void:
 			# rampa de junção: o caminho segue EXTRA_JUNCAO além da borda, por cima do trilho da vizinha
 			var lateral: bool = cinta[k].nome == "esteira_juncao"
 			var est := EsteiraCaminho.new(float(tiles.size()) + (EXTRA_JUNCAO if lateral else 0.0),
-					float(Registro.estruturas["esteira_reta"].velocidade))
+					float(Construtor.regra_esteira("esteira_reta", cinta[k0].classe).get("velocidade", 1.875)))
+			comeco[k0] = caminhos.size()
+			final[k] = caminhos.size()
 			var caixa := Rect2(Vector2(tiles[0]), Vector2.ONE)
 			for t in tiles:
 				caixa = caixa.expand(Vector2(t)).expand(Vector2(t) + Vector2.ONE)
@@ -189,7 +204,11 @@ func _montar_esteiras() -> void:
 				if chao[i]:
 					_no_tile[tiles[i]] = [caminhos.size(), i]
 				_no_nivel[Vector3i(tiles[i].x, tiles[i].y, niveis[i].x)] = [caminhos.size(), i]
+			c["classe"] = cinta[k0].classe
 			caminhos.append(c)
+	for k in elos:
+		if final.has(k) and comeco.has(elos[k]):
+			caminhos[final[k]].esteira.proximo = caminhos[comeco[elos[k]]].esteira
 
 
 func _montar_maquinas() -> void:
@@ -227,7 +246,7 @@ func _montar_maquinas() -> void:
 			combustivel[id] = 0.0
 		if e.nome == "laboratorio" and not laboratorios.has(id):
 			laboratorios[id] = {"pacotes": {}, "t": 0.0, "energia": 0.0}
-		if (e.nome == "divisor" or e.nome == "juncao") and not distribuidores.has(id):
+		if e.nome in DISTRIBUIDORES and not distribuidores.has(id):
 			distribuidores[id] = {"buffer": [], "vez": 0}
 		if Registro.estruturas.get(e.nome, {}).has("acumula_mj") and not acumulado.has(id):
 			acumulado[id] = 0.0
@@ -256,6 +275,19 @@ func ligada(id: int) -> bool:
 func capacidade_bau(id: int) -> int:
 	var e: Dictionary = mapa.estruturas[id]
 	return int(float(Registro.estruturas.get(e.nome, {}).get("capacidade_itens", BAU_MAX)) * float(e.get("limite", 1.0)))
+
+
+## Silo de granel: guarda um tipo de item só (o primeiro que entra; esvaziou, aceita outro).
+func um_tipo(id: int) -> bool:
+	return bool(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("um_tipo", false))
+
+
+## O item que está no armazém agora ("" se vazio) — para o silo, que é de um tipo só.
+static func tipo_guardado(b: Dictionary) -> String:
+	for k in b:
+		if int(b[k]) > 0:
+			return k
+	return ""
 
 
 ## Consumo (+) ou geração máxima (−) de agora, em kW, já com modo e liga/desliga.
@@ -386,7 +418,7 @@ func _montar_portas() -> void:
 		for p in _portas(id):
 			if p.io == "SAI" and _no_tile.has(p.tile_fora):
 				var a: Array = _no_tile[p.tile_fora]
-				lista.append({"caminho": caminhos[a[0]], "idx": a[1]})
+				lista.append({"caminho": caminhos[a[0]], "idx": a[1], "lado": String(p.nome).trim_prefix("PORTA_ITEM_SAI_").left(1)})
 		_saidas_dist[id] = lista
 	for id in mapa.estruturas:
 		var e: Dictionary = mapa.estruturas[id]
@@ -410,12 +442,20 @@ func _montar_bracos() -> void:
 			b = Braco.new(float(r.ciclo_s))
 			bracos[id] = b
 		var f := Grade.DIRECOES[Construtor.fluxo_da_rot(e.rot)] * int(r.get("alcance", 1))
-		b.filtros = e.get("filtros", [])
+		b.filtros = Fabrica.filtros_de(e)
 		b.filtro = b.filtros[0] if b.filtros.size() == 1 else ""
 		b.origem = origem_em(e.minimo - f)
 		b.destino = destino_em(e.minimo + f)
 		if b.destino == null and b.segurando == "":
 			b.estado = Braco.Estado.ESPERANDO_ITEM
+
+
+## Itens que o braço pega. O Braço com filtro escolhe até `filtro_max` (estruturas.json); os outros braços pegam o
+## que o destino aceitar (Auto) — filtro que um braço comum já tinha de salvo antigo continua valendo.
+static func filtros_de(e: Dictionary) -> Array:
+	var fl: Array = e.get("filtros", [])
+	var mx := int(Registro.estruturas.get(e.nome, {}).get("filtro_max", 0))
+	return fl.slice(0, mx) if mx > 0 and fl.size() > mx else fl
 
 
 func _portas(id: int) -> Array[Dictionary]:
@@ -451,7 +491,7 @@ func origem_em(t: Vector2i) -> Object:
 	if maquinas.has(id):
 		return _NaMaquina.new(self, id)
 	if baus.has(id):
-		return _NoBau.new(baus[id], capacidade_bau(id))
+		return _NoBau.new(baus[id], capacidade_bau(id), um_tipo(id))
 	if estoques.has(id):
 		return _NaEstacao.new(estoques[id])
 	return null
@@ -468,7 +508,7 @@ func destino_em(t: Vector2i) -> Object:
 	if maquinas.has(id):
 		return _NaMaquina.new(self, id)
 	if baus.has(id):
-		return _NoBau.new(baus[id], capacidade_bau(id))
+		return _NoBau.new(baus[id], capacidade_bau(id), um_tipo(id))
 	if estoques.has(id):
 		return _NaEstacao.new(estoques[id])
 	if Registro.estruturas.get(nome, {}).get("grupo", "") == "defesa":      # torre de energia e metralhadora
@@ -566,14 +606,14 @@ func tick(dt: float) -> void:
 		var saidas: Array = _saidas_dist.get(id, [])
 		if d.buffer.is_empty() or saidas.is_empty():
 			continue
-		# divisor reparte em rodízio; junção tem uma saída só
-		for tentativa in saidas.size():
-			var s: Dictionary = saidas[(d.vez + tentativa) % saidas.size()]
+		# divisor reparte em rodízio; junção tem uma saída só; divisor com filtro escolhe pelo item e pela prioridade
+		for k in ordem_saidas(id, d.buffer[0], saidas, int(d.vez)):
+			var s: Dictionary = saidas[k]
 			var est: EsteiraCaminho = s.caminho.esteira
 			var ok := est.inserir_na_entrada(d.buffer[0]) if s.idx == 0 else est.inserir_em(d.buffer[0], s.caminho.esteira.comprimento - s.idx - 0.5)
 			if ok:
 				d.buffer.pop_front()
-				d.vez = (d.vez + tentativa + 1) % saidas.size()
+				d.vez = (k + 1) % saidas.size()
 				break
 	for s in _saidas_portas:
 		if s.origem == null:
@@ -606,6 +646,37 @@ func tick(dt: float) -> void:
 		bracos[id].tick(dt)
 	for c in caminhos:
 		c.esteira.tick(dt)
+
+
+## Em que ordem o distribuidor tenta as saídas (índices de `saidas`) para `item`. Rodízio a partir de `vez`; no
+## divisor com filtro (opções guardadas na estrutura: filtro_item, saida_filtro, prioridade — lados N/L/O do modelo):
+## o item filtrado só sai pela saída do filtro (espera se ela estiver cheia); o resto nunca vai por ela e tenta
+## primeiro a saída de prioridade, depois as outras em rodízio.
+func ordem_saidas(id: int, item: String, saidas: Array, vez: int) -> Array[int]:
+	var n := saidas.size()
+	var roda: Array[int] = []
+	for t in n:
+		roda.append((vez + t) % n)
+	var e: Dictionary = mapa.estruturas.get(id, {})
+	if e.get("nome", "") != "divisor_filtro":
+		return roda
+	var filtro: String = e.get("filtro_item", "")
+	var lado_f: String = e.get("saida_filtro", "L")
+	var prio: String = e.get("prioridade", "")
+	var out: Array[int] = []
+	if filtro != "" and item == filtro:
+		for k in roda:
+			if saidas[k].lado == lado_f:
+				out.append(k)
+		return out
+	for k in roda:
+		if filtro != "" and saidas[k].lado == lado_f:
+			continue
+		if prio != "" and saidas[k].lado == prio:
+			out.push_front(k)
+		else:
+			out.append(k)
+	return out
 
 
 ## O laboratório tem 1 pacote de cada tipo que a pesquisa ativa pede?
@@ -708,6 +779,9 @@ func _montar_fluidos() -> void:
 			var outro: int = pontas.get("%s|%s" % [p.tile_fora, -p.dir], -1)
 			if outro >= 0:
 				pai[raiz.call(id)] = raiz.call(outro)
+		var par := par_subterraneo(id)
+		if par >= 0:
+			pai[raiz.call(id)] = raiz.call(par)
 	var idx := {}
 	for id in canos:
 		var r: int = raiz.call(id)
@@ -726,6 +800,20 @@ func _montar_fluidos() -> void:
 			var cano: int = pontas.get("%s|%s" % [p.tile_fora, -p.dir], -1)
 			if cano >= 0:
 				_ligacoes_fluido.append({"id": id, "io": p.io, "rede": _rede_do[cano]})
+
+
+## Cano subterrâneo: a entrada liga na primeira saída alinhada à frente (mesma rotação), até `alcance` tiles — o
+## fluido passa por baixo da terra (os tiles do meio ficam livres). -1 se não tem par.
+func par_subterraneo(id: int) -> int:
+	var e: Dictionary = mapa.estruturas[id]
+	if e.nome != "cano_subterraneo_entrada":
+		return -1
+	var d := Construtor.fluxo_da_rot(e.rot)
+	for i in range(1, int(Registro.estruturas.get(e.nome, {}).get("alcance", 10)) + 1):
+		var o: int = mapa.tiles.get(Vector2i(e.minimo) + Grade.DIRECOES[d] * i, -1)
+		if o >= 0 and mapa.estruturas[o].nome == "cano_subterraneo_saida" and int(mapa.estruturas[o].rot) == int(e.rot):
+			return o
+	return -1
 
 
 func _tick_fluidos(dt: float) -> void:
@@ -943,14 +1031,21 @@ class _NaMaquina:
 class _NoBau:
 	var b: Dictionary
 	var cap: int
-	func _init(p_b: Dictionary, p_cap: int) -> void:
+	var unico := false            ## silo de granel: só um tipo de item
+	func _init(p_b: Dictionary, p_cap: int, p_unico := false) -> void:
 		b = p_b
 		cap = p_cap
+		unico = p_unico
 	func _total() -> int:
 		var n := 0
 		for k in b: n += int(b[k])
 		return n
-	func aceita(_i: String) -> bool: return _total() < cap
+	func aceita(i: String) -> bool:
+		if unico:
+			var t := Fabrica.tipo_guardado(b)
+			if t != "" and t != i:
+				return false
+		return _total() < cap
 	func receber(i: String) -> bool:
 		if not aceita(i): return false
 		b[i] = int(b.get(i, 0)) + 1

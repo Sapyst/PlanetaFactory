@@ -40,7 +40,6 @@ func _desenhar() -> void:
 	var indice := {}
 	if cam == null or cam.distancia <= DIST_ESCONDE:
 		var vista := _area_vista(cam)
-		var vel := float(Registro.estruturas["esteira_reta"].velocidade)
 		for ci in fabrica.caminhos.size():
 			var c: Dictionary = fabrica.caminhos[ci]
 			if vista.has_area() and not vista.intersects(c.caixa):
@@ -49,7 +48,7 @@ func _desenhar() -> void:
 			var n: int = c.tiles.size()
 			var oculto: Array = c.get("oculto", [])
 			var papel: Array = c.get("papel", [])
-			var lat := _laterais(ci, vel)
+			var lat := _laterais(ci, est.velocidade)
 			var acum := 0.0
 			for i in est.itens.size():
 				acum += est.espacos[i]

@@ -3,7 +3,7 @@ class_name Portas
 ## braço, baú ou a porta de outra máquina). O fantasma pinta a seta pelo resultado e o mundo avisa, numa estrutura
 ## já construída, onde falta ligar.
 
-const ESTEIRAS := ["esteira", "esteira_rampa", "rampa_desce", "esteira_tunel_entrada", "esteira_tunel_saida", "divisor", "juncao"]
+const ESTEIRAS := ["esteira", "esteira_rampa", "rampa_desce", "esteira_tunel_entrada", "esteira_tunel_saida", "divisor", "juncao", "divisor_filtro"]
 
 
 static func eh_esteira(nome: String) -> bool:

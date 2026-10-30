@@ -183,6 +183,15 @@ mundo, com intervalo mínimo por som).
 Tudo que se constrói funciona — a mini-fábrica da demo é só um mapa pronto rodando na mesma `Fabrica`.
 - Esteira entrega na porta de entrada da máquina em que termina; esteira que termina na lateral de outra entra nela.
 - Saída de máquina (porta) põe na esteira em frente. Braço: pega atrás, solta na frente, só pega o que o destino aceita.
+- Logística da era base (fase 2.2b): **Esteira rápida** (`logistica_3`): as mesmas peças com `"classe": 2` na estrutura
+  (`Construtor.CLASSES_ESTEIRA`; modelos `<peça>_rapida`, faixa vermelha; regra própria em estruturas.json), 3,75 m/s,
+  passagem até 6 tiles livres (só liga entrada e saída da mesma classe). Trocar de classe no meio da linha parte o
+  caminho em dois, ligados pela ponta (`elos` em `Fabrica._montar_esteiras`); traçar uma classe por cima da outra
+  troca a peça (devolve o custo da velha, cobra a nova). **Braço com filtro**: até 5 itens (`filtro_max`), escolhidos
+  no painel; os outros braços pegam o que o destino aceitar. **Divisor com filtro**: `filtro_item` sai só pela
+  `saida_filtro`; o resto tenta a `prioridade` primeiro (Frente/Direita/Esquerda no painel; sem = rodízio).
+  **Silo de granel** 3×3: armazém de 20.000 de um tipo só (`um_tipo`). **Cano subterrâneo**: a entrada liga na
+  primeira saída alinhada à frente, mesma rotação, até 9 tiles livres — uma rede de fluido só.
 - Extrator/broca mineram a jazida de baixo; fornalha escolhe a receita pelo que chega e queima carvão/biomassa;
   montadora/refinador: receita escolhida no painel. Elétricos precisam de poste (cobertura 2,5) ligado a gerador com combustível.
 - Torre: cada munição que chega (braço ou esteira na porta sul) = 10 tiros. Quem trabalha polui (e vira alvo por 60 s).

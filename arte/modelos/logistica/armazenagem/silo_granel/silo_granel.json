@@ -1,0 +1,31 @@
+{
+ "nome": "silo_granel",
+ "categoria": "logistica/armazenagem",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Silo de granel 3×3: guarda 20.000 itens de um tipo só. Braços colocam e tiram por qualquer lado (o elevador de canecas no oeste recebe, a rosca despeja na caçamba sul).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 6678,
+ "dims": [
+  2.962,
+  2.96,
+  4.17
+ ],
+ "anima": true,
+ "estudo": "estudo_silo.py"
+}

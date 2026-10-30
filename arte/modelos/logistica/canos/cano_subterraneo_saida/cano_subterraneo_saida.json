@@ -1,0 +1,47 @@
+{
+ "nome": "cano_subterraneo_saida",
+ "categoria": "logistica/canos",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Cano subterrâneo: saída. O fluido sobe da terra (sul) e volta à superfície pelo norte.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_SAI_N0",
+   "tipo": "FLUIDO",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    0.5,
+    0.35
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  }
+ ],
+ "tris": 1103,
+ "dims": [
+  0.982,
+  1.0,
+  1.116
+ ],
+ "anima": false,
+ "estudo": "estudo_cano_subterraneo.py"
+}

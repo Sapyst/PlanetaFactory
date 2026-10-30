@@ -1,6 +1,6 @@
 # Árvore de tecnologia
 
-Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 37 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (algumas ainda esperam um pré-requisito ou pacote "em breve"; o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras aparecem como "em breve" até a estrutura, o item ou o pacote existir. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
+Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 42 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (algumas ainda esperam um pré-requisito ou pacote "em breve"; o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras aparecem como "em breve" até a estrutura, o item ou o pacote existir. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
 
 ## Eras e pacotes de pesquisa
 
@@ -427,8 +427,8 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Rampa sobe / rampa desce | 1×1 | temos | sobe/desce 0,5 m | `logistica` |
 | Passagem: entrada / saída | 1×1 | temos | leva por baixo até 4 tiles | `logistica` |
 | Divisor / junção | 1×1 | temos | reparte em 3 / junta 3 | `eletronica` |
-| Divisor com filtro | 1×1 | falta | manda um item escolhido para uma saída e dá prioridade a outra | `divisor_filtro` |
-| Esteira rápida + rampa, passagem (6 tiles), divisor e junção rápidos | 1×1 | falta | 3,75 itens/s | `logistica_3` |
+| Divisor com filtro | 1×1 | temos | manda um item escolhido para uma saída e dá prioridade a outra (saída do filtro e prioridade escolhidas no painel) | `divisor_filtro` |
+| Esteira rápida + rampa, passagem (6 tiles), divisor e junção rápidos | 1×1 | temos | 3,75 itens/s (as mesmas peças com classe 2: reta, curvas, início, fim, junção lateral, rampas, passagem; o divisor e a junção de 3 vias não limitam a vazão e servem às duas) | `logistica_3` |
 | Esteira expressa + rampa, passagem (8 tiles), divisor e junção expressos | 1×1 | falta | 5,625 itens/s | `logistica_4` |
 | Esteira quântica + rampa, passagem (10 tiles), divisor e junção quânticos | 1×1 | falta | 7,5 itens/s | `logistica_5` |
 
@@ -440,10 +440,10 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Braço longo | 1×1 | temos | alcança 2 tiles | `logistica` |
 | Baú | 1×1 | temos | 1.600 itens | início |
 | Baú grande | 2×2 | temos | 6.400 itens | `armazenagem` |
-| Braço com filtro | 1×1 | falta | só pega os itens escolhidos (até 5) | `braco_filtro` |
+| Braço com filtro | 1×1 | temos | só pega os itens escolhidos (até 5) | `braco_filtro` |
 | Braço empilhador | 1×1 | falta | leva até 4 itens por ciclo | `braco_empilhador` |
 | Braço quântico | 1×1 | falta | ciclo 0,2 s, 8 itens, alcance ajustável 1–3 | `braco_quantico` |
-| Silo de granel | 3×3 | falta | 20.000 itens de um tipo só | `silo_granel` |
+| Silo de granel | 3×3 | temos | 20.000 itens de um tipo só | `silo_granel` |
 
 ### Canos
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
@@ -451,7 +451,7 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Cano (reta, curva), cano em T, cano em cruz | 1×1 | temos | leva fluido (100 por peça) | `fluidos` |
 | Bomba (seiva) | 1×1 | temos | tira seiva da poça | `fluidos` |
 | Tanque | 2×2 | temos | guarda 25.000 | `fluidos` |
-| Cano subterrâneo: entrada / saída | 1×1 | falta | passa o cano por baixo até 9 tiles | `cano_subterraneo` |
+| Cano subterrâneo: entrada / saída | 1×1 | temos | passa o cano por baixo até 9 tiles | `cano_subterraneo` |
 | Bomba d'água | 2×2 | falta | na margem de rio/lago/canal: 40 de água/s | `bomba_agua` |
 | Coletor de chuva | 2×2 | falta | até 25/s com chuva forte, tanque de 2.000 | `coletor_chuva` |
 | Condensador de neblina | 2×2 | falta | até 12/s com neblina, 80 kW | `condensador_neblina` |
@@ -578,7 +578,7 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Transportador quântico | 3×3 | falta | troca itens entre colônias | `transportador_quantico` |
 | Silo de lançamento | 3×3 | falta | monta e lança o foguete de proliferação | `silo_lancamento` |
 
-**Contagem:** 36 linhas "temos" e **74 linhas "falta"** (uma linha pode juntar variantes, como a família da esteira
+**Contagem:** 41 linhas "temos" e **69 linhas "falta"** (uma linha pode juntar variantes, como a família da esteira
 rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima, Drones, Lógica, Proliferação).
 
 ## Decisões e pontos em aberto

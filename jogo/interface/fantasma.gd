@@ -54,7 +54,7 @@ func mostrar(plano: Array[Dictionary], remover := false) -> void:
 			continue
 		var nome: String = it.nome
 		var area := Registro.area(nome)
-		var no := _pegar_modelo(Registro.menu.get("icones", {}).get(nome, nome) if nome == "trem" else nome)
+		var no := _pegar_modelo(Registro.menu.get("icones", {}).get(nome, nome) if nome == "trem" else Construtor.modelo_classe(nome, int(it.get("classe", 1))))
 		var alt: float = it.get("nivel", 0) * 0.5
 		if no != null:
 			no.position = Grade.ponto_mundo(Grade.centro_da_area(it.minimo, area, it.rot), 0.01 + alt)
@@ -75,7 +75,7 @@ func mostrar(plano: Array[Dictionary], remover := false) -> void:
 			p.material_override = _material(Color(cor, 0.5))
 		if remover:
 			continue
-		var maquina := Portas.mostra_aviso(nome) and it.get("acao", "colocar") != "trem"
+		var maquina: bool = Portas.mostra_aviso(nome) and it.get("acao", "colocar") != "trem"
 		var e := {"nome": nome, "minimo": it.minimo, "rot": it.rot, "area": area}
 		for porta in Registro.modelos.get(nome, {}).get("portas", []):
 			if porta.tipo == "TRILHO":
@@ -87,9 +87,9 @@ func mostrar(plano: Array[Dictionary], remover := false) -> void:
 			var p2: Vector2 = pm.pos - Vector2(pm.dir) * 0.22       # um pouco para dentro da peça
 			s.position = Grade.ponto_mundo(p2, float(porta.pos[2]) + 0.30 + alt)
 			s.rotation = Vector3(0, atan2(-d.x, d.y), 0)            # −Z da seta → direção d da grade
-			var solta := maquina and mapa != null and not Portas.ligada(mapa, e, porta)
-			var cor := AMARELO if porta.io == "SAI" else Color.WHITE
-			s.material_override = _material(VERMELHO if solta else cor)
+			var solta: bool = maquina and mapa != null and not Portas.ligada(mapa, e, porta)
+			var cor_seta := AMARELO if porta.io == "SAI" else Color.WHITE
+			s.material_override = _material(VERMELHO if solta else cor_seta)
 			s.scale = Vector3.ONE * (1.6 if maquina else 1.0)
 			if maquina:                                            # rótulo da porta (entra/sai; falta se solta)
 				var r := _rotulo(nr)

@@ -1,0 +1,99 @@
+{
+ "nome": "divisor_filtro",
+ "categoria": "logistica/esteira",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Divisor com filtro: manda o item escolhido para uma saída e o resto pela saída de prioridade. Leitor de item violeta, câmera da IA, mostrador com a amostra e seletor de prioridade.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S0",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -0.5,
+    0.16
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_N0",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    0.5,
+    0.16
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_L0",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.5,
+    0.0,
+    0.16
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_O0",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    -0.5,
+    0.0,
+    0.16
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 3495,
+ "dims": [
+  1.0,
+  1.0,
+  0.667
+ ],
+ "materiais": [
+  "P_Cristal",
+  "P_Escuro",
+  "P_Esteira",
+  "P_Faixa",
+  "P_Metal"
+ ],
+ "anima": true,
+ "estudo": "estudo_esteiras_niveis.py"
+}

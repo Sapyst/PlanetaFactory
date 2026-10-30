@@ -9,7 +9,13 @@
     "rampa_desce",
     "esteira_tunel_entrada",
     "esteira_tunel_saida",
+    "esteira_rapida",
+    "esteira_rampa_rapida",
+    "rampa_desce_rapida",
+    "esteira_tunel_entrada_rapida",
+    "esteira_tunel_saida_rapida",
     "divisor",
+    "divisor_filtro",
     "juncao"
    ]
   },
@@ -19,8 +25,10 @@
     "braco",
     "braco_rapido",
     "braco_longo",
+    "braco_filtro",
     "bau",
-    "bau_grande"
+    "bau_grande",
+    "silo_granel"
    ]
   },
   {
@@ -29,6 +37,8 @@
     "cano",
     "cano_t",
     "cano_cruz",
+    "cano_subterraneo_entrada",
+    "cano_subterraneo_saida",
     "bomba",
     "tanque"
    ]
@@ -89,7 +99,9 @@
   "rampa_desce": "esteira_rampa",
   "esteira": "esteira_reta",
   "cano": "cano_reto",
-  "trem": "locomotiva"
+  "trem": "locomotiva",
+  "esteira_rapida": "esteira_reta_rapida",
+  "rampa_desce_rapida": "esteira_rampa_rapida"
  },
  "rotulos": {
   "esteira": "Esteira",
@@ -97,16 +109,26 @@
   "rampa_desce": "Rampa desce",
   "esteira_tunel_entrada": "Passagem: entrada",
   "esteira_tunel_saida": "Passagem: saída",
+  "esteira_rapida": "Esteira rápida",
+  "esteira_rampa_rapida": "Rampa rápida sobe",
+  "rampa_desce_rapida": "Rampa rápida desce",
+  "esteira_tunel_entrada_rapida": "Passagem rápida: entrada",
+  "esteira_tunel_saida_rapida": "Passagem rápida: saída",
   "divisor": "Divisor",
+  "divisor_filtro": "Divisor com filtro",
   "juncao": "Junção",
   "braco": "Braço",
   "braco_rapido": "Braço rápido",
   "braco_longo": "Braço longo",
+  "braco_filtro": "Braço com filtro",
   "bau": "Baú",
   "bau_grande": "Baú grande",
+  "silo_granel": "Silo de granel",
   "cano": "Cano",
   "cano_t": "Cano em T",
   "cano_cruz": "Cano em cruz",
+  "cano_subterraneo_entrada": "Cano subterrâneo: entrada",
+  "cano_subterraneo_saida": "Cano subterrâneo: saída",
   "bomba": "Bomba",
   "tanque": "Tanque",
   "extrator_cristal": "Extrator de cristal",
@@ -174,16 +196,26 @@
   "rampa_desce": "Desce a esteira 0,5 m.",
   "esteira_tunel_entrada": "Leva a esteira por baixo do chão. Ponha a saída alinhada à frente, até 4 tiles livres no meio.",
   "esteira_tunel_saida": "Onde a passagem subterrânea volta à superfície (mesma direção da entrada).",
+  "esteira_rapida": "Leva o dobro de itens. Arraste por cima da esteira comum para trocar.",
+  "esteira_rampa_rapida": "Rampa da esteira rápida: sobe 0,5 m.",
+  "rampa_desce_rapida": "Rampa da esteira rápida: desce 0,5 m.",
+  "esteira_tunel_entrada_rapida": "Passagem rápida: saída alinhada à frente, até 6 tiles livres no meio.",
+  "esteira_tunel_saida_rapida": "Onde a passagem rápida volta à superfície (só liga com entrada rápida).",
   "divisor": "Reparte itens em até 3 saídas.",
+  "divisor_filtro": "Manda o item escolhido para uma saída; o resto vai pela prioridade. Toque nele para escolher.",
   "juncao": "Junta até 3 esteiras em uma.",
   "braco": "Pega atrás e solta na frente, um item por vez.",
   "braco_rapido": "Braço 2× mais rápido (gasta mais energia).",
   "braco_longo": "Braço que alcança 2 tiles.",
+  "braco_filtro": "Só pega os itens que você escolher (até 5). Toque nele para escolher.",
   "bau": "Guarda itens; braços põem e tiram.",
   "bau_grande": "Baú 2×2: guarda 4× mais.",
+  "silo_granel": "Silo 3×3: 20.000 itens de um tipo só.",
   "cano": "Leva fluidos. Arraste.",
   "cano_t": "Divide o cano em 3.",
   "cano_cruz": "Cruza canos em 4.",
+  "cano_subterraneo_entrada": "Passa o cano por baixo da terra. Ponha a saída alinhada à frente, até 9 tiles livres no meio.",
+  "cano_subterraneo_saida": "Onde o cano subterrâneo volta à superfície (mesma direção da entrada).",
   "bomba": "Tira seiva de uma poça.",
   "tanque": "Guarda muito fluido.",
   "extrator_cristal": "Extrai cristal da jazida e despeja na esteira.",
@@ -213,5 +245,14 @@
   "sinal_trem": "Divide a linha em blocos.",
   "trem": "Trem sobre um trilho reto."
  },
- "icones_categoria": {"Esteiras": "categorias/esteiras", "Braços": "categorias/bracos", "Canos": "categorias/canos", "Produção": "categorias/producao", "Energia": "categorias/energia", "Defesa": "categorias/defesa", "Limpeza": "categorias/limpeza", "Trilhos": "categorias/trilhos"}
+ "icones_categoria": {
+  "Esteiras": "categorias/esteiras",
+  "Braços": "categorias/bracos",
+  "Canos": "categorias/canos",
+  "Produção": "categorias/producao",
+  "Energia": "categorias/energia",
+  "Defesa": "categorias/defesa",
+  "Limpeza": "categorias/limpeza",
+  "Trilhos": "categorias/trilhos"
+ }
 }

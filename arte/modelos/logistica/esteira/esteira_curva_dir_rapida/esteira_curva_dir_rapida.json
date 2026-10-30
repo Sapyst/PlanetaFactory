@@ -1,0 +1,68 @@
+{
+ "nome": "esteira_curva_dir_rapida",
+ "categoria": "logistica/esteira",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Esteira rápida (logistica_3): a mesma peça da esteira com o acabamento do nível 2 do estudo (faixa vermelha gasta, lascada até o aço); lona P_EsteiraRapida (o jogo rola no dobro da velocidade).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S0",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -0.5,
+    0.16
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_L0",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.5,
+    0.0,
+    0.16
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 848,
+ "dims": [
+  0.841,
+  0.841,
+  0.168
+ ],
+ "materiais": [
+  "P_Escuro",
+  "P_Esteira",
+  "P_Faixa",
+  "P_Metal"
+ ],
+ "anima": false,
+ "estudo": "conv_esteiras_bracos.py"
+}

@@ -55,6 +55,8 @@ var construtor: Construtor
 var controle: ControleConstrucao
 var _nos: Dictionary = {}           ## id da estrutura → Node3D (peças miúdas vão para _lotes)
 var _lotes: DesenhoLotes
+var _silo_total: Dictionary = {}          ## id do silo → itens guardados no último quadro (anima quando muda)
+var _silo_mexeu: Dictionary = {}          ## id do silo → _tempo da última mudança
 var _efeitos: Efeitos
 var _fios: DesenhoFios
 
@@ -618,7 +620,7 @@ func _criar_no(id: int, nova := false) -> Node3D:
 	# rampa de descida: o mesmo modelo virado (a ponta alta fica atrás, de onde vem o item)
 	var ang := Grade.angulo(e.rot) + (PI if e.get("desce", false) else 0.0)
 	if DesenhoLotes.aceita(e.nome):
-		_lotes.adicionar(id, e.nome + ("#desce" if e.get("desce", false) else ""), Transform3D(Basis(Vector3.UP, ang), pos))
+		_lotes.adicionar(id, Construtor.modelo_de(e) + ("#desce" if e.get("desce", false) else ""), Transform3D(Basis(Vector3.UP, ang), pos))
 		return null
 	var cena: PackedScene = load(Registro.modelos[e.nome].modelo)
 	var n: Node3D = cena.instantiate()
@@ -949,6 +951,20 @@ func _animar_estruturas() -> void:
 				a.rumo_vento = clima.direcao_vento
 				var vt := float(fabrica.vento_turbina.get(id, fabrica.vento))
 				a.ritmo = 0.15 if fabrica.em_protecao(id) else (0.0 if Fabrica.curva_turbina(vt) <= 0.0 else 0.3 + vt)
+	# silo de granel: canecas, rosca e comporta trabalham por 2 s depois que algo entra ou sai
+	for id in fabrica.baus:
+		if not fabrica.um_tipo(id):
+			continue
+		var a := _animador(id)
+		if a == null:
+			continue
+		var n := 0
+		for k in fabrica.baus[id]:
+			n += int(fabrica.baus[id][k])
+		if n != int(_silo_total.get(id, -1)):
+			_silo_total[id] = n
+			_silo_mexeu[id] = _tempo
+		a.ativo = animar_tudo or _tempo - float(_silo_mexeu.get(id, -99.0)) < 2.0
 	for id in fabrica.bracos:
 		var a := _animador(id)
 		if a != null:
@@ -1151,6 +1167,8 @@ func _detalhe() -> void:
 	var id: int = _sel.estrutura
 	var e: Dictionary = mapa.estruturas[id]
 	var titulo: String = controle.barra.rotulo(e.nome)
+	if int(e.get("classe", 1)) > 1:
+		titulo += " (%s)" % {2: "rápida"}.get(int(e.classe), "nível %d" % int(e.classe))
 	var linhas: Array[String] = []
 	var botoes := []
 	var opcoes := []                     ## opções internas (reparar, ligar, modo) vêm antes das receitas
@@ -1209,8 +1227,14 @@ func _detalhe() -> void:
 	elif not fabrica.rede_de(id).is_empty():
 		var r: Dictionary = fabrica.rede_de(id)
 		linhas.append("Rede de canos: %s %.0f de %.0f" % [r.fluido if r.fluido != "" else "vazia", r.qtd, r.cap])
+		if e.nome == "cano_subterraneo_entrada":
+			var par := fabrica.par_subterraneo(id)
+			linhas.append("Passa por baixo até a saída a %d tile(s)" % (absi(mapa.estruturas[par].minimo.x - e.minimo.x) + absi(mapa.estruturas[par].minimo.y - e.minimo.y))
+					if par >= 0 else "Sem saída: ponha a saída alinhada à frente, mesma direção, até 9 tiles livres no meio")
 	elif fabrica.distribuidores.has(id):
 		linhas.append("Passando: %s" % (", ".join(fabrica.distribuidores[id].buffer.map(_nome_item)) if not fabrica.distribuidores[id].buffer.is_empty() else "nada"))
+		if e.nome == "divisor_filtro":
+			_opcoes_divisor_filtro(e, linhas, botoes)
 	elif fabrica.laboratorios.has(id):
 		var lab: Dictionary = fabrica.laboratorios[id]
 		var tipos: Array = pesquisa.tipos_ativa() if pesquisa.ativa != "" else ["pacote_pesquisa"]
@@ -1230,6 +1254,9 @@ func _detalhe() -> void:
 			n += int(fabrica.baus[id][k])
 		linhas.append("Armazenamento: %d de %d itens (máximo do baú: %d)" % [n, fabrica.capacidade_bau(id), regra.get("capacidade_itens", Fabrica.BAU_MAX)])
 		linhas.append("Conteúdo: %s" % _lista_itens(fabrica.baus[id]))
+		if fabrica.um_tipo(id):
+			var tg := Fabrica.tipo_guardado(fabrica.baus[id])
+			linhas.append("Guarda um tipo só: %s" % ("vazio — aceita o primeiro item que chegar" if tg == "" else "%s (esvazie para trocar)" % _nome_item(tg)))
 		for lim in [0.25, 0.5, 1.0]:
 			botoes.append({"texto": "Limite: %d%% (%d itens)" % [lim * 100, int(regra.get("capacidade_itens", Fabrica.BAU_MAX) * lim)],
 					"ligado": is_equal_approx(float(e.get("limite", 1.0)), lim), "acao": func(): e["limite"] = lim; _detalhe()})
@@ -1258,20 +1285,30 @@ func _detalhe() -> void:
 		var b: Braco = fabrica.bracos[id]
 		linhas.append("Segurando: %s\nEnergia: %d%%\nEntregues: %d" % [_nome_item(b.segurando) if b.segurando != "" else "nada", b.energia * 100, b.entregues])
 		var filtros: Array = e.get("filtros", [])
-		linhas.append("Pega: %s (só pega o que o destino aceitar)" % ("tudo (Auto)" if filtros.is_empty() else ", ".join(filtros.map(_nome_item))))
-		botoes.append({"texto": "Auto — pega o que vier", "ligado": filtros.is_empty(),
-				"acao": func(): e["filtros"] = []; b.filtros = []; b.filtro = ""; _detalhe()})
-		var itens_ord: Array = Registro.itens.keys()
-		itens_ord.sort_custom(func(a, c): return _nome_item(a) < _nome_item(c))
-		for it in itens_ord:
-			botoes.append({"texto": _nome_item(it), "ligado": filtros.has(it), "acao": func():
-				var lista: Array = e.get("filtros", []).duplicate()
-				if lista.has(it): lista.erase(it)
-				else: lista.append(it)
-				e["filtros"] = lista
-				b.filtros = lista
-				b.filtro = lista[0] if lista.size() == 1 else ""
-				_detalhe()})
+		var mx := int(regra.get("filtro_max", 0))
+		if mx <= 0 and filtros.is_empty():
+			linhas.append("Pega: tudo o que o destino aceitar (para escolher os itens, use o Braço com filtro)")
+		else:
+			linhas.append("Pega: %s (só pega o que o destino aceitar)" % ("tudo (Auto)" if filtros.is_empty() else ", ".join(filtros.map(_nome_item))))
+			if mx > 0:
+				linhas.append("Filtro: %d de %d itens escolhidos" % [filtros.size(), mx])
+			botoes.append({"texto": "Auto — pega o que vier", "ligado": filtros.is_empty(),
+					"acao": func(): e["filtros"] = []; b.filtros = []; b.filtro = ""; _detalhe()})
+		if mx > 0:                               # Braço com filtro: escolhe até mx itens
+			var itens_ord: Array = Registro.itens.keys()
+			itens_ord.sort_custom(func(a, c): return _nome_item(a) < _nome_item(c))
+			for it in itens_ord:
+				botoes.append({"texto": _nome_item(it), "ligado": filtros.has(it), "acao": func():
+					var lista: Array = e.get("filtros", []).duplicate()
+					if lista.has(it): lista.erase(it)
+					elif lista.size() >= mx:
+						controle._avisar("O filtro escolhe até %d itens — tire um antes" % mx)
+						return
+					else: lista.append(it)
+					e["filtros"] = lista
+					b.filtros = lista
+					b.filtro = lista[0] if lista.size() == 1 else ""
+					_detalhe()})
 	match Fiacao.papel(e.nome):
 		"consumo":
 			var fontes := Fiacao.ligacoes(mapa, e)
@@ -1321,9 +1358,31 @@ func _detalhe() -> void:
 			opcoes.append({"texto": "%s: %d%% velocidade · %d kW · %d%% poluição" % [mo[1], k[0] * 100, kw * k[1], k[2] * 100],
 					"ligado": e.get("modo", "normal") == mo[0], "acao": func(): e["modo"] = mo[0]; _fabrica_suja = true; _detalhe()})
 	if linhas.is_empty():
-		linhas.append(Registro.modelos.get(e.nome, {}).get("descricao", ""))
+		linhas.append(Registro.modelos.get(Construtor.modelo_de(e), {}).get("descricao", ""))
 	barra.detalhe(titulo, "\n".join(linhas), opcoes + botoes)
 	barra.detalhe_maquina(_painel_maquina(id))
+
+
+## Divisor com filtro: item filtrado → uma saída; o resto → saída de prioridade (ou rodízio). Lados relativos à peça
+## (o item entra por trás): Frente (N do modelo), Direita (L), Esquerda (O).
+func _opcoes_divisor_filtro(e: Dictionary, linhas: Array[String], botoes: Array) -> void:
+	var filtro: String = e.get("filtro_item", "")
+	var lado_f: String = e.get("saida_filtro", "L")
+	var prio: String = e.get("prioridade", "")
+	var ld: Dictionary = Fabrica.LADOS_DIVISOR
+	linhas.append("Filtro: %s" % ("nenhum (reparte tudo)" if filtro == "" else "%s → sai pela %s" % [_nome_item(filtro), String(ld[lado_f]).to_lower()]))
+	linhas.append("Prioridade do resto: %s" % ("rodízio" if prio == "" else String(ld[prio]).to_lower()))
+	for l in ["N", "L", "O"]:
+		botoes.append({"texto": "Saída do filtro: %s" % ld[l], "ligado": lado_f == l,
+				"acao": func(): e["saida_filtro"] = l; _detalhe()})
+	botoes.append({"texto": "Prioridade: rodízio", "ligado": prio == "", "acao": func(): e.erase("prioridade"); _detalhe()})
+	for l in ["N", "L", "O"]:
+		botoes.append({"texto": "Prioridade: %s" % ld[l], "ligado": prio == l, "acao": func(): e["prioridade"] = l; _detalhe()})
+	botoes.append({"texto": "Filtro: nenhum", "ligado": filtro == "", "acao": func(): e.erase("filtro_item"); _detalhe()})
+	var itens_ord: Array = Registro.itens.keys()
+	itens_ord.sort_custom(func(a, c): return _nome_item(a) < _nome_item(c))
+	for it in itens_ord:
+		botoes.append({"texto": "Filtro: %s" % _nome_item(it), "ligado": filtro == it, "acao": func(): e["filtro_item"] = it; _detalhe()})
 
 
 func _detalhe_pesquisa() -> void:

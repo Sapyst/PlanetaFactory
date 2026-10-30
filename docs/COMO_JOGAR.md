@@ -13,6 +13,9 @@ Você é a IA do núcleo que caiu no planeta. O objetivo é crescer: extrair, fa
 - A esteira leva os itens, mas **não entrega dentro de construções**. Quem tira da esteira e põe numa máquina, num baú
   ou no núcleo é o **braço**: ele pega de um lado e solta do outro.
 - Para encher o núcleo: broca → esteira → braço → núcleo.
+- Mais tarde (pesquisas com pacote de automação): **Esteira rápida** (o dobro de itens; arraste por cima da comum
+  para trocar), **Braço com filtro** e **Divisor com filtro** (toque neles para escolher os itens), **Silo de
+  granel** (20.000 de um tipo só) e **Cano subterrâneo** (passa o cano por baixo da terra, até 9 tiles).
 
 ## Primeiros passos
 1. **Ache as jazidas:** aperte **V** (ou o botão **Recursos**). Cada jazida aparece colorida, com o nome, a quantidade

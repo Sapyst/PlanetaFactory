@@ -1796,6 +1796,38 @@
   "estudo": "estudo_baus.py",
   "modelo": "res://assets/modelos/logistica/armazenagem/bau_grande.glb"
  },
+ "silo_granel": {
+  "nome": "silo_granel",
+  "categoria": "logistica/armazenagem",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Silo de granel 3×3: guarda 20.000 itens de um tipo só. Braços colocam e tiram por qualquer lado (o elevador de canecas no oeste recebe, a rosca despeja na caçamba sul).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 6678,
+  "dims": [
+   2.962,
+   2.96,
+   4.17
+  ],
+  "anima": true,
+  "estudo": "estudo_silo.py",
+  "modelo": "res://assets/modelos/logistica/armazenagem/silo_granel.glb"
+ },
  "braco": {
   "nome": "braco",
   "categoria": "logistica/bracos",
@@ -1905,6 +1937,134 @@
   "anima": false,
   "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/bracos/braco.glb"
+ },
+ "braco_filtro": {
+  "nome": "braco_filtro",
+  "categoria": "logistica/bracos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Braço com filtro: o braço normal com scanner (câmera na garra), painel de seleção no chão com 5 luzes da IA e giroflex vermelho. Só pega os itens escolhidos (até 5). Partes: giro, braco1, braco2, garra, camisa/haste do pistão de elevação.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "base",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "giro",
+    "pai": "base",
+    "pivo": [
+     0,
+     0,
+     0.225
+    ]
+   },
+   {
+    "nome": "braco1",
+    "pai": "giro",
+    "pivo": [
+     0,
+     0,
+     0.4
+    ]
+   },
+   {
+    "nome": "braco2",
+    "pai": "braco1",
+    "pivo": [
+     0,
+     0,
+     0.95
+    ]
+   },
+   {
+    "nome": "garra",
+    "pai": "braco2",
+    "pivo": [
+     0,
+     0.62,
+     0.95
+    ]
+   },
+   {
+    "nome": "camisa",
+    "pai": "giro",
+    "pivo": [
+     0,
+     -0.2,
+     0.375
+    ]
+   },
+   {
+    "nome": "haste",
+    "pai": "braco1",
+    "pivo": [
+     0,
+     -0.05,
+     0.65
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "terminais": [
+   [
+    0.33,
+    -0.33,
+    0.044
+   ]
+  ],
+  "tris": 3652,
+  "dims": [
+   0.79,
+   1.12,
+   1.007
+  ],
+  "garra": {
+   "pulso_dz": -0.05,
+   "item": 0.065
+  },
+  "anima": false,
+  "estudo": "conv_logistica_base.py",
+  "modelo": "res://assets/modelos/logistica/bracos/braco_filtro.glb"
  },
  "braco_longo": {
   "nome": "braco_longo",
@@ -2436,6 +2596,102 @@
   "estudo": "conv_logistica.py",
   "modelo": "res://assets/modelos/logistica/canos/cano_reto.glb"
  },
+ "cano_subterraneo_entrada": {
+  "nome": "cano_subterraneo_entrada",
+  "categoria": "logistica/canos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cano subterrâneo: entrada. O fluido entra pelo sul e desce para baixo da terra; sai na saída alinhada à frente (até 9 tiles livres no meio).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_ENT_S0",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 1087,
+  "dims": [
+   0.982,
+   1.0,
+   1.107
+  ],
+  "anima": false,
+  "estudo": "estudo_cano_subterraneo.py",
+  "modelo": "res://assets/modelos/logistica/canos/cano_subterraneo_entrada.glb"
+ },
+ "cano_subterraneo_saida": {
+  "nome": "cano_subterraneo_saida",
+  "categoria": "logistica/canos",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Cano subterrâneo: saída. O fluido sobe da terra (sul) e volta à superfície pelo norte.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_FLUIDO_SAI_N0",
+    "tipo": "FLUIDO",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.35
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 1103,
+  "dims": [
+   0.982,
+   1.0,
+   1.116
+  ],
+  "anima": false,
+  "estudo": "estudo_cano_subterraneo.py",
+  "modelo": "res://assets/modelos/logistica/canos/cano_subterraneo_saida.glb"
+ },
  "cano_t": {
   "nome": "cano_t",
   "categoria": "logistica/canos",
@@ -2607,6 +2863,99 @@
   "estudo": "estudo_esteira_acessorios.py",
   "modelo": "res://assets/modelos/logistica/esteira/divisor.glb"
  },
+ "divisor_filtro": {
+  "nome": "divisor_filtro",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Divisor com filtro: manda o item escolhido para uma saída e o resto pela saída de prioridade. Leitor de item violeta, câmera da IA, mostrador com a amostra e seletor de prioridade.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_L0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_O0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     -0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 3495,
+  "dims": [
+   1.0,
+   1.0,
+   0.667
+  ],
+  "anima": true,
+  "estudo": "estudo_esteiras_niveis.py",
+  "modelo": "res://assets/modelos/logistica/esteira/divisor_filtro.glb"
+ },
  "esteira_curva_dir": {
   "nome": "esteira_curva_dir",
   "categoria": "logistica/esteira",
@@ -2669,6 +3018,69 @@
   "anima": false,
   "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_curva_dir.glb"
+ },
+ "esteira_curva_dir_rapida": {
+  "nome": "esteira_curva_dir_rapida",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira rápida (logistica_3): a mesma peça da esteira com o acabamento do nível 2 do estudo (faixa vermelha gasta, lascada até o aço); lona P_EsteiraRapida (o jogo rola no dobro da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_L0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 848,
+  "dims": [
+   0.841,
+   0.841,
+   0.168
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_curva_dir_rapida.glb"
  },
  "esteira_curva_esq": {
   "nome": "esteira_curva_esq",
@@ -2733,6 +3145,69 @@
   "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_curva_esq.glb"
  },
+ "esteira_curva_esq_rapida": {
+  "nome": "esteira_curva_esq_rapida",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira rápida (logistica_3): a mesma peça da esteira com o acabamento do nível 2 do estudo (faixa vermelha gasta, lascada até o aço); lona P_EsteiraRapida (o jogo rola no dobro da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_O0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     -0.5,
+     0.0,
+     0.16
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 848,
+  "dims": [
+   0.841,
+   0.841,
+   0.168
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_curva_esq_rapida.glb"
+ },
  "esteira_fim": {
   "nome": "esteira_fim",
   "categoria": "logistica/esteira",
@@ -2781,6 +3256,54 @@
   "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_fim.glb"
  },
+ "esteira_fim_rapida": {
+  "nome": "esteira_fim_rapida",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira rápida (logistica_3): a mesma peça da esteira com o acabamento do nível 2 do estudo (faixa vermelha gasta, lascada até o aço); lona P_EsteiraRapida (o jogo rola no dobro da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 770,
+  "dims": [
+   0.75,
+   1.0,
+   0.236
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_fim_rapida.glb"
+ },
  "esteira_inicio": {
   "nome": "esteira_inicio",
   "categoria": "logistica/esteira",
@@ -2828,6 +3351,54 @@
   "anima": false,
   "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_inicio.glb"
+ },
+ "esteira_inicio_rapida": {
+  "nome": "esteira_inicio_rapida",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira rápida (logistica_3): a mesma peça da esteira com o acabamento do nível 2 do estudo (faixa vermelha gasta, lascada até o aço); lona P_EsteiraRapida (o jogo rola no dobro da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 920,
+  "dims": [
+   0.769,
+   1.0,
+   0.204
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_inicio_rapida.glb"
  },
  "esteira_juncao": {
   "nome": "esteira_juncao",
@@ -2892,6 +3463,69 @@
   "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_juncao.glb"
  },
+ "esteira_juncao_rapida": {
+  "nome": "esteira_juncao_rapida",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira rápida (logistica_3): a mesma peça da esteira com o acabamento do nível 2 do estudo (faixa vermelha gasta, lascada até o aço); lona P_EsteiraRapida (o jogo rola no dobro da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 844,
+  "dims": [
+   0.75,
+   1.25,
+   0.315
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_juncao_rapida.glb"
+ },
  "esteira_rampa": {
   "nome": "esteira_rampa",
   "categoria": "logistica/esteira",
@@ -2954,6 +3588,69 @@
   "anima": false,
   "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_rampa.glb"
+ },
+ "esteira_rampa_rapida": {
+  "nome": "esteira_rampa_rapida",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira rápida (logistica_3): a mesma peça da esteira com o acabamento do nível 2 do estudo (faixa vermelha gasta, lascada até o aço); lona P_EsteiraRapida (o jogo rola no dobro da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.66
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 676,
+  "dims": [
+   0.75,
+   1.055,
+   0.666
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_rampa_rapida.glb"
  },
  "esteira_reta": {
   "nome": "esteira_reta",
@@ -3018,6 +3715,69 @@
   "estudo": "conv_esteiras_bracos.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_reta.glb"
  },
+ "esteira_reta_rapida": {
+  "nome": "esteira_reta_rapida",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira rápida (logistica_3): a mesma peça da esteira com o acabamento do nível 2 do estudo (faixa vermelha gasta, lascada até o aço); lona P_EsteiraRapida (o jogo rola no dobro da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 526,
+  "dims": [
+   0.75,
+   1.0,
+   0.168
+  ],
+  "anima": false,
+  "estudo": "conv_esteiras_bracos.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_reta_rapida.glb"
+ },
  "esteira_tunel_entrada": {
   "nome": "esteira_tunel_entrada",
   "categoria": "logistica/esteira",
@@ -3066,6 +3826,54 @@
   "estudo": "estudo_esteira_acessorios.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_tunel_entrada.glb"
  },
+ "esteira_tunel_entrada_rapida": {
+  "nome": "esteira_tunel_entrada_rapida",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira rápida (logistica_3): a mesma peça da esteira com o acabamento do nível 2 do estudo (faixa vermelha gasta, lascada até o aço); lona P_EsteiraRapida (o jogo rola no dobro da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S0",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 1671,
+  "dims": [
+   0.941,
+   1.004,
+   0.606
+  ],
+  "anima": false,
+  "estudo": "estudo_esteira_acessorios.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_tunel_entrada_rapida.glb"
+ },
  "esteira_tunel_saida": {
   "nome": "esteira_tunel_saida",
   "categoria": "logistica/esteira",
@@ -3113,6 +3921,54 @@
   "anima": false,
   "estudo": "estudo_esteira_acessorios.py",
   "modelo": "res://assets/modelos/logistica/esteira/esteira_tunel_saida.glb"
+ },
+ "esteira_tunel_saida_rapida": {
+  "nome": "esteira_tunel_saida_rapida",
+  "categoria": "logistica/esteira",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Esteira rápida (logistica_3): a mesma peça da esteira com o acabamento do nível 2 do estudo (faixa vermelha gasta, lascada até o aço); lona P_EsteiraRapida (o jogo rola no dobro da velocidade).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     0.5,
+     0.16
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 1674,
+  "dims": [
+   0.942,
+   1.002,
+   0.606
+  ],
+  "anima": false,
+  "estudo": "estudo_esteira_acessorios.py",
+  "modelo": "res://assets/modelos/logistica/esteira/esteira_tunel_saida_rapida.glb"
  },
  "juncao": {
   "nome": "juncao",

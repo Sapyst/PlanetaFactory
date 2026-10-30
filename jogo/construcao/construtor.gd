@@ -18,6 +18,11 @@ const FAMILIA_CANO := ["cano_reto", "cano_curva"]
 const LINHA_RETA := ["muro_centro", "muro_tijolo", "trilho_reto", "poste_energia"]
 const PASSO_POSTE := 6     ## poste arrastado: um a cada N tiles (raio do fio 7,5)
 const HISTORICO := 50
+## Classes de esteira (pesquisa logistica_3…): as MESMAS peças (reta, curvas, início, fim, junção, rampa, passagem) com
+## outro modelo (<peça>_<sufixo>, que tem regra própria em estruturas.json: velocidade, alcance da passagem) e o campo
+## "classe" na estrutura do mapa. Sem o campo = 1 (básica). No menu a peça vem com o sufixo ("esteira_rapida").
+const CLASSES_ESTEIRA := {2: "rapida"}
+const PECAS_COM_CLASSE := ["esteira", "esteira_rampa", "rampa_desce", "esteira_tunel_entrada", "esteira_tunel_saida"]
 
 var mapa: MapaOcupacao
 var _historico: Array[Dictionary] = []
@@ -53,7 +58,31 @@ static func direcao(a: Vector2i, b: Vector2i) -> int:
 
 
 static func arrastavel(nome: String) -> bool:
+	nome = separar_classe(nome)[0]
 	return nome in ["esteira", "cano"] or nome in LINHA_RETA
+
+
+## Peça do menu com sufixo de classe → [peça base, classe]: "esteira_rapida" → ["esteira", 2]; sem sufixo → [nome, 1].
+static func separar_classe(nome: String) -> Array:
+	for c in CLASSES_ESTEIRA:
+		var suf: String = "_" + CLASSES_ESTEIRA[c]
+		if nome.ends_with(suf) and nome.trim_suffix(suf) in PECAS_COM_CLASSE:
+			return [nome.trim_suffix(suf), c]
+	return [nome, 1]
+
+
+## Modelo (e regra de estruturas.json) de uma estrutura do mapa: esteira rápida → "esteira_reta_rapida".
+static func modelo_de(e: Dictionary) -> String:
+	return modelo_classe(e.nome, int(e.get("classe", 1)))
+
+
+static func modelo_classe(nome: String, classe: int) -> String:
+	return nome + "_" + CLASSES_ESTEIRA[classe] if classe > 1 and CLASSES_ESTEIRA.has(classe) else nome
+
+
+## Esteira de que classe (1 básica, 2 rápida…) — regra do modelo da classe: velocidade e alcance da passagem.
+static func regra_esteira(nome: String, classe: int) -> Dictionary:
+	return Registro.estruturas.get(modelo_classe(nome, classe), Registro.estruturas.get(nome, {}))
 
 
 ## Tile do cursor → canto sudoeste da área (o cursor fica no meio da peça).
@@ -100,7 +129,8 @@ static func caminho_reto(a: Vector2i, b: Vector2i) -> Array[Vector2i]:
 # ------------------------------------------------------------------ planos
 ## Item de plano: {nome, minimo, rot, motivo ("" = pode), acao ("colocar" | "substituir" | "igual"), id_antigo}.
 func plano_peca(nome: String, tile: Vector2i, rot: int) -> Array[Dictionary]:
-	return _cobrar_plano(_plano_peca(nome, tile, rot), nome)
+	var sc := separar_classe(nome)
+	return _cobrar_plano(_com_classe(_plano_peca(sc[0], tile, rot), sc[1]), nome)
 
 
 func _plano_peca(nome: String, tile: Vector2i, rot: int) -> Array[Dictionary]:
@@ -116,7 +146,23 @@ func _plano_peca(nome: String, tile: Vector2i, rot: int) -> Array[Dictionary]:
 
 ## Arrasto de a até b. `rot` só vale quando a == b (sem direção de arrasto).
 func plano_linha(nome: String, a: Vector2i, b: Vector2i, rot: int) -> Array[Dictionary]:
-	return _cobrar_plano(_plano_linha(nome, a, b, rot), nome)
+	var sc := separar_classe(nome)
+	return _cobrar_plano(_com_classe(_plano_linha(sc[0], a, b, rot), sc[1]), nome)
+
+
+## Peças de esteira do plano ficam da classe escolhida (traçar esteira rápida por cima da básica troca a peça, e o
+## contrário também); as curvas "extra" (fim/início vizinho que vira curva) mantêm a classe que já tinham.
+func _com_classe(plano: Array[Dictionary], classe: int) -> Array[Dictionary]:
+	for it in plano:
+		if no_esteira({"nome": it.get("nome", ""), "rot": 0}).is_empty() or it.get("extra", false):
+			continue
+		if classe > 1:
+			it["classe"] = classe
+		else:
+			it.erase("classe")
+		if it.get("acao", "") == "igual" and int(it.get("classe_antiga", 1)) != classe:
+			it.acao = "substituir"
+	return plano
 
 
 func _plano_linha(nome: String, a: Vector2i, b: Vector2i, rot: int) -> Array[Dictionary]:
@@ -169,6 +215,7 @@ func _plano_esteira(a: Vector2i, b: Vector2i, rot: int) -> Array[Dictionary]:
 				continue                              # o fim aponta para longe: o traço está atrás dele
 			var cv := _curva(dx, d)
 			extra.append(_item_trocavel(cv.nome, t, cv.rot, n))
+			extra[-1]["extra"] = true
 			d_ini = d
 			break
 	if cam.size() == 1 and d_ini >= 0:
@@ -188,6 +235,7 @@ func _plano_esteira(a: Vector2i, b: Vector2i, rot: int) -> Array[Dictionary]:
 			if d != dy:
 				var cv := _curva(d, dy)
 				extra.append(_item_trocavel(cv.nome, t, cv.rot, n))
+				extra[-1]["extra"] = true
 			d_fim = d
 			break
 		if _recebe(ult, d, n):
@@ -398,16 +446,21 @@ func plano_aplainar(a: Vector2i, b: Vector2i, fundo := 0) -> Array[Dictionary]:
 
 
 # ------------------------------------------------------------------ custos
-## Chave de custo: as peças de esteira/cano escolhidas sozinhas custam como "esteira"/"cano".
-static func chave_custo(nome: String) -> String:
-	if nome == "rampa_desce": return "esteira_rampa"
-	if nome in FAMILIA_ESTEIRA: return "esteira"
-	if nome in FAMILIA_CANO: return "cano"
-	return nome
+## Chave de custo: as peças de esteira/cano escolhidas sozinhas custam como "esteira"/"cano"; a classe da esteira
+## entra como sufixo ("esteira_rapida", "esteira_rampa_rapida"…).
+static func chave_custo(nome: String, classe := 1) -> String:
+	var sc := separar_classe(nome)
+	var n: String = sc[0]
+	var c := maxi(classe, int(sc[1]))
+	var k := n
+	if n == "rampa_desce": k = "esteira_rampa"
+	elif n in FAMILIA_ESTEIRA: k = "esteira"
+	elif n in FAMILIA_CANO: k = "cano"
+	return k + ("_" + CLASSES_ESTEIRA[c] if c > 1 and CLASSES_ESTEIRA.has(c) else "")
 
 
-static func custo_de(nome: String) -> Dictionary:
-	return Registro.progressao.get("custos", {}).get(chave_custo(nome), {})
+static func custo_de(nome: String, classe := 1) -> Dictionary:
+	return Registro.progressao.get("custos", {}).get(chave_custo(nome, classe), {})
 
 
 ## Marca "bloqueado" (falta pesquisa) e "sem_recursos" (o estoque acaba no meio do traço: o que cabe fica verde).
@@ -420,9 +473,10 @@ func _cobrar_plano(plano: Array[Dictionary], escolhido: String) -> Array[Diction
 		return plano
 	var gasto := {}
 	for it in plano:
-		if it.motivo != "" or not it.get("acao", "colocar") in ["colocar", "trem"]:
+		var troca: bool = it.get("acao", "") == "substituir" and int(it.get("classe", 1)) != int(it.get("classe_antiga", 1))
+		if it.motivo != "" or not (it.get("acao", "colocar") in ["colocar", "trem"] or troca):
 			continue
-		var c := custo_de(it.nome)
+		var c := custo_de(it.nome, int(it.get("classe", 1)))
 		var cabe := true
 		for k in c:
 			if int(gasto.get(k, 0)) + int(c[k]) > int(inventario.get(k, 0)):
@@ -502,14 +556,20 @@ func executar(plano: Array[Dictionary]) -> Dictionary:
 				mapa.versao += 1
 			"remover":
 				if mapa.estruturas.has(it.id):
-					_mexer_estoque(custo_de(mapa.estruturas[it.id].nome), 1, rel)
+					var ev: Dictionary = mapa.estruturas[it.id]
+					_mexer_estoque(custo_de(ev.nome, int(ev.get("classe", 1))), 1, rel)
 				_remover(it.id, rel)
 			"substituir":
+				# troca de classe (esteira básica ↔ rápida): devolve a peça velha e cobra a nova
+				var velho: Dictionary = mapa.estruturas.get(it.id_antigo, {}).duplicate()
+				var troca: bool = not velho.is_empty() and int(velho.get("classe", 1)) != int(it.get("classe", 1))
 				_remover(it.id_antigo, rel)
-				_colocar(it, rel)
+				if _colocar(it, rel) and troca:
+					_mexer_estoque(custo_de(velho.nome, int(velho.get("classe", 1))), 1, rel)
+					_mexer_estoque(custo_de(it.nome, int(it.get("classe", 1))), -1, rel)
 			_:
 				if _colocar(it, rel):
-					_mexer_estoque(custo_de(it.nome), -1, rel)
+					_mexer_estoque(custo_de(it.nome, int(it.get("classe", 1))), -1, rel)
 	_recalcular_pontas(rel)
 	if not _relatorio_vazio_de_fato(rel) or not rel.estoque.is_empty():
 		_historico.append(rel)
@@ -572,6 +632,7 @@ func _colocar(it: Dictionary, rel: Dictionary) -> bool:
 	var extras := {}
 	if it.get("nivel", 0) > 0: extras["nivel"] = it.nivel
 	if it.get("desce", false): extras["desce"] = true
+	if int(it.get("classe", 1)) > 1: extras["classe"] = int(it.classe)
 	if not it.get("pilares", []).is_empty(): extras["pilares"] = it.pilares
 	var id := mapa.colocar(it.nome, it.minimo, it.rot, extras)
 	if id < 0:
@@ -606,7 +667,7 @@ func _remover(id: int, rel: Dictionary) -> void:
 func _registro(id: int) -> Dictionary:
 	var e: Dictionary = mapa.estruturas[id]
 	var extras := {}
-	for k in ["nivel", "desce", "pilares", "fontes"]:
+	for k in ["nivel", "desce", "pilares", "fontes", "classe"]:
 		if e.has(k):
 			extras[k] = e[k]
 	return {"id": id, "nome": e.nome, "minimo": e.minimo, "rot": e.rot, "extras": extras}
@@ -724,7 +785,7 @@ static func no_esteira(e: Dictionary) -> Dictionary:
 	if nome == "esteira_rampa":
 		if e.get("desce", false): n_in = n + 1
 		else: n_out = n + 1
-	var no := {"entra": d, "sai": s, "n_in": n_in, "n_out": n_out}
+	var no := {"entra": d, "sai": s, "n_in": n_in, "n_out": n_out, "classe": int(e.get("classe", 1))}
 	if nome in TUNEIS:
 		no["tunel"] = "entrada" if nome == "esteira_tunel_entrada" else "saida"
 	return no
@@ -865,7 +926,10 @@ func _item_trocavel(nome: String, tile: Vector2i, rot: int, n := 0) -> Dictionar
 	var familia := FAMILIA_ESTEIRA if nome in FAMILIA_ESTEIRA else FAMILIA_CANO
 	if not atual.is_empty() and atual.nome in familia:
 		var acao := "igual" if atual.nome == nome and atual.rot == rot else "substituir"
-		var it := {"nome": nome, "minimo": tile, "rot": rot, "motivo": "", "acao": acao, "id_antigo": atual.id, "nivel": n}
+		var it := {"nome": nome, "minimo": tile, "rot": rot, "motivo": "", "acao": acao, "id_antigo": atual.id, "nivel": n,
+				"classe_antiga": int(atual.get("classe", 1))}
+		if int(atual.get("classe", 1)) > 1:
+			it["classe"] = int(atual.classe)         # (a classe do traço vem depois, em _com_classe)
 		if atual.has("pilares"):
 			it["pilares"] = atual.pilares            # troca mantém os pilares que já estão lá
 		return it

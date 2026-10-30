@@ -534,8 +534,8 @@ func _mostrar_detalhe() -> void:
 	era.add_theme_color_override("font_color", (ERA_COR.get(pq.get("era", ""), COR_TRAVADA) as Color).lightened(0.3))
 	_det.add_child(era)
 	var tp := Label.new()
-	var t: Array = TIPOS.get(pq.get("tipo", ""), ["", ""])
-	tp.text = "%s  %s" % [t[0], t[1]]
+	var tipo_rot: Array = TIPOS.get(pq.get("tipo", ""), ["", ""])
+	tp.text = "%s  %s" % [tipo_rot[0], tipo_rot[1]]
 	tp.add_theme_font_size_override("font_size", 14)
 	tp.add_theme_color_override("font_color", Tema.cor("info"))
 	_det.add_child(tp)
@@ -544,8 +544,8 @@ func _mostrar_detalhe() -> void:
 		return
 	var custo := HBoxContainer.new()
 	custo.add_theme_constant_override("separation", 8)
-	for t in pesquisa.tipos(_sel):                                 # uma casa por tipo de pacote
-		custo.add_child(Casa.nova(_tex_item(t), str(pesquisa.unidades(_sel)), "pacote " + Pesquisa.nome_tipo(t)))
+	for tp_pac in pesquisa.tipos(_sel):                            # uma casa por tipo de pacote
+		custo.add_child(Casa.nova(_tex_item(tp_pac), str(pesquisa.unidades(_sel)), "pacote " + Pesquisa.nome_tipo(tp_pac)))
 	var cl := Label.new()
 	cl.text = "%s\n%s s por unidade no laboratório" % [pesquisa.custo_texto(_sel), String.num(float(pq.get("tempo", 5)), 1).trim_suffix(".0")]
 	cl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

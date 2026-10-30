@@ -1,0 +1,47 @@
+{
+ "nome": "cano_subterraneo_entrada",
+ "categoria": "logistica/canos",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Cano subterrâneo: entrada. O fluido entra pelo sul e desce para baixo da terra; sai na saída alinhada à frente (até 9 tiles livres no meio).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_FLUIDO_ENT_S0",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -0.5,
+    0.35
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  }
+ ],
+ "tris": 1087,
+ "dims": [
+  0.982,
+  1.0,
+  1.107
+ ],
+ "anima": false,
+ "estudo": "estudo_cano_subterraneo.py"
+}

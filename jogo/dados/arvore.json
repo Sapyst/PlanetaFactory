@@ -191,6 +191,7 @@
    ],
    "tempo": 5.0,
    "libera": "Cano subterrâneo: entrada e saída (até 9 tiles por baixo)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "sensor_varredura": {
@@ -421,6 +422,7 @@
    ],
    "tempo": 6.0,
    "libera": "Esteira rápida (3,75 itens/s) com rampa, passagem, divisor e junção rápidos",
+   "existente": true,
    "tipo": "estrutura"
   },
   "braco_filtro": {
@@ -441,6 +443,7 @@
    ],
    "tempo": 6.0,
    "libera": "Braço com filtro (escolhe até 5 itens)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "divisor_filtro": {
@@ -461,6 +464,7 @@
    ],
    "tempo": 6.0,
    "libera": "Divisor com filtro e prioridade de saída",
+   "existente": true,
    "tipo": "estrutura"
   },
   "fornalha_aco": {
@@ -566,6 +570,7 @@
    ],
    "tempo": 6.0,
    "libera": "Silo 3×3 (20.000 itens de um só tipo)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "dano_bala_2": {

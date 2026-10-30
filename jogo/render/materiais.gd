@@ -5,6 +5,8 @@ class_name Materiais
 
 const SHADER := preload("res://render/shaders/material_pf.gdshader")
 const VELOCIDADE_ESTEIRA := 1.875
+## Lona que rola pelo shader (m/s = tiles/s, igual à velocidade da esteira da classe): básica e rápida (logistica_3).
+const ROLAGEM := {"P_Esteira": VELOCIDADE_ESTEIRA, "P_EsteiraRapida": VELOCIDADE_ESTEIRA * 2.0}
 
 static var _cache: Dictionary = {}
 
@@ -36,8 +38,8 @@ static func material(origem: Material, vento := 0.0, boiar := 0.0, uv2 := false,
 	if b.emission_enabled:
 		m.set_shader_parameter("cor_emissao", b.emission)
 		m.set_shader_parameter("forca_emissao", maxf(b.emission_energy_multiplier, 1.0))
-	if nome == "P_Esteira":
-		m.set_shader_parameter("rolagem", VELOCIDADE_ESTEIRA)
+	if ROLAGEM.has(nome):
+		m.set_shader_parameter("rolagem", ROLAGEM[nome])
 	if nome in ["P_Cristal", "P_Biomassa", "P_OlhoInimigo", "P_Fogo", "P_Seiva"]:
 		m.set_shader_parameter("pulso", 1.0)
 	if nome == "P_Cristal":
@@ -54,7 +56,7 @@ static func material(origem: Material, vento := 0.0, boiar := 0.0, uv2 := false,
 		m.set_shader_parameter("textura", tex)
 		m.set_shader_parameter("tem_textura", true)
 		m.set_shader_parameter("cor", Color.WHITE)
-	if uv2 and nome == "P_Esteira":
+	if uv2 and ROLAGEM.has(nome):
 		m.set_shader_parameter("rolagem_uv2", true)
 	_cache[chave] = m
 	return m
