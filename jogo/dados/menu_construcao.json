@@ -83,8 +83,14 @@
    "pecas": [
     "torre_defesa",
     "torre_metralhadora",
+    "torre_foguetes",
+    "artilharia",
     "muro_centro",
-    "muro_tijolo"
+    "muro_tijolo",
+    "muro_liga",
+    "muro_escudo",
+    "mina_pulso",
+    "gerador_escudo"
    ]
   },
   {
@@ -164,7 +170,13 @@
   "bomba_agua": "Bomba d'água",
   "coletor_chuva": "Coletor de chuva",
   "condensador_neblina": "Condensador de neblina",
-  "supressor_fogo": "Supressor de incêndio"
+  "supressor_fogo": "Supressor de incêndio",
+  "torre_foguetes": "Lança-foguetes",
+  "artilharia": "Artilharia",
+  "muro_liga": "Muro de liga",
+  "muro_escudo": "Muro de campo",
+  "mina_pulso": "Mina de pulso",
+  "gerador_escudo": "Gerador de escudo"
  },
  "jazidas": {
   "jazida_cristal": "cristal",

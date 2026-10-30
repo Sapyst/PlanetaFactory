@@ -1,0 +1,93 @@
+{
+ "nome": "artilharia",
+ "categoria": "defesa",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Artilharia 3×3: laje com patolas hidráulicas e sapatas cravadas, pedestal octogonal, paiol de recebimento ao sul (S1, granadas por esteira ou braço). Giro sobre coroa dentada: paiol blindado, carregador com bandeja e soquete, unidade hidráulica, telêmetro com olho violeta e radar. Obus elevado a 55°: berço com cilindros de recuo, cano longo com evacuador e freio de boca, culatra de cunha. Partes: base, giro (gira em Z), canhao (filho do giro), luzg/luzc. Pontos (Blender, giro 0): boca (freio de boca) e ejecao (calha do estojo).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "base",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "giro",
+   "pai": "base",
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "luzg",
+   "pai": "giro",
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "canhao",
+   "pai": "giro",
+   "pivo": [
+    -0.0,
+    0.05,
+    1.55
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -1.5,
+    0.16
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  }
+ ],
+ "boca": [
+  -0.0,
+  2.1493,
+  4.5481
+ ],
+ "ejecao": [
+  0.1,
+  -0.1991,
+  1.0896
+ ],
+ "vel_ejecao": [
+  -0.7,
+  -0.6,
+  0.4
+ ],
+ "capsula": {
+  "escala": 3.2,
+  "fumaca": 4.0
+ },
+ "tris": 9556,
+ "dims": [
+  3.0,
+  3.731,
+  4.605
+ ],
+ "anima": false,
+ "estudo": "estudo_artilharia.py"
+}

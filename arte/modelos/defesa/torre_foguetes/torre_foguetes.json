@@ -1,0 +1,102 @@
+{
+ "nome": "torre_foguetes",
+ "categoria": "defesa",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Lança-foguetes 3×3: plataforma octogonal com quatro estabilizadores hidráulicos, unidade hidráulica, armário de força, defletor de jato, paiol com boca ao sul (S1, foguetes por esteira ou braço) e braço carregador. Giro com coroa dentada, pistões de elevação e radar; casulo de 9 tubos com tampas. Partes: base, giro (gira em Z), canhao (casulo, filho do giro), luzg/luzc. Pontos (Blender, giro 0): boca (frente dos tubos) e ejecao (traseira do casulo, por onde sai o selo de cada disparo).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "base",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "giro",
+   "pai": "base",
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "luzg",
+   "pai": "giro",
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "canhao",
+   "pai": "giro",
+   "pivo": [
+    0.0,
+    0.0,
+    1.08
+   ]
+  },
+  {
+   "nome": "luzc",
+   "pai": "canhao",
+   "pivo": [
+    0.0,
+    0.0,
+    1.08
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -1.5,
+    0.16
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  }
+ ],
+ "boca": [
+  -0.0,
+  0.43,
+  1.08
+ ],
+ "ejecao": [
+  0.0,
+  -0.42,
+  1.08
+ ],
+ "vel_ejecao": [
+  -1.6,
+  0.25,
+  0.9
+ ],
+ "capsula": {
+  "escala": 2.6,
+  "fumaca": 3.0
+ },
+ "tris": 8668,
+ "dims": [
+  2.96,
+  2.98,
+  1.663
+ ],
+ "anima": false,
+ "estudo": "estudo_lanca_foguetes.py"
+}

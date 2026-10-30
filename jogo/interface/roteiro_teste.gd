@@ -41,6 +41,7 @@ func _ready() -> void:
 		"canal": _roteiro_canal()
 		"limpeza": _roteiro_limpeza()
 		"agua": _roteiro_agua()
+		"combate": _roteiro_combate()
 		"energia": _roteiro_energia()
 		"vento":                                       # rajadas passando na grama, depois a camada de vento da visão
 			em(2, func():
@@ -769,6 +770,120 @@ func _roteiro_agua() -> void:
 		print("AGUA estados ", est)
 		print("AGUA redes ", f.redes_fluido.map(func(rd): return "%s %.0f/%.0f" % [rd.fluido, rd.qtd, rd.cap]))
 		print("AGUA fogo restante ", cena.ambiente.fogo.size(), " jatos ", f.jatos))
+
+
+## Combate do meio (fase 2.4) sem janela: num chão plano longe do spawn monta lança-foguetes, artilharia, mina, muros de
+## liga e de campo e o gerador de escudo (com gerador e postes), abastece, solta um ataque e imprime o que aconteceu
+## (tiros, explosões, pulsos, impactos no escudo, vida dos muros) e os painéis. `-- modo demo roteiro combate`.
+func _roteiro_combate() -> void:
+	var ids := {}
+	var cont := {}
+	var w := [Vector2i(9999, 0)]
+	em(2, func():
+		Sessao.config.fps = false
+		var g := Grade.gerador
+		var m: MapaOcupacao = cena.mapa
+		for r in range(40, 260, 3):
+			for k in 48:
+				var t := Vector2i((Vector2.from_angle(k * TAU / 48.0) * r).round())
+				if w[0].x != 9999:
+					break
+				var ok := true
+				for i in range(-2, 26):
+					for j in range(-2, 16):
+						var q := t + Vector2i(i, j)
+						if g.terreno(q) != GeradorMundo.Terreno.TERRA or g.nivel(q) != g.nivel(t) or g.em_encosta(q) or m.tiles.has(q):
+							ok = false
+				if ok:
+					w[0] = t
+		var o: Vector2i = w[0]
+		print("COMBATE chão ", o)
+		if o.x == 9999:
+			return
+		_sem_ninhos(o + Vector2i(12, 6))
+		for i in range(-2, 26):
+			for j in range(-2, 16):
+				m.limpar_obstaculo(o + Vector2i(i, j))
+		var con: Construtor = cena.construtor
+		var p := func(pl: Array[Dictionary]) -> void: cena.sincronizar(con.executar(pl))
+		p.call(con.plano_peca("gerador", o + Vector2i(0, 0), 0))
+		p.call(con.plano_peca("poste_energia", o + Vector2i(3, 2), 0))
+		p.call(con.plano_peca("poste_energia", o + Vector2i(8, 2), 0))
+		p.call(con.plano_peca("poste_energia", o + Vector2i(13, 4), 0))
+		p.call(con.plano_peca("gerador_escudo", o + Vector2i(5, 4), 0))
+		p.call(con.plano_peca("torre_foguetes", o + Vector2i(9, 5), 0))
+		p.call(con.plano_peca("artilharia", o + Vector2i(1, 6), 0))
+		p.call(con.plano_linha("muro_liga", o + Vector2i(16, 2), o + Vector2i(16, 6), 0))
+		p.call(con.plano_linha("muro_escudo", o + Vector2i(16, 7), o + Vector2i(16, 11), 0))
+		p.call(con.plano_peca("mina_pulso", o + Vector2i(19, 5), 0))
+		for id in m.estruturas:
+			ids[m.estruturas[id].nome] = id
+		print("COMBATE construiu ", ids.keys())
+		cena.camera.alvo = Grade.centro_mundo(o + Vector2i(10, 6))
+		cena.camera.distancia = 22.0
+		cena.camera.posicionar())
+	em(6, func():
+		if w[0].x == 9999:
+			return
+		var f: Fabrica = cena.fabrica
+		var col: Colonia = cena.colonia
+		f.reconstruir()
+		for id in f.combustivel:
+			f.combustivel[id] = 500.0
+		if ids.has("torre_foguetes"):
+			col.carregar_torre(ids.torre_foguetes, 18)
+		if ids.has("artilharia"):
+			col.carregar_torre(ids.artilharia, 10)
+		var o: Vector2i = w[0]
+		var ninho := -1
+		for k in 40:                                     # ninho para a artilharia, a ~60 m
+			var t := o + Vector2i((Vector2.from_angle(k * 0.3) * 60.0).round())
+			for i in range(-1, 5):
+				for j in range(-1, 5):
+					cena.mapa.limpar_obstaculo(t + Vector2i(i, j))
+			ninho = col._criar_ninho(t, 1.0)
+			if ninho >= 0:
+				break
+		print("COMBATE ninho ", ninho)
+		var alvo: int = ids.get("gerador_escudo", -1)
+		for k in 6:                                      # ataque vindo do leste, passando pela mina e pelos muros
+			var a := col._nova_aranha(ninho) if ninho >= 0 else -1
+			if a < 0:
+				continue
+			col.aranhas[a].pos = Vector2(o + Vector2i(24, 4 + k))
+			col.aranhas[a].estado = Colonia.E.ATACANDO
+			col.aranhas[a].alvo = alvo)
+	em(700, func():                                      # segunda onda, com as torres já sem munição: mina, muros, escudo
+		if w[0].x == 9999 or cena.colonia.ninhos.is_empty():
+			return
+		var col: Colonia = cena.colonia
+		var o: Vector2i = w[0]
+		for k in 4:
+			var a := col._nova_aranha(col.ninhos.keys()[0])
+			col.aranhas[a].pos = Vector2(o + Vector2i(22, 4 + k))
+			col.aranhas[a].estado = Colonia.E.ATACANDO
+			col.aranhas[a].alvo = ids.get("muro_escudo", -1) if k % 2 == 0 else ids.get("gerador_escudo", -1))
+	for q in range(8, 1300):
+		em(q, func():
+			for e in cena.colonia.eventos:
+				cont[e.tipo] = int(cont.get(e.tipo, 0)) + 1)
+	var k := 0
+	for nome in ["torre_foguetes", "artilharia", "mina_pulso", "gerador_escudo", "muro_escudo"]:
+		k += 1
+		em(300 + k * 60, func():
+			if ids.has(nome) and cena.mapa.estruturas.has(ids[nome]):
+				cena._sel = {"estrutura": ids[nome]}
+				cena._detalhe()
+				print("COMBATE painel ", nome))
+	em(1300, func():
+		var col: Colonia = cena.colonia
+		var vidas := {}
+		for nome in ids:
+			if col.vida.has(ids[nome]):
+				vidas[nome] = snappedf(float(col.vida[ids[nome]]), 0.1)
+		print("COMBATE eventos ", cont)
+		print("COMBATE munição ", col.torres.keys().map(func(t): return [cena.mapa.estruturas[t].nome if cena.mapa.estruturas.has(t) else "?", col.torres[t].municao]))
+		print("COMBATE escudo MJ ", snappedf(float(cena.fabrica.carga_torre.get(ids.get("gerador_escudo", -1), -1.0)), 0.01), " vidas ", vidas, " aranhas ", col.aranhas.size()))
 
 
 func _roteiro_limpeza() -> void:

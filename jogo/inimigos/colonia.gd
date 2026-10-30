@@ -15,11 +15,20 @@ extends RefCounted
 ##           gasta a carga guardada da rede (munição é reserva); a metralhadora (torre_metralhadora) só atira bala:
 ##           cada munição que chega por braço/esteira vira Fabrica.TIROS_POR_MUNICAO tiros, até municao_max.
 ##           Tiro de bala sai com "bala" no evento (o desenho ejeta a cápsula). Melhorias: dano_bala, cadencia_bala.
+##           Torre de projétil (lança-foguetes, artilharia: regra "projetil"): o tiro voa (velocidade, tempo) e explode
+##           no ponto mirado com dano em área ("raio"; cai até a metade na borda). A munição é o item da regra
+##           "municao_item" (foguete, granada), "tiros_por_item" tiros cada. Artilharia ("alvo": "ninhos") só mira
+##           ninhos, entre alcance_min e alcance. Melhorias pela regra: bonus_dano, bonus_cadencia, bonus_alcance.
+##  mina     mina de pulso (regra "pulso"): aranha a menos de "gatilho" dispara; toda aranha no "raio" fica atordoada
+##           (parada, sem morder) por "atordoa" s; a mina rearma em "rearme" s.
+##  escudo   gerador de escudo (regra "escudo"): mordida em estrutura que fica no raio da bolha não tira vida — gasta
+##           a energia guardada do gerador (mj_por_dano, via torre_energia = Fabrica.gastar_torre); sem carga, passa.
+##  campo    muro de campo (regra "regenera"): recupera ♥/s × energia da rede que chega nele (callable `energia`).
 ##
 ## Tudo que o desenho precisa saber sai em `eventos` (tiro, morte, ninho novo, estrutura destruída) a cada tick.
 
 enum E { PARADA, ATACANDO, VOLTANDO, CONSTRUINDO, OBRA }
-const TORRES := ["torre_defesa", "torre_metralhadora"]
+const TORRES := ["torre_defesa", "torre_metralhadora", "torre_foguetes", "artilharia"]
 
 var mapa: MapaOcupacao
 var poluicao: Poluicao
@@ -28,6 +37,12 @@ var ninhos: Dictionary = {}       ## id da estrutura → {id, centro: Vector2, v
 var aranhas: Dictionary = {}      ## id → {id, pos: Vector2, vida, ninho, estado, alvo (id estrutura), destino: Vector2, mordendo}
 var torres: Dictionary = {}       ## id da estrutura → {municao, recarga, mira: Vector2, mirando}
 var torre_energia: Callable       ## func(id, mj) -> bool: tiro com a energia guardada na torre (Fabrica.gastar_torre)
+var energia: Callable             ## (opcional) func(id) -> float 0..1: energia da rede que chega na estrutura (muro de campo)
+var projeteis: Array[Dictionary] = []   ## foguetes/granadas no ar: {torre, nome, de, para, t, dur, dano, raio}
+var minas: Dictionary = {}        ## id da mina → {recarga: s até rearmar (0 = armada)}
+var _lista_minas: Array[int] = []
+var _lista_escudos: Array[int] = []
+var _t_escudo: Dictionary = {}    ## id do gerador → s até o próximo evento de impacto (desenho)
 var bonus: Callable               ## (opcional) func(chave) -> float: melhorias pesquisadas (Pesquisa.bonus)
 var vida: Dictionary = {}         ## id da estrutura → vida atual (só as que levaram dano)
 var eventos: Array[Dictionary] = []
@@ -129,6 +144,7 @@ func aranhas_do_ninho(ninho: int, estado := -1) -> Array[int]:
 ## fontes: [{id (estrutura), pos: Vector2}] — quem polui (alvo dos ataques).
 func tick(dt: float, fontes: Array[Dictionary]) -> void:
 	eventos.clear()
+	_listas()
 	_ninhos(dt, fontes)
 	_obras(dt)
 	for id in aranhas.keys():
@@ -136,6 +152,9 @@ func tick(dt: float, fontes: Array[Dictionary]) -> void:
 			_aranha(aranhas[id], dt)
 	_separar()
 	_torres(dt)
+	_voar(dt)
+	_minas(dt)
+	_regenerar(dt)
 	_expandir(dt)
 
 
@@ -190,6 +209,9 @@ func _fonte_mais_perto(p: Vector2, fontes: Array[Dictionary], mult := 1.0) -> in
 func _aranha(ar: Dictionary, dt: float) -> void:
 	ar.mordendo = false
 	ar.t += dt
+	if float(ar.get("atordoada", 0.0)) > 0.0:          # pulso da mina: parada, sem morder
+		ar.atordoada = maxf(0.0, float(ar.atordoada) - dt)
+		return
 	# presa (água no caminho, sem saída): desiste da obra/ataque; presa voltando, some no chão de volta ao ninho
 	if ar.preso > 15.0 and ar.estado in [E.ATACANDO, E.CONSTRUINDO, E.VOLTANDO]:
 		ar.preso = 0.0
@@ -317,8 +339,11 @@ func _morder(ar: Dictionary, id: int, dt: float) -> void:
 	var em: Dictionary = mapa.estruturas[id]
 	ar.mordida = Grade.centro_da_area(em.minimo, em.area, em.rot)       # para onde as pernas golpeiam (desenho)
 	var nome: String = mapa.estruturas[id].nome
+	var dano := float(_a.get("dano", 15)) * (1.0 + float(_f.get("dano", 0.8)) * furia(ar)) * dt
+	if _escudo_absorve(id, dano, ar.pos):
+		return
 	var v: float = vida.get(id, float(Registro.estruturas.get(nome, {}).get("vida", 100)))
-	v -= float(_a.get("dano", 15)) * (1.0 + float(_f.get("dano", 0.8)) * furia(ar)) * dt
+	v -= dano
 	vida[id] = v
 	if v <= 0.0:
 		vida.erase(id)
@@ -380,13 +405,32 @@ func _separar() -> void:
 
 
 # ------------------------------------------------------------------ torres
+## Torres, minas e geradores de escudo do mapa (refeito só quando o mapa muda).
+func _listas() -> void:
+	if mapa.versao == _tamanho_mapa:
+		return
+	_tamanho_mapa = mapa.versao
+	_lista_torres.clear()
+	_lista_minas.clear()
+	_lista_escudos.clear()
+	for id in mapa.estruturas:
+		var nome: String = mapa.estruturas[id].nome
+		var r: Dictionary = Registro.estruturas.get(nome, {})
+		if nome in TORRES:
+			_lista_torres.append(id)
+		elif r.has("pulso"):
+			_lista_minas.append(id)
+		elif r.has("escudo"):
+			_lista_escudos.append(id)
+
+
+## Alcance da torre (melhoria de alcance pela regra "bonus_alcance").
+func alcance_de(nome: String) -> float:
+	var regra: Dictionary = Registro.estruturas.get(nome, {})
+	return float(regra.get("alcance", 18)) * (1.0 + _bonus(String(regra.get("bonus_alcance", ""))))
+
+
 func _torres(dt: float) -> void:
-	if mapa.versao != _tamanho_mapa:
-		_tamanho_mapa = mapa.versao
-		_lista_torres.clear()
-		for id in mapa.estruturas:
-			if mapa.estruturas[id].nome in TORRES:
-				_lista_torres.append(id)
 	for id in _lista_torres:
 		if not mapa.estruturas.has(id):
 			continue
@@ -396,19 +440,21 @@ func _torres(dt: float) -> void:
 		t.recarga -= dt
 		var regra: Dictionary = Registro.estruturas[e.nome]
 		var c := Grade.centro_da_area(e.minimo, e.area, e.rot)
-		var alcance: float = regra.get("alcance", 18)
+		var alcance := alcance_de(e.nome)
+		var minimo := float(regra.get("alcance_min", 0.0))
 		var alvo := -1
 		var md := alcance
-		for a in aranhas:
-			var d: float = c.distance_to(aranhas[a].pos)
-			if d < md:
-				md = d
-				alvo = a
+		if regra.get("alvo", "") != "ninhos":
+			for a in aranhas:
+				var d: float = c.distance_to(aranhas[a].pos)
+				if d < md and d >= minimo:
+					md = d
+					alvo = a
 		var ninho := -1
 		if alvo < 0:
 			for n in ninhos:
 				var d: float = c.distance_to(ninhos[n].centro)
-				if d < md:
+				if d < md and d >= minimo:
 					md = d
 					ninho = n
 		t.mirando = alvo >= 0 or ninho >= 0
@@ -418,7 +464,7 @@ func _torres(dt: float) -> void:
 		if t.recarga > 0.0:
 			continue
 		# torre de energia: atira com a energia guardada; munição (se algum braço trouxe) é a reserva quando a energia
-		# acaba. Metralhadora (sem carga_mj): só bala, na cadência dela (+ melhoria cadencia_bala).
+		# acaba. Torres de munição (sem carga_mj): só com o item delas, na cadência delas (+ melhoria da regra).
 		var chave := "dano_torre_energia"                     # melhoria que vale para este tiro
 		var cadencia := float(regra.get("cadencia", 3))
 		var bala := false
@@ -426,26 +472,143 @@ func _torres(dt: float) -> void:
 			cadencia *= 1.0 + _bonus("cadencia_torre_energia")
 		elif t.municao > 0:
 			t.municao -= 1
-			chave = "dano_bala"
+			chave = String(regra.get("bonus_dano", "dano_bala"))
 			bala = true
 			if not regra.has("carga_mj"):
-				cadencia *= 1.0 + _bonus("cadencia_bala")
+				cadencia *= 1.0 + _bonus(String(regra.get("bonus_cadencia", "cadencia_bala")))
 		else:
 			continue
 		t.recarga = maxf(t.recarga, -dt) + 1.0 / cadencia   # sobra do tick conta: 10 tiros/s mesmo a 30 quadros/s
 		var dano: float = float(regra.get("dano", 8)) * (1.0 + _bonus(chave))
-		eventos.append({"tipo": "tiro", "torre": id, "nome": e.nome, "bala": bala, "de": c, "para": t.mira, "aranha": alvo, "ninho": ninho})
+		var ev := {"tipo": "tiro", "torre": id, "nome": e.nome, "bala": bala, "de": c, "para": t.mira, "aranha": alvo, "ninho": ninho}
+		if regra.has("projetil"):                       # foguete/granada: voa e explode no ponto mirado
+			var pj: Dictionary = regra.projetil
+			var dur := c.distance_to(t.mira) / float(pj.get("velocidade", 25.0)) + float(pj.get("tempo_extra", 0.0))
+			projeteis.append({"torre": id, "nome": e.nome, "de": c, "para": t.mira, "t": 0.0, "dur": dur, "dano": dano,
+					"raio": float(pj.get("raio", 2.0))})
+			ev.projetil = true
+			ev.dur = dur
+			eventos.append(ev)
+			continue
+		eventos.append(ev)
 		if alvo >= 0:
-			aranhas[alvo].vida -= dano
-			if aranhas[alvo].vida <= 0.0:
-				eventos.append({"tipo": "aranha_morta", "id": alvo, "pos": aranhas[alvo].pos})
-				aranhas.erase(alvo)
+			_ferir_aranha(alvo, dano)
 		else:
-			ninhos[ninho].vida -= dano
-			if ninhos[ninho].vida <= 0.0:
-				eventos.append({"tipo": "ninho_destruido", "id": ninho, "pos": ninhos[ninho].centro})
-				ninhos.erase(ninho)
-				mapa.remover(ninho)
+			_ferir_ninho(ninho, dano)
+
+
+func _ferir_aranha(a: int, dano: float) -> void:
+	aranhas[a].vida -= dano
+	if aranhas[a].vida <= 0.0:
+		eventos.append({"tipo": "aranha_morta", "id": a, "pos": aranhas[a].pos})
+		aranhas.erase(a)
+
+
+func _ferir_ninho(n: int, dano: float) -> void:
+	ninhos[n].vida -= dano
+	if ninhos[n].vida <= 0.0:
+		eventos.append({"tipo": "ninho_destruido", "id": n, "pos": ninhos[n].centro})
+		ninhos.erase(n)
+		mapa.remover(n)
+
+
+## Foguetes e granadas no ar: chegou, explode (dano em área, metade na borda do raio; ninho conta pela borda).
+func _voar(dt: float) -> void:
+	if projeteis.is_empty():
+		return
+	var vivos: Array[Dictionary] = []
+	for p in projeteis:
+		p.t += dt
+		if p.t < p.dur:
+			vivos.append(p)
+			continue
+		var onde: Vector2 = p.para
+		eventos.append({"tipo": "explosao", "torre": p.torre, "nome": p.nome, "pos": onde, "raio": p.raio})
+		for a in aranhas.keys():
+			var d: float = aranhas[a].pos.distance_to(onde)
+			if d <= p.raio:
+				_ferir_aranha(a, p.dano * (1.0 - 0.5 * d / p.raio))
+		for n in ninhos.keys():
+			if ninhos[n].centro.distance_to(onde) <= p.raio + 1.5:
+				_ferir_ninho(n, p.dano)
+	projeteis = vivos
+
+
+# ------------------------------------------------------------------ mina de pulso
+func _minas(dt: float) -> void:
+	for id in _lista_minas:
+		if not mapa.estruturas.has(id):
+			minas.erase(id)
+			continue
+		if not minas.has(id):
+			minas[id] = {"recarga": 0.0}
+		var m: Dictionary = minas[id]
+		if m.recarga > 0.0:
+			m.recarga = maxf(0.0, m.recarga - dt)
+			continue
+		var e: Dictionary = mapa.estruturas[id]
+		var p: Dictionary = Registro.estruturas[e.nome].pulso
+		var c := Grade.centro_da_area(e.minimo, e.area, e.rot)
+		var pisou := false
+		for a in aranhas:
+			if aranhas[a].pos.distance_to(c) <= float(p.get("gatilho", 1.2)):
+				pisou = true
+				break
+		if not pisou:
+			continue
+		m.recarga = float(p.get("rearme", 20.0))
+		var n := 0
+		for a in aranhas:
+			if aranhas[a].pos.distance_to(c) <= float(p.get("raio", 3.0)):
+				aranhas[a].atordoada = maxf(float(aranhas[a].get("atordoada", 0.0)), float(p.get("atordoa", 3.0)))
+				aranhas[a].mordendo = false
+				n += 1
+		eventos.append({"tipo": "pulso", "id": id, "pos": c, "raio": float(p.get("raio", 3.0)), "atordoadas": n})
+
+
+## A mina está armada? (rearmando = false)
+func mina_armada(id: int) -> bool:
+	return float(minas.get(id, {}).get("recarga", 0.0)) <= 0.0
+
+
+# ------------------------------------------------------------------ escudo e muro de campo
+## A mordida em `id` cai num escudo? Gasta a carga do gerador (mj_por_dano) e não tira vida.
+func _escudo_absorve(id: int, dano: float, de: Vector2) -> bool:
+	if _lista_escudos.is_empty() or not torre_energia.is_valid():
+		return false
+	var e: Dictionary = mapa.estruturas[id]
+	for g in _lista_escudos:
+		if not mapa.estruturas.has(g):
+			continue
+		var eg: Dictionary = mapa.estruturas[g]
+		var esc: Dictionary = Registro.estruturas[eg.nome].escudo
+		var cg := Grade.centro_da_area(eg.minimo, eg.area, eg.rot)
+		if _dist_estrutura(cg, e) > float(esc.get("raio", 8.0)):
+			continue
+		if not torre_energia.call(g, dano * float(esc.get("mj_por_dano", 0.02))):
+			continue
+		_t_escudo[g] = float(_t_escudo.get(g, 0.0))
+		if _t_escudo[g] <= 0.0:                         # impacto na bolha (desenho): no máximo 4 por segundo
+			_t_escudo[g] = 0.25
+			var dir := (de - cg)
+			eventos.append({"tipo": "escudo", "id": g, "centro": cg, "pos": cg + dir.normalized() * float(esc.get("raio", 8.0)) if dir.length() > 0.01 else de})
+		return true
+	return false
+
+
+func _regenerar(dt: float) -> void:
+	for g in _t_escudo.keys():
+		_t_escudo[g] = float(_t_escudo[g]) - dt
+	for id in vida.keys():
+		if not mapa.estruturas.has(id):
+			continue
+		var r: Dictionary = Registro.estruturas.get(mapa.estruturas[id].nome, {})
+		if not r.has("regenera"):
+			continue
+		var en := float(energia.call(id)) if energia.is_valid() else 0.0
+		vida[id] = float(vida[id]) + float(r.regenera) * en * dt
+		if float(vida[id]) >= float(r.get("vida", 100)):
+			vida.erase(id)
 
 
 func _bonus(chave: String) -> float:
@@ -464,15 +627,26 @@ func carregar_torre(id: int, tiros: int) -> void:
 
 
 ## A torre ainda cabe mais uma munição? (regra municao_max, em tiros; sem ela, cabe sempre.) O braço não entrega
-## para a metralhadora cheia: a munição fica no baú/esteira para as outras.
+## para a torre cheia: a munição fica no baú/esteira para as outras.
 func aceita_municao(id: int) -> bool:
 	if not mapa.estruturas.has(id):
 		return false
-	var maximo := int(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("municao_max", 0))
+	var nome: String = mapa.estruturas[id].nome
+	var maximo := int(Registro.estruturas.get(nome, {}).get("municao_max", 0))
 	if maximo <= 0:
 		return true
 	_garantir_torre(id)
-	return int(torres[id].municao) + Fabrica.TIROS_POR_MUNICAO <= maximo
+	return int(torres[id].municao) + tiros_por_item(nome) <= maximo
+
+
+## Item que a torre usa de munição (munição comum, foguete, granada).
+static func item_municao(nome: String) -> String:
+	return String(Registro.estruturas.get(nome, {}).get("municao_item", "municao"))
+
+
+## Tiros que cada item de munição rende na torre (bala: Fabrica.TIROS_POR_MUNICAO; foguete e granada: 1).
+static func tiros_por_item(nome: String) -> int:
+	return int(Registro.estruturas.get(nome, {}).get("tiros_por_item", Fabrica.TIROS_POR_MUNICAO))
 
 
 func _garantir_torre(id: int) -> void:
@@ -486,7 +660,7 @@ func _garantir_torre(id: int) -> void:
 # ------------------------------------------------------------------ salvamento
 func estado() -> Dictionary:
 	return {"ninhos": ninhos, "aranhas": aranhas, "torres": torres, "vida": vida, "celulas": _celulas.keys(),
-			"prox": _prox, "t_expansao": _t_expansao, "rng": _rng.state}
+			"prox": _prox, "t_expansao": _t_expansao, "rng": _rng.state, "projeteis": projeteis, "minas": minas}
 
 
 func restaurar(d: Dictionary) -> void:
@@ -500,6 +674,11 @@ func restaurar(d: Dictionary) -> void:
 	_prox = d.prox
 	_t_expansao = d.t_expansao
 	_rng.state = d.rng
+	projeteis.clear()
+	for p in d.get("projeteis", []):
+		projeteis.append(p)
+	minas = d.get("minas", {})
+	_tamanho_mapa = -1
 
 
 # ------------------------------------------------------------------ expansão

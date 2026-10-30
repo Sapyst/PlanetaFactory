@@ -277,6 +277,19 @@ func ejecao() -> Array:
 	return [pos, vel]
 
 
+## Boca da arma no mundo ("boca" em modelos.json, Blender com o giro em 0), girando com o canhão; INF se não há.
+func boca() -> Vector3:
+	var m: Dictionary = Registro.modelos.get(modelo, {})
+	if not m.has("boca") or not tem("canhao"):
+		return Vector3.INF
+	var piv := Vector3.ZERO
+	for p in m.get("partes", []):
+		if p.nome == "canhao":
+			piv = Vector3(p.pivo[0], p.pivo[1], p.pivo[2])
+	var e: Array = m.boca
+	return _global(_partes["canhao"] as Node3D) * Vector3(e[0] - piv.x, e[2] - piv.z, -(e[1] - piv.y))
+
+
 ## Transform no mundo somando os pais (funciona também fora da árvore de cena).
 static func _global(n: Node3D) -> Transform3D:
 	var t := n.transform

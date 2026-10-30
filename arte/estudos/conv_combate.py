@@ -1,5 +1,5 @@
 """Entradas do para_jogo.py para o combate da era base: torre_metralhadora (estudo_metralhadora.py) e o muro de tijolo
-muro_tijolo / muro_tijolo_lado (estudo_muros_mina.py, grupo 'tijolo'; liga, campo e mina ficam para a fase 2.4).
+muro_tijolo / muro_tijolo_lado (estudo_muros_mina.py, grupo 'tijolo'; liga, campo e mina: conv_combate_meio.py, fase 2.4).
 
 O que os ganchos fazem (o para_jogo.py não muda):
 - torre_metralhadora: pose do quadro 1 do laço (implantada: pernas cravadas, cabeça no alto, trava recolhida). A arma

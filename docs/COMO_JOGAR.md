@@ -26,6 +26,15 @@ Você é a IA do núcleo que caiu no planeta. O objetivo é crescer: extrair, fa
 - **Química** (refino + bomba d'água): **resina** (seiva por uma boca do refinador, água pela outra) e o **pacote
   químico** (resina + bateria + água), o terceiro tipo de pacote do laboratório. **Bioquímica** libera o **pacote
   ecológico**, que só sai com **água limpa**.
+- **Defesa do meio** (aba Defesa): **Ciência militar** (metralhadora + muro de tijolo + automação) libera o **pacote
+  militar** (2 munições + 1 aço + 2 tijolos na montadora), que abre as melhorias de bala e da torre de energia.
+  O **Lança-foguetes** 3×3 recebe **foguetes** (resina + aço + circuito) pela boca sul e acerta grupos de aranhas
+  (dano em área, 30 m). A **Mina de pulso** atordoa as aranhas em 3 m por 3 s e rearma em 20 s. O **Muro de liga**
+  aguenta 1.500 (feito de **liga leve**: aço + cobre + resina). O **Gerador de escudo** 2×2 (precisa de
+  **processador**, feito no refinador com água) faz uma bolha de 8 m: enquanto tem carga, a mordida em qualquer
+  construção dentro dela gasta o escudo, não a vida; ele recarrega pela rede. A **Artilharia** (granadas, ninhos a
+  até 120 m) e o **Muro de campo** (regenera com energia) já existem, mas a pesquisa deles espera tecnologias que
+  ainda vão chegar.
 
 ## Primeiros passos
 1. **Ache as jazidas:** aperte **V** (ou o botão **Recursos**). Cada jazida aparece colorida, com o nome, a quantidade

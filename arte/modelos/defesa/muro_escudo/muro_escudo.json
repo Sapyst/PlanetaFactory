@@ -1,0 +1,31 @@
+{
+ "nome": "muro_escudo",
+ "categoria": "defesa",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Pilar emissor do muro de campo (centro do tile). O jogo junta muro_escudo_lado para cada vizinho com muro.",
+ "ocupa_canto": true,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 1147,
+ "dims": [
+  0.64,
+  0.64,
+  1.571
+ ],
+ "anima": false,
+ "estudo": "estudo_muros_mina.py"
+}

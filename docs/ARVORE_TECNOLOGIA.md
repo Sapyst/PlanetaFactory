@@ -1,6 +1,6 @@
 # Árvore de tecnologia
 
-Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 49 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (algumas ainda esperam um pré-requisito ou pacote "em breve"; o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras aparecem como "em breve" até a estrutura, o item ou o pacote existir. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
+Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 62 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (algumas ainda esperam um pré-requisito ou pacote "em breve"; o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras aparecem como "em breve" até a estrutura, o item ou o pacote existir. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
 
 ## Eras e pacotes de pesquisa
 
@@ -520,13 +520,13 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Torre (energia) | 2×2 | temos | tiro a energia da rede, munição como reserva | início |
 | Muro (pedra) | 1×1 | temos | 350 ♥, barra aranhas | início |
 | Metralhadora | 2×2 | temos | munição comum, 10 tiros/s, alcance 18 m, 3 de dano por bala, guarda 200 tiros | `torre_metralhadora` |
-| Lança-foguetes | 3×3 | falta | foguetes, dano em área, alcance 30 m | `torre_foguetes` |
-| Artilharia | 3×3 | falta | granadas, alcance 120 m, mira em ninhos | `artilharia` |
+| Lança-foguetes | 3×3 | temos | foguetes (1 por disparo, guarda 18), 1,5 disparos/s, 40 de dano em área (raio 2,5 m; metade na borda), alcance 30 m; o foguete voa (24 m/s) | `torre_foguetes` |
+| Artilharia | 3×3 | temos | granadas (guarda 10), 1 disparo a cada 4 s, 150 de dano em área (raio 4 m), só mira ninhos de 16 a 120 m; travada pela árvore (`cartografia` ainda em breve) | `artilharia` |
 | Muro de tijolo | 1×1 | temos | 700 ♥ (`muro_tijolo`, 5 tijolos) | `muros_reforcados` |
-| Muro de liga | 1×1 | falta | 1.500 ♥, aranha não escala | `muro_liga` |
-| Muro de campo | 1×1 | falta | regenera 5 ♥/s com energia | `muro_escudo` |
-| Mina de pulso | 1×1 | falta | atordoa aranhas 3 s, rearma em 20 s | `mina_pulso` |
-| Gerador de escudo | 2×2 | falta | bolha de 8–12 m que absorve dano | `escudo_1` |
+| Muro de liga | 1×1 | temos | 1.500 ♥ (4 liga leve + 1 aço); no jogo nenhuma aranha escala, vale a vida | `muro_liga` |
+| Muro de campo | 1×1 | temos | 800 ♥, regenera 5 ♥/s × energia da rede (10 kW por pilar); parede de campo desenhada por shader; travado pela árvore (`escudo_2`, tempestade) | `muro_escudo` |
+| Mina de pulso | 1×1 | temos | aranha a 1,2 m dispara: atordoa as aranhas em 3 m por 3 s (paradas, sem morder), rearma em 20 s; sem energia, baixa (passam por cima) | `mina_pulso` |
+| Gerador de escudo | 2×2 | temos | bolha de 8 m: mordida em construção dentro dela gasta a carga do gerador (8 MJ = 400 de dano) em vez de vida; recarrega da rede a 200 kW (40 s) | `escudo_1` |
 
 ### Trilhos
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
@@ -578,7 +578,7 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Transportador quântico | 3×3 | falta | troca itens entre colônias | `transportador_quantico` |
 | Silo de lançamento | 3×3 | falta | monta e lança o foguete de proliferação | `silo_lancamento` |
 
-**Contagem:** 45 linhas "temos" e **65 linhas "falta"** (uma linha pode juntar variantes, como a família da esteira
+**Contagem:** 51 linhas "temos" e **59 linhas "falta"** (uma linha pode juntar variantes, como a família da esteira
 rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima, Drones, Lógica, Proliferação).
 
 ## Decisões e pontos em aberto
@@ -589,6 +589,11 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
   a fornalha e a montadora não têm boca de cano (a montadora não tem nem lugar livre na borda para uma):
   `aco_refrigerado` 10 placas de ferro + 60 água → 3 barras (32 s) e `lapidar_refrigerado` 4 cristais brutos + 30
   água → 3 lapidados (4 s). Precisam do refinador (`refino`), que não é pré-requisito da bomba d'água.
+- **Combate do meio (fase 2.4).** O **processador** pede 5 de água: sai no **refinador** (como as refrigeradas, a
+  montadora não tem boca de cano). Foguete, granada e liga leve na montadora, como na tabela. A artilharia e o muro de
+  campo estão ligados, mas travados pela árvore: a artilharia pede `cartografia` (que pede o sensor de varredura,
+  ainda sem estudo) e o muro de campo pede `escudo_2` (ciência de tempestade, fase 2.5). Dano de energia 4, cadência
+  de energia 2, foguetes 2 e as melhorias da artilharia também esperam o pacote de tempestade.
 - **Água limpa** (`agua_limpa`, do filtro) serve em toda receita que pede água; água do rio não serve onde se pede
   limpa (pacote ecológico). Resina bebe dois fluidos: seiva por uma boca do refinador e água pela outra.
 - **As 14 pesquisas originais não mudam** (a 15ª, `dano_energia_1`, entrou depois como a primeira melhoria jogável: +20% de dano da torre com energia). Mesmos IDs, pré-requisitos e custos (incluindo `energia`, que existe no jogo

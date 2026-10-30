@@ -66,7 +66,7 @@ func test_pesquisa_pela_arvore() -> void:
 	igual(p.tipos("dano_bala_2"), ["pacote_pesquisa", "pacote_automacao"], "dano 2 gasta pacote de automação")
 	p.concluidas["dano_bala_2"] = true
 	perto(p.bonus("dano_bala"), 0.25, 1e-6, "dano 1 + 2: +25%")
-	verificar(not p.jogavel("dano_bala_3") and not p.jogavel("ciencia_militar"), "dano 3 / ciência militar ficam para a 2.4")
+	verificar(p.jogavel("dano_bala_3") and not p.disponivel("dano_bala_3"), "dano 3 (2.4) espera a ciência militar")
 	# munição já sai da pesquisa "defesa" (2 sílex + 1 placa de cobre na montadora)
 	var r: Dictionary = Registro.receitas.municao
 	igual(r.maquina, "montadora", "munição na montadora")

@@ -52,6 +52,7 @@ var _saidas_portas: Array[Dictionary] = []   ## {origem: Object, tile: Vector2i}
 var _membros: Dictionary = {}          ## id → membro da rede (dict)
 var acumulado: Dictionary = {}         ## id do acumulador → MJ guardados
 var carga_torre: Dictionary = {}       ## id da torre de defesa → MJ guardados para atirar (puxa da rede até encher)
+var energia_rede: Dictionary = {}      ## id de quem consome → satisfação da rede (0..1) no último tick
 var sol := 1.0                         ## 0..1: quanto os painéis solares rendem agora (o mundo passa do clima)
 var vento := 0.5                       ## força do vento (0..~1,6) para turbina sem valor próprio
 var vento_turbina: Dictionary = {}     ## id da turbina → vento no lugar dela (clima × VentoLocal × rajada), o mundo passa
@@ -85,7 +86,7 @@ func reconstruir() -> void:
 	var vivos := {}
 	for id in mapa.estruturas:
 		vivos[id] = true
-	for d in [maquinas, bracos, baus, combustivel, fator_fogo, laboratorios, distribuidores, acumulado, carga_torre]:
+	for d in [maquinas, bracos, baus, combustivel, fator_fogo, laboratorios, distribuidores, acumulado, carga_torre, energia_rede]:
 		for id in d.keys():
 			if not vivos.has(id):
 				d.erase(id)
@@ -265,6 +266,11 @@ func _montar_maquinas() -> void:
 			acumulado[id] = 0.0
 		if Registro.estruturas.get(e.nome, {}).has("carga_mj") and not carga_torre.has(id):
 			carga_torre[id] = 0.0
+
+
+## Energia que chega na estrutura agora (0..1: satisfação da rede dela; 0 se não está ligada a nada).
+func energia(id: int) -> float:
+	return float(energia_rede.get(id, 0.0))
 
 
 ## Torre de defesa atira com a energia guardada: gasta `mj` se tiver (a colônia chama a cada tiro).
@@ -603,6 +609,7 @@ func tick(dt: float) -> void:
 				_emitir(id, (antes - m.combustivel_mj) / (-m.kw / 1000.0))   # segundos equivalentes a plena carga
 		else:
 			var en: float = rede.satisfacao_por_rede.get(m.rede, 0.0) if m.rede >= 0 and ligada(id) else 0.0
+			energia_rede[id] = en
 			var o: Object = maquinas.get(id, bracos.get(id))
 			if o != null:
 				o.set("energia", en)
@@ -1114,10 +1121,11 @@ class _NaTorre:
 		f = p_f
 		id = p_id
 	func aceita(i: String) -> bool:
-		return i == "municao" and f.torre_receber.is_valid() and (not f.torre_aceita.is_valid() or f.torre_aceita.call(id))
+		return f.mapa.estruturas.has(id) and i == Colonia.item_municao(f.mapa.estruturas[id].nome) \
+				and f.torre_receber.is_valid() and (not f.torre_aceita.is_valid() or f.torre_aceita.call(id))
 	func receber(i: String) -> bool:
 		if not aceita(i): return false
-		f.torre_receber.call(id, Fabrica.TIROS_POR_MUNICAO)
+		f.torre_receber.call(id, Colonia.tiros_por_item(f.mapa.estruturas[id].nome))
 		return true
 
 

@@ -28,5 +28,10 @@
  "briquete":         {"nome": "Briquete",         "grupo": "intermediario", "pilha": 50, "combustivel_mj": 10.0, "poluicao_queima": 0.7, "modelo_de": "tijolo", "matiz": 0.78},
  "resina":           {"nome": "Resina",           "grupo": "intermediario", "pilha": 100, "modelo_de": "cristal_bruto", "matiz": 0.09},
  "pacote_quimico":   {"nome": "Pacote químico",   "grupo": "avancado",      "pilha": 200, "modelo_de": "pacote_pesquisa", "matiz": 0.62},
- "pacote_ecologico": {"nome": "Pacote ecológico", "grupo": "avancado",      "pilha": 200, "modelo_de": "pacote_pesquisa", "matiz": 0.30}
+ "pacote_ecologico": {"nome": "Pacote ecológico", "grupo": "avancado",      "pilha": 200, "modelo_de": "pacote_pesquisa", "matiz": 0.30},
+ "pacote_militar":   {"nome": "Pacote militar",   "grupo": "avancado",      "pilha": 200, "modelo_de": "pacote_pesquisa", "matiz": 0.99},
+ "liga_leve":        {"nome": "Liga leve",        "grupo": "intermediario", "pilha": 100, "modelo_de": "placa_cobre", "matiz": 0.55},
+ "processador":      {"nome": "Processador",      "grupo": "avancado",      "pilha": 100, "modelo_de": "circuito", "matiz": 0.78},
+ "foguete":          {"nome": "Foguete",          "grupo": "avancado",      "pilha": 50,  "modelo_de": "municao", "matiz": 0.22},
+ "granada":          {"nome": "Granada de artilharia", "grupo": "avancado", "pilha": 20,  "modelo_de": "municao", "matiz": 0.58}
 }

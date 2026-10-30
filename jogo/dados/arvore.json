@@ -903,6 +903,7 @@
    ],
    "tempo": 6.0,
    "libera": "Receita pacote militar",
+   "existente": true,
    "tipo": "receita"
   },
   "drones": {
@@ -992,6 +993,7 @@
    ],
    "tempo": 8.0,
    "libera": "Receita liga leve (1 aço + 2 placas de cobre + 1 resina → 2)",
+   "existente": true,
    "tipo": "receita"
   },
   "processador": {
@@ -1016,6 +1018,7 @@
    ],
    "tempo": 8.0,
    "libera": "Receita processador (2 circuitos + 1 resina + 1 cristal lapidado + 5 água)",
+   "existente": true,
    "tipo": "receita"
   },
   "bioquimica": {
@@ -1843,6 +1846,7 @@
    ],
    "tempo": 8.0,
    "libera": "+20% de dano das balas",
+   "existente": true,
    "tipo": "melhoria"
   },
   "cadencia_bala_2": {
@@ -1868,6 +1872,7 @@
    ],
    "tempo": 8.0,
    "libera": "+20% de tiros por segundo",
+   "existente": true,
    "tipo": "melhoria"
   },
   "dano_energia_3": {
@@ -1944,6 +1949,7 @@
    ],
    "tempo": 8.0,
    "libera": "Mina de pulso 1×1 (atordoa aranhas por 3 s, rearma em 20 s)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "posto_avancado": {
@@ -1999,6 +2005,7 @@
    ],
    "tempo": 8.0,
    "libera": "Lança-foguetes 3×3 e receita foguete (dano em área)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "dano_foguete_1": {
@@ -2027,6 +2034,7 @@
    ],
    "tempo": 8.0,
    "libera": "+20% de dano dos foguetes",
+   "existente": true,
    "tipo": "melhoria"
   },
   "cadencia_foguete_1": {
@@ -2055,6 +2063,7 @@
    ],
    "tempo": 8.0,
    "libera": "+20% de disparos por segundo",
+   "existente": true,
    "tipo": "melhoria"
   },
   "muro_liga": {
@@ -2085,6 +2094,7 @@
    ],
    "tempo": 8.0,
    "libera": "Muro de liga (1.500 ♥, aranhas não escalam)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "escudo_1": {
@@ -2115,6 +2125,7 @@
    ],
    "tempo": 10.0,
    "libera": "Gerador de escudo 2×2 (bolha de 8 m que absorve 400 de dano, recarrega pela rede)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "artilharia": {
@@ -2145,6 +2156,7 @@
    ],
    "tempo": 10.0,
    "libera": "Artilharia 3×3 e receita granada (alcance 120 m contra ninhos)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "ciencia_tempestade": {
@@ -3429,6 +3441,7 @@
    ],
    "tempo": 12.0,
    "libera": "Muro de campo 1×1 (regenera 5 ♥/s com energia)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "nucleo_semente": {

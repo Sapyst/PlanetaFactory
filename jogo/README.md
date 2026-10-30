@@ -200,6 +200,17 @@ Tudo que se constrói funciona — a mini-fábrica da demo é só um mapa pronto
   (`AmbienteVivo._supressores`: apaga o fogo no raio e protege a vegetação; `Fabrica.jatos` → jato em `Efeitos`).
   Receitas refrigeradas (+50%), resina, pacote químico e ecológico no refinador; saída de fluido de receita que não
   solta fluido vira 2ª entrada (resina: seiva numa boca, água na outra). Sem janela: `-- roteiro agua`.
+- Combate do meio (fase 2.4, `Colonia`): torre de munição genérica pela regra (`municao_item`, `tiros_por_item`,
+  `municao_max`; `Colonia.item_municao/tiros_por_item`, o braço só entrega o item certo). Torre de projétil
+  (`projetil`: velocidade, raio) solta um tiro que voa (`Colonia.projeteis`) e explode em área no ponto mirado
+  (evento `explosao`; metade do dano na borda); `alvo: "ninhos"` + `alcance_min` na artilharia; melhorias pela regra
+  (`bonus_dano`, `bonus_cadencia`, `bonus_alcance`). **Mina de pulso** (`pulso`: gatilho, raio, atordoa, rearme →
+  `aranha.atordoada`, `Colonia.minas`). **Gerador de escudo** (`escudo`: raio, mj_por_dano): usa a mesma carga da
+  rede da torre de energia (`carga_mj` → `Fabrica.carga_torre`); `_morder` pergunta `_escudo_absorve` antes de tirar
+  vida. **Muro de campo** (`regenera` × `Fabrica.energia(id)`, satisfação da rede). Desenho: foguete/granada voando em
+  arco com rastro, explosão, anel do pulso, bolha (shader `render/shaders/campo_escudo`, a parede do muro de campo
+  usa `campo_parede`), selo/estojo ejetado maior ("capsula" em modelos.json) e `Animador.boca()`. Sem janela:
+  `-- modo demo roteiro combate`.
 - Extrator/broca mineram a jazida de baixo; fornalha escolhe a receita pelo que chega e queima carvão/biomassa;
   montadora/refinador: receita escolhida no painel. Elétricos precisam de poste (cobertura 2,5) ligado a gerador com combustível.
 - Torre: cada munição que chega (braço ou esteira na porta sul) = 10 tiros. Quem trabalha polui (e vira alvo por 60 s).

@@ -112,7 +112,8 @@ func _ready() -> void:
 	fabrica.pesquisa = pesquisa
 	fabrica.torre_receber = func(id: int, n: int) -> void: colonia.carregar_torre(id, n)
 	fabrica.torre_aceita = colonia.aceita_municao               # metralhadora cheia não recebe mais
-	colonia.torre_energia = fabrica.gastar_torre                # torre atira com a energia guardada da rede
+	colonia.torre_energia = fabrica.gastar_torre                # torre atira com a energia guardada da rede (e o escudo absorve)
+	colonia.energia = fabrica.energia                           # muro de campo regenera com energia
 	colonia.bonus = pesquisa.bonus                              # melhorias pesquisadas (dano da torre)
 	_lotes = DesenhoLotes.new()
 	add_child(_lotes)
@@ -313,6 +314,7 @@ func _criar_desenhos() -> void:
 	_desenho_colonia.colonia = colonia
 	_desenho_colonia.mapa = mapa
 	_desenho_colonia.animadores_torre = _animador
+	_desenho_colonia.carga = func(id: int) -> float: return float(fabrica.carga_torre.get(id, 0.0))
 	add_child(_desenho_colonia)
 	_desenho_trens = DesenhoTrens.new()
 	add_child(_desenho_trens)
@@ -666,7 +668,7 @@ func _criar_pilar(id: int) -> Node3D:
 
 ## Pilar de muro → o pano que ele ganha para cada vizinho muro (pedra ou tijolo; muros de tipos diferentes também
 ## se ligam, cada pilar com o próprio pano até a borda).
-const MUROS := {"muro_centro": "muro_lado", "muro_tijolo": "muro_tijolo_lado"}
+const MUROS := {"muro_centro": "muro_lado", "muro_tijolo": "muro_tijolo_lado", "muro_liga": "muro_liga_lado", "muro_escudo": "muro_escudo_lado"}
 
 
 ## Muro: o pilar do tile ganha um pano (muro_lado) para cada vizinho que também é muro.
@@ -688,6 +690,27 @@ func _ligar_muro(t: Vector2i) -> void:
 		n.add_child(lado)
 		Materiais.converter(lado)
 		lado.rotation.y = Grade.angulo(Construtor.rot_do_fluxo(d)) - n.rotation.y
+		var cp: Dictionary = Registro.modelos[MUROS[mapa.estruturas[id].nome]].get("campo", {})
+		if not cp.is_empty():
+			lado.add_child(parede_de_campo(cp))
+
+
+## Parede translúcida do muro de campo sobre o trilho do pano ("campo" em modelos.json: faixa y0..y1 × z0..z1, Blender).
+static func parede_de_campo(cp: Dictionary) -> MeshInstance3D:
+	var q := QuadMesh.new()
+	q.size = Vector2(float(cp.y1) - float(cp.y0), float(cp.z1) - float(cp.z0))
+	var m := ShaderMaterial.new()
+	m.shader = preload("res://render/shaders/campo_parede.gdshader")
+	m.set_shader_parameter("forca", 0.8)
+	m.set_shader_parameter("escala_hex", 1.2)
+	var mi := MeshInstance3D.new()
+	mi.name = "parede_campo"
+	mi.mesh = q
+	mi.material_override = m
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.position = Vector3(0.0, (float(cp.z0) + float(cp.z1)) * 0.5, -(float(cp.y0) + float(cp.y1)) * 0.5)
+	mi.rotation.y = PI * 0.5                      # o quad olha para +Z: a parede corre ao longo do pano (Z), de frente para X
+	return mi
 
 
 # ------------------------------------------------------------------ trens
@@ -943,6 +966,15 @@ func _animar_estruturas() -> void:
 		a.brilho = cheio if a.ativo else 0.0
 		if a.ativo and (cheio > 0.02 or fluxo):
 			_arcos.fontes[id] = {"no": _nos[id], "forca": clampf(cheio * 0.7 + (0.5 if fluxo else 0.0), 0.0, 1.0)}
+	# gerador de escudo: cardã, pistões e ventoinhas trabalham enquanto há carga; o cristal acende com ela
+	for id in colonia._lista_escudos:
+		var a := _animador(id)
+		if a == null or not mapa.estruturas.has(id):
+			continue
+		var cap := float(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("carga_mj", 1.0))
+		var f := 1.0 if animar_tudo else clampf(float(fabrica.carga_torre.get(id, 0.0)) / cap, 0.0, 1.0)
+		a.ativo = f > 0.01
+		a.brilho = f
 	for id in _turbinas:
 		if mapa.estruturas.has(id):
 			var a := _animador(id)
@@ -1309,6 +1341,27 @@ func _detalhe() -> void:
 		var cad := float(regra.get("cadencia", 10)) * (1.0 + pesquisa.bonus("cadencia_bala"))
 		linhas.append("Munição: %d de %d tiros (cada munição que chega por braço = %d)" % [t.get("municao", regra.get("municao_inicial", 0)), regra.get("municao_max", 0), Fabrica.TIROS_POR_MUNICAO])
 		linhas.append("Dano por bala: %.1f · %.1f tiros/s · alcance %d m" % [float(regra.get("dano", 3)) * (1.0 + pesquisa.bonus("dano_bala")), cad, regra.get("alcance", 18)])
+	elif e.nome in ["torre_foguetes", "artilharia"]:
+		var t: Dictionary = colonia.torres.get(id, {})
+		var item := Colonia.item_municao(e.nome)
+		var cad := float(regra.get("cadencia", 1)) * (1.0 + pesquisa.bonus(String(regra.get("bonus_cadencia", ""))))
+		linhas.append("%s: %d de %d (chegam por esteira ou braço pela boca sul)" % [_nome_item(item), t.get("municao", 0), regra.get("municao_max", 0)])
+		linhas.append("Dano %.0f em área (raio %.1f m) · %.2f disparos/s · alcance %d m%s" % [float(regra.get("dano", 0)) * (1.0 + pesquisa.bonus(String(regra.get("bonus_dano", "")))),
+				float(regra.projetil.get("raio", 0)), cad, roundi(colonia.alcance_de(e.nome)),
+				(" (mínimo %d m; só mira ninhos)" % int(regra.alcance_min)) if regra.has("alcance_min") else ""])
+	elif e.nome == "mina_pulso":
+		var pu: Dictionary = regra.pulso
+		var rec := float(colonia.minas.get(id, {}).get("recarga", 0.0))
+		linhas.append("Armada — aranha a menos de %.1f m dispara" % float(pu.gatilho) if rec <= 0.0 else "Rearmando: %.0f s" % rec)
+		linhas.append("Atordoa as aranhas em %.0f m por %.0f s; rearma em %.0f s" % [float(pu.raio), float(pu.atordoa), float(pu.rearme)])
+	elif e.nome == "gerador_escudo":
+		var cap := float(regra.get("carga_mj", 1.0))
+		var c_e := float(fabrica.carga_torre.get(id, 0.0))
+		var esc: Dictionary = regra.escudo
+		linhas.append("Escudo: %d de %d de dano (%.1f de %.0f MJ) · recarrega da rede a %d kW" % [int(c_e / float(esc.mj_por_dano)), int(cap / float(esc.mj_por_dano)), c_e, cap, regra.get("energia_kw", 0)])
+		linhas.append("Bolha de %d m: mordida em construção dentro dela gasta o escudo, não a vida" % int(esc.raio))
+	elif e.nome == "muro_escudo":
+		linhas.append("Regenera %.0f ♥/s com energia (agora: %d%%)" % [float(regra.regenera), roundi(fabrica.energia(id) * 100)])
 	elif e.nome == "torre_defesa":
 		var t: Dictionary = colonia.torres.get(id, {})
 		var cap_t := float(regra.get("carga_mj", 0.0))

@@ -132,6 +132,56 @@ com a grade inteira + resultado dos testes), para ela não precisar abrir uma po
     pelo render Workbench do icones.py (só esses); ícones dos 3 itens derivados (derivar_icone.gd); (10) nada pede
     ainda o pacote ecológico (as pesquisas dele seguem "em breve"); (11) a Maquina joga fora a sobra do ciclo (já era
     assim): em passos de 1 s o rendimento do clima cai um pouco, no jogo (1/30 s) menos de 3%.
-- [ ] 2.4 combate do meio: lança-foguetes, mina, muros de liga/campo, escudo, artilharia, pacote militar
+- [x] 2.4 combate do meio (arte/estudos/conv_combate_meio.py; testes test_ciencia_militar.gd, test_lanca_foguetes.gd,
+      test_mina_pulso.gd, test_muros_liga_campo.gd, test_gerador_escudo.gd, test_artilharia.gd; roteiro sem janela
+      `-- modo demo roteiro combate`). Pesquisas novas (13), custos e pré-requisitos da árvore: ciencia_militar,
+      dano_bala_3, cadencia_bala_2, liga_leve, processador, torre_foguetes, dano_foguete_1, cadencia_foguete_1, mina_pulso,
+      muro_liga, escudo_1 jogáveis; muro_escudo e artilharia ligadas mas travadas pela árvore (ver pendências). Itens
+      novos: pacote militar, liga leve, processador, foguete, granada (modelo e ícone derivados com outro matiz).
+  - Pacote militar (2 munições + 1 aço + 2 tijolos → 2, montadora). Com ele, dano_energia_3 e cadencia_energia_1 (já
+    ligadas) ficaram pesquisáveis e foram conferidas (+30% de dano; +20% de tiros e −10% de energia por tiro);
+    dano_energia_4 e cadencia_energia_2 seguem travadas (pacote de tempestade, 2.5).
+  - Torre de munição genérica pela regra (`municao_item`, `tiros_por_item`): o braço só entrega o item da torre.
+    Lança-foguetes 3×3 (8.668 triângulos): foguete = 1 disparo, guarda 18, 1,5/s, 40 de dano em área (raio 2,5 m) a
+    30 m; o foguete voa a 24 m/s e explode no ponto mirado. Todo disparo ejeta o selo traseiro (cápsula 2,6× maior,
+    "capsula" em modelos.json) com fumaça 3× pela traseira do casulo; o foguete voa com rastro; explosão com
+    faíscas, fumaça e clarão. Bônus dano_foguete / cadencia_foguete.
+  - Mina de pulso 1×1 (1.648 triângulos, 0,38 m: as aranhas passam por cima): aranha a 1,2 m dispara, atordoa as de
+    3 m por 3 s (paradas, sem morder), rearma em 20 s (salvo junto); anel violeta no chão.
+  - Muro de liga (pilar 764 + pano 374 triângulos; 1.500 ♥) e muro de campo (pilar 1.147 + pano 92; 800 ♥,
+    regenera 5 ♥/s × energia da rede, 10 kW por pilar — `Fabrica.energia(id)`): mesmo sistema do tijolo (arrasta
+    em linha, liga em qualquer muro vizinho). No pilar do campo o fio esmaltado das bobinas (24 mil triângulos) virou
+    um cilindro por bobina na malha baixa (a cor vem do assado). A parede translúcida do pano é do jogo
+    (`render/shaders/campo_parede`, mesma trama do escudo).
+  - Gerador de escudo 2×2 (9.721 triângulos, com a animação do estudo — cardã, pistões, ventoinhas — enquanto tem
+    carga): bolha de 8 m; mordida em construção dentro dela gasta 0,02 MJ por ponto da carga (8 MJ = 400 de dano)
+    em vez de vida; recarrega da rede a 200 kW (mesma carga da torre de energia, `carga_mj`). A bolha é do jogo
+    (`render/shaders/campo_escudo`): meia esfera quase invisível, borda e trama hexagonal fraca, some sem carga e
+    acende em âmbar onde a mordida bateu. Processador (2 circuitos + 1 resina + 1 lapidado + 5 água) no refinador.
+  - Artilharia 3×3 (9.556 triângulos): obus fixo a 55° (pose do quadro 50 do estudo; a 1,5 m do centro o cano já está
+    a 3,6 m de altura), giro mira; granada (2 liga leve + 1 foguete + 2 tijolos) = 1 disparo a cada 4 s, guarda 10,
+    150 de dano em área (raio 4 m), só ninhos de 16 a 120 m, voo em arco alto; estojo ejetado 3,2× com fumaça 4×.
+  - Conferido sem imagem, por BVH no Blender: giro do lança-foguetes e da artilharia girando 360° (de 10 em 10°) sem
+    cruzar nada fixo (fora o contato coroa/rolamento, face com face); tudo dentro da área (recorte na borda), menos o
+    cano da artilharia.
+  - Verificação: os 116 scripts compilam (carregados sem janela), a demo e `-- modo demo roteiro combate` rodam sem
+    erro (28 disparos, 28 explosões, 12 aranhas e 4 ninhos mortos, 1 pulso, muro de campo regenerando).
+  - Pendências: (1) nada visto em imagem (sem fotos): conferir as silhuetas, a bolha e a parede de campo (shaders),
+    o arco da granada, o selo/estojo maiores e se o rastro do foguete fica bom no zoom normal; (2) a artilharia pede
+    `cartografia` (que pede o sensor de varredura, sem estudo) e o muro de campo pede `escudo_2` (tempestade): ficam
+    travados na pesquisa (no modo demonstração se constroem); dano_foguete_2, cadencia_foguete_2, foguete_enxame,
+    dano/alcance_artilharia, artilharia_automatica e escudo_2 não foram ligados (fase 2.5+); munição perfurante e
+    posto avançado (também da ciência militar) seguem em breve (fora da lista); (3) saíram os pinhões dos motores de
+    giro do lança-foguetes e da artilharia (e o eixo deste: entrava no convés) — no jogo a coroa gira e eles
+    ficariam parados cruzando os dentes (no estudo do foguete os dentes já cruzavam a mesa e o motor);
+    (4) o casulo do lança-foguetes não eleva e o obus fica a 55° (o Animador só gira o giro); tampas dos tubos
+    fechadas, braço carregador e bandeja parados; o foguete mira onde a aranha estava (o raio cobre o passo dela);
+    (5) "aranha não escala" do muro de liga não muda nada (no jogo nenhuma aranha escala; vale a vida);
+    (6) a parede do muro de campo tem força fixa (não apaga sem energia); (7) a mina fica parada (LED vermelho; o
+    disparo do estudo não entrou, só o anel do jogo); o recorte deixou 3 mm além do tile; (8) o escudo só absorve
+    mordida de aranha (fogo e tufão passam); (9) as peças móveis do gerador de escudo vêm do estudo sem conferência de
+    cruzamento no jogo (pose do laço); (10) ícones das 8 peças novas pelo render Workbench do icones.py (só esses);
+    ícones dos 5 itens derivados (derivar_icone.gd: liga leve da placa de cobre, processador do circuito, foguete e
+    granada da munição, pacote militar do pacote de pesquisa).
 - [ ] 2.5 clima: para-raios, captador, pacote tempestade, semeador de nuvens, defletor, cúpula, regulador
 - [ ] 2.6 drones (estação, reparo, combate, logísticos), limpeza nova, energia/produção que tiverem estudo

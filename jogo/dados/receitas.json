@@ -36,11 +36,16 @@
  "pesquisa":         {"maquina": "montadora", "entradas": {"cristal_lapidado": 1, "engrenagem": 1}, "saidas": {"pacote_pesquisa": 1}, "tempo": 5.0},
  "briquete":         {"maquina": "montadora", "entradas": {"biomassa": 4}, "saidas": {"briquete": 1}, "tempo": 2.0},
  "pacote_automacao": {"maquina": "montadora", "entradas": {"motor": 1, "circuito": 2}, "saidas": {"pacote_automacao": 2}, "tempo": 10.0},
+ "liga_leve":        {"maquina": "montadora", "entradas": {"barra_aco": 1, "placa_cobre": 2, "resina": 1}, "saidas": {"liga_leve": 2}, "tempo": 6.0},
+ "foguete":          {"maquina": "montadora", "entradas": {"resina": 1, "barra_aco": 1, "circuito": 1}, "saidas": {"foguete": 1}, "tempo": 6.0},
+ "granada":          {"maquina": "montadora", "entradas": {"liga_leve": 2, "foguete": 1, "tijolo": 2}, "saidas": {"granada": 1}, "tempo": 12.0},
+ "pacote_militar":   {"maquina": "montadora", "entradas": {"municao": 2, "barra_aco": 1, "tijolo": 2}, "saidas": {"pacote_militar": 2}, "tempo": 10.0},
 
  "bateria":          {"maquina": "refinador", "entradas": {"placa_cobre": 1, "placa_ferro": 1}, "entradas_fluido": {"seiva": 20}, "saidas": {"bateria": 1}, "tempo": 4.0},
  "aco_refrigerado":  {"maquina": "refinador", "entradas": {"placa_ferro": 10}, "entradas_fluido": {"agua": 60}, "saidas": {"barra_aco": 3}, "tempo": 32.0},
  "lapidar_refrigerado": {"maquina": "refinador", "entradas": {"cristal_bruto": 4}, "entradas_fluido": {"agua": 30}, "saidas": {"cristal_lapidado": 3}, "tempo": 4.0},
  "resina":           {"maquina": "refinador", "entradas": {}, "entradas_fluido": {"seiva": 30, "agua": 10}, "saidas": {"resina": 1}, "tempo": 3.0},
  "pacote_quimico":   {"maquina": "refinador", "entradas": {"resina": 1, "bateria": 1}, "entradas_fluido": {"agua": 20}, "saidas": {"pacote_quimico": 2}, "tempo": 12.0},
+ "processador":      {"maquina": "refinador", "entradas": {"circuito": 2, "resina": 1, "cristal_lapidado": 1}, "entradas_fluido": {"agua": 5}, "saidas": {"processador": 1}, "tempo": 8.0},
  "pacote_ecologico": {"maquina": "refinador", "entradas": {"biomassa": 5, "vidro": 1}, "entradas_fluido": {"agua_limpa": 30}, "saidas": {"pacote_ecologico": 1}, "tempo": 8.0}
 }
