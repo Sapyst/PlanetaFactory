@@ -10,3 +10,6 @@ jogo/export/
 arte/modelos/_tmp/
 __pycache__/
 arte/estudos/fotos/
+
+# fotos de conferência dos estudos
+arte/estudos/*.png
