@@ -112,15 +112,33 @@ def _juntar_itens(sc):
 def _uma_malha(sc, raiz, dados):
     """Lote (MultiMesh) usa só a 1ª malha do .glb: luzinhas da paleta entram no corpo como outra superfície."""
     bpy = _bpy()
+    _paleta(sc, raiz, dados)
     ms = [o for o in sc.objects if o.type == 'MESH']
-    if len(ms) < 2:
-        return
-    corpo = next((o for o in ms if o.name.endswith('_corpo')), ms[0])
-    bpy.ops.object.select_all(action='DESELECT')
-    for o in ms:
-        o.select_set(True)
-    bpy.context.view_layer.objects.active = corpo
-    bpy.ops.object.join()
+    if len(ms) > 1:
+        corpo = next((o for o in ms if o.name.endswith('_corpo')), ms[0])
+        bpy.ops.object.select_all(action='DESELECT')
+        for o in ms:
+            o.select_set(True)
+        bpy.context.view_layer.objects.active = corpo
+        bpy.ops.object.join()
+    # empties que sobraram sem malha (pivô do ponteiro do manômetro, _base): fora, com a animação deles
+    _remover([o for o in sc.objects if o.type == 'EMPTY' and o is not raiz and not o.name.startswith('PORTA_')
+              and not _filhos_malha(o)])
+
+
+def _paleta(sc, raiz, dados):
+    """O conversor cria um P_Fogo/P_Cristal por peça que brilha (P_Fogo.001…); o jogo liga o pulso pelo nome
+    exato, então todas apontam para o primeiro de cada nome."""
+    bpy = _bpy()
+    for o in sc.objects:
+        if o.type != 'MESH':
+            continue
+        for s in o.material_slots:
+            m = s.material
+            if m and '.' in m.name and m.name.split('.')[0] in ('P_Fogo', 'P_Cristal'):
+                base = bpy.data.materials.get(m.name.split('.')[0])
+                if base:
+                    s.material = base
 
 
 def _cano(minha, w=1, d=1, x=0.0, y=0.0, rot=0.0, script='estudo_canos.py', args=None, tris=900):
@@ -199,9 +217,11 @@ CONFIG = {
     'cano_t': _cano('t', x=0.0, y=2.0, tris=1600),
     'cano_cruz': _cano('cruz', x=2.0, y=3.0, tris=1600),
     'bomba': dict(script='estudo_canos.py', cat='logistica/canos', tris=3000, tex=1024, centro=(0.0, 0.0, 0.0),
-                  tirar=list(SUJEIRA_CONJUNTO), depois_de_montar=_isolar(1, 1, 'bomba', PECAS_CANOS)),
+                  tirar=list(SUJEIRA_CONJUNTO), depois_de_montar=_isolar(1, 1, 'bomba', PECAS_CANOS),
+                  antes_de_exportar=_paleta),
     'tanque': dict(script='estudo_canos.py', cat='energia', tris=4000, tex=1024, centro=(4.5, 3.5, 0.0),
-                   tirar=list(SUJEIRA_CONJUNTO), depois_de_montar=_isolar(2, 2, 'tanque', PECAS_CANOS)),
+                   tirar=list(SUJEIRA_CONJUNTO), depois_de_montar=_isolar(2, 2, 'tanque', PECAS_CANOS),
+                   antes_de_exportar=_paleta),
     'bau': dict(script='estudo_baus.py', cat='logistica/armazenagem', tris=3000, tex=1024, centro=(-1.0, -0.5, 0.0),
                 tirar=['halo'], depois_de_montar=_so_colecao('bau')),
     'bau_grande': dict(script='estudo_baus.py', cat='logistica/armazenagem', tris=6000, tex=1024, centro=(0.5, 0.0, 0.0),

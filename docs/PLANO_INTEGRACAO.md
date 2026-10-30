@@ -12,7 +12,7 @@ Feito: fornalha, broca_minerio, montadora, extrator_cristal, refinador, laborato
 painel_solar, acumulador, coletor_lixo, filtro_agua, viveiro, nucleo.
 Em andamento / a fazer, nesta ordem:
 - [x] torre_defesa, turbina_eolica, poste_energia, torre_sem_fio, muro_centro/muro_lado (conv_defesa_energia.py)
-- [ ] cano_reto, cano_curva, cano_t, cano_cruz, bomba, tanque (conv_logistica.py)
+- [x] cano_reto, cano_curva, cano_t, cano_cruz, bomba, tanque (conv_logistica.py) — bomba ficou 1,10 m (esteira elevada a 1 m não passa mais por cima)
 - [ ] bau, bau_grande, estacao (conv_logistica.py)
 - [ ] trilho_reto, trilho_curva, trilho_fim, sinal_trem, locomotiva, vagao_carga, vagao_tanque (conv_trilhos.py)
 - [ ] esteiras (reta, curvas, início, fim, junção, rampa, túnel, divisor, juncao) e braços (braco, rapido, longo)
