@@ -1,0 +1,98 @@
+{
+ "nome": "turbina_alta",
+ "categoria": "energia",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Turbina alta 3×3 (estudo_turbina_alta.py): torre estaiada de 3 estágios com colar de estais e cremalheira, nacele amarela que vira para o vento, rotor de 3 pás de 3,3 m a 4,9 m de altura, anel de foco com cristal, radiador de óleo com ventoinha e mastro com anemômetro. 600 kW; conta como +2 níveis de altura no vento.",
+ "ocupa_canto": false,
+ "portas": [],
+ "terminais": [
+  [
+   -1.2,
+   -1.2,
+   0.35
+  ],
+  [
+   -1.2,
+   1.2,
+   0.35
+  ],
+  [
+   1.2,
+   -1.2,
+   0.35
+  ],
+  [
+   1.2,
+   1.2,
+   0.35
+  ]
+ ],
+ "tris": 7562,
+ "dims": [
+  3.187,
+  2.96,
+  6.347
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "nome": "rotor",
+   "pai": "nacele",
+   "pivo": [
+    0.0,
+    0.25,
+    5.34
+   ]
+  },
+  {
+   "nome": "antena",
+   "pai": "nacele",
+   "pivo": [
+    0.0,
+    0.55,
+    5.56
+   ]
+  },
+  {
+   "nome": "helice",
+   "pai": "nacele",
+   "pivo": [
+    -0.0,
+    -0.68,
+    4.9
+   ]
+  },
+  {
+   "nome": "luzn",
+   "pai": "nacele",
+   "pivo": [
+    0.0,
+    0.0,
+    4.55
+   ]
+  },
+  {
+   "nome": "nacele",
+   "pai": "corpo",
+   "pivo": [
+    0.0,
+    0.0,
+    4.55
+   ]
+  }
+ ],
+ "anima": false,
+ "estudo": "estudo_turbina_alta.py"
+}

@@ -1,0 +1,31 @@
+{
+ "nome": "acumulador_2",
+ "categoria": "energia",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Acumulador 2 2×2 (estudo_acumulador_2.py): banco de fluxo redox com 4 pilhas bipolares, tanques de eletrólito, bomba magnética com radiador e ventilador, coluna de carga com 12 barras de LED e anel de foco com cristal. Guarda 200 MJ, carrega e descarrega até 1,5 MW.",
+ "ocupa_canto": false,
+ "portas": [],
+ "tris": 7489,
+ "dims": [
+  1.92,
+  1.92,
+  1.27
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_acumulador_2.py"
+}

@@ -32,11 +32,13 @@ Lista: ver docs/ARVORE_TECNOLOGIA.md (Estruturas: temos × precisamos) e arte/es
 - [x] Lote 17 (proliferação): sensor de varredura, farol de cristal, posto avançado, lançador de sementes, receptor de
   cápsulas (+ colônias), transportador quântico e silo de lançamento (estudos do Antigravity) — ver "Progresso das
   fases 3+4". Tudo depois do posto avançado segue em desenvolvimento até a **Transmissão longa** (poste alto, lote 13).
-- [~] Lote 13 (energia I): poste alto, turbina de correnteza, gerador a fluido, painel solar 2 — feitos (ver "Progresso
-  das fases 3+4"); falta o acumulador 2 (estudo pronto, ficou para a próxima rodada).
+- [x] Lote 13 (energia I): poste alto, turbina de correnteza, gerador a fluido, painel solar 2, acumulador 2 (ver
+  "Progresso das fases 3+4").
 - [~] Lote 10 (produção I): montadora 2 e refinador 2 — feitos; fornalha de aço, fornalha elétrica, broca grande,
   laboratório 2 (estudos do Antigravity ainda em produção) na próxima rodada.
-- [ ] → 14 (energia II) → 11 (produção II).
+- [x] Lote 14 (energia II): turbina alta, acumulador de cristal, reator de cristal, reator de fusão, núcleo de
+  singularidade (os dois últimos em desenvolvimento até a computação quântica).
+- [ ] → 11 (produção II).
 
 ## Fase 5 — só no fim de TUDO (a árvore inteira funcional): fotos no jogo + baterias de testes
 Sapyst: "vai terminar literalmente toda a tech-tree e tudo mais. Faltando só as fotos com testes mesmo."
@@ -577,6 +579,29 @@ com a grade inteira + resultado dos testes), para ela não precisar abrir uma po
     (7) números (custos, 700 kW do refinador 2, 200 kW da montadora 2, poluição 45 do gerador a fluido, vazões) são
     estimativa; (8) acumulador 2 (estudo pronto) ficou para a próxima rodada (limite de 6 por rodada).
 
+- [x] **Acumulador 2 e lote 14 (energia II): turbina alta, acumulador de cristal, reator de cristal, reator de fusão,
+      núcleo de singularidade** (estudos do Antigravity, sem alteração; arte/estudos/conv_lote14.py; um por vez; testes
+      test_acumulador_2.gd, test_turbina_alta.gd, test_acumulador_cristal.gd, test_reator_cristal.gd,
+      test_reator_fusao.gd, test_nucleo_singularidade.gd; roteiro `-- modo demo roteiro lote14`). Pesquisas novas em
+      progressao.json (6): acumulacao_2, turbina_alta, acumulador_cristal, reator_cristal, fusao, singularidade — marcadas
+      "existente" no .mmd. Com a **turbina_alta**, o defletor de vento saiu do "em desenvolvimento". `fusao` e
+      `singularidade` ficam em desenvolvimento (computação quântica e pacote quântico não existem).
+  - **Modelos**: acumulador 2 7.489 tris (2×2); turbina alta 7.562 (3×3; nacele e hélice viram partes do Animador; rotor
+    passa do tile lá no alto); acumulador de cristal 5.846 (2×2); reator de cristal 6.702 (3×3, só ITEM_ENT_S1); reator
+    de fusão 6.792 (3×3, ITEM_ENT_S1 e FLUIDO_ENT_O1); núcleo de singularidade 12.620 (3×3; mais pesado que os
+    11.577 do refinador 2; 3,16 m em y). Saem os itens em trânsito (célula, cartuchos, cristal) e os efeitos. Estes
+    estudos dão `sys.exit` no modo "nada": conv_lote14 os roda em modo "montar" (`SO_MONTAR`).
+  - **Função e números**: ver "Acumulador 2 e lote 14" em docs/ARVORE_TECNOLOGIA.md. Sem item, fluido ou receita novos.
+  - Verificação: 68.817 verificações, 0 falhas (testar.sh); os 167 scripts compilam; a demo (`--quit-after 400 -- modo
+    demo` e `--quit-after 600 res://cenas/mundo_demo.tscn`) roda sem erro; roteiro lote14: as 6 peças na mesma rede, com
+    os painéis abertos, reator de cristal a 8 MW e fusão a 30 MW (água do cano), animando. docs/RECURSOS.md regerado.
+  - Pendências / decisões para Sapyst: (1) nada visto no jogo em imagem, só os ícones; (2) **bocas sem função**: a árvore
+    não pede cartucho gasto nem vapor nem refrigeração no reator de cristal, então N1/O1 (cristal) e N1/L1 (fusão) ficam
+    só como desenho — se quiser subproduto ou água no de cristal, é só pedir; (3) números que a árvore não dá são
+    estimativa: MJ por combustível, estoque, 15 de água/s, poluição 20 e 8, custos de construção, vida; (4) o reator
+    funciona pela mesma regra do gerador: a esteira não enfia item em construção, precisa de braço na boca sul; (5) a
+    turbina alta deixa o cata-vento e os pinhões do estudo fixos: a nacele gira pelo vento de verdade.
+
 ### Lista para a fase 3 — estruturas da árvore ainda sem estudo/modelo
 (Fonte: "Estruturas: temos × precisamos" do docs/ARVORE_TECNOLOGIA.md. Entre parênteses, o que cada uma destrava do que
 já está ligado e travado.)
@@ -584,8 +609,8 @@ já está ligado e travado.)
   segue saindo também na comum), montadora 3, montadora quântica, ~~refinador 2~~ (lote 10: estação de tratamento),
   **forja quântica** (computação quântica → regulador climático), broca grande, extrator ressonante, broca de núcleo,
   laboratório 2, laboratório quântico, irradiador de módulos.
-- Energia: ~~poste alto, turbina de correnteza, gerador a fluido, painel solar 2~~ (lote 13), **turbina alta** (defletor de vento),
-  acumulador 2, acumulador de cristal, reator de cristal, reator de fusão, núcleo de singularidade.
+- Energia: ~~poste alto, turbina de correnteza, gerador a fluido, painel solar 2, acumulador 2~~ (lote 13), ~~turbina alta,
+  acumulador de cristal, reator de cristal, reator de fusão, núcleo de singularidade~~ (lote 14).
 - Proliferação: ~~sensor de varredura, farol de cristal, posto avançado, lançador de sementes, receptor de cápsulas,
   transportador quântico, silo de lançamento~~ (lote 17, feitos).
 - Drones: se Sapyst quiser modelo próprio, porto logístico e baús provedor/requisitante (o estoque já tem, lote 16).

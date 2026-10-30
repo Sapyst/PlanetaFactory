@@ -1,0 +1,62 @@
+{
+ "nome": "reator_fusao",
+ "categoria": "energia",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Reator de fusão 3×3 (estudo_reator_fusao.py): tokamak de aço e titânio com 8 bobinas em D, cordão de plasma azul visível por 4 janelas de quartzo, solenoide central com anel polarizador, injetores de feixe, canhão de injeção ao sul e trocador de calor. 30 MW com cristal carregado e água.",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0,
+    -1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_ENT_O1",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    -1.5,
+    0,
+    0.35
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 6792,
+ "dims": [
+  2.98,
+  3.0,
+  1.595
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_reator_fusao.py"
+}

@@ -48,6 +48,7 @@ func _ready() -> void:
 		"lote16": _roteiro_lote16()
 		"lote17": _roteiro_lote17()
 		"lote13": _roteiro_lote13()
+		"lote14": _roteiro_lote14()
 		"chegada":                                     # -- novo roteiro chegada abertura --fixed-fps 30: a cápsula cai e vira o núcleo
 			for q in [30, 150, 225, 235, 260, 330, 420, 450, 470, 490]:
 				em(q, func():
@@ -1591,6 +1592,83 @@ func _bosque(especies: Array = ["arv_carvalho", "arv_betula"]) -> Vector2i:
 ## meia-noite e os faróis acendem; um silo de lançamento com o foguete montado (partes e carga postas pelo roteiro:
 ## as peças ainda não existem) lança — o roteiro não abre a tela de vitória.
 ## `-- modo demo roteiro lote17`.
+## Lote 14 (energia II) + acumulador 2: uma linha de postes com as 6 peças e 6 refinadores de carga; reatores
+## abastecidos pelo destino de braço e pelo cano. `-- modo demo roteiro lote14`.
+func _roteiro_lote14() -> void:
+	var ids := {}
+	em(2, func():
+		Sessao.config.fps = false
+		var g := Grade.gerador
+		var m: MapaOcupacao = cena.mapa
+		var o := Vector2i(9999, 0)
+		for r in range(60, 400, 4):
+			for k in 48:
+				var t := Vector2i((Vector2.from_angle(k * TAU / 48.0) * r).round())
+				if o.x != 9999:
+					break
+				var ok := true
+				for i in range(-2, 40):
+					for j in range(-6, 8):
+						var q := t + Vector2i(i, j)
+						if g.terreno(q) != GeradorMundo.Terreno.TERRA or g.nivel(q) != g.nivel(t) or g.em_encosta(q) or m.tiles.has(q):
+							ok = false
+				if ok:
+					o = t
+		print("LOTE14 chão ", o)
+		if o.x == 9999:
+			return
+		for i in range(-2, 40):
+			for j in range(-6, 8):
+				m.limpar_obstaculo(o + Vector2i(i, j))
+		var con: Construtor = cena.construtor
+		var p := func(nome: String, d: Vector2i) -> int:
+			cena.sincronizar(con.executar(con.plano_peca(nome, o + d, 0)))
+			return int(m.tiles.get(o + d, -1))
+		for x in range(0, 40, 6):
+			p.call("poste_energia", Vector2i(x, 0))
+		ids["ac2"] = p.call("acumulador_2", Vector2i(2, -2))
+		ids["ta"] = p.call("turbina_alta", Vector2i(8, -3))
+		ids["acc"] = p.call("acumulador_cristal", Vector2i(14, -2))
+		ids["rc"] = p.call("reator_cristal", Vector2i(20, -3))
+		ids["rf"] = p.call("reator_fusao", Vector2i(26, -3))
+		ids["ns"] = p.call("nucleo_singularidade", Vector2i(32, -3))
+		var e: Dictionary = m.estruturas[ids.rf]
+		for pt in Registro.modelos.reator_fusao.portas:
+			if pt.tipo == "FLUIDO":
+				var pm := Grade.porta_no_mundo(pt, e.minimo, e.area, e.rot)
+				cena.sincronizar(con.executar(con.plano_linha("cano", pm.tile_fora, pm.tile_fora + pm.dir, Construtor.rot_do_fluxo(Grade.DIRECOES.find(pm.dir)))))
+				ids["cano"] = m.tiles.get(pm.tile_fora, -1)
+		for x in range(0, 36, 6):
+			ids["q%d" % x] = p.call("refinador", Vector2i(x, 3))
+		print("LOTE14 construiu ", ids.values())
+		cena.camera.alvo = Grade.centro_mundo(o + Vector2i(18, 0))
+		cena.camera.distancia = 40.0
+		cena.camera.posicionar())
+	em(6, func():
+		var f: Fabrica = cena.fabrica
+		f.reconstruir()
+		for id in f.combustivel:
+			f.combustivel[id] = 0.0
+		var dc: Object = f.destino_em(cena.mapa.estruturas[ids.rc].minimo)
+		print("LOTE14 reator de cristal aceita célula ", dc.aceita("celula_energia"), " carvão ", dc.aceita("carvao"))
+		dc.receber("celula_energia")
+		var df: Object = f.destino_em(cena.mapa.estruturas[ids.rf].minimo)
+		df.receber("cristal_carregado")
+		var rc := f.rede_de(int(ids.cano))
+		rc.fluido = "agua"
+		rc.qtd = 400.0)
+	em(90, func():
+		var f: Fabrica = cena.fabrica
+		for k in ["ac2", "ta", "acc", "rc", "rf", "ns"]:
+			var id: int = ids[k]
+			var an: Animador = cena._animador(id)
+			print("LOTE14 %s: %s kw %.0f comb %.0f acum %.1f água %.0f anima %s" % [k, cena.mapa.estruturas[id].nome, -f.kw_de(id), f.combustivel.get(id, 0.0), f.acumulado.get(id, 0.0),
+					f.agua_reator.get(id, 0.0), an.ativo if an != null else "sem animador"])
+			cena._sel = {"estrutura": id}
+			cena._detalhe()
+		print("LOTE14 painéis ok; rede ", f.rede.estat_de(ids.ns)))
+
+
 ## Lote 13 (energia I): gerador → poste alto → poste alto a 28 m → montadora; o fio desenhado e o anel girando.
 func _roteiro_lote13() -> void:
 	var ids := {}

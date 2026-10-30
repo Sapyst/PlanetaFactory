@@ -178,11 +178,17 @@ Ficha de cada peça do menu: energia, o que guarda, integridade (♥), custo e a
 | **Painel solar** — Energia do sol, sem combustível: nada à noite, menos com nuvem e chuva, mais no verão. | gera até 300 kW (sol: zero à noite) | 120 | 6 placa de ferro, 8 vidro, 3 circuito | Energia renovável |
 | **Painel solar 2** — Até 500 kW de sol, seguindo o sol: com nuvem e chuva perde só 15%; nada à noite. | gera até 500 kW (sol: zero à noite) | 160 | 8 barra de aço, 12 vidro, 2 processador, 4 cristal lapidado | Painel solar 2 |
 | **Turbina eólica** — Energia do vento, sem combustível: vira para o vento; rende mais no alto e em campo aberto, para na calmaria e se protege na ventania. | gera até 200 kW (vento) | 180 | 14 placa de ferro, 10 engrenagem, 2 motor | Energia renovável |
+| **Turbina alta** — Torre alta de 600 kW (3× a turbina eólica): pega vento de cima, conta como +2 níveis de altura. | gera até 600 kW (vento) | 450 | 30 barra de aço, 12 liga leve, 4 motor, 2 processador | Turbina eólica alta |
 | **Acumulador** — Guarda a sobra de energia da rede e devolve quando falta. | guarda 80 MJ (até 500 kW) | 250 | 10 placa de ferro, 8 bateria, 4 circuito | Acumulação |
+| **Acumulador 2** — Guarda 200 MJ de sobra da rede (2,5× o acumulador) e devolve até 1,5 MW quando falta. | guarda 200 MJ (até 1500 kW) | 350 | 12 barra de aço, 20 bateria, 2 processador, 10 placa de cobre | Acumulador 2 |
+| **Acumulador de cristal** — Guarda 600 MJ em cristais de tempestade e devolve até 4 MW quando falta. | guarda 600 MJ (até 4000 kW) | 500 | 15 liga leve, 30 bateria, 6 processador, 8 cristal carregado | Acumulador de cristal |
 | **Poste** — Leva energia por cabo. | — | 40 | 1 placa de ferro, 1 placa de cobre | início |
 | **Poste alto** — Leva energia por cabo bem longe: 30 m até outro poste alto (liga máquina só a 3 m). | — | 150 | 5 barra de aço, 5 placa de cobre, 2 pedra | Transmissão longa |
 | **Torre sem fio** — Leva energia sem cabo, longe. | — | 120 | 20 placa de cobre, 10 circuito, 5 cristal lapidado | Energia sem fio |
 | **Turbina de correnteza** — Energia do rio, sem combustível: vai na água corrente; rende menos na seca (verão) e mais com chuva. | gera até 150 kW | 200 | 20 placa de ferro, 10 engrenagem, 2 motor, 10 placa de cobre | Turbina de correnteza |
+| **Reator de cristal** — 8 MW queimando célula de energia (240 MJ) ou cristal carregado (480 MJ), que um braço põe pela boca sul. | gera até 8000 kW · polui 20/min | 700 | 60 barra de aço, 20 liga leve, 10 processador, 30 tubo, 6 cristal carregado | Reator de cristal |
+| **Reator de fusão** — 30 MW bebendo água (15/s a plena carga) pelo cano da boca oeste e queimando cristal carregado (1.800 MJ), que um braço põe pela boca sul. | gera até 30000 kW · polui 8/min | 900 | 120 barra de aço, 50 liga leve, 30 processador, 60 tubo, 20 cristal carregado | Reator de fusão |
+| **Núcleo de singularidade** — 100 MW sem combustível e sem poluição: um micro-buraco negro contido em três anéis. | gera até 100000 kW | 1200 | 200 barra de aço, 100 liga leve, 60 processador, 50 cristal carregado, 30 célula de energia | Núcleo de singularidade |
 | **Gerador a fluido** — 2,4 MW queimando combustível de seiva (refinador) que chega pelo cano. | gera até 2400 kW · polui 45/min | 400 | 30 barra de aço, 20 tubo, 6 motor, 10 circuito | Combustível de seiva |
 
 ### Defesa

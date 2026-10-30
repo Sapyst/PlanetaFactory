@@ -1,0 +1,31 @@
+{
+ "nome": "nucleo_singularidade",
+ "categoria": "energia",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Núcleo de singularidade 3×3 (estudo_nucleo_singularidade.py): giroscópio de 3 anéis em volta de um micro-buraco negro com disco de acreção e jatos polares, 4 torres de confinamento, tanques de hélio com radiadores e subestação. 100 MW, sem combustível e sem poluição.",
+ "ocupa_canto": false,
+ "portas": [],
+ "tris": 12620,
+ "dims": [
+  2.96,
+  3.161,
+  1.751
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_nucleo_singularidade.py"
+}

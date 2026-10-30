@@ -47,6 +47,13 @@ tiles (`Construtor.PASSO_POSTE`). O anel do topo anima com `Fabrica.transmitindo
   ("combustivel_fluido": fluido → MJ por unidade): `Fabrica._geradores_fluido` liga a boca de entrada na rede do cano e
   `_tick_geradores_fluido` enche `combustivel` (MJ) até `ESTOQUE_GERADOR_MJ`; queima como o gerador. Fluido novo
   `combustivel_seiva` (refinador). Anima queimando para a rede.
+- Acumulador 2 e lote 14: **acumulador 2 / de cristal** são acumuladores comuns (`acumula_mj`, `acumula_kw`). **Turbina
+  alta** ("altura_vento": 2): `VentoLocal.fator(t, dir, niveis_extra)` soma os níveis ao desnível do lugar, respeitando
+  `alto_max`; nacele e hélice são partes do Animador, como na eólica (ventoinha e anemômetro: `rotor` e `antena`).
+  **Reatores** ("combustivel_item": item → MJ, "estoque_mj"; `Fabrica.eh_reator`, destino `_NoReator`: só a tabela, por
+  braço; a esteira não enfia item em construção). **Fusão** ("agua_por_mj", "tanque_agua"): `Fabrica.agua_reator` (vai no
+  salvamento) enche do cano em `_tick_geradores_fluido`; sem água, `kw_de` = 0 e nada queima. **Núcleo de singularidade**:
+  "inesgotavel" (fonte livre). Anima com `transmitindo` (reatores) ou ligado (singularidade).
 - Peça no mapa guarda as opções: `desligada`, `modo` (`eco`/`normal`/`turbo` → `Fabrica.MODOS`: velocidade, energia,
   poluição) e `limite` do baú (fração de `capacidade_itens`). **Reparar** custa 1 placa de ferro por 25 de integridade.
 - Ficha técnica (`BarraConstrucao.ficha`) no botão da peça; painel da peça mostra integridade, armazenamento, geração
@@ -293,7 +300,8 @@ Tudo que se constrói funciona — a mini-fábrica da demo é só um mapa pronto
   roteiro lote16`. Lote 17 (proliferação: sensor, farol, posto, lançador, receptor, transportador, silo):
   `godot --headless --path jogo --fixed-fps 30 --quit-after 400 -- modo demo roteiro lote17`. Lotes 13 e 10 (energia I e
   produção I: poste alto, turbina de correnteza, gerador a fluido, painel solar 2, montadora 2, refinador 2):
-  `godot --headless --path jogo --quit-after 200 -- modo demo roteiro lote13`.
+  `godot --headless --path jogo --quit-after 200 -- modo demo roteiro lote13`. Acumulador 2 e lote 14 (energia II):
+  `godot --headless --path jogo --quit-after 400 -- modo demo roteiro lote14`.
 - **Montadora 2 / Refinador 2** (lote 10): máquinas de receita com "maquina" igual à da 1 (mesmas receitas),
   velocidade 1,0 / 2,0 e "encaixes_modulo" 2 / 3 (só mostrados no painel: os módulos não existem). O refinador 2 tem
   uma 2ª entrada de fluido (S1) e suja o mesmo por minuto (metade por produto).

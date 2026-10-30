@@ -1,0 +1,31 @@
+{
+ "nome": "acumulador_cristal",
+ "categoria": "energia",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Acumulador de cristal 2×2 (estudo_acumulador_cristal.py): 4 câmaras de titânio com um cristal de tempestade levitando em cada, coluna central com 16 barras de LED e anel de foco, radiador criogênico com ventilador e barramentos de cobre ao sul. Guarda 600 MJ, troca até 4 MW.",
+ "ocupa_canto": false,
+ "portas": [],
+ "tris": 5846,
+ "dims": [
+  1.99,
+  1.92,
+  1.642
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_acumulador_cristal.py"
+}

@@ -336,7 +336,7 @@ func test_em_desenvolvimento() -> void:
 	verificar(p.em_desenvolvimento("logistica_5"), "logística 5 (pacote quântico não existe)")
 	verificar(not p.em_desenvolvimento("logistica"), "logística 2 já é do jogo")
 	verificar(p.motivo_desenvolvimento("braco_quantico").contains("quântico"), "motivo: %s" % p.motivo_desenvolvimento("braco_quantico"))
-	verificar(p.motivo_desenvolvimento("controle_vento").contains("Turbina eólica alta"), "motivo: %s" % p.motivo_desenvolvimento("controle_vento"))
+	verificar(not p.em_desenvolvimento("controle_vento"), "defletor de vento saiu (turbina alta no jogo)")
 	verificar(p.motivo_desenvolvimento("logistica").is_empty(), "sem motivo para o que é do jogo")
 	# não se inicia: nem com todos os pré-requisitos jogáveis feitos
 	p.concluidas = {"braco_empilhador": true, "processador": true}
@@ -353,15 +353,15 @@ func test_em_desenvolvimento() -> void:
 	igual(concluiu, "", "não conclui")
 	verificar(not p.concluidas.has("braco_quantico"), "não ficou concluída")
 	igual(p.ativa, "", "largou a pesquisa em desenvolvimento")
-	# com a dependência concluída (salvo/teste), deixa de estar em desenvolvimento
-	verificar(p.em_desenvolvimento("controle_vento"), "controle de vento espera a turbina alta")
-	p.concluidas["turbina_alta"] = true
-	verificar(not p.em_desenvolvimento("controle_vento"), "dependência feita: sai de em desenvolvimento")
+	# já concluída (salvo antigo) não conta como em desenvolvimento
+	verificar(p.em_desenvolvimento("braco_quantico"), "braço quântico espera a computação quântica")
+	p.concluidas["braco_quantico"] = true
+	verificar(not p.em_desenvolvimento("braco_quantico"), "concluída: sai de em desenvolvimento")
 	# peças
 	var q := Pesquisa.new()
-	for n in ["braco_quantico", "esteira_quantica", "defletor_vento", "regulador_clima"]:
+	for n in ["braco_quantico", "esteira_quantica", "regulador_clima"]:
 		verificar(q.peca_em_desenvolvimento(n), "peça em desenvolvimento: " + n)
-	for n in ["esteira", "braco", "sensor_varredura", "artilharia", "torre_metralhadora", "estacao_tratamento", "posto_avancado"]:
+	for n in ["esteira", "braco", "sensor_varredura", "artilharia", "torre_metralhadora", "estacao_tratamento", "posto_avancado", "defletor_vento"]:
 		verificar(not q.peca_em_desenvolvimento(n), "peça do jogo: " + n)
 	verificar(q.peca_em_desenvolvimento("peca_que_nao_existe"), "sem modelo: em desenvolvimento")
 	var demo := Pesquisa.new(true)

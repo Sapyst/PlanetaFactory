@@ -507,12 +507,12 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Turbina de correnteza | 2×2 | temos (lote 13) | 150 kW × vazão do rio (metade da área em água corrente, flutua); vazão da estação (verão 35%) + chuva | `turbina_rio` |
 | Gerador a fluido | 3×3 | temos (lote 13) | 2,4 MW com combustível de seiva pelo cano da boca sul (guarda 40 MJ) | `combustivel_seiva` |
 | Painel solar 2 | 2×2 | temos (lote 13) | 500 kW; com nuvem/chuva perde só 15% | `renovavel_2` |
-| Turbina alta | 3×3 | falta | 600 kW, conta +2 níveis de altura | `turbina_alta` |
-| Acumulador 2 | 2×2 | falta | 200 MJ, 1,5 MW | `acumulacao_2` |
-| Acumulador de cristal | 2×2 | falta | 600 MJ, 4 MW | `acumulador_cristal` |
-| Reator de cristal | 3×3 | falta | 8 MW com célula de energia ou cristal carregado | `reator_cristal` |
-| Reator de fusão | 3×3 | falta | 30 MW com água e cristal carregado | `fusao` |
-| Núcleo de singularidade | 3×3 | falta | 100 MW, sem poluição | `singularidade` |
+| Turbina alta | 3×3 | temos (lote 14) | 600 kW, conta +2 níveis de altura no vento do lugar | `turbina_alta` |
+| Acumulador 2 | 2×2 | temos (lote 13) | 200 MJ, 1,5 MW | `acumulacao_2` |
+| Acumulador de cristal | 2×2 | temos (lote 14) | 600 MJ, 4 MW | `acumulador_cristal` |
+| Reator de cristal | 3×3 | temos (lote 14) | 8 MW com célula de energia (240 MJ) ou cristal carregado (480 MJ) por braço na boca sul | `reator_cristal` |
+| Reator de fusão | 3×3 | temos (lote 14; em desenvolvimento) | 30 MW com água (15/s, boca oeste) e cristal carregado (1.800 MJ, boca sul); espera a `computacao_quantica` e o pacote quântico | `fusao` |
+| Núcleo de singularidade | 3×3 | temos (lote 14; em desenvolvimento) | 100 MW, sem combustível e sem poluição; espera a `fusao` e o pacote quântico | `singularidade` |
 
 ### Defesa
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
@@ -548,7 +548,7 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Para-raios de cristal | 1×1 | temos | 22 m, 200 MJ por raio | `para_raios_2` |
 | Captador de carga | 2×2 | temos | mastro que pega os raios a até 10 m (antes dos para-raios): cada raio carrega 1 cristal lapidado + 30 água em 1 cristal carregado; a sobra (60 MJ) vai para a rede | `captador_carga` |
 | Semeador de nuvens | 2×2 | temos | 300 kW: chove ≥ 75% em 40 m (apaga fogo, nada pega fogo, enche coletores) | `semeadura_nuvens` |
-| Defletor de vento | 2×2 | temos | 250 kW: o vento de 40 m sopra para a frente da peça, entre 30% e 80% (sem tufão; fogo e poluição vão junto); travado pela árvore (`turbina_alta` em breve) | `controle_vento` |
+| Defletor de vento | 2×2 | temos | 250 kW: o vento de 40 m sopra para a frente da peça, entre 30% e 80% (sem tufão; fogo e poluição vão junto); pede `semeadura_nuvens` e `turbina_alta` | `controle_vento` |
 | Cúpula contra raios | 3×3 | temos | 400 kW: nenhum raio em 30 m (a cúpula pega e manda 120 MJ para os acumuladores) | `cupula_tempestade` |
 | Regulador climático | 3×3 | temos | 1,5 MW: céu firme ou chuva mansa em 80 m, sem raio nem tufão; travado pela árvore (`computacao_quantica` em breve) | `controle_clima` |
 
@@ -600,8 +600,8 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
   fogo; no chão, o mato pega fogo ou fica a marca queimada. Para-raios, captador e cúpula pegam antes. O **pacote de
   tempestade** sai na **montadora** comum: a montadora 2 entrou no lote 10, mas o pacote segue saindo também na comum. Com ele ficam
   pesquisáveis dano de energia 4, cadência de energia 2, escudo 2 (e o muro de campo), balas 4/3, foguetes 2 e as
-  melhorias da artilharia (estas esperam a própria artilharia). O **defletor** fica travado pela `turbina_alta` e o
-  **regulador** pela `computacao_quantica` (ambas em breve); no modo demonstração os dois se constroem.
+  melhorias da artilharia (estas esperam a própria artilharia). O **defletor** pede a `turbina_alta` (no jogo desde o lote 14) e o
+  **regulador** a `computacao_quantica` (em breve); no modo demonstração os dois se constroem.
 - **Drones (fase 2.6).** A estação de drones é uma máquina: monta o item `drone` (receita da tabela, com a água pelo
   cano) e cada drone pronto entra na frota dela. O **tipo** da frota é escolhido no painel: **reparo** (o drone da
   pesquisa `drones`; paga o reparo como o botão Reparar: 1 placa de ferro do núcleo a cada 25 ♥), **combate** (a
@@ -676,6 +676,21 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
   poluição 45/min a plena carga). Decisão: a receita da árvore pede também 10 de água, mas o refinador só tem duas bocas
   de fluido (entra seiva, sai combustível) — ficou sem água. O **painel solar 2** (`renovavel_2`: renovável +
   processador) dá 500 kW e com nuvem ou chuva perde só 15% (luz do dia × (1 − 0,15 × nuvem/chuva)); à noite, nada.
+- **Acumulador 2 e lote 14 (energia II: turbina alta, acumulador de cristal, reator de cristal, reator de fusão, núcleo
+  de singularidade).** O **acumulador 2** (`acumulacao_2`: 200 MJ, 1,5 MW) e o **de cristal** (`acumulador_cristal`: 600
+  MJ, 4 MW) são acumuladores comuns, com mais capacidade. A **turbina alta** (`turbina_alta`: renovável + liga leve) é a
+  turbina eólica com 600 kW: mesma curva de vento, e o `altura_vento` 2 soma 2 níveis ao desnível do lugar
+  (`VentoLocal.fator`: +24% em chão plano; no topo do morro segue o limite `alto_max`). É ela que tira o **defletor de
+  vento** do "em desenvolvimento". O **reator de cristal** (`reator_cristal`: energia + ciência de tempestade) dá 8 MW
+  com célula de energia (240 MJ = 30 s a plena carga) ou cristal carregado (480 MJ) que um braço põe na boca sul; guarda
+  até 960 MJ e só gasta o que a rede pede; polui 20/min a plena carga. O **reator de fusão** (`fusao`) dá 30 MW com
+  cristal carregado (1.800 MJ = 1 min) e água pelo cano da boca oeste (0,5 por MJ = 15/s; água limpa serve; tanque de
+  300; sem água para e não queima); polui 8/min. O **núcleo de singularidade** (`singularidade`) dá 100 MW sem
+  combustível e sem poluição. Fusão e singularidade têm modelo, função e pesquisa ligada, mas seguem em desenvolvimento
+  até existirem a `computacao_quantica` (que pede o `laboratorio_2`) e o pacote quântico; na demonstração já se constroem.
+  **Nenhum item, fluido ou receita novo:** o combustível da árvore é o que já existe. Decisão: a árvore não pede
+  subproduto, então a saída de cartuchos (N1) e a refrigeração (O1) do reator de cristal e a saída de cartuchos (N1) e
+  de vapor (L1) da fusão ficam só como desenho, não são bocas (senão o jogo avisaria "não ligada" para sempre).
 - **Lote 10 (produção I: montadora 2, refinador 2).** A **montadora 2** (`montadora_2`: automação + aço) faz as
   receitas da montadora na velocidade 1,0 (a 1 faz 0,75), com 2 encaixes de módulo (vazios: os módulos ainda não
   existem) e a boca de fluido do estudo a oeste (nenhuma receita de montadora bebe fluido ainda). O **refinador 2**
@@ -688,8 +703,8 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
   etiqueta "Em desenvolvimento": na tela de pesquisa, as "em breve" e as jogáveis travadas por pacote ou pesquisa que
   ainda não existe (nó clicável só para ver o detalhe, que diz o motivo; o botão vira "Em desenvolvimento" desligado;
   não se escolhem nem se concluem — salvo antigo com uma delas ativa, o laboratório larga); na barra de construção, as
-  peças sem modelo ou que só uma pesquisa em desenvolvimento libera (hoje: esteira quântica, braço quântico, defletor
-  de vento, regulador climático, transportador quântico, silo de lançamento) ficam desligadas e o construtor recusa. No modo
+  peças sem modelo ou que só uma pesquisa em desenvolvimento libera (hoje: esteira quântica, braço quântico,
+  regulador climático, transportador quântico, silo de lançamento, reator de fusão, núcleo de singularidade) ficam desligadas e o construtor recusa. No modo
   demonstração se constrói tudo o que já tem modelo.
 - **Água limpa** (`agua_limpa`, do filtro) serve em toda receita que pede água; água do rio não serve onde se pede
   limpa (pacote ecológico). Resina bebe dois fluidos: seiva por uma boca do refinador e água pela outra.

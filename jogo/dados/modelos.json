@@ -1389,6 +1389,70 @@
   "estudo": "estudo_acumulador.py",
   "modelo": "res://assets/modelos/energia/acumulador.glb"
  },
+ "acumulador_2": {
+  "nome": "acumulador_2",
+  "categoria": "energia",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Acumulador 2 2×2 (estudo_acumulador_2.py): banco de fluxo redox com 4 pilhas bipolares, tanques de eletrólito, bomba magnética com radiador e ventilador, coluna de carga com 12 barras de LED e anel de foco com cristal. Guarda 200 MJ, carrega e descarrega até 1,5 MW.",
+  "ocupa_canto": false,
+  "portas": [],
+  "tris": 7489,
+  "dims": [
+   1.92,
+   1.92,
+   1.27
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "estudo": "estudo_acumulador_2.py",
+  "modelo": "res://assets/modelos/energia/acumulador_2.glb"
+ },
+ "acumulador_cristal": {
+  "nome": "acumulador_cristal",
+  "categoria": "energia",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Acumulador de cristal 2×2 (estudo_acumulador_cristal.py): 4 câmaras de titânio com um cristal de tempestade levitando em cada, coluna central com 16 barras de LED e anel de foco, radiador criogênico com ventilador e barramentos de cobre ao sul. Guarda 600 MJ, troca até 4 MW.",
+  "ocupa_canto": false,
+  "portas": [],
+  "tris": 5846,
+  "dims": [
+   1.99,
+   1.92,
+   1.642
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "estudo": "estudo_acumulador_cristal.py",
+  "modelo": "res://assets/modelos/energia/acumulador_cristal.glb"
+ },
  "gerador": {
   "nome": "gerador",
   "categoria": "energia",
@@ -1501,6 +1565,38 @@
   ],
   "anima": true,
   "modelo": "res://assets/modelos/energia/gerador_fluido.glb"
+ },
+ "nucleo_singularidade": {
+  "nome": "nucleo_singularidade",
+  "categoria": "energia",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Núcleo de singularidade 3×3 (estudo_nucleo_singularidade.py): giroscópio de 3 anéis em volta de um micro-buraco negro com disco de acreção e jatos polares, 4 torres de confinamento, tanques de hélio com radiadores e subestação. 100 MW, sem combustível e sem poluição.",
+  "ocupa_canto": false,
+  "portas": [],
+  "tris": 12620,
+  "dims": [
+   2.96,
+   3.161,
+   1.751
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "estudo": "estudo_nucleo_singularidade.py",
+  "modelo": "res://assets/modelos/energia/nucleo_singularidade.glb"
  },
  "painel_solar": {
   "nome": "painel_solar",
@@ -1691,6 +1787,117 @@
   "estudo": "estudo_poste_muro.py",
   "modelo": "res://assets/modelos/energia/poste_energia.glb"
  },
+ "reator_cristal": {
+  "nome": "reator_cristal",
+  "categoria": "energia",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Reator de cristal 3×3 (estudo_reator_cristal.py): vaso octogonal blindado com cintas e anéis de contenção, cristal de tempestade suspenso emitindo plasma violeta, barras de controle, anel de polarização no teto, eclusa de injeção ao sul. 8 MW queimando célula de energia ou cristal carregado.",
+  "ocupa_canto": false,
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0,
+     -1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 6702,
+  "dims": [
+   2.98,
+   3.0,
+   2.2
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "estudo": "estudo_reator_cristal.py",
+  "modelo": "res://assets/modelos/energia/reator_cristal.glb"
+ },
+ "reator_fusao": {
+  "nome": "reator_fusao",
+  "categoria": "energia",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Reator de fusão 3×3 (estudo_reator_fusao.py): tokamak de aço e titânio com 8 bobinas em D, cordão de plasma azul visível por 4 janelas de quartzo, solenoide central com anel polarizador, injetores de feixe, canhão de injeção ao sul e trocador de calor. 30 MW com cristal carregado e água.",
+  "ocupa_canto": false,
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0,
+     -1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_ENT_O1",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     -1.5,
+     0,
+     0.35
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 6792,
+  "dims": [
+   2.98,
+   3.0,
+   1.595
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "estudo": "estudo_reator_fusao.py",
+  "modelo": "res://assets/modelos/energia/reator_fusao.glb"
+ },
  "tanque": {
   "nome": "tanque",
   "categoria": "energia",
@@ -1824,6 +2031,105 @@
   "anima": false,
   "estudo": "estudo_poste_muro.py",
   "modelo": "res://assets/modelos/energia/torre_sem_fio.glb"
+ },
+ "turbina_alta": {
+  "nome": "turbina_alta",
+  "categoria": "energia",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Turbina alta 3×3 (estudo_turbina_alta.py): torre estaiada de 3 estágios com colar de estais e cremalheira, nacele amarela que vira para o vento, rotor de 3 pás de 3,3 m a 4,9 m de altura, anel de foco com cristal, radiador de óleo com ventoinha e mastro com anemômetro. 600 kW; conta como +2 níveis de altura no vento.",
+  "ocupa_canto": false,
+  "portas": [],
+  "terminais": [
+   [
+    -1.2,
+    -1.2,
+    0.35
+   ],
+   [
+    -1.2,
+    1.2,
+    0.35
+   ],
+   [
+    1.2,
+    -1.2,
+    0.35
+   ],
+   [
+    1.2,
+    1.2,
+    0.35
+   ]
+  ],
+  "tris": 7562,
+  "dims": [
+   3.187,
+   2.96,
+   6.347
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "rotor",
+    "pai": "nacele",
+    "pivo": [
+     0.0,
+     0.25,
+     5.34
+    ]
+   },
+   {
+    "nome": "antena",
+    "pai": "nacele",
+    "pivo": [
+     0.0,
+     0.55,
+     5.56
+    ]
+   },
+   {
+    "nome": "helice",
+    "pai": "nacele",
+    "pivo": [
+     -0.0,
+     -0.68,
+     4.9
+    ]
+   },
+   {
+    "nome": "luzn",
+    "pai": "nacele",
+    "pivo": [
+     0.0,
+     0.0,
+     4.55
+    ]
+   },
+   {
+    "nome": "nacele",
+    "pai": "corpo",
+    "pivo": [
+     0.0,
+     0.0,
+     4.55
+    ]
+   }
+  ],
+  "anima": false,
+  "estudo": "estudo_turbina_alta.py",
+  "modelo": "res://assets/modelos/energia/turbina_alta.glb"
  },
  "turbina_correnteza": {
   "nome": "turbina_correnteza",

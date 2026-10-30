@@ -1567,6 +1567,7 @@
    ],
    "tempo": 8.0,
    "libera": "Turbina alta 3×3 (600 kW, conta como +2 níveis de altura no vento)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "acumulacao_2": {
@@ -1592,6 +1593,7 @@
    ],
    "tempo": 8.0,
    "libera": "Acumulador 2 (2×2, 200 MJ, 1,5 MW)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "trem_eletrico": {
@@ -2283,6 +2285,7 @@
    ],
    "tempo": 12.0,
    "libera": "Acumulador de cristal 2×2 (600 MJ, 4 MW)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "reator_cristal": {
@@ -2316,6 +2319,7 @@
    ],
    "tempo": 12.0,
    "libera": "Reator de cristal 3×3 (8 MW, queima célula de energia ou cristal carregado)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "fundicao_cristal": {
@@ -3929,6 +3933,7 @@
    ],
    "tempo": 15.0,
    "libera": "Reator de fusão 3×3 (30 MW; consome água e cristal carregado)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "controle_clima": {
@@ -4211,6 +4216,7 @@
    ],
    "tempo": 20.0,
    "libera": "Núcleo de singularidade 3×3 (100 MW, sem poluição)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "casco_foguete": {

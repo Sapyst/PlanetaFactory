@@ -1066,6 +1066,7 @@ var _postes_altos: Array = []               ## postes altos (o anel de ressonân
 var _turbinas_rio: Array = []               ## turbinas de correnteza (rotor e boia no ritmo do rio)
 var _geradores_fl: Array = []               ## geradores a fluido (ventiladores, volante e anel enquanto queimam)
 var _paineis_2: Array = []                  ## painéis solares 2 (o rastreador segue o sol de dia)
+var _singularidades: Array = []             ## núcleos de singularidade (anéis e disco enquanto ligados)
 var _arcos := ArcosEletricos.new()
 
 
@@ -1084,7 +1085,8 @@ func _animar_estruturas() -> void:
 		_silos = mapa.estruturas.keys().filter(func(i): return SiloLancamento.eh_silo(mapa.estruturas[i].nome))
 		_postes_altos = mapa.estruturas.keys().filter(func(i): return mapa.estruturas[i].nome == "poste_alto")
 		_paineis_2 = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).has("perda_nuvem"))
-		_geradores_fl = mapa.estruturas.keys().filter(func(i): return Fabrica.eh_gerador_fluido(mapa.estruturas[i].nome))
+		_singularidades = mapa.estruturas.keys().filter(func(i): return mapa.estruturas[i].nome == "nucleo_singularidade")
+		_geradores_fl = mapa.estruturas.keys().filter(func(i): return Fabrica.eh_gerador_fluido(mapa.estruturas[i].nome) or Fabrica.eh_reator(mapa.estruturas[i].nome))
 		_turbinas_rio = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).get("renovavel", "") == "rio")
 		for id in fabrica.bracos:
 			var ab := _animador(id)
@@ -1140,11 +1142,15 @@ func _animar_estruturas() -> void:
 		var a := _animador(id)
 		if a != null:
 			a.ativo = animar_tudo or fabrica.transmitindo(id)
-	# gerador a fluido: ventiladores, volante, rotor do visor e anel (laço do estudo) enquanto queima para a rede
+	# gerador a fluido e reatores: o laço do estudo (ventiladores, anéis, plasma) enquanto queimam para a rede
 	for id in _geradores_fl:
 		var a := _animador(id)
 		if a != null:
-			a.ativo = animar_tudo or (float(fabrica.combustivel.get(id, 0.0)) > 0.0 and fabrica.transmitindo(id))
+			a.ativo = animar_tudo or (float(fabrica.combustivel.get(id, 0.0)) > 0.0 and fabrica.kw_de(id) < 0.0 and fabrica.transmitindo(id))
+	for id in _singularidades:
+		var a := _animador(id)
+		if a != null:
+			a.ativo = animar_tudo or fabrica.ligada(id)
 	# painel solar 2: rastreador, limpadores e lentes (laço do estudo) de dia, com ele ligado
 	for id in _paineis_2:
 		var a := _animador(id)
@@ -1260,7 +1266,7 @@ func _tick_mundo(dt: float) -> void:
 		if mapa.estruturas.has(id):
 			var et: Dictionary = mapa.estruturas[id]
 			var c := Grade.centro_da_area(et.minimo, et.area, et.rot)
-			fabrica.vento_turbina[id] = clima_local.forca_vento_em(c, clima.vento_em(c) * vento_local.fator(Vector2i(c.floor()), clima.direcao_vento))
+			fabrica.vento_turbina[id] = clima_local.forca_vento_em(c, clima.vento_em(c) * vento_local.fator(Vector2i(c.floor()), clima.direcao_vento, float(Registro.estruturas.get(et.nome, {}).get("altura_vento", 0.0))))
 	fabrica.chuva_maq.clear()
 	if not clima_local.zonas.is_empty():
 		for id in fabrica.maquinas:
@@ -1898,6 +1904,12 @@ func _detalhe() -> void:
 	elif Fabrica.eh_gerador_fluido(e.nome):
 		linhas.append("Combustível: %.1f de %.0f MJ (combustível de seiva pelo cano da boca sul: 10 = 12 MJ)%s" % [fabrica.combustivel.get(id, 0.0),
 				Fabrica.ESTOQUE_GERADOR_MJ, "" if fabrica.gerador_no_cano(id) else " — SEM CANO na boca"])
+	elif Fabrica.eh_reator(e.nome):
+		var nomes_comb: Array = regra.combustivel_item.keys().map(func(i): return "%s (%d MJ)" % [Registro.itens[i].nome, regra.combustivel_item[i]])
+		linhas.append("Combustível: %.0f de %.0f MJ (%s, por braço na boca sul)" % [fabrica.combustivel.get(id, 0.0), regra.estoque_mj, " ou ".join(nomes_comb)])
+		if regra.has("agua_por_mj"):
+			linhas.append("Água: %.0f de %.0f (%.0f/s a plena carga, pelo cano da boca oeste)%s" % [fabrica.agua_reator.get(id, 0.0), regra.tanque_agua, -float(regra.energia_kw) / 1000.0 * float(regra.agua_por_mj),
+					"" if fabrica.gerador_no_cano(id) else " — SEM CANO na boca"])
 	elif e.nome == "torre_metralhadora":
 		var t: Dictionary = colonia.torres.get(id, {})
 		var cad := float(regra.get("cadencia", 10)) * (1.0 + pesquisa.bonus("cadencia_bala"))
@@ -2002,8 +2014,9 @@ func _detalhe() -> void:
 				linhas.append("Geração: até %d kW agora, máximo %d kW%s" % [agora, -float(regra.get("energia_kw", 0.0)), nota])
 				if regra.get("renovavel", "") == "vento":
 					var c := Grade.centro_da_area(e.minimo, e.area, e.rot)
-					var f := vento_local.fator(Vector2i(c.floor()), clima.direcao_vento)
-					linhas.append("Vento aqui: %d%% %s · o lugar dá %+d%%" % [float(fabrica.vento_turbina.get(id, fabrica.vento)) * 100, Clima.nome_rumo(clima.direcao_vento), (f - 1.0) * 100])
+					var f := vento_local.fator(Vector2i(c.floor()), clima.direcao_vento, float(regra.get("altura_vento", 0.0)))
+					linhas.append("Vento aqui: %d%% %s · o lugar dá %+d%%%s" % [float(fabrica.vento_turbina.get(id, fabrica.vento)) * 100, Clima.nome_rumo(clima.direcao_vento), (f - 1.0) * 100,
+							" (a torre alta conta +%d níveis)" % int(regra.altura_vento) if regra.has("altura_vento") else ""])
 					var tc: Dictionary = Registro.ambiente.get("turbina", {})
 					if fabrica.em_protecao(id):
 						linhas.append("Ventania: pás em bandeira (rende %d%%, protege a turbina)" % (float(tc.get("so_protecao", 0.4)) * 100))

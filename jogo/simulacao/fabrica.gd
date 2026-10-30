@@ -69,6 +69,7 @@ var _no_nivel: Dictionary = {}         ## Vector3i(x, y, nível de entrada) → 
 var _saidas_portas: Array[Dictionary] = []   ## {origem: Object, tile: Vector2i}
 var _membros: Dictionary = {}          ## id → membro da rede (dict)
 var acumulado: Dictionary = {}         ## id do acumulador → MJ guardados
+var agua_reator: Dictionary = {}       ## id do reator de fusão → água guardada (sem água, para)
 var carga_torre: Dictionary = {}       ## id da torre de defesa → MJ guardados para atirar (puxa da rede até encher)
 var energia_rede: Dictionary = {}      ## id de quem consome → satisfação da rede (0..1) no último tick
 var sol := 1.0                         ## 0..1: quanto os painéis solares rendem agora (o mundo passa do clima)
@@ -109,7 +110,7 @@ func reconstruir() -> void:
 	var vivos := {}
 	for id in mapa.estruturas:
 		vivos[id] = true
-	for d in [maquinas, bracos, baus, combustivel, fator_fogo, laboratorios, distribuidores, acumulado, carga_torre, energia_rede]:
+	for d in [maquinas, bracos, baus, combustivel, fator_fogo, laboratorios, distribuidores, acumulado, carga_torre, energia_rede, agua_reator]:
 		for id in d.keys():
 			if not vivos.has(id):
 				d.erase(id)
@@ -297,8 +298,10 @@ func _montar_maquinas() -> void:
 			if e.has("kit_inicial"):                           # colônia: nasce com o kit da semente
 				baus[id] = (e.kit_inicial as Dictionary).duplicate()
 				e.erase("kit_inicial")
-		if (e.nome == "gerador" or eh_gerador_fluido(e.nome)) and not combustivel.has(id):
+		if (e.nome == "gerador" or eh_gerador_fluido(e.nome) or eh_reator(e.nome)) and not combustivel.has(id):
 			combustivel[id] = 0.0
+		if Registro.estruturas.get(e.nome, {}).has("agua_por_mj") and not agua_reator.has(id):
+			agua_reator[id] = 0.0
 		if e.nome == "laboratorio" and not laboratorios.has(id):
 			laboratorios[id] = {"pacotes": {}, "t": 0.0, "energia": 0.0}
 		if e.nome in DISTRIBUIDORES and not distribuidores.has(id):
@@ -433,6 +436,8 @@ func kw_de(id: int) -> float:
 		kw *= float(modo(id)[1])
 		if regra.has("escudo"):
 			kw *= 1.0 + _bonus("escudo_recarga")          # escudo 2: recarga 2×
+	if regra.has("agua_por_mj") and float(agua_reator.get(id, 0.0)) <= 0.0:
+		return 0.0                                        # reator de fusão sem água: não gera
 	match regra.get("renovavel", ""):
 		"sol": kw *= sol if not regra.has("perda_nuvem") else sol_limpo * (1.0 - float(regra.perda_nuvem) * encoberto)
 		"vento": kw *= curva_turbina(float(vento_turbina.get(id, vento)))
@@ -714,6 +719,8 @@ func destino_em(t: Vector2i) -> Object:
 		return _NaTorre.new(self, id)
 	if nome == "gerador":
 		return _NoGerador.new(self, id)
+	if eh_reator(nome):                                            # reatores: só o combustível da tabela deles
+		return _NoReator.new(self, id, Registro.estruturas[nome])
 	if nome == "nucleo":
 		return _NoNucleo.new(estoque_nucleo)
 	if Registro.estruturas.get(nome, {}).has("lancador"):          # lançador de sementes: só o núcleo-semente
@@ -774,6 +781,9 @@ func tick(dt: float) -> void:
 		var mb: Dictionary = _membros[id]
 		if mb.livre:
 			mb.kw = kw_de(id)                   # renovável: rende conforme o sol/vento de agora
+		elif agua_reator.has(id):
+			mb.kw = kw_de(id)                   # reator de fusão: só gera com água
+			mb.combustivel_mj = combustivel.get(id, 0.0)
 		elif mb.kw < 0.0:
 			mb.combustivel_mj = combustivel.get(id, 0.0)
 		if carga_torre.has(id):                 # torre: puxa da rede só enquanto não está cheia
@@ -805,6 +815,9 @@ func tick(dt: float) -> void:
 			combustivel[id] = m.combustivel_mj
 			if m.combustivel_mj < antes:
 				_emitir(id, (antes - m.combustivel_mj) / (-m.kw / 1000.0))   # segundos equivalentes a plena carga
+				if agua_reator.has(id):         # reator de fusão: bebe água por MJ gerado
+					var por: float = Registro.estruturas[mapa.estruturas[id].nome].agua_por_mj
+					agua_reator[id] = maxf(0.0, float(agua_reator[id]) - (antes - m.combustivel_mj) * por)
 		else:
 			var en: float = rede.satisfacao_por_rede.get(m.rede, 0.0) if m.rede >= 0 and ligada(id) else 0.0
 			energia_rede[id] = en
@@ -1052,7 +1065,7 @@ func _montar_fluidos() -> void:
 	# gerador a fluido (não é máquina de receita): a boca de entrada liga na rede do cano que encosta nela
 	_geradores_fluido.clear()
 	for id in mapa.estruturas:
-		if not eh_gerador_fluido(mapa.estruturas[id].nome):
+		if not eh_gerador_fluido(mapa.estruturas[id].nome) and not Registro.estruturas.get(mapa.estruturas[id].nome, {}).has("agua_por_mj"):
 			continue
 		for p in _portas(id):
 			var cano: int = pontas.get("%s|%s" % [p.tile_fora, -p.dir], -1)
@@ -1184,12 +1197,28 @@ func gerador_no_cano(id: int) -> bool:
 	return _geradores_fluido.any(func(l): return l.id == id)
 
 
-## Gerador a fluido puxa da rede do cano o que cabe no estoque dele (até ESTOQUE_GERADOR_MJ), só do fluido que queima.
+## Reator: queima item ("combustivel_item": item → MJ em estruturas.json), que um braço põe pela boca sul.
+static func eh_reator(nome: String) -> bool:
+	return Registro.estruturas.get(nome, {}).has("combustivel_item")
+
+
+## Gerador a fluido puxa da rede do cano o que cabe no estoque dele (até ESTOQUE_GERADOR_MJ), só do fluido que queima;
+## reator de fusão enche o tanque de água ("tanque_agua") do cano da boca oeste.
 func _tick_geradores_fluido() -> void:
 	for l in _geradores_fluido:
 		if not mapa.estruturas.has(l.id) or not ligada(l.id):
 			continue
 		var rede: Dictionary = redes_fluido[l.rede]
+		if agua_reator.has(l.id):
+			var regra: Dictionary = Registro.estruturas[mapa.estruturas[l.id].nome]
+			var vem_agua := minf(rede.qtd, float(regra.tanque_agua) - float(agua_reator[l.id]))
+			if vem_agua > 0.0 and Registro.fluido_serve(rede.fluido, "agua"):
+				rede.qtd -= vem_agua
+				agua_reator[l.id] = float(agua_reator[l.id]) + vem_agua
+				if rede.qtd <= 0.001:
+					rede.qtd = 0.0
+					rede.fluido = ""
+			continue
 		var tabela: Dictionary = Registro.estruturas.get(mapa.estruturas[l.id].nome, {}).get("combustivel_fluido", {})
 		var mj := float(tabela.get(rede.fluido, 0.0))
 		if mj <= 0.0 or rede.qtd <= 0.0:
@@ -1407,7 +1436,7 @@ func estado() -> Dictionary:
 		br[id] = {"segurando": b.segurando, "estado": b.estado, "t": b.t, "qtd": b.qtd}
 	return {"maquinas": maq, "bracos": br, "baus": baus, "combustivel": combustivel, "fator_fogo": fator_fogo, "laboratorios": laboratorios, "acumulado": acumulado,
 			"distribuidores": distribuidores, "fluidos": _guardar_fluidos(), "itens": _guardar_itens(), "carga_torre": carga_torre,
-			"sensores": sensores}
+			"sensores": sensores, "agua_reator": agua_reator}
 
 
 ## Depois de mapa restaurado: remonta e devolve o conteúdo de cada um (os dicionários de baú são preenchidos
@@ -1440,6 +1469,9 @@ func restaurar(d: Dictionary) -> void:
 			baus[id].merge(d.baus[id], true)
 	for id in d.get("combustivel", {}):
 		combustivel[id] = d.combustivel[id]
+	for id in d.get("agua_reator", {}):
+		if agua_reator.has(id):
+			agua_reator[id] = d.agua_reator[id]
 	for id in d.get("fator_fogo", {}):
 		if combustivel.has(id):
 			fator_fogo[id] = d.fator_fogo[id]
@@ -1637,6 +1669,22 @@ class _NoGerador:
 	func receber(i: String) -> bool:
 		if not aceita(i): return false
 		f.por_combustivel(id, i)
+		return true
+
+
+class _NoReator:
+	var f: Fabrica
+	var id: int
+	var regra: Dictionary
+	func _init(p_f: Fabrica, p_id: int, p_regra: Dictionary) -> void:
+		f = p_f
+		id = p_id
+		regra = p_regra
+	func aceita(i: String) -> bool:
+		return regra.combustivel_item.has(i) and float(f.combustivel.get(id, 0.0)) < float(regra.estoque_mj)
+	func receber(i: String) -> bool:
+		if not aceita(i): return false
+		f.combustivel[id] = float(f.combustivel.get(id, 0.0)) + float(regra.combustivel_item[i])
 		return true
 
 

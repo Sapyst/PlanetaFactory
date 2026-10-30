@@ -99,6 +99,14 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
   → 30) e leve pelo cano até a boca sul dele — e dá até **2,4 MW** (10 de combustível = 12 MJ). O **Painel solar 2**
   (renovável + processador) segue o sol: até **500 kW** e com nuvem ou chuva perde só 15% (o painel comum perde quase
   tudo); à noite, nada.
+- **Energia pesada** (aba Energia): o **Acumulador 2** (acumulação + processador) guarda 200 MJ e troca até 1,5 MW; o
+  **Acumulador de cristal** (acumulador 2 + ciência de tempestade), 600 MJ e até 4 MW. A **Turbina alta** 3×3 (renovável +
+  liga leve) dá até **600 kW**, 3× a eólica, e a torre conta como 2 níveis a mais de altura no vento do lugar. O **Reator
+  de cristal** 3×3 (energia avançada + ciência de tempestade) dá **8 MW** queimando **célula de energia** ou **cristal
+  carregado**: um braço na boca sul põe o combustível (a esteira só leva até o braço) e ele gasta só o que a rede pede.
+  O **Reator de fusão** (30 MW, com cristal carregado na boca sul e 15 de água por segundo no cano da boca oeste) e o
+  **Núcleo de singularidade** (100 MW, sem combustível nem poluição) ainda estão em desenvolvimento: esperam a Computação
+  quântica. Na Demonstração já se constroem.
 - **Máquinas 2** (aba Produção): a **Montadora 2** (automação + aço) faz as mesmas receitas da montadora, mais rápido
   (1,0 contra 0,75), e o **Refinador 2** (química + ciência de tempestade) faz as do refinador **2× mais rápido**,
   sujando a metade por produto, com uma 2ª entrada de fluido ao sul. Os encaixes de módulo das duas ficam vazios por
@@ -113,8 +121,8 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
   da torre de energia, **Escudo 2** (bolha de 12 m, 1.000 de dano) e o **Muro de campo**, mais as melhorias de bala e
   foguete. Máquinas de clima (precisam de energia): **Semeador de nuvens** (chove em 40 m: apaga fogo e enche coletores),
   **Cúpula contra raios** (nenhum raio em 30 m), **Defletor de vento** (o vento de 40 m sopra para onde ele aponta —
-  gire com R —, sem ventania de tufão) e **Regulador climático** (céu firme ou chuva mansa em 80 m, sem raio nem
-  tufão); os dois últimos esperam tecnologias que ainda vão chegar.
+  gire com R —, sem ventania de tufão; pede a Semeadura de nuvens e a Turbina alta) e **Regulador climático** (céu firme ou
+  chuva mansa em 80 m, sem raio nem tufão; este ainda espera a Computação quântica).
 - **Drones** (aba Drones; pesquisa Drones de reparo: água como insumo + energia sem fio): a **Estação de drones** 2×2
   precisa de energia e de água pelo cano (borda sul, tile leste). Ponha placas de ferro, motores e circuitos com braço:
   cada drone (4 placas + 1 motor + 2 circuitos + 50 de água) nasce em **holograma vermelho** na fabricadora e entra na

@@ -61,8 +61,11 @@ func test_pesquisas() -> void:
 	p.concluidas["escudo_1"] = true
 	verificar(p.disponivel("cupula_tempestade"), "para-raios de cristal + escudo 1")
 	p.concluidas.merge({"semeadura_nuvens": true, "cupula_tempestade": true})
-	verificar(not p.jogavel("turbina_alta"), "turbina alta ainda em breve (sem estudo)")
-	verificar(not p.disponivel("controle_vento"), "defletor travado pela turbina alta")
+	verificar(p.jogavel("turbina_alta"), "turbina alta jogável (lote 14)")
+	verificar(not p.em_desenvolvimento("controle_vento"), "defletor fora do em desenvolvimento")
+	verificar(not p.disponivel("controle_vento"), "defletor pede a turbina alta pesquisada")
+	p.concluidas["turbina_alta"] = true
+	verificar(p.disponivel("controle_vento"), "com semeadura e turbina alta: defletor pesquisável")
 	verificar(not p.jogavel("computacao_quantica"), "computação quântica em breve")
 	verificar(not p.disponivel("controle_clima"), "regulador travado pela computação quântica")
 	p.concluidas.merge({"semeadura_nuvens": true, "cupula_tempestade": true})

@@ -22,21 +22,20 @@ func _init(p_gerador: GeradorMundo, p_mapa: MapaOcupacao = null, p_ambiente: Amb
 
 
 ## Fator total no tile com o vento soprando para `dir` (0,4..1,6).
-func fator(t: Vector2i, dir := Vector2.ZERO) -> float:
+## `niveis_extra`: peça alta (turbina alta: "altura_vento" em estruturas.json) conta como se o chão fosse mais alto,
+## até o mesmo limite do alto de morro.
+func fator(t: Vector2i, dir := Vector2.ZERO, niveis_extra := 0.0) -> float:
 	var f := 1.0 + terreno(t) + _abrigo_plantas(t) + sotavento(t, dir)
+	if niveis_extra != 0.0:
+		var dif := _desnivel(t)
+		f += _efeito_nivel(dif + niveis_extra) - _efeito_nivel(dif)
 	return clampf(f, float(_d.get("minimo", 0.4)), float(_d.get("maximo", 1.6)))
 
 
 func terreno(t: Vector2i) -> float:
 	if _terreno.has(t):
 		return _terreno[t]
-	var n := float(gerador.nivel(t))
-	var soma := 0.0
-	for k in 8:
-		var p := Vector2i((Vector2(t) + Vector2.from_angle(k * TAU / 8.0) * 6.0).round())
-		soma += gerador.nivel(p)
-	var dif := n - soma / 8.0
-	var f := clampf(dif * float(_d.get("por_nivel", 0.12)), -float(_d.get("baixada_max", 0.24)), float(_d.get("alto_max", 0.36)))
+	var f := _efeito_nivel(_desnivel(t))
 	var b := gerador.bioma(t)
 	if b in _d.get("abertos", []) or gerador.terreno(t) == GeradorMundo.Terreno.PRAIA or _perto_do_mar(t):
 		f += float(_d.get("aberto", 0.15))
@@ -44,6 +43,19 @@ func terreno(t: Vector2i) -> float:
 		f -= float(_d.get("floresta", 0.3))
 	_terreno[t] = f
 	return f
+
+
+## Quantos níveis o tile está acima (+) ou abaixo (−) da média do entorno (raio 6).
+func _desnivel(t: Vector2i) -> float:
+	var soma := 0.0
+	for k in 8:
+		var p := Vector2i((Vector2(t) + Vector2.from_angle(k * TAU / 8.0) * 6.0).round())
+		soma += gerador.nivel(p)
+	return float(gerador.nivel(t)) - soma / 8.0
+
+
+func _efeito_nivel(dif: float) -> float:
+	return clampf(dif * float(_d.get("por_nivel", 0.12)), -float(_d.get("baixada_max", 0.24)), float(_d.get("alto_max", 0.36)))
 
 
 func _perto_do_mar(t: Vector2i) -> bool:
