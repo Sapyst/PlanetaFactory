@@ -194,18 +194,18 @@
   }
  ],
  "icones": {
-  "rampa_desce": "esteira_rampa",
+  "rampa_desce": "rampa_desce",
   "esteira": "esteira_reta",
   "cano": "cano_reto",
   "trem": "locomotiva",
   "trem_tanque": "vagao_tanque",
   "trem_eletrico": "locomotiva_eletrica",
   "esteira_rapida": "esteira_reta_rapida",
-  "rampa_desce_rapida": "esteira_rampa_rapida",
+  "rampa_desce_rapida": "rampa_desce_rapida",
   "esteira_expressa": "esteira_reta_expressa",
-  "rampa_desce_expressa": "esteira_rampa_expressa",
+  "rampa_desce_expressa": "rampa_desce_expressa",
   "esteira_quantica": "esteira_reta_quantica",
-  "rampa_desce_quantica": "esteira_rampa_quantica"
+  "rampa_desce_quantica": "rampa_desce_quantica"
  },
  "rotulos": {
   "esteira": "Esteira",
@@ -504,6 +504,10 @@
   "Energia": "categorias/energia",
   "Defesa": "categorias/defesa",
   "Limpeza": "categorias/limpeza",
-  "Trilhos": "categorias/trilhos"
+  "Trilhos": "categorias/trilhos",
+  "Clima": "categorias/clima",
+  "Drones": "categorias/drones",
+  "Lógica": "categorias/logica",
+  "Proliferação": "categorias/proliferacao"
  }
 }

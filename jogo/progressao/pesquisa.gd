@@ -246,6 +246,8 @@ func peca_em_desenvolvimento(nome: String) -> bool:
 
 ## A peça do menu tem modelo (o próprio, o do ícone ou a reta da família: esteira, cano).
 static func tem_modelo(nome: String) -> bool:
+	if nome.begins_with("rampa_desce"):             # é a rampa que sobe girada (só o ícone é próprio)
+		nome = nome.replace("rampa_desce", "esteira_rampa")
 	if Registro.modelos.has(nome) or Registro.modelos.has(nome + "_reta"):
 		return true
 	return Registro.modelos.has(str(Registro.menu.get("icones", {}).get(nome, "")))
