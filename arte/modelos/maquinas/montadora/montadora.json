@@ -17,60 +17,6 @@
     0.0,
     0.0
    ]
-  },
-  {
-   "nome": "antena",
-   "pai": "corpo",
-   "pivo": [
-    0.0,
-    0.0,
-    1.62
-   ]
-  },
-  {
-   "nome": "cristal",
-   "pai": "corpo",
-   "pivo": [
-    0.0,
-    0.0,
-    1.4
-   ]
-  },
-  {
-   "nome": "pistao0",
-   "pai": "corpo",
-   "pivo": [
-    -1.05,
-    -1.05,
-    0.44
-   ]
-  },
-  {
-   "nome": "pistao1",
-   "pai": "corpo",
-   "pivo": [
-    -1.05,
-    1.05,
-    0.44
-   ]
-  },
-  {
-   "nome": "pistao2",
-   "pai": "corpo",
-   "pivo": [
-    1.05,
-    -1.05,
-    0.44
-   ]
-  },
-  {
-   "nome": "pistao3",
-   "pai": "corpo",
-   "pivo": [
-    1.05,
-    1.05,
-    0.44
-   ]
   }
  ],
  "portas": [
@@ -127,11 +73,11 @@
    0.372
   ]
  ],
- "tris": 1442,
+ "tris": 11166,
  "dims": [
-  2.9,
-  3.0,
-  1.83
+  2.98,
+  3.09,
+  2.49
  ],
  "materiais": [
   "P_Aco",
@@ -141,5 +87,7 @@
   "P_Escuro",
   "P_Fogo",
   "P_Metal"
- ]
+ ],
+ "anima": true,
+ "estudo": "estudo_montadora.py"
 }

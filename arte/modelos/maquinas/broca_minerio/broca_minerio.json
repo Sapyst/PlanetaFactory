@@ -17,33 +17,6 @@
     0.0,
     0.0
    ]
-  },
-  {
-   "nome": "rotor",
-   "pai": "corpo",
-   "pivo": [
-    0.0,
-    0.1,
-    0.94
-   ]
-  },
-  {
-   "nome": "pistao0",
-   "pai": "corpo",
-   "pivo": [
-    -0.66,
-    0.66,
-    0.44
-   ]
-  },
-  {
-   "nome": "pistao1",
-   "pai": "corpo",
-   "pivo": [
-    0.66,
-    0.66,
-    0.44
-   ]
   }
  ],
  "portas": [
@@ -80,11 +53,11 @@
    0.372
   ]
  ],
- "tris": 924,
+ "tris": 8584,
  "dims": [
-  1.9,
-  1.95,
-  1.62
+  2.234,
+  1.941,
+  4.57
  ],
  "materiais": [
   "P_Aco",
@@ -93,5 +66,7 @@
   "P_Cristal",
   "P_Escuro",
   "P_Metal"
- ]
+ ],
+ "anima": true,
+ "estudo": "estudo_broca.py"
 }

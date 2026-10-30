@@ -17,33 +17,6 @@
     0.0,
     0.0
    ]
-  },
-  {
-   "nome": "rotor",
-   "pai": "corpo",
-   "pivo": [
-    0.0,
-    0.0,
-    1.38
-   ]
-  },
-  {
-   "nome": "pistao0",
-   "pai": "corpo",
-   "pivo": [
-    -0.62,
-    -0.55,
-    0.48
-   ]
-  },
-  {
-   "nome": "pistao1",
-   "pai": "corpo",
-   "pivo": [
-    0.62,
-    -0.55,
-    0.48
-   ]
   }
  ],
  "portas": [],
@@ -69,11 +42,11 @@
    0.372
   ]
  ],
- "tris": 1420,
+ "tris": 7458,
  "dims": [
-  1.9,
-  1.9,
-  1.48
+  160.0,
+  160.0,
+  2.537
  ],
  "materiais": [
   "P_Aco",
@@ -84,5 +57,7 @@
   "P_Escuro",
   "P_Metal",
   "P_Vidro"
- ]
+ ],
+ "anima": true,
+ "estudo": "estudo_filtro_agua.py"
 }

@@ -42,11 +42,11 @@
    0.372
   ]
  ],
- "tris": 580,
+ "tris": 5525,
  "dims": [
-  1.9,
-  1.9,
-  1.076
+  1.906,
+  1.905,
+  1.02
  ],
  "materiais": [
   "P_Aco",
@@ -54,5 +54,7 @@
   "P_Cristal",
   "P_Escuro",
   "P_Vidro"
- ]
+ ],
+ "anima": true,
+ "estudo": "estudo_painel_solar.py"
 }

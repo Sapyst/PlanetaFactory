@@ -168,6 +168,8 @@ func _ready() -> void:
 				var t: TelaPesquisa = cena._tela_pesquisa
 				t._rolagem.scroll_horizontal = 0
 				t._rolagem.scroll_vertical = 0)
+		"estudos":                                     # máquinas convertidas dos estudos, uma câmera por máquina (30 quadros cada)
+			_roteiro_estudos()
 		"ver":                                         # câmera de perto na 1ª estrutura de um nome: -- roteiro ver fornalha
 			em(6, func():
 				Sessao.config.fps = false
@@ -1480,3 +1482,34 @@ func _roteiro_vagao_tex() -> void:
 			cena.camera.alvo = Grade.ponto_mundo(c)
 			cena.camera.distancia = 9.0
 			cena.camera.posicionar())
+
+
+const ESTUDOS := ["montadora", "fornalha", "laboratorio", "viveiro", "refinador", "nucleo", "terraplenagem",
+		"gerador", "painel_solar", "acumulador", "coletor_lixo"]
+
+
+## Vitrine dos modelos convertidos (arte/estudos/para_jogo.py): limpa um terreno, põe uma de cada em duas fileiras
+## e leva a câmera de perto em cada uma — quadro 30 + 30·i (foto no quadro 52 + 30·i).
+func _roteiro_estudos() -> void:
+	Sessao.config.fps = false
+	cena.animar_tudo = true
+	var posicoes: Array[Vector2i] = []
+	em(4, func():
+		cena.controle.barra.visible = false
+		cena._efeitos.mostrar_icones = false
+		var con: Construtor = cena.construtor
+		for x in range(-44, -6):
+			for y in range(-14, 14):
+				cena.mapa.limpar_obstaculo(Vector2i(x, y))
+		for i in ESTUDOS.size():
+			var t := Vector2i(-42 + (i % 7) * 5, -8 if i < 7 else 4)
+			cena.sincronizar(con.executar(con.plano_peca(ESTUDOS[i], t, 0)))
+			posicoes.append(t))
+	for i in ESTUDOS.size():
+		em(30 + 30 * i, func():
+			var area := Registro.area(ESTUDOS[i])
+			var cam: CameraJogo = cena.camera
+			cam.alvo = Grade.ponto_mundo(Vector2(posicoes[i]) + Vector2(area) / 2.0)
+			cam.distancia = 4.2 if area.x >= 3 else 3.4
+			cam.posicionar())
+	em(30 + 30 * ESTUDOS.size() + 4, func(): get_tree().quit())

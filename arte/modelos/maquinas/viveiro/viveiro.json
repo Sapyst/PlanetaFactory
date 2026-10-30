@@ -17,33 +17,6 @@
     0.0,
     0.0
    ]
-  },
-  {
-   "nome": "antena",
-   "pai": "corpo",
-   "pivo": [
-    0.0,
-    0.0,
-    1.62
-   ]
-  },
-  {
-   "nome": "pistao0",
-   "pai": "corpo",
-   "pivo": [
-    0.0,
-    -0.45,
-    0.46
-   ]
-  },
-  {
-   "nome": "pistao1",
-   "pai": "corpo",
-   "pivo": [
-    0.0,
-    0.45,
-    0.46
-   ]
   }
  ],
  "portas": [
@@ -80,11 +53,11 @@
    0.372
   ]
  ],
- "tris": 1052,
+ "tris": 7659,
  "dims": [
-  1.95,
-  1.9,
-  1.73
+  4.306,
+  3.952,
+  2.197
  ],
  "materiais": [
   "P_Aco",
@@ -98,5 +71,7 @@
   "P_Seiva",
   "P_Tronco",
   "P_Vidro"
- ]
+ ],
+ "anima": true,
+ "estudo": "estudo_viveiro.py"
 }

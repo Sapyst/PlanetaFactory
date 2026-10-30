@@ -16,6 +16,15 @@ CONFIG = {
     'fornalha': dict(script='estudo_fornalha.py', cat='maquinas', tris=9000, tex=1024,
                      tirar=['chao', 'fumaca', 'vapor', 'faisca', 'jato', 'vazamento']),
 }
+# máquinas que já existem no jogo e só trocam o visual (estudo de uma estrutura só na cena)
+for _n, _s, _c, _t in (('broca_minerio', 'estudo_broca.py', 'maquinas', 8000), ('montadora', 'estudo_montadora.py', 'maquinas', 11000),
+                       ('extrator_cristal', 'estudo_extrator_cristal.py', 'maquinas', 10000),
+                       ('refinador', 'estudo_refinador.py', 'maquinas', 11000), ('laboratorio', 'estudo_laboratorio.py', 'maquinas', 10000),
+                       ('terraplenagem', 'estudo_terraplenagem.py', 'maquinas', 10000), ('gerador', 'estudo_gerador.py', 'energia', 8000),
+                       ('painel_solar', 'estudo_painel_solar.py', 'energia', 5000), ('acumulador', 'estudo_acumulador.py', 'energia', 7000),
+                       ('coletor_lixo', 'estudo_coletor_lixo.py', 'maquinas', 8000), ('filtro_agua', 'estudo_filtro_agua.py', 'maquinas', 8000),
+                       ('viveiro', 'estudo_viveiro.py', 'maquinas', 8000), ('nucleo', 'estudo_nucleo.py', 'maquinas', 12000)):
+    CONFIG[_n] = dict(script=_s, cat=_c, tris=_t, tex=1024, tirar=[])
 EFEITO = ('chao', 'ceu', 'terreno', 'fumaca', 'vapor', 'poeira', 'nevoa', 'faisca', 'jato', 'fogo', 'chama', 'raio',
           'chuva', 'gota', 'feixe', 'clarao', 'onda', 'rastro')
 
@@ -184,6 +193,10 @@ def assar(baixos, altos, lado, nome):
         sc.cycles.device = 'GPU'
     except Exception:
         sc.cycles.device = 'CPU'
+    for o in baixos + altos:                    # peça escondida neste quadro (some/aparece no laço) também assa
+        o.hide_render = False
+        o.hide_viewport = False
+        o.hide_set(False)
     bpy.ops.object.select_all(action='DESELECT')
     for o in baixos:
         o.select_set(True)

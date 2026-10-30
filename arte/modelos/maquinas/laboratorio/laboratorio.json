@@ -17,51 +17,6 @@
     0.0,
     0.0
    ]
-  },
-  {
-   "nome": "antena",
-   "pai": "corpo",
-   "pivo": [
-    0.0,
-    0.0,
-    1.62
-   ]
-  },
-  {
-   "nome": "pistao0",
-   "pai": "corpo",
-   "pivo": [
-    -1.05,
-    -1.05,
-    0.44
-   ]
-  },
-  {
-   "nome": "pistao1",
-   "pai": "corpo",
-   "pivo": [
-    -1.05,
-    1.05,
-    0.44
-   ]
-  },
-  {
-   "nome": "pistao2",
-   "pai": "corpo",
-   "pivo": [
-    1.05,
-    -1.05,
-    0.44
-   ]
-  },
-  {
-   "nome": "pistao3",
-   "pai": "corpo",
-   "pivo": [
-    1.05,
-    1.05,
-    0.44
-   ]
   }
  ],
  "portas": [
@@ -103,11 +58,11 @@
    0.372
   ]
  ],
- "tris": 1302,
+ "tris": 11819,
  "dims": [
-  2.9,
-  2.95,
-  2.54
+  3.003,
+  3.492,
+  2.542
  ],
  "materiais": [
   "P_Aco",
@@ -118,5 +73,7 @@
   "P_Fogo",
   "P_Metal",
   "P_Vidro"
- ]
+ ],
+ "anima": true,
+ "estudo": "estudo_laboratorio.py"
 }

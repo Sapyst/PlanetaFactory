@@ -17,15 +17,6 @@
     0.0,
     0.0
    ]
-  },
-  {
-   "nome": "cristal",
-   "pai": "corpo",
-   "pivo": [
-    0.0,
-    0.04,
-    1.5
-   ]
   }
  ],
  "portas": [],
@@ -51,11 +42,11 @@
    0.372
   ]
  ],
- "tris": 1278,
+ "tris": 6066,
  "dims": [
-  1.9,
-  1.9,
-  1.69
+  1.995,
+  2.028,
+  1.683
  ],
  "materiais": [
   "P_Aco",
@@ -63,5 +54,7 @@
   "P_Concreto",
   "P_Cristal",
   "P_Escuro"
- ]
+ ],
+ "anima": true,
+ "estudo": "estudo_acumulador.py"
 }

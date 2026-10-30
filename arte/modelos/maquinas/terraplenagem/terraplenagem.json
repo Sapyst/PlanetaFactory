@@ -17,59 +17,14 @@
     0.0,
     0.0
    ]
-  },
-  {
-   "nome": "antena",
-   "pai": "corpo",
-   "pivo": [
-    0.0,
-    0.0,
-    1.48
-   ]
-  },
-  {
-   "nome": "cristal",
-   "pai": "corpo",
-   "pivo": [
-    0.0,
-    0.0,
-    1.8
-   ]
-  },
-  {
-   "nome": "cabecote",
-   "pai": "corpo",
-   "pivo": [
-    -0.92,
-    -0.92,
-    1.25
-   ]
-  },
-  {
-   "nome": "pistao0",
-   "pai": "corpo",
-   "pivo": [
-    -0.95,
-    1.05,
-    0.44
-   ]
-  },
-  {
-   "nome": "pistao1",
-   "pai": "corpo",
-   "pivo": [
-    1.15,
-    -0.55,
-    0.44
-   ]
   }
  ],
  "portas": [],
- "tris": 1158,
+ "tris": 12067,
  "dims": [
-  2.9,
-  2.9,
-  2.23
+  6.183,
+  6.081,
+  3.638
  ],
  "materiais": [
   "P_Aco",
@@ -78,5 +33,7 @@
   "P_Escuro",
   "P_Metal",
   "P_Rocha"
- ]
+ ],
+ "anima": true,
+ "estudo": "estudo_terraplenagem.py"
 }

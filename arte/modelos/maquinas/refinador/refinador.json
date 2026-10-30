@@ -17,33 +17,6 @@
     0.0,
     0.0
    ]
-  },
-  {
-   "nome": "antena",
-   "pai": "corpo",
-   "pivo": [
-    0.45,
-    0.0,
-    2.4
-   ]
-  },
-  {
-   "nome": "pistao0",
-   "pai": "corpo",
-   "pivo": [
-    0.55,
-    -0.8,
-    0.76
-   ]
-  },
-  {
-   "nome": "pistao1",
-   "pai": "corpo",
-   "pivo": [
-    0.55,
-    0.8,
-    0.76
-   ]
   }
  ],
  "portas": [
@@ -110,11 +83,11 @@
    0.372
   ]
  ],
- "tris": 1374,
+ "tris": 8983,
  "dims": [
+  2.97,
   3.0,
-  2.95,
-  3.12
+  3.475
  ],
  "materiais": [
   "P_Aco",
@@ -123,5 +96,7 @@
   "P_Cristal",
   "P_Escuro",
   "P_Metal"
- ]
+ ],
+ "anima": true,
+ "estudo": "estudo_refinador.py"
 }
