@@ -5096,11 +5096,11 @@
     0.372
    ]
   ],
-  "tris": 7461,
+  "tris": 7770,
   "dims": [
-   160.0,
-   160.0,
-   2.54
+   2.18,
+   2.465,
+   2.537
   ],
   "anima": true,
   "estudo": "estudo_filtro_agua.py",

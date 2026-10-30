@@ -17,6 +17,7 @@ Opções de CONFIG além de script/cat/tris/tex/tirar:
             (giro, canhao, nacele, helice, braco1...) — sem a animação do estudo, com pivô para o Animador
   depois_de_montar(sc)       função chamada com a cena já na origem e limpa (ajustes do estudo: tirar, mover, renomear)
   antes_de_exportar(sc, raiz, dados)  função chamada antes do .glb (ex.: material especial da lona; dados = .json)
+  manter    nomes de empties sem malha que o jogo procura no modelo (marcadores): não são podados
 
 Sempre (para todo estudo):
 - texto (curva FONT) vira malha antes da limpeza: entra no corpo, é reduzido e assado;
@@ -26,7 +27,10 @@ Sempre (para todo estudo):
   peças que brilham e não se mexem ficam uma malha por material da paleta;
 - o assado é a passada DIFFUSE/COLOR, que sai preta em material metálico: metal vai a 0 antes de assar (o jogo usa
   material fosco com a cor assada);
-- material da paleta é um por cor (P_Fogo, P_Fogo.001…; o jogo lê o nome sem o sufixo)."""
+- material da paleta é um por cor (P_Fogo, P_Fogo.001…; o jogo lê o nome sem o sufixo);
+- empties sem malha embaixo (pivô de peça que foi para uma parte, ponteiro juntado ao corpo) saem do .glb;
+- nó cujo sufixo o Animador do jogo conhece (<x>_cristal, _giro, _helice, _pistao0…) e que não é parte declarada
+  ganha nome neutro: quem o mexe é a animação do estudo, não o Animador por cima."""
 import bpy, bmesh, sys, os, json, math
 from mathutils import Vector, Matrix
 
@@ -53,8 +57,57 @@ for _f in sorted(_glob.glob(os.path.join(AQUI, 'conv_*.py'))):
     _mod = _iu.module_from_spec(_spec)
     _spec.loader.exec_module(_mod)
     CONFIG.update(getattr(_mod, 'CONFIG', {}))
+
+
+CENARIO_RIO = ('margem', 'rio', 'enrocamento', 'juncos', 'pedras', 'galhos_rio', 'escuma', 'espuma', 'espuma_suja',
+               'redemoinho', 'limo', 'lixo_borra', 'lixo_folhas', 'lixo_galhos')
+
+
+def _sem_terreno(sc):
+    """Filtro de água: o terreno da margem (160 m), o rio e o que boia ou cresce nele são cenário (o mapa do jogo tem
+    os seus). Nome exato: 'rio' como pedaço de nome pegaria o 'armario'. Cais e tomada d'água são da máquina: ficam."""
+    for o in [o for o in sc.objects if o.name.split('.')[0] in CENARIO_RIO]:
+        bpy.data.objects.remove(o, do_unlink=True)
+
+
+CONFIG['filtro_agua']['depois_de_montar'] = _sem_terreno
 EFEITO = ('chao', 'ceu', 'terreno', 'fumaca', 'vapor', 'poeira', 'nevoa', 'faisca', 'jato', 'fogo', 'chama', 'raio',
           'chuva', 'gota', 'feixe', 'clarao', 'onda', 'rastro')
+
+
+# partes que o Animador do jogo mexe pelo sufixo do nome (ver render/animacao/animador.gd)
+PARTES_ANIMADOR = {'hastes', 'cristal', 'rotor', 'antena', 'nacele', 'helice', 'cabecote', 'braco', 'braco1', 'braco2',
+                   'garra', 'giro', 'canhao'}
+
+
+def tem_malha(o):
+    return any(c.type == 'MESH' or tem_malha(c) for c in o.children)
+
+
+def podar(raiz, manter=()):
+    """Empties sem malha embaixo (sobra da cena do estudo) saem; a raiz, as portas e os marcadores pedidos ficam."""
+    sc = bpy.context.scene
+    while True:
+        vaz = [o for o in sc.objects if o.type == 'EMPTY' and o is not raiz and not o.name.startswith('PORTA_')
+               and o.name not in manter and not tem_malha(o)]
+        if not vaz:
+            return
+        for o in vaz:
+            bpy.data.objects.remove(o, do_unlink=True)
+
+
+def nomes_neutros(nome, raiz, reservados):
+    """O Animador acha as partes pelo sufixo depois do último '_': nó do estudo com sufixo igual (monolito_cristal)
+    levaria um segundo movimento por cima da animação do estudo."""
+    i = 0
+    for o in list(bpy.context.scene.objects):
+        if o is raiz or o.name.startswith('PORTA_') or o.name in reservados:
+            continue
+        pedacos = o.name.split('.')[0].rsplit('_', 1)
+        suf = pedacos[-1].lower() if len(pedacos) == 2 else ''
+        if suf in PARTES_ANIMADOR or (suf.startswith('pistao') and suf[6:].isdigit()):
+            o.name = f'{nome}_n{i}'
+            i += 1
 
 
 def args():
@@ -446,6 +499,8 @@ def main():
         e.location = Vector(pt['pos'])
         e.rotation_euler = (0, 0, math.atan2(-pt['dir'][0], pt['dir'][1]))
         e.parent = raiz
+    podar(raiz, cfg.get('manter', ()))
+    nomes_neutros(nome, raiz, {po.name for po in objs_partes.values()} | ({corpo.name} if corpo else set()))
     # todas as ações numa trilha NLA de mesmo nome → o glTF junta numa animação só ("trabalho")
     for o in sc.objects:
         ad = o.animation_data
