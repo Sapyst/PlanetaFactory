@@ -11,6 +11,8 @@ extends Node
 ##   _estagio2/_estagio3                    braço 2 telescópico (braço longo: estica no eixo dele)
 ##   _camisa/_haste                         pistão de elevação da lança (camisa no giro, haste no braço 1)
 ##   _giro/_canhao                          torre (mira `alvo`)
+##   _tambor   feixe de canos da metralhadora: gira no eixo dele ("eixo_tambor" em modelos.json) durante a
+##             `rajada` (s) que o desenho dos tiros acende; acelera e desacelera
 ##   _helice   gira no eixo da nacele (turbina eólica; `ritmo` = vento)
 ##   _nacele   vira devagar até a hélice encarar o vento (`rumo_vento`: para onde o vento sopra, na grade)
 ## Cristais (P_Cristal) brilham fraco pelo `brilho` (0..1; negativo = segue `ativo`), suavizado.
@@ -33,6 +35,10 @@ var tempo := 0.0
 var rumo_vento := Vector2.ZERO
 var _guinada := INF
 var brilho := -1.0
+var rajada := 0.0                   ## metralhadora: segundos de tiro pela frente (o tambor gira enquanto > 0)
+var _w_tambor := 0.0
+var _a_tambor := 0.0
+var _eixo_tambor := Vector3.ZERO
 var _brilho := -1.0
 var _brilho_posto := -1.0
 var _malhas: Array[GeometryInstance3D] = []
@@ -114,6 +120,8 @@ func _process(delta: float) -> void:
 		k += 1
 	if tem("canhao") and (alvo != null or ponto_alvo != Vector3.INF):
 		_mirar()
+	if tem("tambor"):
+		_girar_tambor(delta)
 
 
 func _desloca(parte: String, d: Vector3) -> void:
@@ -232,6 +240,51 @@ func ponto_garra() -> Vector3:
 	if _ik.is_empty():
 		_preparar_ik()
 	return (_partes["garra"] as Node3D).global_transform * Vector3(0, -float(_ik.item), 0)
+
+
+## Tambor da metralhadora: 10 tiros/s com 6 canos = 10/6 de volta por segundo; sobe em ~0,3 s, para em ~0,6 s.
+func _girar_tambor(delta: float) -> void:
+	rajada = maxf(0.0, rajada - delta)
+	var alvo_w := (10.0 / 6.0) * TAU if rajada > 0.0 else 0.0
+	_w_tambor = move_toward(_w_tambor, alvo_w, delta * (35.0 if rajada > 0.0 else 17.5))
+	if _w_tambor <= 0.0:
+		return
+	if _eixo_tambor == Vector3.ZERO:
+		var e: Array = Registro.modelos.get(modelo, {}).get("eixo_tambor", [0.0, 1.0, 0.0])
+		_eixo_tambor = Vector3(e[0], e[2], -e[1]).normalized()      # Blender → Godot
+	_a_tambor = fmod(_a_tambor + _w_tambor * delta, TAU)
+	var b: Transform3D = _base["tambor"]
+	(_partes["tambor"] as Node3D).transform = Transform3D(Basis(_eixo_tambor, _a_tambor) * b.basis, b.origin)
+
+
+## Saída das cápsulas da torre no mundo e a velocidade com que a cápsula sai: [pos, vel] (vazio se o modelo não diz).
+## modelos.json: "ejecao" = ponto (Blender, com o giro em 0 e o canhão para +Y); "vel_ejecao" = (frente, esquerda,
+## cima) em m/s no referencial do canhão.
+func ejecao() -> Array:
+	var m: Dictionary = Registro.modelos.get(modelo, {})
+	if not m.has("ejecao") or not tem("canhao"):
+		return []
+	var piv := Vector3.ZERO
+	for p in m.get("partes", []):
+		if p.nome == "canhao":
+			piv = Vector3(p.pivo[0], p.pivo[1], p.pivo[2])
+	var e: Array = m.ejecao
+	var g := _global(_partes["canhao"] as Node3D)
+	var pos := g * Vector3(e[0] - piv.x, e[2] - piv.z, -(e[1] - piv.y))
+	var v: Array = m.get("vel_ejecao", [0.0, 0.7, 1.5])
+	var b := g.basis.orthonormalized()
+	var vel := -b.z * float(v[0]) - b.x * float(v[1]) + Vector3.UP * float(v[2])
+	return [pos, vel]
+
+
+## Transform no mundo somando os pais (funciona também fora da árvore de cena).
+static func _global(n: Node3D) -> Transform3D:
+	var t := n.transform
+	var p := n.get_parent()
+	while p is Node3D:
+		t = (p as Node3D).transform * t
+		p = p.get_parent()
+	return t
 
 
 func _mirar() -> void:

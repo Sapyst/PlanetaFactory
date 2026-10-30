@@ -78,5 +78,16 @@
   "P_Metal"
  ],
  "anima": false,
- "estudo": "estudo_torre_defesa.py"
+ "estudo": "estudo_torre_defesa.py",
+ "ejecao": [
+  -0.055,
+  0.075,
+  1.245
+ ],
+ "vel_ejecao": [
+  -0.55,
+  0.72,
+  2.2
+ ],
+ "_ejecao": "porta de cápsulas no alto do canhão (estudo: PORTA (0,025; 0,055; 0,145) do canhão, virado para +Y); a cápsula sai para trás, à esquerda e para cima"
 }

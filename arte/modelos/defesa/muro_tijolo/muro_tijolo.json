@@ -1,0 +1,31 @@
+{
+ "nome": "muro_tijolo",
+ "categoria": "defesa",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Pilar do muro de tijolo (centro do tile). O jogo junta muro_tijolo_lado para cada vizinho com muro.",
+ "ocupa_canto": true,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 320,
+ "dims": [
+  0.65,
+  0.65,
+  1.52
+ ],
+ "anima": false,
+ "estudo": "estudo_muros_mina.py"
+}

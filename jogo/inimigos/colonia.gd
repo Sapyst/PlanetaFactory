@@ -11,11 +11,15 @@ extends RefCounted
 ##           ninho novo (obra de 10 s) que depois produz aranhas como os outros.
 ##  fúria    chão sujo em volta do ninho (AmbienteVivo.furia_em) deixa as aranhas furiosas: nascem mais rápido,
 ##           atacam em grupos menores e de mais longe, andam mais rápido e mordem mais forte.
-##  torres   atiram na aranha mais perto (ou no ninho, se não houver aranha) dentro do alcance, gastando munição.
+##  torres   atiram na aranha mais perto (ou no ninho, se não houver aranha) dentro do alcance. A torre de energia
+##           gasta a carga guardada da rede (munição é reserva); a metralhadora (torre_metralhadora) só atira bala:
+##           cada munição que chega por braço/esteira vira Fabrica.TIROS_POR_MUNICAO tiros, até municao_max.
+##           Tiro de bala sai com "bala" no evento (o desenho ejeta a cápsula). Melhorias: dano_bala, cadencia_bala.
 ##
 ## Tudo que o desenho precisa saber sai em `eventos` (tiro, morte, ninho novo, estrutura destruída) a cada tick.
 
 enum E { PARADA, ATACANDO, VOLTANDO, CONSTRUINDO, OBRA }
+const TORRES := ["torre_defesa", "torre_metralhadora"]
 
 var mapa: MapaOcupacao
 var poluicao: Poluicao
@@ -381,7 +385,7 @@ func _torres(dt: float) -> void:
 		_tamanho_mapa = mapa.versao
 		_lista_torres.clear()
 		for id in mapa.estruturas:
-			if mapa.estruturas[id].nome == "torre_defesa":
+			if mapa.estruturas[id].nome in TORRES:
 				_lista_torres.append(id)
 	for id in _lista_torres:
 		if not mapa.estruturas.has(id):
@@ -390,7 +394,7 @@ func _torres(dt: float) -> void:
 		_garantir_torre(id)
 		var t: Dictionary = torres[id]
 		t.recarga -= dt
-		var regra: Dictionary = Registro.estruturas["torre_defesa"]
+		var regra: Dictionary = Registro.estruturas[e.nome]
 		var c := Grade.centro_da_area(e.minimo, e.area, e.rot)
 		var alcance: float = regra.get("alcance", 18)
 		var alvo := -1
@@ -413,19 +417,24 @@ func _torres(dt: float) -> void:
 		t.mira = aranhas[alvo].pos if alvo >= 0 else ninhos[ninho].centro
 		if t.recarga > 0.0:
 			continue
-		# atira com a energia guardada; munição (se algum braço trouxe) é a reserva quando a energia acaba
+		# torre de energia: atira com a energia guardada; munição (se algum braço trouxe) é a reserva quando a energia
+		# acaba. Metralhadora (sem carga_mj): só bala, na cadência dela (+ melhoria cadencia_bala).
 		var chave := "dano_torre_energia"                     # melhoria que vale para este tiro
 		var cadencia := float(regra.get("cadencia", 3))
-		if torre_energia.is_valid() and torre_energia.call(id, tiro_mj()):
+		var bala := false
+		if regra.has("carga_mj") and torre_energia.is_valid() and torre_energia.call(id, tiro_mj()):
 			cadencia *= 1.0 + _bonus("cadencia_torre_energia")
 		elif t.municao > 0:
 			t.municao -= 1
 			chave = "dano_bala"
+			bala = true
+			if not regra.has("carga_mj"):
+				cadencia *= 1.0 + _bonus("cadencia_bala")
 		else:
 			continue
-		t.recarga = 1.0 / cadencia
+		t.recarga = maxf(t.recarga, -dt) + 1.0 / cadencia   # sobra do tick conta: 10 tiros/s mesmo a 30 quadros/s
 		var dano: float = float(regra.get("dano", 8)) * (1.0 + _bonus(chave))
-		eventos.append({"tipo": "tiro", "torre": id, "de": c, "para": t.mira, "aranha": alvo, "ninho": ninho})
+		eventos.append({"tipo": "tiro", "torre": id, "nome": e.nome, "bala": bala, "de": c, "para": t.mira, "aranha": alvo, "ninho": ninho})
 		if alvo >= 0:
 			aranhas[alvo].vida -= dano
 			if aranhas[alvo].vida <= 0.0:
@@ -454,10 +463,24 @@ func carregar_torre(id: int, tiros: int) -> void:
 	torres[id].municao += tiros
 
 
+## A torre ainda cabe mais uma munição? (regra municao_max, em tiros; sem ela, cabe sempre.) O braço não entrega
+## para a metralhadora cheia: a munição fica no baú/esteira para as outras.
+func aceita_municao(id: int) -> bool:
+	if not mapa.estruturas.has(id):
+		return false
+	var maximo := int(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("municao_max", 0))
+	if maximo <= 0:
+		return true
+	_garantir_torre(id)
+	return int(torres[id].municao) + Fabrica.TIROS_POR_MUNICAO <= maximo
+
+
 func _garantir_torre(id: int) -> void:
 	if not torres.has(id):
-		torres[id] = {"municao": int(Registro.inimigos.get("torre", {}).get("municao_inicial", 60)), "recarga": 0.0,
-				"mira": Vector2.ZERO, "mirando": false}
+		var inicial := int(Registro.inimigos.get("torre", {}).get("municao_inicial", 60))
+		if mapa.estruturas.has(id):
+			inicial = int(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("municao_inicial", inicial))
+		torres[id] = {"municao": inicial, "recarga": 0.0, "mira": Vector2.ZERO, "mirando": false}
 
 
 # ------------------------------------------------------------------ salvamento

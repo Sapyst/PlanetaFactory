@@ -199,6 +199,10 @@ Tudo que se constrói funciona — a mini-fábrica da demo é só um mapa pronto
   o grupo ataca a fonte de poluição mais perto. Muro e máquina no caminho são mordidos; esteira e trilho ficam por baixo.
   De tempos em tempos as aranhas constroem um ninho novo (14–30 tiles do antigo, 26+ de qualquer estrutura).
 - **Torre**: 18 m de alcance, 3 tiros/s, vem com 60 de munição e recebe mais pela Fabrica. Aranha primeiro, depois ninho.
+- **Metralhadora** (pesquisa "Metralhadora": defesa + aço): 2×2, só bala — 10 tiros/s, 3 de dano, 18 m; começa vazia e
+  guarda até 200 tiros (o braço não entrega na cheia). Melhorias `dano_bala` (dano 1 e 2) e `cadencia_bala` (cadência 1).
+  O tambor de 6 canos gira na rajada e todo tiro (das duas torres) ejeta uma cápsula com fumacinha pela calha do modelo.
+- **Muro de tijolo** (pesquisa "Muro de tijolo"): 700 ♥, o dobro do muro de pedra; custa 5 tijolos; arrasta em linha.
 - Expansão só sai de ninho que absorveu poluição. Aranha que não se aproxima do destino por 15 s desiste.
 - Ritmo medido na demo (`-- acelerar 8 relatorio`): ataques a cada ~6 min; torres seguram o grupo.
 

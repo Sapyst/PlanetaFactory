@@ -63,6 +63,70 @@
   "estudo": "estudo_poste_muro.py",
   "modelo": "res://assets/modelos/defesa/muro_lado.glb"
  },
+ "muro_tijolo": {
+  "nome": "muro_tijolo",
+  "categoria": "defesa",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Pilar do muro de tijolo (centro do tile). O jogo junta muro_tijolo_lado para cada vizinho com muro.",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 320,
+  "dims": [
+   0.65,
+   0.65,
+   1.52
+  ],
+  "anima": false,
+  "estudo": "estudo_muros_mina.py",
+  "modelo": "res://assets/modelos/defesa/muro_tijolo.glb"
+ },
+ "muro_tijolo_lado": {
+  "nome": "muro_tijolo_lado",
+  "categoria": "defesa",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Pano do muro de tijolo do centro até a borda norte (girar para os outros lados).",
+  "ocupa_canto": true,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 80,
+  "dims": [
+   0.26,
+   0.204,
+   1.227
+  ],
+  "anima": false,
+  "estudo": "estudo_muros_mina.py",
+  "modelo": "res://assets/modelos/defesa/muro_tijolo_lado.glb"
+ },
  "torre_defesa": {
   "nome": "torre_defesa",
   "categoria": "defesa",
@@ -136,7 +200,131 @@
   ],
   "anima": false,
   "estudo": "estudo_torre_defesa.py",
+  "ejecao": [
+   -0.055,
+   0.075,
+   1.245
+  ],
+  "vel_ejecao": [
+   -0.55,
+   0.72,
+   2.2
+  ],
+  "_ejecao": "porta de cápsulas no alto do canhão (estudo: PORTA (0,025; 0,055; 0,145) do canhão, virado para +Y); a cápsula sai para trás, à esquerda e para cima",
   "modelo": "res://assets/modelos/defesa/torre_defesa.glb"
+ },
+ "torre_metralhadora": {
+  "nome": "torre_metralhadora",
+  "categoria": "defesa",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Metralhadora 2×2: casco blindado sobre laje, quatro estabilizadores cravados, mastro com a cabeça giratória (garfo, caixa de munição com cinta, casulo sensor com olho violeta) e arma gatling de 6 canos com escudo amassado. Munição entra pelo sul (S1). Partes: base, giro (gira em Z), canhao (filho do giro), tambor (gira em eixo_tambor), luzg/luzc. Pontos (Blender, giro 0): boca dos canos e ejecao (saída da calha de cápsulas).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "base",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "nome": "giro",
+    "pai": "base",
+    "pivo": [
+     0.0,
+     0.0,
+     0.97
+    ]
+   },
+   {
+    "nome": "luzg",
+    "pai": "giro",
+    "pivo": [
+     0.0,
+     0.0,
+     0.97
+    ]
+   },
+   {
+    "nome": "canhao",
+    "pai": "giro",
+    "pivo": [
+     0.0,
+     0.0,
+     1.29
+    ]
+   },
+   {
+    "nome": "luzc",
+    "pai": "canhao",
+    "pivo": [
+     0.0,
+     0.0,
+     1.29
+    ]
+   },
+   {
+    "nome": "tambor",
+    "pai": "canhao",
+    "pivo": [
+     0.0,
+     0.0,
+     1.29
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.5,
+     -1.0,
+     0.16
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "eixo_tambor": [
+   -0.0,
+   0.9968,
+   0.08
+  ],
+  "boca": [
+   -0.0,
+   0.927,
+   1.3644
+  ],
+  "ejecao": [
+   0.16,
+   -0.1973,
+   1.1237
+  ],
+  "tris": 7808,
+  "dims": [
+   1.96,
+   1.972,
+   1.641
+  ],
+  "anima": false,
+  "estudo": "estudo_metralhadora.py",
+  "vel_ejecao": [
+   -0.3,
+   -0.78,
+   -0.1
+  ],
+  "modelo": "res://assets/modelos/defesa/torre_metralhadora.glb"
  },
  "acumulador": {
   "nome": "acumulador",

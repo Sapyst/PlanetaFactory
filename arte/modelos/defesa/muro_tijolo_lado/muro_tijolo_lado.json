@@ -1,0 +1,31 @@
+{
+ "nome": "muro_tijolo_lado",
+ "categoria": "defesa",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Pano do muro de tijolo do centro até a borda norte (girar para os outros lados).",
+ "ocupa_canto": true,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 80,
+ "dims": [
+  0.26,
+  0.204,
+  1.227
+ ],
+ "anima": false,
+ "estudo": "estudo_muros_mina.py"
+}

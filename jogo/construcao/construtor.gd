@@ -15,7 +15,7 @@ const FAMILIA_ESTEIRA := ["esteira_reta", "esteira_curva_dir", "esteira_curva_es
 const TUNEIS := ["esteira_tunel_entrada", "esteira_tunel_saida"]
 const FAMILIA_CANO := ["cano_reto", "cano_curva"]
 ## Peças que se arrastam em linha reta (uma por tile, mesma rotação).
-const LINHA_RETA := ["muro_centro", "trilho_reto", "poste_energia"]
+const LINHA_RETA := ["muro_centro", "muro_tijolo", "trilho_reto", "poste_energia"]
 const PASSO_POSTE := 6     ## poste arrastado: um a cada N tiles (raio do fio 7,5)
 const HISTORICO := 50
 

@@ -156,6 +156,7 @@
    ],
    "tempo": 4.0,
    "libera": "Muro de tijolo (700 ♥, o dobro do muro de pedra)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "dano_energia_1": {
@@ -343,6 +344,7 @@
    ],
    "tempo": 5.0,
    "libera": "Metralhadora 2×2 (munição comum, 10 tiros/s)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "dano_bala_1": {
@@ -359,6 +361,7 @@
    ],
    "tempo": 5.0,
    "libera": "+10% de dano das balas",
+   "existente": true,
    "tipo": "melhoria"
   },
   "cadencia_bala_1": {
@@ -375,6 +378,7 @@
    ],
    "tempo": 5.0,
    "libera": "+10% de tiros por segundo",
+   "existente": true,
    "tipo": "melhoria"
   },
   "montadora_2": {
@@ -583,6 +587,7 @@
    ],
    "tempo": 6.0,
    "libera": "+15% de dano das balas",
+   "existente": true,
    "tipo": "melhoria"
   },
   "dano_energia_2": {

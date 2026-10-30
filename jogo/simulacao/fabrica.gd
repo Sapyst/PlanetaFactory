@@ -34,6 +34,7 @@ var combustivel: Dictionary = {}       ## id (fornalha/gerador) → MJ guardado
 var fator_fogo: Dictionary = {}        ## id → poluição do que está queimando (média pelos MJ; briquete 0,7, carvão 1)
 var estoques: Dictionary = {}          ## id da estação → {enviar, recebido} (o mundo passa o mesmo dicionário dos trens)
 var torre_receber: Callable            ## func(id, tiros) — a colônia guarda a munição das torres
+var torre_aceita: Callable             ## (opcional) func(id) -> bool: cabe mais munição? (metralhadora cheia recusa)
 var emissao: Dictionary = {}           ## id → pontos de poluição emitidos no último tick
 var estoque_nucleo: Dictionary = {}    ## o mesmo dicionário do inventário do Construtor (tudo que entra no núcleo)
 var pesquisa: Pesquisa = null
@@ -470,7 +471,7 @@ func destino_em(t: Vector2i) -> Object:
 		return _NoBau.new(baus[id], capacidade_bau(id))
 	if estoques.has(id):
 		return _NaEstacao.new(estoques[id])
-	if nome == "torre_defesa":
+	if Registro.estruturas.get(nome, {}).get("grupo", "") == "defesa":      # torre de energia e metralhadora
 		return _NaTorre.new(self, id)
 	if nome == "gerador":
 		return _NoGerador.new(self, id)
@@ -990,7 +991,8 @@ class _NaTorre:
 	func _init(p_f: Fabrica, p_id: int) -> void:
 		f = p_f
 		id = p_id
-	func aceita(i: String) -> bool: return i == "municao" and f.torre_receber.is_valid()
+	func aceita(i: String) -> bool:
+		return i == "municao" and f.torre_receber.is_valid() and (not f.torre_aceita.is_valid() or f.torre_aceita.call(id))
 	func receber(i: String) -> bool:
 		if not aceita(i): return false
 		f.torre_receber.call(id, Fabrica.TIROS_POR_MUNICAO)

@@ -1,6 +1,6 @@
 # Árvore de tecnologia
 
-Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 32 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (algumas ainda esperam um pré-requisito ou pacote "em breve"; o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras aparecem como "em breve" até a estrutura, o item ou o pacote existir. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
+Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 37 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (algumas ainda esperam um pré-requisito ou pacote "em breve"; o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras aparecem como "em breve" até a estrutura, o item ou o pacote existir. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
 
 ## Eras e pacotes de pesquisa
 
@@ -519,10 +519,10 @@ modelo do nível anterior com outra cor de luz e detalhe.
 |---|---|---|---|---|
 | Torre (energia) | 2×2 | temos | tiro a energia da rede, munição como reserva | início |
 | Muro (pedra) | 1×1 | temos | 350 ♥, barra aranhas | início |
-| Metralhadora | 2×2 | falta | munição comum, 10 tiros/s, alcance 18 m | `torre_metralhadora` |
+| Metralhadora | 2×2 | temos | munição comum, 10 tiros/s, alcance 18 m, 3 de dano por bala, guarda 200 tiros | `torre_metralhadora` |
 | Lança-foguetes | 3×3 | falta | foguetes, dano em área, alcance 30 m | `torre_foguetes` |
 | Artilharia | 3×3 | falta | granadas, alcance 120 m, mira em ninhos | `artilharia` |
-| Muro de tijolo | 1×1 | falta | 700 ♥ | `muros_reforcados` |
+| Muro de tijolo | 1×1 | temos | 700 ♥ (`muro_tijolo`, 5 tijolos) | `muros_reforcados` |
 | Muro de liga | 1×1 | falta | 1.500 ♥, aranha não escala | `muro_liga` |
 | Muro de campo | 1×1 | falta | regenera 5 ♥/s com energia | `muro_escudo` |
 | Mina de pulso | 1×1 | falta | atordoa aranhas 3 s, rearma em 20 s | `mina_pulso` |
@@ -578,7 +578,7 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Transportador quântico | 3×3 | falta | troca itens entre colônias | `transportador_quantico` |
 | Silo de lançamento | 3×3 | falta | monta e lança o foguete de proliferação | `silo_lancamento` |
 
-**Contagem:** 34 linhas "temos" e **76 linhas "falta"** (uma linha pode juntar variantes, como a família da esteira
+**Contagem:** 36 linhas "temos" e **74 linhas "falta"** (uma linha pode juntar variantes, como a família da esteira
 rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima, Drones, Lógica, Proliferação).
 
 ## Decisões e pontos em aberto

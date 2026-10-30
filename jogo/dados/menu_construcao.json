@@ -68,7 +68,9 @@
    "nome": "Defesa",
    "pecas": [
     "torre_defesa",
-    "muro_centro"
+    "torre_metralhadora",
+    "muro_centro",
+    "muro_tijolo"
    ]
   },
   {
@@ -124,7 +126,9 @@
   "poste_energia": "Poste",
   "torre_sem_fio": "Torre sem fio",
   "torre_defesa": "Torre",
+  "torre_metralhadora": "Metralhadora",
   "muro_centro": "Muro",
+  "muro_tijolo": "Muro de tijolo",
   "trilho_reto": "Trilho",
   "trilho_curva": "Curva de trilho",
   "trilho_fim": "Fim de linha",
@@ -199,7 +203,9 @@
   "poste_energia": "Leva energia por cabo.",
   "torre_sem_fio": "Leva energia sem cabo, longe.",
   "torre_defesa": "Atira nas aranhas (munição por braço).",
+  "torre_metralhadora": "10 tiros/s com munição (braço traz).",
   "muro_centro": "Barra aranhas. Arraste.",
+  "muro_tijolo": "Muro com o dobro da vida. Arraste.",
   "trilho_reto": "Trilho do trem. Arraste.",
   "trilho_curva": "Curva de trilho.",
   "trilho_fim": "Fim da linha.",

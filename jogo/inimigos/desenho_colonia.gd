@@ -3,8 +3,15 @@ extends Node3D
 ## Desenha a Colonia: aranhas (nó Aranha com marcha e IK, seguindo a posição lógica), ninhos (crescem durante a
 ## obra), tiros das torres (traço luminoso + torre mirando), faíscas de morte, barras de vida das estruturas
 ## mordidas. Só lê a lógica e os eventos do tick — não decide nada.
+## Todo tiro ejeta uma cápsula (regra da arte: metralhadora e torre de energia) pela calha do modelo ("ejecao" em
+## modelos.json, via Animador.ejecao): a cápsula voa girando, quica no chão, para e some; a calha solta uma
+## fumacinha enquanto a torre atira. Na metralhadora o tiro também gira o tambor (Animador.rajada).
 
 const FAISCA := Color(1.0, 0.65, 0.25)
+const MAX_CAPSULAS := 240
+const VIDA_CAPSULA := 2.6           ## s desde o tiro até sumir (encolhe nos últimos 0,5 s, já parada no chão)
+const RAIO_CAPSULA := 0.014
+const LAJE := 0.08                  ## topo da laje das torres (onde a cápsula quica)
 
 var colonia: Colonia
 var mapa: MapaOcupacao
@@ -16,6 +23,9 @@ var _tracos: Array[Dictionary] = [] ## {de: Vector3, para: Vector3, vida: float}
 var _malha_tracos: ImmediateMesh
 var _barras: Dictionary = {}        ## id → [fundo, frente]
 var _mat_traco: StandardMaterial3D
+var _capsulas: Array[Dictionary] = []   ## {p, v, chao, eixo, ang, w, rumo, vida, quiques, parada}
+var _mm_capsulas: MultiMesh
+var _fumacinhas: Dictionary = {}        ## id da torre → {no: CPUParticles3D, t: s de fumaça pela frente}
 
 
 func _ready() -> void:
@@ -31,6 +41,27 @@ func _ready() -> void:
 	_mat_traco.cull_mode = BaseMaterial3D.CULL_DISABLED      # a fita pode ficar de costas conforme o ângulo
 	mi.material_override = _mat_traco
 	add_child(mi)
+	# cápsulas: um MultiMesh só (até MAX_CAPSULAS no ar/chão ao mesmo tempo)
+	var cil := CylinderMesh.new()
+	cil.top_radius = RAIO_CAPSULA * 0.85
+	cil.bottom_radius = RAIO_CAPSULA
+	cil.height = 0.075
+	cil.radial_segments = 8
+	cil.rings = 1
+	var latao := StandardMaterial3D.new()
+	latao.albedo_color = Color(0.62, 0.45, 0.19)
+	latao.metallic = 0.7
+	latao.roughness = 0.4
+	cil.material = latao
+	_mm_capsulas = MultiMesh.new()
+	_mm_capsulas.transform_format = MultiMesh.TRANSFORM_3D
+	_mm_capsulas.mesh = cil
+	_mm_capsulas.instance_count = MAX_CAPSULAS
+	_mm_capsulas.visible_instance_count = 0
+	var mmi := MultiMeshInstance3D.new()
+	mmi.multimesh = _mm_capsulas
+	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mmi)
 
 
 ## Chamado a cada quadro, depois do tick lógico. `eventos` = os acumulados desde o último quadro.
@@ -41,6 +72,7 @@ func atualizar(eventos: Array[Dictionary], delta: float) -> void:
 				var de := Grade.ponto_mundo(e.de, 1.25)
 				var para := Grade.ponto_mundo(e.para, 0.6)
 				_tracos.append({"de": de + (para - de).normalized() * 0.9, "para": para, "vida": 0.10})
+				_cartucho(e)
 			"aranha_morta":
 				if _aranhas.has(e.id):
 					(_aranhas[e.id] as Aranha).morrer()
@@ -60,6 +92,8 @@ func atualizar(eventos: Array[Dictionary], delta: float) -> void:
 	_sincronizar_ninhos(delta)
 	_mirar_torres()
 	_desenhar_tracos(delta)
+	_mover_capsulas(delta)
+	_atualizar_fumacinhas(delta)
 	_desenhar_barras()
 
 
@@ -67,7 +101,7 @@ func atualizar(eventos: Array[Dictionary], delta: float) -> void:
 func _perto_da_vista(p: Vector2) -> bool:
 	if Visao.ativa:
 		return Visao.dentro(p, 1.15)                 # fora do oval de visão a aranha segue só na lógica
-	var cam := get_viewport().get_camera_3d() as CameraJogo
+	var cam := get_viewport().get_camera_3d() as CameraJogo if get_viewport() != null else null
 	if cam == null:
 		return true
 	return p.distance_to(Vector2(cam.alvo.x, -cam.alvo.z)) < cam.distancia * 1.25 + 12.0
@@ -224,3 +258,102 @@ func _faiscas(p: Vector3, n: int) -> void:
 	f.position = p
 	add_child(f)
 	get_tree().create_timer(1.2).timeout.connect(f.queue_free)
+
+
+# ------------------------------------------------------------------ cápsulas ejetadas
+## Tiro: gira o tambor (metralhadora) e, perto da vista, ejeta a cápsula com fumacinha pela calha do modelo.
+func _cartucho(e: Dictionary) -> void:
+	if not animadores_torre.is_valid():
+		return
+	var a: Animador = animadores_torre.call(e.get("torre", -1))
+	if a == null:
+		return
+	a.rajada = 0.25
+	if not _perto_da_vista(e.de):
+		return
+	var ej := a.ejecao()
+	if ej.is_empty():
+		return
+	ejetar_capsula(ej[0], ej[1], Grade.ponto_mundo(e.de).y + LAJE)
+	if not _fumacinhas.has(e.torre):
+		_fumacinhas[e.torre] = {"no": _nova_fumacinha(), "t": 0.0}
+	var f: Dictionary = _fumacinhas[e.torre]
+	f.t = 0.18
+	(f.no as CPUParticles3D).position = ej[0]            # o desenho da colônia fica na origem do mundo
+
+
+## Uma cápsula voando de `pos` com velocidade `vel` (m/s, mundo); quica em `chao` (altura do mundo).
+func ejetar_capsula(pos: Vector3, vel: Vector3, chao: float) -> void:
+	if _capsulas.size() >= MAX_CAPSULAS:
+		_capsulas.pop_front()
+	var jit := Vector3(randf_range(-0.12, 0.12), randf_range(-0.08, 0.08), randf_range(-0.12, 0.12))
+	var eixo := Vector3(randf_range(-1, 1), randf_range(-0.3, 0.3), randf_range(-1, 1))
+	_capsulas.append({"p": pos, "v": vel + jit, "chao": minf(chao, pos.y), "eixo": eixo.normalized() if eixo.length() > 0.1 else Vector3.RIGHT,
+			"ang": randf() * TAU, "w": randf_range(16.0, 24.0) * (1.0 if randf() < 0.5 else -1.0), "rumo": randf() * TAU,
+			"vida": 0.0, "quiques": 0, "parada": false})
+
+
+func _mover_capsulas(delta: float) -> void:
+	var vivas: Array[Dictionary] = []
+	for c in _capsulas:
+		c.vida += delta
+		if c.vida >= VIDA_CAPSULA:
+			continue
+		if not c.parada:
+			c.v.y -= 9.81 * delta
+			c.p += c.v * delta
+			c.ang += c.w * delta
+			if c.p.y <= c.chao + RAIO_CAPSULA:
+				c.p.y = c.chao + RAIO_CAPSULA
+				if c.v.y < -0.6 and c.quiques < 2:          # quica (perde muito), depois para deitada
+					c.v = Vector3(c.v.x * 0.5, -c.v.y * 0.35, c.v.z * 0.5)
+					c.w *= 0.6
+					c.quiques += 1
+				else:
+					c.parada = true
+		vivas.append(c)
+	_capsulas = vivas
+	_mm_capsulas.visible_instance_count = _capsulas.size()
+	for i in _capsulas.size():
+		var c: Dictionary = _capsulas[i]
+		var s := clampf((VIDA_CAPSULA - c.vida) / 0.5, 0.0, 1.0)
+		var b: Basis
+		if c.parada:
+			b = Basis.from_euler(Vector3(0.0, c.rumo, PI * 0.5))     # deitada no chão
+		else:
+			b = Basis(c.eixo, c.ang)
+		_mm_capsulas.set_instance_transform(i, Transform3D(b.scaled(Vector3(s, s, s)), c.p))
+
+
+## Quantas cápsulas estão no ar ou no chão agora (testes).
+func capsulas() -> int:
+	return _capsulas.size()
+
+
+func _nova_fumacinha() -> CPUParticles3D:
+	var p := CPUParticles3D.new()
+	p.amount = 10
+	p.lifetime = 0.9
+	p.local_coords = false
+	p.emitting = false
+	p.direction = Vector3(0, 1, 0)
+	p.spread = 30.0
+	p.initial_velocity_min = 0.12
+	p.initial_velocity_max = 0.3
+	p.gravity = Vector3(0.05, 0.3, 0.0)                # sobe devagar
+	p.damping_min = 0.2
+	p.damping_max = 0.4
+	Fumaca.configurar(p, [Color(0.5, 0.48, 0.46, 0.0), Color(0.55, 0.53, 0.5, 0.5), Color(0.72, 0.71, 0.7, 0.0)], 0.10, 0.18, 2.6)
+	add_child(p)
+	return p
+
+
+func _atualizar_fumacinhas(delta: float) -> void:
+	for id in _fumacinhas.keys():
+		var f: Dictionary = _fumacinhas[id]
+		if not colonia.torres.has(id) or not mapa.estruturas.has(id):
+			(f.no as Node).queue_free()
+			_fumacinhas.erase(id)
+			continue
+		f.t = maxf(0.0, f.t - delta)
+		(f.no as CPUParticles3D).emitting = f.t > 0.0

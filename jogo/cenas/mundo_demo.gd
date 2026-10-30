@@ -109,6 +109,7 @@ func _ready() -> void:
 	fabrica.estoque_nucleo = inventario
 	fabrica.pesquisa = pesquisa
 	fabrica.torre_receber = func(id: int, n: int) -> void: colonia.carregar_torre(id, n)
+	fabrica.torre_aceita = colonia.aceita_municao               # metralhadora cheia não recebe mais
 	colonia.torre_energia = fabrica.gastar_torre                # torre atira com a energia guardada da rede
 	colonia.bonus = pesquisa.bonus                              # melhorias pesquisadas (dano da torre)
 	_lotes = DesenhoLotes.new()
@@ -267,7 +268,7 @@ func _carregar(d: Dictionary) -> void:
 		if nome != "ninho_aranha" and nome != "pilar":
 			_criar_no(id)
 	for id in mapa.estruturas:
-		if mapa.estruturas[id].nome == "muro_centro":
+		if MUROS.has(mapa.estruturas[id].nome):
 			_ligar_muro(mapa.estruturas[id].minimo)
 	fabrica.restaurar(d.fabrica)
 	_remontar_trilhos()
@@ -550,11 +551,11 @@ func sincronizar(rel: Dictionary) -> void:
 			_nos[e.id].queue_free()
 			_nos.erase(e.id)
 		_lotes.remover(e.id)
-		if e.nome == "muro_centro":
+		if MUROS.has(e.nome):
 			muros[e.minimo] = true
 	for id in rel.colocados:
 		_criar_no(id, true)
-		if mapa.estruturas[id].nome == "muro_centro":
+		if MUROS.has(mapa.estruturas[id].nome):
 			muros[mapa.estruturas[id].minimo] = true
 	var redesenhar := {}
 	for l in rel.limpos + rel.restaurados:
@@ -661,10 +662,15 @@ func _criar_pilar(id: int) -> Node3D:
 	return raiz
 
 
+## Pilar de muro → o pano que ele ganha para cada vizinho muro (pedra ou tijolo; muros de tipos diferentes também
+## se ligam, cada pilar com o próprio pano até a borda).
+const MUROS := {"muro_centro": "muro_lado", "muro_tijolo": "muro_tijolo_lado"}
+
+
 ## Muro: o pilar do tile ganha um pano (muro_lado) para cada vizinho que também é muro.
 func _ligar_muro(t: Vector2i) -> void:
 	var id: int = mapa.tiles.get(t, -1)
-	if id < 0 or mapa.estruturas[id].nome != "muro_centro" or not _nos.has(id):
+	if id < 0 or not MUROS.has(mapa.estruturas[id].nome) or not _nos.has(id):
 		return
 	var n: Node3D = _nos[id]
 	for c in n.get_children():
@@ -673,9 +679,9 @@ func _ligar_muro(t: Vector2i) -> void:
 			c.queue_free()
 	for d in 4:
 		var v: int = mapa.tiles.get(t + Grade.DIRECOES[d], -1)
-		if v < 0 or mapa.estruturas[v].nome != "muro_centro":
+		if v < 0 or not MUROS.has(mapa.estruturas[v].nome):
 			continue
-		var lado: Node3D = (load(Registro.modelos["muro_lado"].modelo) as PackedScene).instantiate()
+		var lado: Node3D = (load(Registro.modelos[MUROS[mapa.estruturas[id].nome]].modelo) as PackedScene).instantiate()
 		lado.set_meta("muro_lado", d)
 		n.add_child(lado)
 		Materiais.converter(lado)
@@ -1233,6 +1239,11 @@ func _detalhe() -> void:
 		linhas.append("Fúria: %d%% %s" % [fu * 100, "— o chão sujo em volta deixa as aranhas mais rápidas e fortes" if fu > 0.05 else "(chão limpo em volta)"])
 	elif e.nome == "gerador":
 		linhas.append("Combustível: %.1f MJ (carvão ou biomassa pela porta sul ou por braço)" % fabrica.combustivel.get(id, 0.0))
+	elif e.nome == "torre_metralhadora":
+		var t: Dictionary = colonia.torres.get(id, {})
+		var cad := float(regra.get("cadencia", 10)) * (1.0 + pesquisa.bonus("cadencia_bala"))
+		linhas.append("Munição: %d de %d tiros (cada munição que chega por braço = %d)" % [t.get("municao", regra.get("municao_inicial", 0)), regra.get("municao_max", 0), Fabrica.TIROS_POR_MUNICAO])
+		linhas.append("Dano por bala: %.1f · %.1f tiros/s · alcance %d m" % [float(regra.get("dano", 3)) * (1.0 + pesquisa.bonus("dano_bala")), cad, regra.get("alcance", 18)])
 	elif e.nome == "torre_defesa":
 		var t: Dictionary = colonia.torres.get(id, {})
 		var cap_t := float(regra.get("carga_mj", 0.0))

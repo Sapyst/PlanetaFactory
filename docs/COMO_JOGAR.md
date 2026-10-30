@@ -34,7 +34,8 @@ Você é a IA do núcleo que caiu no planeta. O objetivo é crescer: extrair, fa
 
 ## Cuidados
 - **Poluição:** máquinas poluem, e as aranhas dos ninhos vêm atrás de quem polui. A **Torre** (já liberada) defende
-  com a energia da rede — ligue-a a um poste; o **Muro** segura.
+  com a energia da rede — ligue-a a um poste; o **Muro** segura. Depois vêm a **Metralhadora** (pesquisa defesa + aço;
+  um braço leva munição até ela) e o **Muro de tijolo** (o dobro da vida).
 - **Sujeira:** chão sujo perto dos ninhos deixa as aranhas furiosas. Coletor de lixo, filtro de água e viveiro limpam.
 - **Fogo:** máquinas quentes podem acender a vegetação seca, principalmente no verão. A chuva apaga.
 - **Noite:** o painel solar para à noite; acumuladores seguram a energia.
