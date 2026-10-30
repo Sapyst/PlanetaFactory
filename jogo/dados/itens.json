@@ -37,5 +37,7 @@
  "cristal_carregado": {"nome": "Cristal carregado", "grupo": "avancado",   "pilha": 50,  "modelo_de": "cristal_lapidado", "matiz": 0.80},
  "pacote_tempestade": {"nome": "Pacote de tempestade", "grupo": "avancado", "pilha": 200, "modelo_de": "pacote_pesquisa", "matiz": 0.72},
  "drone":             {"nome": "Drone",            "grupo": "avancado",      "pilha": 20,  "modelo_de": "motor"},
- "residuo":           {"nome": "Resíduo",          "grupo": "intermediario", "pilha": 100, "modelo_de": "tijolo", "matiz": 0.12}
+ "residuo":           {"nome": "Resíduo",          "grupo": "intermediario", "pilha": 100, "modelo_de": "tijolo", "matiz": 0.12},
+ "nucleo_semente":    {"nome": "Núcleo-semente",   "grupo": "avancado",      "pilha": 5,   "modelo_de": "nucleo_cristal", "matiz": 0.12},
+ "pacote_genese":     {"nome": "Pacote gênese",    "grupo": "avancado",      "pilha": 200, "modelo_de": "pacote_pesquisa", "matiz": 0.16}
 }

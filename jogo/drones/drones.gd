@@ -497,8 +497,8 @@ func _mordidas(d: Dictionary, dt: float) -> void:
 ## "estoque" (lote 16: guarda a sobra da garra e serve o requisitante quando nenhum provedor tem o item).
 func papel(id: int) -> String:
 	var e: Dictionary = mapa.estruturas.get(id, {})
-	if e.get("nome", "") == "bau_estoque":
-		return "estoque"
+	if e.get("nome", "") == "bau_estoque" or Fabrica.eh_posto(String(e.get("nome", ""))):
+		return "estoque"                         # (o posto avançado é o estoque da região)
 	return String(e.get("logistica", ""))
 
 

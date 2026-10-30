@@ -1,0 +1,47 @@
+{
+ "nome": "lancador_sementes",
+ "categoria": "proliferacao",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Lançador de sementes 3×3 (estudo_lancador_sementes.py): laje com sapatas de recuo, esteira de rolete ao sul, berço de municiamento, culatra blindada e tubo acelerador eletromagnético com 5 bobinas de cobre, freio de boca e par de pistões de recuo. Recebe o núcleo-semente e o lança a até 400 m: a semente vira um posto avançado onde pousa.",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  }
+ ],
+ "tris": 6020,
+ "dims": [
+  2.916,
+  3.282,
+  4.344
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_lancador_sementes.py"
+}

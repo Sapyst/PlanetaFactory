@@ -1,0 +1,62 @@
+{
+ "nome": "transportador_quantico",
+ "categoria": "proliferacao",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Transportador quântico 3×3 (estudo_transportador_quantico.py): laje com 4 pilones treliçados e projetores de campo, ressonador de 3 níveis com anéis em contra-rotação (prata e cobre) e o cristal hiper-facetado levitando, estação criogênica a oeste e banco de condensadores a leste, esteiras de roletes ao sul (entrada) e ao norte (saída). Troca itens com outro transportador do mesmo canal, sem trilho.",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_N1",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  }
+ ],
+ "tris": 7550,
+ "dims": [
+  2.931,
+  2.931,
+  2.216
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_transportador_quantico.py"
+}

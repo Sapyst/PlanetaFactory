@@ -1,0 +1,77 @@
+{
+ "nome": "silo_lancamento",
+ "categoria": "proliferacao",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Silo de lançamento 3×3 (estudo_silo_lancamento.py): laje refratária com grelhas, poço central com 4 garras de retenção, torre de lançamento treliçada a nordeste com braços umbilicais basculantes, dois robôs de solda e montagem, usina de propelente criogênico a leste e bocas de esteira ao sul e a oeste. Monta o foguete de proliferação por 100 partes e, com a carga-semente, lança: fim da campanha.",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_ENT_O1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    -1.5,
+    0.0,
+    0.23
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_ENT_L1",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    1.5,
+    0.0,
+    0.35
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 4368,
+ "dims": [
+  3.062,
+  3.062,
+  3.55
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_silo_lancamento.py"
+}

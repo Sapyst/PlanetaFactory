@@ -143,7 +143,13 @@
   {
    "nome": "Proliferação",
    "pecas": [
-    "sensor_varredura"
+    "sensor_varredura",
+    "farol_cristal",
+    "posto_avancado",
+    "lancador_sementes",
+    "receptor_capsulas",
+    "transportador_quantico",
+    "silo_lancamento"
    ]
   },
   {
@@ -278,7 +284,13 @@
   "semeador_bioma": "Semeador de bioma",
   "biodigestor": "Biodigestor",
   "estacao_tratamento": "Estação de tratamento",
-  "sensor_varredura": "Sensor de varredura"
+  "sensor_varredura": "Sensor de varredura",
+  "farol_cristal": "Farol de cristal",
+  "posto_avancado": "Posto avançado",
+  "lancador_sementes": "Lançador de sementes",
+  "receptor_capsulas": "Receptor de cápsulas",
+  "transportador_quantico": "Transportador quântico",
+  "silo_lancamento": "Silo de lançamento"
  },
  "jazidas": {
   "jazida_cristal": "cristal",
@@ -402,7 +414,13 @@
   "semeador_bioma": "3×3 com seiva pelo cano: tira o queimado do chão em 14 m, devolve as árvores carbonizadas e planta mudas do bioma.",
   "biodigestor": "3×3: resíduo (braço) + água (cano sul) → biomassa (braço) + seiva (cano leste).",
   "estacao_tratamento": "3×3 na margem (tomada ao sul na água): limpa a água suja em 16 m e solta 60 de água limpa/s pelo cano (leste).",
-  "sensor_varredura": "2×2 com energia (150 kW): revela os chunks em volta, 1 por minuto (até 6; 16 com a Varredura profunda), e marca os ninhos deles no mapa."
+  "sensor_varredura": "2×2 com energia (150 kW): revela os chunks em volta, 1 por minuto (até 6; 16 com a Varredura profunda), e marca os ninhos deles no mapa.",
+  "farol_cristal": "1×1 com energia (30 kW): à noite acende uma luz de 10 m — mostra a fábrica, tira a névoa em volta e avisa quando aranhas entram na luz.",
+  "posto_avancado": "3×3 núcleo-filho: 150 kW sem cabo para as máquinas em volta, como o núcleo, e estoque próprio (3.200 itens, por braço): obras a até 32 m pagam primeiro com ele.",
+  "lancador_sementes": "3×3 com energia (600 kW): recebe o núcleo-semente por braço (boca sul) e o lança a até 400 m no rumo escolhido no painel; onde pousa nasce um posto avançado.",
+  "receptor_capsulas": "2×2 com energia (100 kW): recebe as cápsulas das colônias — 1 pacote gênese a cada 30 s de cada colônia — e guarda até 100 para os braços (saída ao norte).",
+  "transportador_quantico": "3×3 com energia (500 kW): o braço põe itens na entrada (sul) e eles saem, sem trilho, no outro transportador do mesmo canal (A–D), 5 por segundo.",
+  "silo_lancamento": "3×3 com energia (1 MW): monta o foguete de proliferação — 100 partes (casco + 5 processadores quânticos por braço e 50 de propelente pelo cano) — e a carga-semente; lançar encerra a campanha."
  },
  "icones_categoria": {
   "Esteiras": "categorias/esteiras",

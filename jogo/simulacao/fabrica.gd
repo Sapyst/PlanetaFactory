@@ -36,6 +36,7 @@ var estoques: Dictionary = {}          ## id da estação → {enviar, recebido}
 var torre_receber: Callable            ## func(id, tiros) — a colônia guarda a munição das torres
 var torre_aceita: Callable             ## (opcional) func(id) -> bool: cabe mais munição? (metralhadora cheia recusa)
 var emissao: Dictionary = {}           ## id → pontos de poluição emitidos no último tick
+var fator_kw: Dictionary = {}         ## id → fração do consumo agora (o mundo põe: lançador parado puxa 5%)
 var estoque_nucleo: Dictionary = {}    ## o mesmo dicionário do inventário do Construtor (tudo que entra no núcleo)
 var pesquisa: Pesquisa = null
 var laboratorios: Dictionary = {}      ## id → {pacotes: {item: n}, t, energia}
@@ -287,8 +288,11 @@ func _montar_maquinas() -> void:
 			combustivel[id] = 0.0
 	for id in mapa.estruturas:
 		var e: Dictionary = mapa.estruturas[id]
-		if Registro.estruturas.get(e.nome, {}).get("grupo", "") == "armazem" and not baus.has(id):
-			baus[id] = {}
+		if (Registro.estruturas.get(e.nome, {}).get("grupo", "") == "armazem" or eh_posto(e.nome)) and not baus.has(id):
+			baus[id] = {}                                      # (o posto avançado guarda o estoque próprio como um baú)
+			if e.has("kit_inicial"):                           # colônia: nasce com o kit da semente
+				baus[id] = (e.kit_inicial as Dictionary).duplicate()
+				e.erase("kit_inicial")
 		if e.nome == "gerador" and not combustivel.has(id):
 			combustivel[id] = 0.0
 		if e.nome == "laboratorio" and not laboratorios.has(id):
@@ -373,6 +377,27 @@ func ligada(id: int) -> bool:
 func capacidade_bau(id: int) -> int:
 	var e: Dictionary = mapa.estruturas[id]
 	return int(float(Registro.estruturas.get(e.nome, {}).get("capacidade_itens", BAU_MAX)) * float(e.get("limite", 1.0)))
+
+
+## Posto avançado (núcleo-filho): estoque próprio em `baus` e raio da obra que paga com ele.
+static func eh_posto(nome: String) -> bool:
+	return Registro.estruturas.get(nome, {}).has("posto")
+
+
+## O posto avançado que cobre o tile (o mais perto, centro a até `raio_obra`); -1 se nenhum.
+func posto_que_cobre(t: Vector2i) -> int:
+	var p := Vector2(t) + Vector2(0.5, 0.5)
+	var melhor := -1
+	var md := INF
+	for id in baus:
+		if not mapa.estruturas.has(id) or not eh_posto(mapa.estruturas[id].nome):
+			continue
+		var e: Dictionary = mapa.estruturas[id]
+		var d := Grade.centro_da_area(e.minimo, e.area, e.rot).distance_to(p)
+		if d <= float(Registro.estruturas[e.nome].posto.get("raio_obra", 32)) and d < md:
+			md = d
+			melhor = id
+	return melhor
 
 
 ## Silo de granel: guarda um tipo de item só (o primeiro que entra; esvaziou, aceita outro).
@@ -646,7 +671,19 @@ func origem_em(t: Vector2i) -> Object:
 		return _NoBau.new(baus[id], capacidade_bau(id), um_tipo(id))
 	if estoques.has(id):
 		return _NaEstacao.new(estoques[id])
+	var r: Dictionary = Registro.estruturas.get(mapa.estruturas[id].nome, {})
+	if r.has("receptor"):                                   # receptor de cápsulas: o pacote gênese que chegou
+		return _NoBau.new(Fabrica.campo(mapa.estruturas[id], "recebido"), int(r.receptor.get("capacidade", 100)))
+	if r.has("transportador"):                              # transportador quântico: a saída
+		return _NoBau.new(Fabrica.campo(mapa.estruturas[id], "saida"), int(r.transportador.get("saida", 200)))
 	return null
+
+
+## Dicionário de itens guardado na própria estrutura do mapa (vai no salvamento): cria vazio se não há.
+static func campo(e: Dictionary, chave: String) -> Dictionary:
+	if not e.has(chave) or not e[chave] is Dictionary:
+		e[chave] = {}
+	return e[chave]
 
 
 func destino_em(t: Vector2i) -> Object:
@@ -669,6 +706,13 @@ func destino_em(t: Vector2i) -> Object:
 		return _NoGerador.new(self, id)
 	if nome == "nucleo":
 		return _NoNucleo.new(estoque_nucleo)
+	if Registro.estruturas.get(nome, {}).has("lancador"):          # lançador de sementes: só o núcleo-semente
+		return _NoLancador.new(mapa.estruturas[id])
+	if Registro.estruturas.get(nome, {}).has("silo"):              # silo de lançamento: peças do foguete e da carga
+		return _NoSilo.new(mapa.estruturas[id])
+	if Registro.estruturas.get(nome, {}).has("transportador"):     # transportador quântico: a entrada
+		var rt: Dictionary = Registro.estruturas[nome].transportador
+		return _NoBau.new(Fabrica.campo(mapa.estruturas[id], "entrada"), int(rt.get("entrada", 20)))
 	if distribuidores.has(id):
 		return _NoDistribuidor.new(distribuidores[id])
 	if laboratorios.has(id):
@@ -727,6 +771,8 @@ func tick(dt: float) -> void:
 			mb.kw = kw_de(id) if float(carga_torre[id]) < cap - 1e-4 else 0.0
 		elif _comandados.has(id) and not mb.livre and mb.kw >= 0.0 and mb.acum_cap <= 0.0:
 			mb.kw = kw_de(id)                   # comparador ligou/desligou: o consumo acompanha
+		if fator_kw.has(id) and not mb.livre and mb.kw >= 0.0:
+			mb.kw = kw_de(id) * float(fator_kw[id])
 	for g in _trechos.size():                   # trens elétricos puxando do trilho energizado
 		var ligados: Array = _trechos[g].filter(func(k): return _membros.has(k))
 		var extra := float(demanda_trilho.get(g, 0.0)) / maxf(ligados.size(), 1)
@@ -1549,6 +1595,30 @@ class _NoNucleo:
 	func aceita(_i: String) -> bool: return true
 	func receber(i: String) -> bool:
 		e[i] = int(e.get(i, 0)) + 1
+		return true
+
+
+class _NoLancador:
+	var e: Dictionary
+	var r: Dictionary
+	func _init(p: Dictionary) -> void:
+		e = p
+		r = Registro.estruturas[e.nome].lancador
+	func aceita(i: String) -> bool: return i == String(r.item) and int(e.get("sementes", 0)) < int(r.get("capacidade", 1))
+	func receber(i: String) -> bool:
+		if not aceita(i): return false
+		e["sementes"] = int(e.get("sementes", 0)) + 1
+		return true
+
+
+class _NoSilo:
+	var e: Dictionary
+	func _init(p: Dictionary) -> void: e = p
+	func aceita(i: String) -> bool: return SiloLancamento.aceita(e, i)
+	func receber(i: String) -> bool:
+		if not aceita(i): return false
+		var it := Fabrica.campo(e, "silo_itens")
+		it[i] = int(it.get(i, 0)) + 1
 		return true
 
 

@@ -1,7 +1,8 @@
 class_name MenuPausa
 extends CanvasLayer
 ## Pausa (Esc sem nada para cancelar, ou botão Menu): o jogo para; Continuar, Salvar agora, Configurações,
-## Sair para o menu. Também mostra a tela de derrota quando o núcleo cai.
+## Sair para o menu. Também mostra a tela de derrota quando o núcleo cai e a de vitória quando o foguete de
+## proliferação parte (fim da campanha; dá para continuar jogando).
 
 signal pediu_salvar
 
@@ -53,13 +54,15 @@ func _ready() -> void:
 	_caixa.add_child(_aviso)
 
 
-func abrir(derrota := false) -> void:
+func abrir(derrota := false, vitoria := false) -> void:
 	for c in _caixa.get_children():
 		if c is Button:
 			c.queue_free()
-	_titulo.text = "O núcleo caiu" if derrota else "Pausa"
+	_titulo.text = "O núcleo caiu" if derrota else ("A IA se proliferou" if vitoria else "Pausa")
 	_titulo.add_theme_color_override("font_color", BarraConstrucao.COR_PERIGO if derrota else BarraConstrucao.COR_DESTAQUE)
 	_aviso.text = ("As aranhas destruíram a base." if derrota else "") if pode_salvar or derrota else "A demonstração não é salva."
+	if vitoria:
+		_aviso.text = "O foguete de proliferação partiu levando a carga-semente: fim da campanha.\nAs melhorias infinitas continuam."
 	if not derrota:
 		_botao("Continuar", fechar)
 		var s := _botao("Salvar agora", func(): pediu_salvar.emit(); _aviso.text = "Salvo.")

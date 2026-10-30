@@ -1,6 +1,6 @@
 # Árvore de tecnologia
 
-Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 106 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras — e as jogáveis que ainda esperam um pré-requisito ou pacote que não existe (`Pesquisa.em_desenvolvimento`) — aparecem em cinza escuro com a etiqueta **"Em desenvolvimento"** e não se escolhem nem se concluem, até a estrutura, o item ou o pacote existir. Na barra de construção, peça sem modelo ou liberada só por pesquisa em desenvolvimento fica igual (cinza escuro, etiqueta) e não se constrói fora do modo demonstração. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
+Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 113 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras — e as jogáveis que ainda esperam um pré-requisito ou pacote que não existe (`Pesquisa.em_desenvolvimento`) — aparecem em cinza escuro com a etiqueta **"Em desenvolvimento"** e não se escolhem nem se concluem, até a estrutura, o item ou o pacote existir. Na barra de construção, peça sem modelo ou liberada só por pesquisa em desenvolvimento fica igual (cinza escuro, etiqueta) e não se constrói fora do modo demonstração. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
 
 ## Eras e pacotes de pesquisa
 
@@ -571,14 +571,14 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
 |---|---|---|---|---|
 | Sensor de varredura | 2×2 | temos | 150 kW: revela 1 chunk por minuto (do mais perto para o mais longe) até 6 — sai da névoa, os ninhos dele passam a existir e ficam marcados no mapa enquanto o sensor está de pé; Varredura profunda: até 16 chunks e mede a riqueza das jazidas (painel e rótulos no mapa) | `sensor_varredura`, `cartografia` |
-| Farol de cristal | 1×1 | falta | luz de 10 m à noite | `farol_cristal` |
-| Posto avançado | 3×3 | falta | núcleo-filho: estoque próprio e 150 kW sem fio | `posto_avancado` |
-| Lançador de sementes | 3×3 | falta | lança um núcleo-semente até 400 m | `nucleo_semente` |
-| Receptor de cápsulas | 2×2 | falta | recebe os pacotes gênese das colônias | `colonias` |
-| Transportador quântico | 3×3 | falta | troca itens entre colônias | `transportador_quantico` |
-| Silo de lançamento | 3×3 | falta | monta e lança o foguete de proliferação | `silo_lancamento` |
+| Farol de cristal | 1×1 | temos | 30 kW: à noite (luz do dia < 35%) acende uma luz de 10 m — ilumina, tira a névoa em volta e avisa quando uma aranha entra na luz (1 aviso a cada 30 s por farol) | `farol_cristal` |
+| Posto avançado | 3×3 | temos (pesquisa em desenvolvimento: espera a `transmissao`) | núcleo-filho: 150 kW próprios sem cabo (como o núcleo), estoque próprio de 3.200 (braço e drones logísticos); obra a até 32 m paga primeiro com ele | `posto_avancado` |
+| Lançador de sementes | 3×3 | temos (em desenvolvimento: pede o posto avançado) | 600 kW: recebe o núcleo-semente por braço, mira rumo + distância (60–400 m), carrega 20 s, dispara; a semente voa em arco e onde pousa nasce um posto avançado (colônia, com `colonias`) | `nucleo_semente` |
+| Receptor de cápsulas | 2×2 | temos (em desenvolvimento: pede o núcleo-semente) | 100 kW: destino das cápsulas das colônias (1 pacote gênese a cada 30 s por colônia); guarda 100 para os braços | `colonias` |
+| Transportador quântico | 3×3 | temos (em desenvolvimento: computação quântica e pacote quântico) | 500 kW: braço põe na entrada, sai sem trilho no outro transportador do mesmo canal (A–D), 5 itens/s | `transportador_quantico` |
+| Silo de lançamento | 3×3 | temos (em desenvolvimento: casco de foguete e propulsão de cristal) | 1 MW: monta o foguete por 100 partes (1 casco + 5 processadores quânticos por braço + 50 de propelente pelo cano, 10 s cada), depois a carga-semente (com `foguete_proliferacao`); o painel lança — fim da campanha | `silo_lancamento` |
 
-**Contagem:** 82 linhas "temos" e **28 linhas "falta"** (uma linha pode juntar variantes, como a família da esteira
+**Contagem:** 88 linhas "temos" e **22 linhas "falta"** (uma linha pode juntar variantes, como a família da esteira
 rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima, Drones, Lógica, Proliferação).
 
 ## Decisões e pontos em aberto
@@ -649,12 +649,28 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
   a **Leitura ambiental** e, com o pacote de tempestade, **dano/alcance da artilharia 1** ficam pesquisáveis. A
   **mira automática** (`artilharia_automatica`) segue em desenvolvimento: hoje a artilharia já mira sozinha qualquer
   ninho no alcance.
+- **Lote 17 (proliferação: farol, posto avançado, lançador, receptor, transportador, silo).** O **farol de cristal**
+  (`farol_cristal`, depois da `eletronica`) é jogável. O **posto avançado** (`posto_avancado`), o **núcleo-semente**
+  (`nucleo_semente`: item, receita e lançador), as **colônias** (`colonias`: receptor de cápsulas, pacote gênese) e o
+  **transportador quântico** estão ligados no jogo, mas seguem **em desenvolvimento** pela árvore: o posto pede a
+  `transmissao` (poste alto, sem estudo) e tudo da proliferação vem depois dele; o transportador pede ainda a
+  `computacao_quantica` e o pacote quântico (forja quântica). No modo demonstração todos se constroem. Decisões: a
+  receita do núcleo-semente sai na **montadora** comum (a montadora 3 ainda não existe); antes das colônias, a
+  semente pousada vira um **posto avançado** (núcleo-filho), e com `colonias` vira **colônia** (posto + kit de 40
+  placas, 20 engrenagens, 10 circuitos e 2 drones no estoque) que faz o pacote gênese; o "estoque próprio" do posto é
+  o estoque de onde a obra perto dele paga primeiro; o transportador troca com qualquer outro do mesmo canal
+  (a distância não importa). O **silo de lançamento** (`silo_lancamento`) e o **foguete de proliferação**
+  (`foguete_proliferacao`, modo `carga_semente`) também estão ligados e em desenvolvimento: o silo monta as 100
+  partes e a carga-semente nele mesmo e lança pelo painel (tela de vitória: fim da campanha, o jogo continua), mas as
+  peças (casco de foguete, processador quântico, propelente de cristal, mapa estelar, módulo de produtividade 3)
+  ainda não existem; o propelente entra pelo `abastecer` (falta ligar o cano quando o fluido existir).
 - **Em desenvolvimento (pedido de Sapyst).** Tudo o que ainda não entrou no jogo aparece em cinza escuro com a
   etiqueta "Em desenvolvimento": na tela de pesquisa, as "em breve" e as jogáveis travadas por pacote ou pesquisa que
   ainda não existe (nó clicável só para ver o detalhe, que diz o motivo; o botão vira "Em desenvolvimento" desligado;
   não se escolhem nem se concluem — salvo antigo com uma delas ativa, o laboratório larga); na barra de construção, as
   peças sem modelo ou que só uma pesquisa em desenvolvimento libera (hoje: esteira quântica, braço quântico, defletor
-  de vento, regulador climático, estação de tratamento) ficam desligadas e o construtor recusa. No modo
+  de vento, regulador climático, estação de tratamento, posto avançado, lançador de sementes, receptor de cápsulas,
+  transportador quântico, silo de lançamento) ficam desligadas e o construtor recusa. No modo
   demonstração se constrói tudo o que já tem modelo.
 - **Água limpa** (`agua_limpa`, do filtro) serve em toda receita que pede água; água do rio não serve onde se pede
   limpa (pacote ecológico). Resina bebe dois fluidos: seiva por uma boca do refinador e água pela outra.

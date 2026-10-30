@@ -280,7 +280,8 @@ Tudo que se constrói funciona — a mini-fábrica da demo é só um mapa pronto
   `_opcoes_logica`. **Baú de estoque**: `Drones.papel` = "estoque", `_mais_perto_com`, `estoque_livre`. **Braço
   quântico**: `Fabrica.alcance_origem` (campo "alcance" 1..`alcance_max`), `Animador._lanca_quantica` e o caminho do
   item no campo (`ponto_garra`). Roteiro sem janela: `godot --headless --path jogo --quit-after 900 -- modo demo
-  roteiro lote16`.
+  roteiro lote16`. Lote 17 (proliferação: sensor, farol, posto, lançador, receptor, transportador, silo):
+  `godot --headless --path jogo --fixed-fps 30 --quit-after 400 -- modo demo roteiro lote17`.
 - **Sensor de varredura** (lote 17; `ambiente/varredura.gd`, regra "varredura" em `estruturas.json`): consumidor de
   150 kW; `Varredura.tick` revela, por sensor, o próximo chunk de `ordem(id)` (mais perto do centro primeiro) a cada
   `intervalo_s` × energia, até `chunks` (6) ou `chunks_profunda` (16, modo `varredura_profunda` da pesquisa
@@ -289,6 +290,41 @@ Tudo que se constrói funciona — a mini-fábrica da demo é só um mapa pronto
   total somado dos tiles e nível pobre/média/rica), `estado()`/`restaurar()` no save ("varredura"). Desenho:
   `render/desenho_varredura.gd` (alfinete "⚠ Ninho" e rótulos das jazidas, sempre por cima). Painel:
   `mundo_demo._detalhe_varredura`. Anima (laço do estudo: giro + antena) com energia, no ritmo dela.
+- **Farol de cristal** (lote 17; `ambiente/farol.gd`, regra "farol"): consumidor de 30 kW; aceso = energia > 0 e
+  `Clima.luz_dia() < acende_abaixo` (0,35). Aceso, `Descoberta.marcar_circulo(centro, raio)` (10 m) e as aranhas em
+  `Colonia.aranhas` dentro do raio são vistas: aranha nova dá o evento "aranhas_no_farol" (no máximo 1 a cada
+  `aviso_s` por farol; o mundo avisa com o rumo). `render/desenho_farol.gd`: até 8 OmniLight3D âmbar (os faróis acesos
+  mais perto do centro da vista), força `Farol.forca` (escuro × energia). Anima (carrossel) aceso.
+- **Posto avançado** (lote 17; regra "posto"): núcleo-filho — grupo poste, `sem_fio`, `inesgotavel`, −150 kW
+  (`Fiacao.eh_nucleo`: liga máquinas sem cabo, poste por cabo, como o núcleo); estoque próprio em `Fabrica.baus`
+  (`Fabrica.eh_posto`; 3.200; braço e drones logísticos — papel "estoque"); `Fabrica.posto_que_cobre(tile)` (mais perto
+  a até `raio_obra` 32 m) e `Construtor.estoque_local`/`estoque_do_posto`: a obra paga primeiro com o estoque do posto
+  (`_pagar`; `rel.locais` para o desfazer devolver ao posto; saiu → núcleo). A pesquisa segue em desenvolvimento
+  (pede `transmissao`, sem poste alto).
+- **Lançador de sementes** (lote 17; `ambiente/lancador.gd`, regra "lancador"; item `nucleo_semente`, receita na
+  montadora): `Fabrica._NoLancador` põe a semente em `sementes` na estrutura; alvo `alvo_rumo` (0–7) e `alvo_dist`
+  (60–400 m) na estrutura (`Lancador.mirar`, painel). Com semente, alvo com pouso (`lugar_de_pouso`: 3×3 seco, plano,
+  livre, até `procura` tiles; cache por versão do mapa) e energia, carrega `carga_s` × energia; o disparo toca o laço
+  do estudo do começo (`Animador.reiniciar`) e a cápsula sai em `disparo_s`; `voos` em arco (`posicao_no_voo`) a 40
+  m/s; no pouso limpa obstáculos, `mapa.colocar` do posto avançado, `Fiacao.ligar_novo`, chunk revelado e evento
+  "semente_pousou" com o relatório para `mundo.sincronizar`. Parado (sem semente/alvo) puxa 5% (`Fabrica.fator_kw`).
+  Save: "lancador" (voos e carga). `render/desenho_lancador.gd`: cápsulas no ar e anel do alvo.
+- **Colônias e receptor de cápsulas** (lote 17; `ambiente/genese.gd`; pesquisa `colonias`, modo "colonias"): com o
+  modo, o posto que nasce de uma semente ganha `colonia` e o `kit` (`kit_inicial` → `Fabrica.baus` no reconstruir).
+  `Genese.tick`: cada colônia faz 1 `pacote_genese` a cada `genese_s` (30 s; sem receita) e manda em cápsula ao
+  receptor com energia e lugar mais perto (`receptor_para`, conta as no ar); sem receptor, espera no estoque da
+  colônia (até `guarda`). Chegada: `recebido` na estrutura do receptor (`Fabrica.campo`; `origem_em` → braço) e o laço
+  toca uma vez. Save: "genese" (voos).
+- **Transportador quântico** (lote 17; `ambiente/transportador.gd`, regra "transportador"): `entrada` (braço põe,
+  20) e `saida` (braço tira, 200) na estrutura; com energia manda `taxa` (5) itens/s × energia para outro do mesmo
+  `canal` (A–D, painel) com lugar, em rodízio. Pesquisa em desenvolvimento (pacote quântico).
+- **Silo de lançamento** (lote 17; `ambiente/silo.gd` `SiloLancamento`, regra "silo"): `Fabrica._NoSilo` aceita só o
+  que `parte`/`carga` pedem (até `guarda` ×) em `silo_itens`; `abastecer` põe o propelente (tanque 500; o cano ainda
+  não liga: o fluido não existe). Com energia monta 1 parte em `parte_s` × energia até 100, depois a carga (modo
+  `carga_semente` da pesquisa `foguete_proliferacao`); `lancar` (painel) → `lancamento_s` de subida e
+  "foguete_lancado" → `MenuPausa.abrir(false, true)` (tela de vitória; não no roteiro). Estado na estrutura
+  (`partes`, `carga`, `silo_t`, `lancados`). `render/desenho_silo.gd`: foguete crescendo com as partes, ogiva com a
+  carga, subida com chama e luz.
 - Extrator/broca mineram a jazida de baixo; fornalha escolhe a receita pelo que chega e queima carvão/biomassa;
   montadora/refinador: receita escolhida no painel. Elétricos precisam de poste (cobertura 2,5) ligado a gerador com combustível.
 - Torre: cada munição que chega (braço ou esteira na porta sul) = 10 tiros. Quem trabalha polui (e vira alvo por 60 s).

@@ -71,6 +71,12 @@ func _ready() -> void:
 			break
 
 
+## Volta o laço do estudo ao começo (animação de um disparo só: o lançador de sementes toca do quadro 1 a cada tiro).
+func reiniciar() -> void:
+	if _player != null:
+		_player.seek(0.0, true)
+
+
 func tem(parte: String) -> bool:
 	return _partes.has(parte)
 

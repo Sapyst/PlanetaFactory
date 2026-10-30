@@ -1,0 +1,31 @@
+{
+ "nome": "farol_cristal",
+ "categoria": "proliferacao",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Farol de cristal 1×1 (estudo_farol_cristal.py): laje chanfrada, torre treliçada de 4 montantes com estais e eletrocalha, caixa de disjuntores e transformador; no alto, gaiola de garras com o cristal âmbar entre anéis de indução e o carrossel óptico (espelho parabólico e lente condensadora) que gira. Com energia, à noite acende uma luz de 10 m e avisa das aranhas que entram nela.",
+ "ocupa_canto": false,
+ "portas": [],
+ "tris": 5080,
+ "dims": [
+  1.06,
+  1.061,
+  2.84
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_farol_cristal.py"
+}

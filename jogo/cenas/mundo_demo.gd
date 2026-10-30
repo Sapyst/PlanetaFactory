@@ -24,6 +24,11 @@ var ambiente: AmbienteVivo
 var clima_local: ClimaLocal             ## máquinas de clima (semeador, defletor, cúpula, regulador)
 var raios: Raios                        ## raios da tempestade (caem no mapa, para-raios pegam)
 var varredura: Varredura                ## sensores de varredura (revelam chunks e marcam ninhos)
+var farol: Farol                        ## faróis de cristal (luz de 10 m à noite, avisam das aranhas)
+var lancador: Lancador                  ## lançadores de sementes (o núcleo-semente voa e vira posto avançado)
+var genese: Genese                      ## colônias (pacote gênese por cápsula) e receptores de cápsulas
+var transportador: Transportador        ## transportadores quânticos (itens entre colônias, por canal)
+var silo: SiloLancamento                ## silos de lançamento (foguete de proliferação: fim da campanha)
 var agua: AguaJogo                     ## buracos/canais escavados que enchem a partir de rio/lago
 var colonia: Colonia
 var drones: Drones                      ## drones das estações (reparo, combate, logística)
@@ -126,6 +131,20 @@ func _ready() -> void:
 	varredura.colonia = colonia
 	varredura.energia = fabrica.energia
 	varredura.profunda = func() -> bool: return pesquisa.modo_liberado("varredura_profunda")
+	farol = Farol.new(mapa, descoberta)
+	farol.colonia = colonia
+	farol.energia = fabrica.energia
+	farol.luz_dia = clima.luz_dia
+	lancador = Lancador.new(mapa, descoberta)
+	lancador.colonia = colonia
+	lancador.energia = fabrica.energia
+	lancador.colonias = func() -> bool: return pesquisa.modo_liberado("colonias")
+	genese = Genese.new(mapa, fabrica)
+	transportador = Transportador.new(mapa)
+	transportador.energia = fabrica.energia
+	silo = SiloLancamento.new(mapa)
+	silo.energia = fabrica.energia
+	silo.carga_liberada = func() -> bool: return pesquisa.modo_liberado("carga_semente")
 	fabrica.estoques = estoques
 	fabrica.estoque_nucleo = inventario
 	fabrica.pesquisa = pesquisa
@@ -147,6 +166,10 @@ func _ready() -> void:
 	drones.cobrar = construtor.cobrar                          # reparo por drone paga placas como o reparo à mão
 	construtor.inventario = inventario
 	construtor.pesquisa = pesquisa
+	construtor.estoque_local = func(t: Vector2i) -> Dictionary:     # obra perto de um posto avançado paga com o estoque dele
+		var p := fabrica.posto_que_cobre(t)
+		return {} if p < 0 else {"id": p, "estoque": fabrica.baus[p]}
+	construtor.estoque_do_posto = func(p: int) -> Variant: return fabrica.baus.get(p)
 	colonia.destruir = func(id: int) -> void: _destruido(id)
 	if not dados.is_empty():
 		_carregar(dados)
@@ -267,7 +290,7 @@ func salvar() -> void:
 	var ok := Salvamento.gravar({"modo": modo, "semente": semente, "tempo": _tempo,
 			"camera": [camera.alvo, camera.distancia, camera.angulo],
 			"mapa": {"estruturas": mapa.estruturas, "limpos": mapa.limpos.keys(), "prox": mapa._prox_id, "arvores": mapa.arvores},
-			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores, "clima": clima.estado(), "aplainado": gerador.aplainados(), "ambiente": ambiente.estado(), "agua": agua.estado(), "descoberta": descoberta.estado(), "varredura": varredura.estado(), "raios": raios.estado(), "drones": drones.estado(),
+			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores, "clima": clima.estado(), "aplainado": gerador.aplainados(), "ambiente": ambiente.estado(), "agua": agua.estado(), "descoberta": descoberta.estado(), "varredura": varredura.estado(), "lancador": lancador.estado(), "genese": genese.estado(), "raios": raios.estado(), "drones": drones.estado(),
 			"estoques": estoques, "inventario": inventario, "pesquisa": pesquisa.estado(),
 			"trens": trens.map(func(t: Trem): return t.para_salvar()), "prox_trem": _prox_trem})
 	if ok and is_instance_valid(controle):
@@ -288,6 +311,8 @@ func _carregar(d: Dictionary) -> void:
 	descoberta.restaurar(d.get("descoberta", {}))
 	varredura.restaurar(d.get("varredura", {}))
 	raios.restaurar(d.get("raios", {}))
+	lancador.restaurar(d.get("lancador", {}))
+	genese.restaurar(d.get("genese", {}))
 	for t in d.get("aplainado", {}):
 		gerador.aplainar(t, d.aplainado[t])
 	agua.restaurar(d.get("agua", {}))
@@ -420,6 +445,16 @@ func _criar_desenhos() -> void:
 	var dvr := DesenhoVarredura.new()              # marcas do sensor de varredura (ninhos, jazidas medidas)
 	dvr.varredura = varredura
 	add_child(dvr)
+	var dfa := DesenhoFarol.new()                  # luz dos faróis de cristal à noite
+	dfa.farol = farol
+	add_child(dfa)
+	var dla := DesenhoLancador.new()               # cápsula-semente em voo e o alvo de cada lançador
+	dla.lancador = lancador
+	dla.genese = genese
+	add_child(dla)
+	var dsi := DesenhoSilo.new()                   # foguete crescendo no silo e subindo no lançamento
+	dsi.silo = silo
+	add_child(dsi)
 	var dv := DesenhoVisao.new()                  # oval de visão + névoa do não visto
 	dv.camera = camera
 	dv.descoberta = descoberta
@@ -1022,6 +1057,11 @@ var _maq_clima: Array = []                  ## semeador, defletor, cúpula, regu
 var _bombas_est: Array = []                 ## bombas de estação (animam bombeando)
 var _logica: Array = []                     ## sensores, comparadores e válvulas (rede lógica)
 var _sensores_v: Array = []                 ## sensores de varredura (giram com energia)
+var _farois: Array = []                     ## faróis de cristal (o carrossel gira aceso)
+var _lancadores: Array = []                 ## lançadores de sementes (o laço do estudo toca uma vez por disparo)
+var _receptores: Array = []                 ## receptores de cápsulas (o laço toca uma vez por cápsula)
+var _transportadores: Array = []            ## transportadores quânticos (anéis giram enquanto trocam itens)
+var _silos: Array = []                      ## silos de lançamento (robôs e umbilicais montando ou lançando)
 var _arcos := ArcosEletricos.new()
 
 
@@ -1033,6 +1073,11 @@ func _animar_estruturas() -> void:
 		_bombas_est = mapa.estruturas.keys().filter(func(i): return mapa.estruturas[i].nome == "bomba_estacao")
 		_logica = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).get("grupo", "") == "logica")
 		_sensores_v = mapa.estruturas.keys().filter(func(i): return Varredura.eh_sensor(mapa.estruturas[i].nome))
+		_farois = mapa.estruturas.keys().filter(func(i): return Farol.eh_farol(mapa.estruturas[i].nome))
+		_lancadores = mapa.estruturas.keys().filter(func(i): return Lancador.eh_lancador(mapa.estruturas[i].nome))
+		_receptores = mapa.estruturas.keys().filter(func(i): return Genese.eh_receptor(mapa.estruturas[i].nome))
+		_transportadores = mapa.estruturas.keys().filter(func(i): return Transportador.eh_transportador(mapa.estruturas[i].nome))
+		_silos = mapa.estruturas.keys().filter(func(i): return SiloLancamento.eh_silo(mapa.estruturas[i].nome))
 		for id in fabrica.bracos:
 			var ab := _animador(id)
 			if ab != null and mapa.estruturas.has(id):
@@ -1063,6 +1108,29 @@ func _animar_estruturas() -> void:
 			var en := 1.0 if animar_tudo else varredura.energia_de(id)
 			a.ativo = en > 0.0
 			a.ritmo = clampf(en, 0.2, 1.0)
+	# farol de cristal: o carrossel óptico (laço do estudo) gira enquanto a luz está acesa
+	for id in _farois:
+		var a := _animador(id)
+		if a != null:
+			a.ativo = farol.aceso(id) or (animar_tudo and farol.energia_de(id) > 0.0)
+			a.ritmo = 1.0
+	# lançador de sementes: culatra, recuo e pistões (laço do estudo) só durante o disparo
+	for id in _lancadores:
+		var a := _animador(id)
+		if a != null:
+			a.ativo = lancador.disparando(id)
+	for id in _receptores:
+		var a := _animador(id)
+		if a != null:
+			a.ativo = genese.animando(id)
+	for id in _silos:
+		var a := _animador(id)
+		if a != null:
+			a.ativo = silo.montando(id)
+	for id in _transportadores:
+		var a := _animador(id)
+		if a != null:
+			a.ativo = transportador.trabalhando(id) or (animar_tudo and transportador.energia_de(id) > 0.0)
 	# estação de drones: garras, plugue e braço abastecedor trabalham quando um drone nasce, pousa ou decola
 	for est in drones.estacoes():
 		var a := _animador(est)
@@ -1215,6 +1283,72 @@ func _tick_mundo(dt: float) -> void:
 	_eventos.append_array(colonia.eventos)
 	varredura.tick(dt)                                  # sensores revelam chunks (e os ninhos deles) com energia
 	varredura.eventos.clear()
+	farol.tick(dt)                                      # faróis acesos à noite: tiram a névoa e veem as aranhas
+	for ev in farol.eventos:
+		if ev.tipo == "aranhas_no_farol" and is_instance_valid(controle):
+			var d: Vector2 = (ev.de as Vector2) - farol.centro(ev.id)
+			controle._avisar("🔦 Farol: %d aranha(s) na luz, chegando %s" % [ev.n, Clima.nome_rumo(-d)])
+	farol.eventos.clear()
+	for id in lancador.lancadores:                      # parado (sem semente, alvo inválido) puxa só 5% da energia
+		fabrica.fator_kw[id] = 0.05 if lancador.ocioso(id) else 1.0
+	for id in fabrica.fator_kw.keys():
+		if not lancador.lancadores.has(id):
+			fabrica.fator_kw.erase(id)
+	lancador.tick(dt)                                   # lançadores carregam, disparam; a semente pousa e vira posto
+	for ev in lancador.eventos:
+		match ev.tipo:
+			"disparo_inicio":
+				var a := _animador(ev.id)
+				if a != null:
+					a.reiniciar()
+					a.ativo = true
+			"semente_lancada":
+				Som.tocar("tiro", Grade.ponto_mundo(lancador.centro(ev.id), 3.0), 0.0)
+				if is_instance_valid(controle):
+					controle._avisar("🚀 Núcleo-semente lançado: pousa a %d m, %s" % [roundi(lancador.centro(ev.id).distance_to(ev.para)),
+							Lancador.RUMOS[lancador.rumo(ev.id)]])
+			"semente_pousou":
+				sincronizar(ev.rel)
+				Som.tocar("impacto", Grade.ponto_mundo(ev.para, 0.5), 0.0)
+				if is_instance_valid(controle):
+					controle._avisar("🌱 A semente pousou: nasceu uma colônia (fabrica pacote gênese)" if ev.get("colonia", false)
+							else "🌱 A semente pousou: nasceu um posto avançado (núcleo-filho)")
+			"semente_perdida":
+				if is_instance_valid(controle):
+					controle._avisar("⚠ A semente se perdeu: o pouso estava ocupado, na água ou num desnível")
+	lancador.eventos.clear()
+	genese.tick(dt)                                     # colônias fabricam pacote gênese e mandam por cápsula
+	for ev in genese.eventos:
+		match ev.tipo:
+			"capsula_chegou":
+				var a := _animador(ev.receptor)
+				if a != null:
+					a.reiniciar()
+					a.ativo = true
+				Som.tocar("impacto", Grade.ponto_mundo(genese.centro(ev.receptor), 1.0), -8.0)
+			"capsula_perdida":
+				if is_instance_valid(controle):
+					controle._avisar("⚠ Uma cápsula de pacote gênese se perdeu (o receptor saiu ou encheu)")
+	genese.eventos.clear()
+	transportador.tick(dt)                              # transportadores quânticos trocam itens pelo canal
+	silo.tick(dt)                                       # silos montam o foguete; o lançamento encerra a campanha
+	for ev in silo.eventos:
+		match ev.tipo:
+			"carga_pronta":
+				if is_instance_valid(controle):
+					controle._avisar("🚀 Foguete de proliferação pronto: lance pelo painel do silo")
+			"lancamento_inicio":
+				var a := _animador(ev.id)
+				if a != null:
+					a.reiniciar()
+					a.ativo = true
+				if mapa.estruturas.has(ev.id):
+					Som.tocar("trovao", Grade.ponto_mundo(genese.centro(ev.id), 2.0), 0.0)
+			"foguete_lancado":
+				Som.tocar("pesquisa")
+				if is_instance_valid(pausa) and not OS.get_cmdline_user_args().has("roteiro"):
+					pausa.abrir(false, true)               # tela de vitória (dá para continuar jogando)
+	silo.eventos.clear()
 	drones.tick(dt)
 	_eventos_drones.append_array(drones.eventos)
 	_tempo += dt
@@ -1322,6 +1456,85 @@ func _numero_estacao(id: int) -> int:
 		if grafo.estacoes[i].estrutura == id:
 			return i + 1
 	return 0
+
+
+## Painel do silo de lançamento: partes, propelente, carga-semente e o botão de lançar.
+func _detalhe_silo(id: int, linhas: Array[String], opcoes: Array) -> void:
+	var r := SiloLancamento.regra(mapa.estruturas[id].nome)
+	var it := silo.itens(id)
+	linhas.append("Foguete de proliferação: %d de %d partes%s" % [silo.partes(id), int(r.get("partes", 100)), " · carga-semente dentro" if silo.tem_carga(id) else ""])
+	var pede: Array[String] = []
+	for k in r.get("parte", {}):
+		pede.append("%d %s (%d dentro)" % [int(r.parte[k]), _nome_item(k).to_lower().replace("_", " "), int(it.get(k, 0))])
+	for fl in r.get("parte_fluido", {}):
+		pede.append("%d %s pelo cano (%.0f no tanque)" % [int(r.parte_fluido[fl]), fl.replace("_", " "), silo.propelente(id)])
+	linhas.append("Cada parte: %s" % ", ".join(pede))
+	var pc: Array[String] = []
+	for k in r.get("carga", {}):
+		pc.append("%d %s (%d)" % [int(r.carga[k]), _nome_item(k).to_lower().replace("_", " "), int(it.get(k, 0))])
+	linhas.append("Carga-semente (pesquisa Foguete de proliferação): %s" % ", ".join(pc))
+	match silo.motivo(id):
+		"": linhas.append("Montando: %d%%" % (float(mapa.estruturas[id].get("silo_t", 0.0)) / float(r.get("parte_s" if silo.partes(id) < int(r.get("partes", 100)) else "carga_s", 10)) * 100))
+		"sem_energia": linhas.append("Parado: sem energia (%d kW)" % int(Registro.estruturas[mapa.estruturas[id].nome].get("energia_kw", 0)))
+		"faltam_itens": linhas.append("Esperando as peças (braço nas bocas sul e oeste) — casco, processador quântico, mapa estelar e módulo 3 ainda estão em desenvolvimento")
+		"falta_propelente": linhas.append("Esperando o propelente de cristal (cano, boca leste) — ainda em desenvolvimento")
+		"falta_pesquisa_carga": linhas.append("Partes prontas: a carga-semente espera a pesquisa Foguete de proliferação")
+		"pronto": linhas.append("PRONTO PARA LANÇAR")
+		"lancando": linhas.append("LANÇANDO…")
+	if int(mapa.estruturas[id].get("lancados", 0)) > 0:
+		linhas.append("Foguetes lançados daqui: %d" % int(mapa.estruturas[id].lancados))
+	if silo.pronto(id) and not silo.lancando.has(id):
+		opcoes.append({"texto": "🚀 Lançar o foguete (fim da campanha)", "acao": func(): silo.lancar(id); _detalhe()})
+
+
+## Painel do lançador de sementes: semente, alvo (rumo e distância), carga e por que está parado.
+func _detalhe_lancador(id: int, linhas: Array[String], opcoes: Array, botoes: Array) -> void:
+	var r := Lancador.regra(mapa.estruturas[id].nome)
+	linhas.append("Núcleo-semente: %d de %d (entra por braço; boca sul)" % [lancador.sementes(id), int(r.get("capacidade", 1))])
+	var d := lancador.distancia(id)
+	linhas.append("Alvo: %d m a %s — onde pousa nasce um posto avançado (núcleo-filho)" % [roundi(d), Lancador.RUMOS[lancador.rumo(id)]])
+	match lancador.motivo(id):
+		"": linhas.append("Carregando: %d%% (%d kW)" % [lancador.carga(id) * 100, int(Registro.estruturas[mapa.estruturas[id].nome].get("energia_kw", 0))])
+		"disparando": linhas.append("DISPARANDO")
+		"sem_semente": linhas.append("Parado: sem núcleo-semente (montadora; receita da pesquisa Núcleo-semente)")
+		"desligado": linhas.append("Desligado")
+		"sem_energia": linhas.append("Parado: sem energia (poste perto)")
+		"alvo_invalido": linhas.append("Alvo inválido: água, desnível ou ocupado em volta — escolha outro rumo ou distância")
+	if not lancador.voos.is_empty():
+		linhas.append("Sementes no ar: %d" % lancador.voos.filter(func(v): return int(v.lancador) == id).size())
+	for i in 8:
+		var ri: int = i
+		opcoes.append({"texto": "Rumo: %s" % Lancador.RUMOS[ri], "ligado": lancador.rumo(id) == ri, "acao": func(): lancador.mirar(id, ri, lancador.distancia(id)); _detalhe()})
+	var passo := 50
+	var dmin := int(r.get("alcance_min", 60))
+	var dmax := int(r.get("alcance", 400))
+	for dd in [-100, -passo, passo, 100]:
+		var ddd: int = dd
+		botoes.append({"texto": "Distância %+d m (agora %d, de %d a %d)" % [ddd, roundi(d), dmin, dmax], "acao": func():
+			lancador.mirar(id, lancador.rumo(id), lancador.distancia(id) + ddd); _detalhe()})
+
+
+## Painel do posto avançado (núcleo-filho): energia própria, estoque e o raio da obra que paga com ele.
+func _detalhe_posto(id: int, e: Dictionary, regra: Dictionary, linhas: Array[String]) -> void:
+	var b: Dictionary = fabrica.baus[id]
+	var n := 0
+	for k in b:
+		n += int(b[k])
+	var maquinas := 0
+	for o in Fiacao.fios(e):
+		if mapa.estruturas.has(o) and Fiacao.papel(mapa.estruturas[o].nome) in ["consumo", "fonte"]:
+			maquinas += 1
+	linhas.append("Núcleo-filho: %d kW próprios, sem cabo, para as máquinas até %d m da borda (%d ligada%s)" % [-int(regra.get("energia_kw", 0)),
+			int(regra.get("raio_ligacao", 7)), maquinas, "" if maquinas == 1 else "s"])
+	linhas.append("Estoque próprio: %d de %d itens (entra e sai por braço; drones logísticos usam como estoque)" % [n, fabrica.capacidade_bau(id)])
+	linhas.append("Conteúdo: %s" % _lista_itens(b))
+	if construtor.cobrar:
+		linhas.append("Obras a até %d m pagam primeiro com este estoque; o que faltar sai do núcleo" % int(regra.posto.get("raio_obra", 32)))
+	if genese.eh_colonia(id):
+		var rr := genese.receptor_para(genese.centro(id))
+		linhas.append("COLÔNIA: fabrica 1 pacote gênese a cada %d s (próximo em %d s) → %s" % [int(Genese.cfg(e.nome).get("genese_s", 30)), ceili(genese.falta_s(id)),
+				"cápsula para o receptor a %d m" % roundi(genese.centro(rr).distance_to(genese.centro(id))) if rr >= 0
+				else "sem receptor de cápsulas com energia e lugar: %d esperando aqui" % genese.esperando(id)])
 
 
 ## Painel do sensor de varredura: quantos chunks já revelou, o próximo, os ninhos marcados e (profunda) as jazidas.
@@ -1554,6 +1767,42 @@ func _detalhe() -> void:
 					opcoes.append({"texto": mc[1], "ligado": modo_c == mc[0], "acao": func(): e["modo_clima"] = mc[0]; _detalhe()})
 	elif Varredura.eh_sensor(e.nome):
 		_detalhe_varredura(id, linhas)
+	elif Genese.eh_receptor(e.nome):
+		var rec := genese.recebido(id)
+		linhas.append("Pacotes gênese: %d de %d (saem por braço; boca norte)" % [Genese._total(rec), genese.capacidade(id)])
+		linhas.append("Colônias: %d · cápsulas a caminho daqui: %d" % [genese.colonias().size(), genese.a_caminho(id)])
+		if genese.energia_de(id) <= 0.0:
+			linhas.append("Parado: sem energia (as cápsulas vão para outro receptor ou esperam na colônia)")
+		elif genese.colonias().is_empty():
+			linhas.append("Nenhuma colônia ainda: lance um núcleo-semente depois da pesquisa Colônias")
+	elif SiloLancamento.eh_silo(e.nome):
+		_detalhe_silo(id, linhas, opcoes)
+	elif Transportador.eh_transportador(e.nome):
+		var ps := transportador.pares(id)
+		linhas.append("Canal %s · %d outro%s transportador%s no canal%s" % [transportador.canal(id), ps.size(), "" if ps.size() == 1 else "s",
+				"" if ps.size() == 1 else "es", "" if not ps.is_empty() else " — ponha outro (de outra colônia) no mesmo canal"])
+		var rt := Transportador.regra(e.nome)
+		linhas.append("Entrada (sul, braço): %d de %d · saída (norte, braço): %d de %d" % [Transportador.total(transportador.entrada(id)), int(rt.get("entrada", 20)),
+				Transportador.total(transportador.saida(id)), int(rt.get("saida", 200))])
+		linhas.append("Manda %d itens/s com energia (%d kW) · já mandou %d" % [int(rt.get("taxa", 5)), int(regra.get("energia_kw", 0)), int(transportador.enviados.get(id, 0))])
+		if transportador.energia_de(id) <= 0.0:
+			linhas.append("Parado: sem energia")
+		for cn in rt.get("canais", ["A", "B", "C", "D"]):
+			var cc: String = cn
+			opcoes.append({"texto": "Canal %s" % cc, "ligado": transportador.canal(id) == cc, "acao": func(): transportador.mudar_canal(id, cc); _detalhe()})
+	elif Lancador.eh_lancador(e.nome):
+		_detalhe_lancador(id, linhas, opcoes, botoes)
+	elif Farol.eh_farol(e.nome):
+		var rf := Farol.regra(e.nome)
+		linhas.append("Luz de %d m à noite (acende quando escurece, com energia: %d kW)" % [int(rf.get("raio", 10)), int(regra.get("energia_kw", 0))])
+		if farol.energia_de(id) <= 0.0:
+			linhas.append("Apagado: sem energia (poste perto)")
+		elif not farol.noite(id):
+			linhas.append("Apagado: ainda é dia (%s)" % clima.relogio())
+		else:
+			var na_luz := farol.aranhas_na_luz(id)
+			linhas.append("ACESO — tira a névoa em volta e mostra as aranhas que chegam")
+			linhas.append("Aranhas na luz agora: %d" % na_luz.size() if not na_luz.is_empty() else "Nenhuma aranha na luz")
 	elif e.nome == "nucleo":
 		var linhas_n: Array[String] = []
 		var chaves := inventario.keys()
@@ -1589,6 +1838,8 @@ func _detalhe() -> void:
 		if pesquisa.ativa != "":
 			linhas.append("Cada unidade gasta: %s" % ", ".join(tipos.map(func(t): return "1 " + Pesquisa.nome_tipo(t))))
 		opcoes.append({"texto": "⚗  Abrir a pesquisa", "acao": abrir_pesquisa})
+	elif Fabrica.eh_posto(e.nome) and fabrica.baus.has(id):
+		_detalhe_posto(id, e, regra, linhas)
 	elif fabrica.baus.has(id):
 		var n := 0
 		for k in fabrica.baus[id]:

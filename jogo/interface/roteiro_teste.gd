@@ -1581,9 +1581,15 @@ func _bosque(especies: Array = ["arv_carvalho", "arv_betula"]) -> Vector2i:
 
 
 ## Tira ninhos (e suas aranhas) a até 60 tiles: cena só da limpeza.
-## Lote 17 (sensor de varredura) sem janela: num chão plano longe do spawn põe gerador, postes e um sensor; adianta o
-## relógio dele para revelar um chunk por passo e imprime chunks revelados, ninhos marcados, jazidas medidas (a demo
-## tem a Varredura profunda), as marcas desenhadas e o painel. `-- modo demo roteiro lote17`.
+## Lote 17 (proliferação) sem janela: num chão plano longe do spawn põe gerador, poste e um sensor de varredura; adianta
+## o relógio dele para revelar um chunk por passo e imprime chunks revelados, ninhos marcados, jazidas medidas (a demo
+## tem a Varredura profunda), as marcas desenhadas e o painel. Também põe um farol de cristal no poste e outro no posto
+## avançado (energia própria, sem cabo), um lançador de sementes ligado ao posto com uma semente e alvo a 100 m:
+## dispara, a cápsula voa e o pouso vira um posto avançado novo (na demonstração, colônia); a colônia manda um pacote
+## gênese por cápsula ao receptor de cápsulas; dois transportadores quânticos no canal A trocam engrenagens; vira
+## meia-noite e os faróis acendem; um silo de lançamento com o foguete montado (partes e carga postas pelo roteiro:
+## as peças ainda não existem) lança — o roteiro não abre a tela de vitória.
+## `-- modo demo roteiro lote17`.
 func _roteiro_lote17() -> void:
 	var ids := {}
 	var w := [Vector2i(9999, 0)]
@@ -1597,8 +1603,8 @@ func _roteiro_lote17() -> void:
 				if w[0].x != 9999:
 					break
 				var ok := true
-				for i in range(-2, 14):
-					for j in range(-2, 10):
+				for i in range(-2, 20):
+					for j in range(-2, 15):
 						var q := t + Vector2i(i, j)
 						if g.terreno(q) != GeradorMundo.Terreno.TERRA or g.nivel(q) != g.nivel(t) or g.em_encosta(q) or m.tiles.has(q):
 							ok = false
@@ -1608,17 +1614,40 @@ func _roteiro_lote17() -> void:
 		print("LOTE17 chão ", o)
 		if o.x == 9999:
 			return
-		for i in range(-2, 14):
-			for j in range(-2, 10):
+		for i in range(-2, 20):
+			for j in range(-2, 15):
 				m.limpar_obstaculo(o + Vector2i(i, j))
 		var con: Construtor = cena.construtor
 		var p := func(pl: Array[Dictionary]) -> void: cena.sincronizar(con.executar(pl))
 		p.call(con.plano_peca("sensor_varredura", o + Vector2i(1, 2), 0))
 		p.call(con.plano_peca("poste_energia", o + Vector2i(4, 3), 0))
 		p.call(con.plano_peca("gerador", o + Vector2i(7, 2), 0))
+		p.call(con.plano_peca("farol_cristal", o + Vector2i(4, 6), 0))
+		p.call(con.plano_peca("posto_avancado", o + Vector2i(10, 6), 0))
+		p.call(con.plano_peca("farol_cristal", o + Vector2i(14, 8), 0))
+		p.call(con.plano_peca("lancador_sementes", o + Vector2i(14, 1), 0))
+		p.call(con.plano_peca("receptor_capsulas", o + Vector2i(1, 7), 0))
+		p.call(con.plano_peca("transportador_quantico", o + Vector2i(17, 6), 0))
+		p.call(con.plano_peca("transportador_quantico", o + Vector2i(6, 9), 0))
+		p.call(con.plano_peca("silo_lancamento", o + Vector2i(1, 11), 0))
+		var tqs: Array = m.estruturas.keys().filter(func(i): return m.estruturas[i].nome == "transportador_quantico")
+		if tqs.size() == 2:
+			ids["tq_a"] = tqs[0]
+			ids["tq_b"] = tqs[1]
+			(cena.transportador as Transportador).entrada(tqs[0])["engrenagem"] = 10
 		for id in m.estruturas:
 			ids[m.estruturas[id].nome] = id
-		print("LOTE17 construiu ", ids.has("sensor_varredura"), " ", ids.has("gerador"))
+		print("LOTE17 construiu ", ids.has("sensor_varredura"), " ", ids.has("gerador"), " farol ", ids.has("farol_cristal"),
+				" posto ", ids.has("posto_avancado"), " lançador ", ids.has("lancador_sementes"))
+		if ids.has("lancador_sementes"):
+			var l: Lancador = cena.lancador
+			var li: int = ids.lancador_sementes
+			m.estruturas[li]["sementes"] = 1
+			for r in 8:                                    # primeiro rumo com pouso a 100 m
+				l.mirar(li, r, 100)
+				if l.lugar_de_pouso(l.alvo(li)) != Lancador.SEM_LUGAR:
+					break
+			print("LOTE17 lançador alvo %s %d m motivo '%s'" % [Lancador.RUMOS[l.rumo(li)], l.distancia(li), l.motivo(li)])
 		cena.camera.alvo = Grade.centro_mundo(o + Vector2i(2, 3))
 		cena.camera.distancia = 30.0
 		cena.camera.posicionar())
@@ -1633,6 +1662,50 @@ func _roteiro_lote17() -> void:
 			var s: int = ids.get("sensor_varredura", -1)
 			if s >= 0 and v.sensores.has(s):
 				v.sensores[s].t = 59.9)
+	em(150, func():                                    # adianta a carga do lançador: dispara já
+		if ids.has("lancador_sementes"):
+			var l: Lancador = cena.lancador
+			if l.lancadores.has(ids.lancador_sementes):
+				l.lancadores[ids.lancador_sementes].t = 19.99
+			print("LOTE17 lançador energia %.2f carga %.2f motivo '%s'" % [l.energia_de(ids.lancador_sementes), l.carga(ids.lancador_sementes), l.motivo(ids.lancador_sementes)]))
+	em(190, func():                                    # foguete montado pelo roteiro (as peças ainda não existem): lança
+		if ids.has("silo_lancamento"):
+			cena.mapa.estruturas[ids.silo_lancamento]["partes"] = 100
+			cena.mapa.estruturas[ids.silo_lancamento]["carga"] = true
+			print("LOTE17 silo pronto %s lançou %s" % [(cena.silo as SiloLancamento).pronto(ids.silo_lancamento), (cena.silo as SiloLancamento).lancar(ids.silo_lancamento)]))
+	em(260, func():
+		if ids.has("silo_lancamento"):
+			var ds: DesenhoSilo = null
+			for c in cena.get_children():
+				if c is DesenhoSilo:
+					ds = c
+			var sl: SiloLancamento = cena.silo
+			cena._sel = {"estrutura": ids.silo_lancamento}
+			cena._detalhe()
+			print("LOTE17 silo subindo %.1f m, foguetes à vista %d, anima %s" % [sl.subida(ids.silo_lancamento), ds.visiveis() if ds != null else -1,
+					(cena._animador(ids.silo_lancamento) as Animador).ativo if cena._animador(ids.silo_lancamento) != null else "sem animador"]))
+	em(185, func():
+		if ids.has("lancador_sementes"):
+			var l: Lancador = cena.lancador
+			var dl: DesenhoLancador = null
+			for c in cena.get_children():
+				if c is DesenhoLancador:
+					dl = c
+			print("LOTE17 disparo %s voos %d anima %s desenho %s" % [l.disparando(ids.lancador_sementes), l.voos.size(),
+					(cena._animador(ids.lancador_sementes) as Animador).ativo if cena._animador(ids.lancador_sementes) != null else "sem animador",
+					dl.contagem() if dl != null else {}])
+			cena._sel = {"estrutura": ids.lancador_sementes}
+			cena._detalhe()
+			print("LOTE17 painel lançador"))
+	em(300, func():
+		(cena.clima as Clima).hora = 0.0                # meia-noite: os faróis acendem
+		var g: Genese = cena.genese
+		for c in g.colonias():                           # adianta a colônia: o pacote gênese sai já
+			cena.mapa.estruturas[c]["genese_t"] = 29.9
+		print("LOTE17 colônias %d receptores %d" % [g.colonias().size(), g.receptores().size()]))
+	em(330, func():
+		var g: Genese = cena.genese
+		print("LOTE17 cápsulas gênese no ar %d" % g.voos.size()))
 	em(200, func():
 		if ids.has("sensor_varredura"):
 			cena._sel = {"estrutura": ids.sensor_varredura}
@@ -1651,7 +1724,47 @@ func _roteiro_lote17() -> void:
 				v.ninhos_marcados().size(), v.jazidas(s).map(func(j): return "%s %d %s" % [j.tipo, j.total, j.nivel]),
 				dv.contagem() if dv != null else {}])
 		var a := cena._animador(s) as Animador
-		print("LOTE17 anima ", a != null and a.ativo))
+		print("LOTE17 anima ", a != null and a.ativo)
+		var fa: Farol = cena.farol
+		var df: DesenhoFarol = null
+		for c in cena.get_children():
+			if c is DesenhoFarol:
+				df = c
+		var f: Fabrica = cena.fabrica
+		var postos := m_postos(cena.mapa)
+		print("LOTE17 faróis acesos %d luzes %d · energia farol do posto %.2f · postos %d · lançador sementes %d voos %d" % [fa.acesos().size(),
+				df.acesas() if df != null else -1, f.energia(_farol_do_posto(cena.mapa, ids)), postos.size(),
+				(cena.lancador as Lancador).sementes(ids.get("lancador_sementes", -1)), (cena.lancador as Lancador).voos.size()])
+		var g: Genese = cena.genese
+		var tr: Transportador = cena.transportador
+		var recs := g.receptores()
+		print("LOTE17 receptor gênese %d · colônias %d (kit drones %s) · transportador saída B %s" % [Genese._total(g.recebido(recs[0])) if not recs.is_empty() else -1,
+				g.colonias().size(), str(g.colonias().map(func(c): return int(f.baus.get(c, {}).get("drone", 0)))),
+				str(tr.saida(ids.tq_b)) if ids.has("tq_b") else "-"])
+		for k in ["posto_avancado", "receptor_capsulas", "tq_a"]:
+			if ids.has(k):
+				cena._sel = {"estrutura": ids[k]}
+				cena._detalhe()
+		if not g.colonias().is_empty():
+			cena._sel = {"estrutura": g.colonias()[0]}
+			cena._detalhe()
+		print("LOTE17 painéis posto, receptor, transportador, colônia")
+		if ids.has("silo_lancamento"):
+			print("LOTE17 silo lançados %d partes %d" % [int(cena.mapa.estruturas[ids.silo_lancamento].get("lancados", 0)),
+					(cena.silo as SiloLancamento).partes(ids.silo_lancamento)]))
+
+
+static func m_postos(m: MapaOcupacao) -> Array:
+	return m.estruturas.keys().filter(func(i): return m.estruturas[i].nome == "posto_avancado")
+
+
+## O farol posto encostado no posto avançado (o segundo farol do roteiro).
+static func _farol_do_posto(m: MapaOcupacao, ids: Dictionary) -> int:
+	var melhor := -1
+	for i in m.estruturas:
+		if m.estruturas[i].nome == "farol_cristal" and (melhor < 0 or i > melhor):
+			melhor = i
+	return melhor
 
 
 func _sem_ninhos(w: Vector2i) -> void:

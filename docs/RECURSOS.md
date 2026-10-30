@@ -227,6 +227,12 @@ Ficha de cada peça do menu: energia, o que guarda, integridade (♥), custo e a
 | Peça | Ficha | ♥ | Custo | Libera |
 |---|---|---|---|---|
 | **Sensor de varredura** — 2×2 com energia (150 kW): revela os chunks em volta, 1 por minuto (até 6; 16 com a Varredura profunda), e marca os ninhos deles no mapa. | usa 150 kW | 450 | 20 placa de ferro, 10 engrenagem, 5 circuito, 2 cristal lapidado | Sensor de varredura |
+| **Farol de cristal** — 1×1 com energia (30 kW): à noite acende uma luz de 10 m — mostra a fábrica, tira a névoa em volta e avisa quando aranhas entram na luz. | usa 30 kW | 150 | 6 placa de ferro, 2 circuito, 2 cristal lapidado | Farol de cristal |
+| **Posto avançado** — 3×3 núcleo-filho: 150 kW sem cabo para as máquinas em volta, como o núcleo, e estoque próprio (3.200 itens, por braço): obras a até 32 m pagam primeiro com ele. | gera até 150 kW · 3200 itens | 1500 | 60 placa de ferro, 30 barra de aço, 20 engrenagem, 10 circuito, 4 processador, 2 núcleo de cristal | Posto avançado |
+| **Lançador de sementes** — 3×3 com energia (600 kW): recebe o núcleo-semente por braço (boca sul) e o lança a até 400 m no rumo escolhido no painel; onde pousa nasce um posto avançado. | usa 600 kW | 900 | 60 barra de aço, 40 placa de cobre, 10 motor, 10 processador, 20 liga leve | Núcleo-semente |
+| **Receptor de cápsulas** — 2×2 com energia (100 kW): recebe as cápsulas das colônias — 1 pacote gênese a cada 30 s de cada colônia — e guarda até 100 para os braços (saída ao norte). | usa 100 kW | 600 | 30 barra de aço, 20 placa de cobre, 4 motor, 10 circuito, 10 liga leve | Colônias |
+| **Transportador quântico** — 3×3 com energia (500 kW): o braço põe itens na entrada (sul) e eles saem, sem trilho, no outro transportador do mesmo canal (A–D), 5 por segundo. | usa 500 kW | 800 | 40 liga leve, 20 processador, 10 cristal carregado, 60 placa de cobre, 40 barra de aço | Transportador quântico |
+| **Silo de lançamento** — 3×3 com energia (1 MW): monta o foguete de proliferação — 100 partes (casco + 5 processadores quânticos por braço e 50 de propelente pelo cano) — e a carga-semente; lançar encerra a campanha. | usa 1000 kW | 3000 | 200 barra de aço, 100 liga leve, 40 processador, 20 motor, 100 placa de cobre | Silo de lançamento |
 
 ### Trilhos
 

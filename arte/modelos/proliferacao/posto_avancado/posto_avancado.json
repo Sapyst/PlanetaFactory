@@ -1,0 +1,92 @@
+{
+ "nome": "posto_avancado",
+ "categoria": "proliferacao",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Posto avançado 3×3 (estudo_posto_avancado.py): bunker octogonal com 4 bocas de esteira nas bordas, 4 silos de estoque com visores de LED e pistões de compactação, cúpula central e torre sem fio com o cristal-núcleo violeta e a antena irradiadora que gira. Núcleo-filho: estoque próprio e 150 kW sem fio.",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_ENT_N1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_ENT_L1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    1.5,
+    0.0,
+    0.23
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_ENT_O1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    -1.5,
+    0.0,
+    0.23
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 8746,
+ "dims": [
+  3.02,
+  3.02,
+  2.67
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_posto_avancado.py"
+}

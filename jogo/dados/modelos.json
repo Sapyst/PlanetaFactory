@@ -9882,6 +9882,227 @@
   "estudo": "estudo_viveiro2_semeador.py",
   "modelo": "res://assets/modelos/maquinas/viveiro_2.glb"
  },
+ "farol_cristal": {
+  "nome": "farol_cristal",
+  "categoria": "proliferacao",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Farol de cristal 1×1 (estudo_farol_cristal.py): laje chanfrada, torre treliçada de 4 montantes com estais e eletrocalha, caixa de disjuntores e transformador; no alto, gaiola de garras com o cristal âmbar entre anéis de indução e o carrossel óptico (espelho parabólico e lente condensadora) que gira. Com energia, à noite acende uma luz de 10 m e avisa das aranhas que entram nela.",
+  "ocupa_canto": false,
+  "portas": [],
+  "tris": 5080,
+  "dims": [
+   1.06,
+   1.061,
+   2.84
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "estudo": "estudo_farol_cristal.py",
+  "modelo": "res://assets/modelos/proliferacao/farol_cristal.glb"
+ },
+ "lancador_sementes": {
+  "nome": "lancador_sementes",
+  "categoria": "proliferacao",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Lançador de sementes 3×3 (estudo_lancador_sementes.py): laje com sapatas de recuo, esteira de rolete ao sul, berço de municiamento, culatra blindada e tubo acelerador eletromagnético com 5 bobinas de cobre, freio de boca e par de pistões de recuo. Recebe o núcleo-semente e o lança a até 400 m: a semente vira um posto avançado onde pousa.",
+  "ocupa_canto": false,
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   }
+  ],
+  "tris": 6020,
+  "dims": [
+   2.916,
+   3.282,
+   4.344
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "estudo": "estudo_lancador_sementes.py",
+  "modelo": "res://assets/modelos/proliferacao/lancador_sementes.glb"
+ },
+ "posto_avancado": {
+  "nome": "posto_avancado",
+  "categoria": "proliferacao",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Posto avançado 3×3 (estudo_posto_avancado.py): bunker octogonal com 4 bocas de esteira nas bordas, 4 silos de estoque com visores de LED e pistões de compactação, cúpula central e torre sem fio com o cristal-núcleo violeta e a antena irradiadora que gira. Núcleo-filho: estoque próprio e 150 kW sem fio.",
+  "ocupa_canto": false,
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_ENT_N1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_ENT_L1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     1.5,
+     0.0,
+     0.23
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_ENT_O1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     -1.5,
+     0.0,
+     0.23
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 8746,
+  "dims": [
+   3.02,
+   3.02,
+   2.67
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "estudo": "estudo_posto_avancado.py",
+  "modelo": "res://assets/modelos/proliferacao/posto_avancado.glb"
+ },
+ "receptor_capsulas": {
+  "nome": "receptor_capsulas",
+  "categoria": "proliferacao",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Receptor de cápsulas 2×2 (estudo_receptor_capsulas.py): laje com funil de captura em aço escuro, anéis de indução de cobre, 4 garras hidráulicas articuladas com pistões, empurrador na base do funil, rampa de saída ao norte com roletes e cortina de borracha, unidade hidráulica e mastro de telemetria com estrobo. Recebe as cápsulas das colônias (pacotes gênese), que freiam no funil e saem pelo norte.",
+  "ocupa_canto": false,
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_SAI_N0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     -0.5,
+     1.0,
+     0.23
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 5912,
+  "dims": [
+   1.934,
+   1.947,
+   1.97
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "estudo": "estudo_receptor_capsulas.py",
+  "modelo": "res://assets/modelos/proliferacao/receptor_capsulas.glb"
+ },
  "sensor_varredura": {
   "nome": "sensor_varredura",
   "categoria": "proliferacao",
@@ -9913,6 +10134,147 @@
   "anima": true,
   "estudo": "estudo_sensor_varredura.py",
   "modelo": "res://assets/modelos/proliferacao/sensor_varredura.glb"
+ },
+ "silo_lancamento": {
+  "nome": "silo_lancamento",
+  "categoria": "proliferacao",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Silo de lançamento 3×3 (estudo_silo_lancamento.py): laje refratária com grelhas, poço central com 4 garras de retenção, torre de lançamento treliçada a nordeste com braços umbilicais basculantes, dois robôs de solda e montagem, usina de propelente criogênico a leste e bocas de esteira ao sul e a oeste. Monta o foguete de proliferação por 100 partes e, com a carga-semente, lança: fim da campanha.",
+  "ocupa_canto": false,
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_ENT_O1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     -1.5,
+     0.0,
+     0.23
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_ENT_L1",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     1.5,
+     0.0,
+     0.35
+    ],
+    "dir": [
+     1,
+     0,
+     0
+    ]
+   }
+  ],
+  "tris": 4368,
+  "dims": [
+   3.062,
+   3.062,
+   3.55
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "estudo": "estudo_silo_lancamento.py",
+  "modelo": "res://assets/modelos/proliferacao/silo_lancamento.glb"
+ },
+ "transportador_quantico": {
+  "nome": "transportador_quantico",
+  "categoria": "proliferacao",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Transportador quântico 3×3 (estudo_transportador_quantico.py): laje com 4 pilones treliçados e projetores de campo, ressonador de 3 níveis com anéis em contra-rotação (prata e cobre) e o cristal hiper-facetado levitando, estação criogênica a oeste e banco de condensadores a leste, esteiras de roletes ao sul (entrada) e ao norte (saída). Troca itens com outro transportador do mesmo canal, sem trilho.",
+  "ocupa_canto": false,
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.0,
+     -1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_N1",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     0.0,
+     1.5,
+     0.23
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "tris": 7550,
+  "dims": [
+   2.931,
+   2.931,
+   2.216
+  ],
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "anima": true,
+  "estudo": "estudo_transportador_quantico.py",
+  "modelo": "res://assets/modelos/proliferacao/transportador_quantico.glb"
  },
  "esteira_ht": {
   "nome": "esteira_ht",

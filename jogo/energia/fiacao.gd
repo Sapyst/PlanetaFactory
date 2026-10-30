@@ -26,15 +26,20 @@ static func papel(nome: String) -> String:
 	return ""
 
 
-## A ligação a–b é sem cabo? Torre sem fio sempre; núcleo só com máquina (área em volta) — com poste é cabo:
-## a energia da central sai pelo fio e vai longe pela linha de postes.
+## A ligação a–b é sem cabo? Torre sem fio sempre; núcleo (e posto avançado, o núcleo-filho) só com máquina (área em
+## volta) — com poste é cabo: a energia da central sai pelo fio e vai longe pela linha de postes.
 static func liga_sem_cabo(a: Dictionary, b: Dictionary) -> bool:
 	if a.nome == "torre_sem_fio" or b.nome == "torre_sem_fio":
 		return true
-	if a.nome == "nucleo" or b.nome == "nucleo":
-		var outro: Dictionary = b if a.nome == "nucleo" else a
+	if eh_nucleo(a.nome) or eh_nucleo(b.nome):
+		var outro: Dictionary = b if eh_nucleo(a.nome) else a
 		return papel(outro.nome) != "poste"
 	return eh_sem_fio(a.nome) or eh_sem_fio(b.nome)
+
+
+## Núcleo ou núcleo-filho (posto avançado): fonte própria que liga as máquinas em volta sem cabo.
+static func eh_nucleo(nome: String) -> bool:
+	return nome == "nucleo" or Registro.estruturas.get(nome, {}).has("posto")
 
 
 static func eh_sem_fio(nome: String) -> bool:

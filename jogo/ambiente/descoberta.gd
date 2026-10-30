@@ -66,6 +66,31 @@ func marcar_chunk(k: Vector2i) -> int:
 	return novas
 
 
+## Marca as células cujo centro está a até `r` m de `c` (farol aceso). Devolve quantas eram novas.
+func marcar_circulo(c: Vector2, r: float) -> int:
+	var novas := 0
+	for cy in range(floori((c.y - r) / CEL), floori((c.y + r) / CEL) + 1):
+		for cx in range(floori((c.x - r) / CEL), floori((c.x + r) / CEL) + 1):
+			if Vector2(cx * CEL + CEL * 0.5, cy * CEL + CEL * 0.5).distance_to(c) > r:
+				continue
+			var t := Vector2i(cx * CEL, cy * CEL)
+			var k := Grade.chunk_de(t)
+			if not celulas.has(k):
+				var nova := PackedByteArray()
+				nova.resize(POR_CHUNK * POR_CHUNK)
+				celulas[k] = nova
+			var l := t - k * Grade.TAM_CHUNK
+			var i := (l.y / CEL) * POR_CHUNK + l.x / CEL
+			var arr: PackedByteArray = celulas[k]
+			if arr[i] == 0:
+				arr[i] = 255
+				celulas[k] = arr
+				novas += 1
+	if novas > 0:
+		versao += 1
+	return novas
+
+
 ## Todas as células do chunk já foram vistas?
 func chunk_completo(k: Vector2i) -> bool:
 	return celulas.has(k) and (celulas[k] as PackedByteArray).count(0) == 0

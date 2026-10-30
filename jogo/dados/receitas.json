@@ -41,6 +41,7 @@
  "foguete":          {"maquina": "montadora", "entradas": {"resina": 1, "barra_aco": 1, "circuito": 1}, "saidas": {"foguete": 1}, "tempo": 6.0},
  "granada":          {"maquina": "montadora", "entradas": {"liga_leve": 2, "foguete": 1, "tijolo": 2}, "saidas": {"granada": 1}, "tempo": 12.0},
  "pacote_militar":   {"maquina": "montadora", "entradas": {"municao": 2, "barra_aco": 1, "tijolo": 2}, "saidas": {"pacote_militar": 2}, "tempo": 10.0},
+ "nucleo_semente":   {"maquina": "montadora", "entradas": {"nucleo_cristal": 4, "celula_energia": 2, "liga_leve": 10, "processador": 2}, "saidas": {"nucleo_semente": 1}, "tempo": 60.0},
  "pacote_tempestade": {"maquina": "montadora", "entradas": {"cristal_carregado": 1, "modulo_controle": 1, "liga_leve": 1}, "saidas": {"pacote_tempestade": 2}, "tempo": 15.0},
 
  "bateria":          {"maquina": "refinador", "entradas": {"placa_cobre": 1, "placa_ferro": 1}, "entradas_fluido": {"seiva": 20}, "saidas": {"bateria": 1}, "tempo": 4.0},

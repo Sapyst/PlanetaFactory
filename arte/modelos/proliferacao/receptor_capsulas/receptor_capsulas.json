@@ -1,0 +1,47 @@
+{
+ "nome": "receptor_capsulas",
+ "categoria": "proliferacao",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Receptor de cápsulas 2×2 (estudo_receptor_capsulas.py): laje com funil de captura em aço escuro, anéis de indução de cobre, 4 garras hidráulicas articuladas com pistões, empurrador na base do funil, rampa de saída ao norte com roletes e cortina de borracha, unidade hidráulica e mastro de telemetria com estrobo. Recebe as cápsulas das colônias (pacotes gênese), que freiam no funil e saem pelo norte.",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_SAI_N0",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    -0.5,
+    1.0,
+    0.23
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  }
+ ],
+ "tris": 5912,
+ "dims": [
+  1.934,
+  1.947,
+  1.97
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_receptor_capsulas.py"
+}

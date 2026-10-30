@@ -29,8 +29,9 @@ Lista: ver docs/ARVORE_TECNOLOGIA.md (Estruturas: temos × precisamos) e arte/es
 ## Fase 3 — artes que faltam (lotes 16, 17, 13, 10, 14, 11), 1 por vez, mais enxutas no processo
 ## Fase 4 — inserir essas no jogo, 1 por vez, como na fase 2
 - [x] **Lote 16 (trilhos, drones e lógica)** — ver "Progresso das fases 3+4" abaixo.
-- [ ] Lote 17 (proliferação): [x] sensor de varredura (estudo do Antigravity) — ver "Progresso das fases 3+4"; faltam
-  farol de cristal, posto avançado, lançador de sementes, receptor de cápsulas, transportador quântico, silo.
+- [x] Lote 17 (proliferação): sensor de varredura, farol de cristal, posto avançado, lançador de sementes, receptor de
+  cápsulas (+ colônias), transportador quântico e silo de lançamento (estudos do Antigravity) — ver "Progresso das
+  fases 3+4". Tudo depois do posto avançado segue em desenvolvimento até a **Transmissão longa** (poste alto, lote 13).
 - [ ] → 13 (energia I) → 10 (produção I) → 14 (energia II) → 11 (produção II).
 
 ## Fase 5 — só no fim de TUDO (a árvore inteira funcional): fotos no jogo + baterias de testes
@@ -478,6 +479,64 @@ com a grade inteira + resultado dos testes), para ela não precisar abrir uma po
     marcados só somem quando o sensor sai (o que foi revelado continua descoberto); (4) as faixas de riqueza
     (20 mil / 60 mil) são estimativa — calibrar quando houver mapas maiores.
 
+- [x] **Lote 17: farol de cristal, posto avançado, lançador de sementes, receptor de cápsulas, transportador
+      quântico, silo de lançamento** (estudos do Antigravity, sem alteração; arte/estudos/conv_lote17.py; um por vez;
+      testes test_farol_cristal.gd, test_posto_avancado.gd, test_lancador_sementes.gd, test_receptor_capsulas.gd,
+      test_transportador_quantico.gd, test_silo_lancamento.gd; roteiro `-- modo demo roteiro lote17` ampliado). O
+      silo e o foguete de proliferação (`silo_lancamento`, `foguete_proliferacao`, modo `carga_semente`) também
+      entraram — ligados e em desenvolvimento (casco de foguete e propulsão de cristal não existem). Pesquisas novas em
+      progressao.json (5 + 2): farol_cristal (eletrônica; básico × 10) — **jogável**; posto_avancado (básico/automação/
+      militar × 50), nucleo_semente (5 pacotes × 150; item núcleo-semente + receita na montadora), colonias (5 × 200;
+      modo `colonias`; item pacote gênese, sem receita) e transportador_quantico (6 × 300, com o pacote quântico) —
+      **ligadas mas em desenvolvimento**: o posto pede a `transmissao` (poste alto, sem estudo) e o resto da
+      proliferação vem depois dele; o transportador pede também a `computacao_quantica` e o pacote quântico. Na
+      demonstração todos se constroem.
+  - **Modelos**: farol 5.080 tris (1×1; 1,06 × 1,06 × 2,84 m: os estais passam 3 cm do tile; raiz do .glb com
+    sufixo `_raiz`, senão "farol_cristal" terminaria em _cristal e o Animador pulsaria o modelo inteiro); posto 8.746
+    (3×3, 4 bocas de entrada; antena e pistões); lançador 6.020 (3×3, boca sul; sem a cápsula que voa e sem o clarão;
+    o tubo passa 0,14 m da borda norte; `para_jogo.py` ganhou a opção `amostras` porque o recuo dos quadros 50–57
+    não aparecia nas 8 amostras); receptor 5.912 (2×2, saída N0; sem a cápsula pairando e sem o canister); 
+    transportador 7.550 (3×3, entrada S1 e saída N1; sem as cargas que somem por hide_render); silo 4.368 (3×3,
+    itens S1 e O1, fluido L1; sem o foguete, que o jogo desenha crescendo com as partes e subindo). Pulsos e LEDs de
+    material ficaram acesos fixos. Ícones pelo render Workbench do icones.py (só esses 6); ícones do núcleo-semente
+    (do núcleo de cristal) e do pacote gênese (do pacote de pesquisa) derivados (derivar_icone.gd).
+  - **Função**: farol (`ambiente/farol.gd`): 30 kW; à noite (luz do dia < 0,35) acende — luz de 10 m
+    (`render/desenho_farol.gd`), tira a névoa num círculo (`Descoberta.marcar_circulo`) e avisa quando uma aranha
+    entra na luz (1 aviso a cada 30 s por farol). Posto (grupo poste, `Fiacao.eh_nucleo`, `Fabrica.eh_posto`):
+    −150 kW inesgotável sem cabo; estoque próprio de 3.200 em `Fabrica.baus` (braço; papel "estoque" dos drones); obra
+    a até 32 m paga primeiro com ele (`Construtor.estoque_local`, `_pagar`, `rel.locais` no desfazer). Lançador
+    (`ambiente/lancador.gd`): 600 kW (5% parado: `Fabrica.fator_kw`); semente por braço; rumo + distância no painel
+    (60–400 m, anel no chão); carrega 20 s × energia, dispara (laço do estudo do começo: `Animador.reiniciar`), a
+    cápsula sai em 2,08 s e voa a 40 m/s em arco; no lugar seco/plano/livre mais perto do alvo (até 6 tiles) nasce
+    o posto avançado, limpando árvores e pedras; o chunk sai da névoa (e os ninhos dele aparecem). Colônias
+    (`ambiente/genese.gd`): com `colonias`, o posto nascido da semente é colônia (kit no estoque) e faz 1 pacote
+    gênese a cada 30 s, mandado por cápsula (60 m/s) ao receptor com energia e lugar mais perto; sem receptor, espera
+    na colônia (até 20). Receptor: 100 kW, guarda 100 (braço tira), o laço toca a cada chegada. Transportador
+    (`ambiente/transportador.gd`): 500 kW; entrada 20 / saída 200 na estrutura; 5 itens/s × energia para outro do
+    mesmo canal (A–D) com lugar, em rodízio. Silo (`ambiente/silo.gd`): 1 MW; braço põe só o que a parte/carga pede;
+    1 parte a cada 10 s × energia (1 casco + 5 processadores quânticos + 50 de propelente), 100 partes, depois a
+    carga-semente (30 s, com a pesquisa do foguete); "Lançar o foguete" no painel → 6 s de subida
+    (`render/desenho_silo.gd`) e a tela de vitória (`MenuPausa.abrir(false, true)`). Save: "lancador" e "genese"
+    (voos); o resto vai na estrutura do mapa.
+  - Verificação: 68.251 verificações, 0 falhas (testar.sh); os 154 scripts compilam (carregados sem janela); a demo
+    (`--quit-after 400` e `res://cenas/mundo_demo.tscn --quit-after 600`) roda sem erro; `-- modo demo roteiro
+    lote17`: 2 faróis acesos à meia-noite (2 luzes), farol no posto com energia sem cabo, lançador disparou, a semente
+    pousou e virou colônia (kit com 2 drones), a colônia mandou 1 pacote gênese ao receptor, o transportador A
+    mandou 10 engrenagens ao B; o silo (partes e carga postas pelo roteiro) lançou o foguete. docs/RECURSOS.md
+    regerado.
+  - Pendências / decisões para Sapyst: (1) nada visto em imagem (sem fotos): silhueta, luz do farol, voo da cápsula e
+    anel do alvo; (2) a **Transmissão longa** (poste alto, lote 13) destrava toda a proliferação — até lá posto,
+    lançador, receptor e transportador só na demonstração; (3) núcleo-semente na montadora comum (a montadora 3 não
+    existe); (4) "estoque próprio" do posto = estoque de onde a obra perto dele paga primeiro (+ braço e drones) —
+    confirmar se é isso; (5) a colônia não tem modelo próprio (é o posto avançado com kit) e os 2 drones do kit vão
+    como item no estoque (não viram frota sozinhos); (6) o transportador troca com qualquer outro do mesmo canal, sem
+    exigir que esteja numa colônia; (7) a boca N0 do receptor fica no tile oeste, mas a rampa do estudo sai no meio da
+    borda (meio tile de diferença; a saída é por braço); (8) as faixas de alcance/tempo (carga 20 s, 40 m/s, 60 m/s,
+    600/100/500 kW, taxa 5/s, silo 1 MW e 10 s por parte) são estimativas — calibrar jogando; (9) o silo ainda não
+    liga no cano (o propelente de cristal não existe; entra por `SiloLancamento.abastecer`), e a vitória só abre a
+    tela (não há cena/créditos de fim); (10) o estudo `estudo_poste_alto.py` (lote 13) apareceu pronto: é ele que
+    destrava a `transmissao` e, com ela, toda a proliferação.
+
 ### Lista para a fase 3 — estruturas da árvore ainda sem estudo/modelo
 (Fonte: "Estruturas: temos × precisamos" do docs/ARVORE_TECNOLOGIA.md. Entre parênteses, o que cada uma destrava do que
 já está ligado e travado.)
@@ -487,8 +546,8 @@ já está ligado e travado.)
   laboratório 2, laboratório quântico, irradiador de módulos.
 - Energia: poste alto, turbina de correnteza, gerador a fluido, painel solar 2, **turbina alta** (defletor de vento),
   acumulador 2, acumulador de cristal, reator de cristal, reator de fusão, núcleo de singularidade.
-- Proliferação: ~~sensor de varredura~~ (lote 17, feito), farol de cristal, posto avançado, lançador de
-  sementes, receptor de cápsulas, transportador quântico, silo de lançamento.
+- Proliferação: ~~sensor de varredura, farol de cristal, posto avançado, lançador de sementes, receptor de cápsulas,
+  transportador quântico, silo de lançamento~~ (lote 17, feitos).
 - Drones: se Sapyst quiser modelo próprio, porto logístico e baús provedor/requisitante (o estoque já tem, lote 16).
 - Com estudo mas ainda fora do jogo: divisor/junção de cada nível (hoje os de 3 vias servem a todas as classes).
 - Travados por pesquisa sem estudo (lote 16 pronto, esperando): braço quântico (`computacao_quantica`).

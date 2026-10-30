@@ -21,6 +21,8 @@ Opções de CONFIG além de script/cat/tris/tex/tirar:
   estudo    nome do estudo gravado no .json quando `script` é um conv_*.py que monta o estudo com remendos
   quadros   duração da animação exportada em quadros (padrão 96 = laço de 4 s; a chegada do núcleo usa 240)
   animacao  nome da animação no .glb (padrão "trabalho", que o Animador toca em laço; a chegada usa "chegada")
+  amostras  quadros onde se compara a posição para achar o que se mexe (padrão: 8 do laço; movimento curto, como o
+            recuo do lançador de sementes nos quadros 50–57, precisa de amostras mais densas)
 
 Sempre (para todo estudo):
 - texto (curva FONT) vira malha antes da limpeza: entra no corpo, é reduzido e assado;
@@ -458,7 +460,7 @@ def main():
         pecas.append((pn, pd, objs))
     juntar_irmaos(usados)
     malhas = [o for o in sc.objects if o.type == 'MESH' and o.name not in usados]
-    amostras = [1, 13, 25, 37, 49, 61, 73, 85] if quadros == 96 else sorted({1 + round(i * (quadros - 1) / 23) for i in range(24)})
+    amostras = cfg.get('amostras') or ([1, 13, 25, 37, 49, 61, 73, 85] if quadros == 96 else sorted({1 + round(i * (quadros - 1) / 23) for i in range(24)}))
     din = dinamicos(amostras) if cfg.get('anima', True) else set()
     brilhantes = [o for o in malhas if any(brilha(s.material) for s in o.material_slots)]
     fixos = [o for o in malhas if o.name not in din and o not in brilhantes]

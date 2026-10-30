@@ -31,6 +31,11 @@ var _historico: Array[Dictionary] = []
 var cobrar := false
 var inventario: Dictionary = {}
 var pesquisa: Pesquisa = null
+## Postos avançados (núcleos-filhos): func(tile) -> {id, estoque: Dictionary} do posto que cobre o tile ({} = nenhum).
+## A obra que cai perto de um posto paga primeiro com o estoque dele; o que faltar sai do núcleo (`inventario`).
+var estoque_local: Callable
+## func(id) -> Dictionary: o estoque do posto `id` agora (null se ele saiu) — o desfazer devolve para ele.
+var estoque_do_posto: Callable
 ## Nível em que se constrói esteira (0 = chão, 1 = 0,5 m, 2 = 1,0 m). Rampa ↑ sobe do nível atual; ↓ desce dele.
 var nivel := 0
 const MARGEM_ROTA := 8           ## quanto o desvio pode sair do retângulo entre as pontas
@@ -478,21 +483,61 @@ func _cobrar_plano(plano: Array[Dictionary], escolhido: String) -> Array[Diction
 			it.motivo = "bloqueado"
 		return plano
 	var gasto := {}
+	var gasto_l := {}                     # posto → {item: n} (o que a obra já tirou do estoque de cada posto)
 	for it in plano:
 		var troca: bool = it.get("acao", "") == "substituir" and int(it.get("classe", 1)) != int(it.get("classe_antiga", 1))
 		if it.motivo != "" or not (it.get("acao", "colocar") in ["colocar", "trem"] or troca):
 			continue
 		var c := custo_de(it.nome, int(it.get("classe", 1)))
+		var loc := _local(it.minimo)
+		var do_l := {}
 		var cabe := true
 		for k in c:
-			if int(gasto.get(k, 0)) + int(c[k]) > int(inventario.get(k, 0)):
+			var tem_l := 0
+			if not loc.is_empty():
+				tem_l = maxi(0, int(loc.estoque.get(k, 0)) - int(gasto_l.get(loc.id, {}).get(k, 0)))
+			do_l[k] = mini(tem_l, int(c[k]))
+			if int(gasto.get(k, 0)) + int(c[k]) - int(do_l[k]) > int(inventario.get(k, 0)):
 				cabe = false
 		if not cabe:
 			it.motivo = "sem_recursos"
 			continue
 		for k in c:
-			gasto[k] = int(gasto.get(k, 0)) + int(c[k])
+			gasto[k] = int(gasto.get(k, 0)) + int(c[k]) - int(do_l[k])
+			if not loc.is_empty():
+				if not gasto_l.has(loc.id):
+					gasto_l[loc.id] = {}
+				gasto_l[loc.id][k] = int(gasto_l[loc.id].get(k, 0)) + int(do_l[k])
 	return plano
+
+
+func _local(tile: Vector2i) -> Dictionary:
+	if not estoque_local.is_valid():
+		return {}
+	var r: Variant = estoque_local.call(tile)
+	return r if r is Dictionary else {}
+
+
+## Paga o custo de uma peça posta em `tile`: primeiro o estoque do posto avançado que cobre o tile, o resto do núcleo
+## (anota os dois no relatório, para o desfazer devolver a cada um).
+func _pagar(itens: Dictionary, tile: Vector2i, rel: Dictionary) -> void:
+	if not cobrar:
+		return
+	var loc := _local(tile)
+	var resto := {}
+	for k in itens:
+		var n := int(itens[k])
+		if not loc.is_empty():
+			var d := mini(n, int(loc.estoque.get(k, 0)))
+			if d > 0:
+				loc.estoque[k] = int(loc.estoque[k]) - d
+				if not rel.locais.has(loc.id):
+					rel.locais[loc.id] = {}
+				rel.locais[loc.id][k] = int(rel.locais[loc.id].get(k, 0)) + d
+				n -= d
+		if n > 0:
+			resto[k] = n
+	_mexer_estoque(resto, -1, rel)
 
 
 ## Soma (ou tira, com sinal −1) itens no estoque e anota no relatório (para o desfazer devolver).
@@ -542,7 +587,7 @@ func executar(plano: Array[Dictionary]) -> Dictionary:
 				pass
 			"trem":
 				rel.trens.append({"tile": it.minimo, "rot": it.rot, "nome": it.nome})   # o mundo põe o trem na malha
-				_mexer_estoque(custo_de(it.nome), -1, rel)
+				_pagar(custo_de(it.nome), it.minimo, rel)
 			"limpar":
 				var o := mapa.limpar_obstaculo(it.tile)
 				if not o.is_empty():
@@ -572,12 +617,12 @@ func executar(plano: Array[Dictionary]) -> Dictionary:
 				_remover(it.id_antigo, rel)
 				if _colocar(it, rel) and troca:
 					_mexer_estoque(custo_de(velho.nome, int(velho.get("classe", 1))), 1, rel)
-					_mexer_estoque(custo_de(it.nome, int(it.get("classe", 1))), -1, rel)
+					_pagar(custo_de(it.nome, int(it.get("classe", 1))), it.minimo, rel)
 			_:
 				if _colocar(it, rel):
-					_mexer_estoque(custo_de(it.nome, int(it.get("classe", 1))), -1, rel)
+					_pagar(custo_de(it.nome, int(it.get("classe", 1))), it.minimo, rel)
 	_recalcular_pontas(rel)
-	if not _relatorio_vazio_de_fato(rel) or not rel.estoque.is_empty():
+	if not _relatorio_vazio_de_fato(rel) or not rel.estoque.is_empty() or not rel.locais.is_empty():
 		_historico.append(rel)
 		if _historico.size() > HISTORICO:
 			_historico.pop_front()
@@ -622,12 +667,19 @@ func desfazer() -> Dictionary:
 	if not h.aplainados.is_empty():
 		mapa.versao += 1
 	_mexer_estoque(h.estoque, -1, rel)
+	for pid in h.get("locais", {}):                # o que saiu do estoque de um posto volta para ele (saiu: para o núcleo)
+		var est: Variant = estoque_do_posto.call(pid) if estoque_do_posto.is_valid() and mapa.estruturas.has(pid) else null
+		for k in h.locais[pid]:
+			if est is Dictionary:
+				est[k] = int(est.get(k, 0)) + int(h.locais[pid][k])
+			else:
+				_mexer_estoque({k: h.locais[pid][k]}, 1, rel)
 	return rel
 
 
 func _relatorio_vazio() -> Dictionary:
 	return {"colocados": [] as Array[int], "removidos": [] as Array[Dictionary], "limpos": [] as Array[Dictionary],
-			"restaurados": [] as Array[Dictionary], "trens": [] as Array[Dictionary], "estoque": {}, "aplainados": []}
+			"restaurados": [] as Array[Dictionary], "trens": [] as Array[Dictionary], "estoque": {}, "locais": {}, "aplainados": []}
 
 
 func _relatorio_vazio_de_fato(r: Dictionary) -> bool:

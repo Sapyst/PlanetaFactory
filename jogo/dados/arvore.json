@@ -225,6 +225,7 @@
    ],
    "tempo": 4.0,
    "libera": "Farol 1×1: luz de 10 m à noite (mostra a fábrica e as aranhas que chegam)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "monitor_ambiental": {
@@ -1996,6 +1997,7 @@
    ],
    "tempo": 8.0,
    "libera": "Posto avançado 3×3: núcleo-filho com estoque próprio e 150 kW sem fio",
+   "existente": true,
    "tipo": "estrutura"
   },
   "torre_foguetes": {
@@ -3517,6 +3519,7 @@
    ],
    "tempo": 12.0,
    "libera": "Receita núcleo-semente e lançador de sementes 3×3 (alcance 400 m)",
+   "existente": true,
    "tipo": "receita"
   },
   "colonias": {
@@ -3550,6 +3553,7 @@
    ],
    "tempo": 12.0,
    "libera": "Semente pousada vira colônia (kit + 2 drones) que fabrica pacote gênese; receptor de cápsulas 2×2",
+   "existente": true,
    "tipo": "estrutura"
   },
   "computacao_quantica": {
@@ -4119,6 +4123,7 @@
    ],
    "tempo": 15.0,
    "libera": "Transportador quântico 3×3: troca itens entre colônias sem trilho",
+   "existente": true,
    "tipo": "estrutura"
   },
   "rede_colonias": {
@@ -4349,6 +4354,7 @@
    ],
    "tempo": 20.0,
    "libera": "Silo de lançamento 3×3 (monta o foguete por 100 partes)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "foguete_proliferacao": {
@@ -4395,6 +4401,7 @@
    ],
    "tempo": 20.0,
    "libera": "Receita carga-semente; lançar o foguete = fim da campanha",
+   "existente": true,
    "objetivo": true,
    "tipo": "objetivo"
   },
