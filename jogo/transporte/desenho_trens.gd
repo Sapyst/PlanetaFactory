@@ -45,7 +45,20 @@ func _criar(t: Trem) -> void:
 		var no: Node3D = (load(Registro.modelos[nome].modelo) as PackedScene).instantiate()
 		add_child(no)
 		Materiais.converter(no)
-		if nome == "vagao_carga":
+		# minério do próprio modelo (parte "<vagao>_pilha", dentro da gôndola): vira o nó "pilha" do carro
+		var minerio := no.find_child("*_pilha", true, false) as Node3D
+		if minerio != null:
+			var tf := minerio.transform
+			var p := minerio.get_parent() as Node3D
+			while p != no:
+				tf = p.transform * tf
+				p = p.get_parent() as Node3D
+			minerio.owner = null
+			minerio.get_parent().remove_child(minerio)
+			no.add_child(minerio)
+			minerio.transform = tf
+			minerio.name = "pilha"
+		elif nome == "vagao_carga":
 			var pilha: Node3D = (load(Registro.modelos["cristal_bruto"].modelo) as PackedScene).instantiate()
 			pilha.name = "pilha"
 			Materiais.converter(pilha)

@@ -28,6 +28,7 @@ Sempre (para todo estudo):
 - o assado é a passada DIFFUSE/COLOR, que sai preta em material metálico: metal vai a 0 antes de assar (o jogo usa
   material fosco com a cor assada);
 - material da paleta é um por cor (P_Fogo, P_Fogo.001…; o jogo lê o nome sem o sufixo);
+- pixel do atlas que o assado não escreveu (triângulo menor que 1 px) herda a cor do vizinho: nada de pinta preta;
 - empties sem malha embaixo (pivô de peça que foi para uma parte, ponteiro juntado ao corpo) saem do .glb;
 - nó cujo sufixo o Animador do jogo conhece (<x>_cristal, _giro, _helice, _pistao0…) e que não é parte declarada
   ganha nome neutro: quem o mexe é a animação do estudo, não o Animador por cima."""
@@ -335,6 +336,32 @@ def material_brilho(m):
     return novo
 
 
+def preencher_vazios(img, voltas=48):
+    """Triângulo menor que 1 px no atlas (parafuso, cabo fino, lasca da redução) não recebe pixel no assado e ficaria
+    preto (o pixel nunca escrito é 0): esses pixels herdam a cor do vizinho escrito mais próximo (dilatação)."""
+    import numpy as np
+    W, H = img.size
+    a = np.empty(W * H * 4, np.float32)
+    img.pixels.foreach_get(a)
+    a = a.reshape(H, W, 4)
+    vazio = a[:, :, :3].max(2) <= 0.0
+    for _ in range(voltas):
+        if not vazio.any():
+            break
+        cheio = ~vazio
+        soma = np.zeros((H, W, 3), np.float32)
+        n = np.zeros((H, W), np.float32)
+        for d in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            c = np.roll(cheio, d, (0, 1))
+            soma += np.roll(a[:, :, :3], d, (0, 1)) * c[..., None]
+            n += c
+        novo = vazio & (n > 0)
+        a[novo, :3] = soma[novo] / n[novo][:, None]
+        vazio &= ~novo
+    a[:, :, 3] = 1.0
+    img.pixels.foreach_set(a.ravel())
+
+
 def assar(baixos, altos, lado, nome):
     """UV único (atlas) para todas as peças baixas; assa a cor do detalhado (com a sujeira procedural) nelas."""
     sc = bpy.context.scene
@@ -380,6 +407,7 @@ def assar(baixos, altos, lado, nome):
         sc.render.bake.use_clear = primeiro
         bpy.ops.object.bake(type='DIFFUSE', pass_filter={'COLOR'}, use_clear=primeiro, margin=6)
         primeiro = False
+    preencher_vazios(img)
     caminho = os.path.join(bpy.app.tempdir, nome + '_tex.png')
     img.filepath_raw = caminho
     img.file_format = 'PNG'

@@ -5972,12 +5972,14 @@
    }
   ],
   "portas": [],
-  "tris": 100,
+  "tris": 1986,
   "dims": [
-   0.24,
-   0.24,
-   1.55
+   0.651,
+   0.695,
+   1.587
   ],
+  "anima": false,
+  "estudo": "estudo_trilhos.py",
   "modelo": "res://assets/modelos/transporte/trilhos/sinal_trem.glb"
  },
  "trilho_curva": {
@@ -6033,12 +6035,14 @@
     ]
    }
   ],
-  "tris": 768,
+  "tris": 2568,
   "dims": [
    2.92,
    2.92,
-   0.14
+   0.164
   ],
+  "anima": false,
+  "estudo": "estudo_trilhos.py",
   "modelo": "res://assets/modelos/transporte/trilhos/trilho_curva.glb"
  },
  "trilho_fim": {
@@ -6079,12 +6083,14 @@
     ]
    }
   ],
-  "tris": 96,
+  "tris": 1852,
   "dims": [
-   0.84,
-   0.92,
-   0.4
+   0.941,
+   0.98,
+   0.41
   ],
+  "anima": false,
+  "estudo": "estudo_trilhos.py",
   "modelo": "res://assets/modelos/transporte/trilhos/trilho_fim.glb"
  },
  "trilho_reto": {
@@ -6140,12 +6146,14 @@
     ]
    }
   ],
-  "tris": 72,
+  "tris": 212,
   "dims": [
    0.84,
    1.0,
-   0.14
+   0.143
   ],
+  "anima": false,
+  "estudo": "estudo_trilhos.py",
   "modelo": "res://assets/modelos/transporte/trilhos/trilho_reto.glb"
  },
  "locomotiva": {
@@ -6165,35 +6173,37 @@
     "pivo": [
      0.0,
      0.0,
-     0.12
+     0.0
     ]
    },
    {
     "nome": "truque0",
     "pai": "corpo",
     "pivo": [
-     0.0,
+     0,
      -0.85,
-     0.12
+     0.27
     ]
    },
    {
     "nome": "truque1",
     "pai": "corpo",
     "pivo": [
-     0.0,
+     0,
      0.85,
-     0.12
+     0.27
     ]
    }
   ],
   "portas": [],
-  "tris": 368,
+  "tris": 7066,
   "dims": [
-   0.72,
-   2.93,
-   1.15
+   0.77,
+   3.08,
+   1.114
   ],
+  "anima": false,
+  "estudo": "estudo_trem.py",
   "modelo": "res://assets/modelos/transporte/veiculos/locomotiva.glb"
  },
  "vagao_carga": {
@@ -6213,35 +6223,46 @@
     "pivo": [
      0.0,
      0.0,
-     0.12
+     0.0
     ]
    },
    {
     "nome": "truque0",
     "pai": "corpo",
     "pivo": [
-     0.0,
+     0,
      -0.85,
-     0.12
+     0.27
     ]
    },
    {
     "nome": "truque1",
     "pai": "corpo",
     "pivo": [
-     0.0,
+     0,
      0.85,
-     0.12
+     0.27
+    ]
+   },
+   {
+    "nome": "pilha",
+    "pai": "corpo",
+    "pivo": [
+     0,
+     0,
+     0
     ]
    }
   ],
   "portas": [],
-  "tris": 332,
+  "tris": 5967,
   "dims": [
-   0.74,
-   2.9,
-   0.84
+   0.957,
+   3.19,
+   1.191
   ],
+  "anima": false,
+  "estudo": "estudo_trem.py",
   "modelo": "res://assets/modelos/transporte/veiculos/vagao_carga.glb"
  },
  "vagao_tanque": {
@@ -6261,35 +6282,37 @@
     "pivo": [
      0.0,
      0.0,
-     0.12
+     0.0
     ]
    },
    {
     "nome": "truque0",
     "pai": "corpo",
     "pivo": [
-     0.0,
+     0,
      -0.85,
-     0.12
+     0.27
     ]
    },
    {
     "nome": "truque1",
     "pai": "corpo",
     "pivo": [
-     0.0,
+     0,
      0.85,
-     0.12
+     0.27
     ]
    }
   ],
   "portas": [],
-  "tris": 432,
+  "tris": 5751,
   "dims": [
-   0.72,
-   2.9,
-   1.05
+   0.77,
+   3.019,
+   1.144
   ],
+  "anima": false,
+  "estudo": "estudo_trem.py",
   "modelo": "res://assets/modelos/transporte/veiculos/vagao_tanque.glb"
  }
 }

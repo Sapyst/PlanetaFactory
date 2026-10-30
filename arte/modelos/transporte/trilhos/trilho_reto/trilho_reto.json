@@ -51,15 +51,17 @@
    ]
   }
  ],
- "tris": 72,
+ "tris": 212,
  "dims": [
   0.84,
   1.0,
-  0.14
+  0.143
  ],
  "materiais": [
   "P_Metal",
   "P_RochaEscura",
   "P_Tronco"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_trilhos.py"
 }

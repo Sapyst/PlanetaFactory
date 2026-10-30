@@ -20,11 +20,11 @@
   }
  ],
  "portas": [],
- "tris": 100,
+ "tris": 1986,
  "dims": [
-  0.24,
-  0.24,
-  1.55
+  0.651,
+  0.695,
+  1.587
  ],
  "materiais": [
   "P_Concreto",
@@ -32,5 +32,7 @@
   "P_Escuro",
   "P_Fogo",
   "P_Metal"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_trilhos.py"
 }

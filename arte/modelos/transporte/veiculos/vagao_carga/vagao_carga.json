@@ -15,38 +15,49 @@
    "pivo": [
     0.0,
     0.0,
-    0.12
+    0.0
    ]
   },
   {
    "nome": "truque0",
    "pai": "corpo",
    "pivo": [
-    0.0,
+    0,
     -0.85,
-    0.12
+    0.27
    ]
   },
   {
    "nome": "truque1",
    "pai": "corpo",
    "pivo": [
-    0.0,
+    0,
     0.85,
-    0.12
+    0.27
+   ]
+  },
+  {
+   "nome": "pilha",
+   "pai": "corpo",
+   "pivo": [
+    0,
+    0,
+    0
    ]
   }
  ],
  "portas": [],
- "tris": 332,
+ "tris": 5967,
  "dims": [
-  0.74,
-  2.9,
-  0.84
+  0.957,
+  3.19,
+  1.191
  ],
  "materiais": [
   "P_Cobre",
   "P_Escuro",
   "P_Metal"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_trem.py"
 }
