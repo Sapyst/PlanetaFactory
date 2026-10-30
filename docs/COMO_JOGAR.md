@@ -111,6 +111,12 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
   (1,0 contra 0,75), e o **Refinador 2** (química + ciência de tempestade) faz as do refinador **2× mais rápido**,
   sujando a metade por produto, com uma 2ª entrada de fluido ao sul. Os encaixes de módulo das duas ficam vazios por
   enquanto (os módulos ainda estão em desenvolvimento). Elas não trocam a máquina antiga: construa ao lado.
+- **Fornalhas, broca e laboratório 2** (aba Produção; também se constroem ao lado da antiga): a **Fornalha de aço** (aço +
+  automação) funde **2× mais rápido** com o mesmo carvão por segundo e polui 25% menos por produto. A **Fornalha elétrica**
+  (fornalha de aço + química) funde 2× mais rápido **só com energia** (180 kW de poste perto): sem carvão e sem poluição
+  direta. A **Broca grande** (mineração 1 + liga leve) fura a mesma jazida **2,5× mais rápido**, polui 20% menos por
+  minério e despeja na esteira ao sul, sem braço. O **Laboratório 2** (velocidade de pesquisa 2 + processador) pesquisa
+  **2× mais rápido** com os mesmos pacotes, que um braço põe nele; a Computação quântica pede ele. Encaixes de módulo vazios por enquanto.
 - **Clima** (aba Clima): em **tempestade** e **tufão** caem **raios** de verdade, perto da fábrica, nos pontos altos.
   Sem proteção, o raio tira 150 de vida da construção mais alta e pode pôr fogo no mato em volta (dentro da bolha de um
   gerador de escudo carregado, o escudo absorve). O **Para-raios** (automação + aço) pega todo raio que cairia a até

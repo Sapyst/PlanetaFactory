@@ -1,0 +1,77 @@
+{
+ "nome": "laboratorio_2",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Laboratório 2 3×3 (estudo_laboratorio_2.py): tambor de análise com gaveta e lasers, carrossel óptico no topo, braço de carga na entrada sul, entrada oeste, boca de fluido a leste, radiador em V, racks e baia com 2 encaixes de módulo. Velocidade 2,0 (o laboratório conta 1,0).",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.0,
+    -1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_ENT_O1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    -1.5,
+    0.0,
+    0.23
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_ENT_L1",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    1.5,
+    0.0,
+    0.35
+   ],
+   "dir": [
+    1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 7918,
+ "dims": [
+  3.0,
+  2.98,
+  2.445
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_laboratorio_2.py"
+}

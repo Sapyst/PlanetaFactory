@@ -34,8 +34,7 @@ Lista: ver docs/ARVORE_TECNOLOGIA.md (Estruturas: temos × precisamos) e arte/es
   fases 3+4". Tudo depois do posto avançado segue em desenvolvimento até a **Transmissão longa** (poste alto, lote 13).
 - [x] Lote 13 (energia I): poste alto, turbina de correnteza, gerador a fluido, painel solar 2, acumulador 2 (ver
   "Progresso das fases 3+4").
-- [~] Lote 10 (produção I): montadora 2 e refinador 2 — feitos; fornalha de aço, fornalha elétrica, broca grande,
-  laboratório 2 (estudos do Antigravity ainda em produção) na próxima rodada.
+- [x] Lote 10 (produção I): montadora 2, refinador 2, fornalha de aço, fornalha elétrica, broca grande, laboratório 2.
 - [x] Lote 14 (energia II): turbina alta, acumulador de cristal, reator de cristal, reator de fusão, núcleo de
   singularidade (os dois últimos em desenvolvimento até a computação quântica).
 - [ ] → 11 (produção II).
@@ -602,13 +601,34 @@ com a grade inteira + resultado dos testes), para ela não precisar abrir uma po
     funciona pela mesma regra do gerador: a esteira não enfia item em construção, precisa de braço na boca sul; (5) a
     turbina alta deixa o cata-vento e os pinhões do estudo fixos: a nacele gira pelo vento de verdade.
 
+- [x] **Lote 10, 2ª parte: fornalha de aço, fornalha elétrica, broca grande, laboratório 2** (estudos do Antigravity, sem
+      alteração; arte/estudos/conv_lote10.py; um por vez; testes test_fornalha_aco.gd, test_fornalha_eletrica.gd,
+      test_broca_grande.gd, test_laboratorio_2.gd; roteiro `-- modo demo roteiro lote10`). 4 pesquisas novas em
+      progressao.json, marcadas "existente" no .mmd.
+  - **Modelos**: fornalha de aço 6.456 tris (2×2, S1 → N0); fornalha elétrica 5.515 (2×2, S1 → N0 + fluido O1; `amostras`
+    densas para o 1º eletrodo não sair parado); broca grande 6.972 (3×3, saída S1 + fluido O1; 5,22 m de altura; a vibração
+    da peneira fica de fora, 8 mm que zeram nas amostras); laboratório 2 7.918 (3×3, S1 e O1 + fluido L1). Saem efeitos e
+    itens em trânsito do laboratório. Os lingotes ficam sempre em brasa: o esfriar era animação de material. Ícones pelo
+    render Workbench do icones.py (só esses 4).
+  - **Função e números**: ver "Lote 10, 2ª parte" em docs/ARVORE_TECNOLOGIA.md. Sem item, fluido ou receita novos.
+  - **O que o laboratório 2 destrava**: só tira o pré-requisito da computação quântica; ela segue fora do progressao.json
+    até existirem a forja quântica e o pacote quântico, então fusão, singularidade, braço quântico, esteira quântica,
+    transportador quântico, regulador climático e as infinitas continuam em desenvolvimento.
+  - Verificação: 69.001 verificações, 0 falhas (testar.sh); os 171 scripts compilam; a demo (`--quit-after 400 -- modo demo`)
+    roda sem erro; roteiro lote10: broca despejando na esteira, fornalha elétrica a 180 kW sem emissão, laboratório 2
+    gastando pacote. Nenhum teste antigo precisou de ajuste. docs/RECURSOS.md regerado.
+  - Pendências / decisões para Sapyst: (1) nada visto no jogo em imagem, só os ícones; (2) "−25% de poluição" lido por
+    produto, como no refinador 2 (6/min no total, mais que os 4 da fornalha); (3) números que a árvore não dá são
+    estimativa: kW, vida e custos de construção; (4) bocas de fluido sem função (elétrica O1, broca O1, laboratório L1);
+    (5) só o laboratório 2 para de animar quando não pesquisa; o laboratório 1 segue animando sempre.
+
 ### Lista para a fase 3 — estruturas da árvore ainda sem estudo/modelo
 (Fonte: "Estruturas: temos × precisamos" do docs/ARVORE_TECNOLOGIA.md. Entre parênteses, o que cada uma destrava do que
 já está ligado e travado.)
-- Produção: fornalha de aço, fornalha elétrica, fundição de cristal, ~~montadora 2~~ (lote 10; o pacote de tempestade
+- Produção: ~~fornalha de aço, fornalha elétrica~~ (lote 10), fundição de cristal, ~~montadora 2~~ (lote 10; o pacote de tempestade
   segue saindo também na comum), montadora 3, montadora quântica, ~~refinador 2~~ (lote 10: estação de tratamento),
-  **forja quântica** (computação quântica → regulador climático), broca grande, extrator ressonante, broca de núcleo,
-  laboratório 2, laboratório quântico, irradiador de módulos.
+  **forja quântica** (computação quântica → regulador climático), ~~broca grande~~ (lote 10), extrator ressonante, broca de
+  núcleo, ~~laboratório 2~~ (lote 10; a computação quântica não espera mais por ele), laboratório quântico, irradiador de módulos.
 - Energia: ~~poste alto, turbina de correnteza, gerador a fluido, painel solar 2, acumulador 2~~ (lote 13), ~~turbina alta,
   acumulador de cristal, reator de cristal, reator de fusão, núcleo de singularidade~~ (lote 14).
 - Proliferação: ~~sensor de varredura, farol de cristal, posto avançado, lançador de sementes, receptor de cápsulas,

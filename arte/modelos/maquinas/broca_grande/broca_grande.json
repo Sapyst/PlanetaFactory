@@ -1,0 +1,62 @@
+{
+ "nome": "broca_grande",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Broca grande 3×3 (estudo_broca_grande.py): torre treliçada com trado de tungstênio, 4 pistões de avanço, britador e peneira, unidade de força com radiador duplo, boca de fluido a oeste e esteira de saída ao sul. Velocidade 1,25 (a broca faz 0,5).",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_SAI_S1",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    0.0,
+    -1.5,
+    0.23
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_ENT_O1",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    -1.5,
+    0.0,
+    0.35
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 6972,
+ "dims": [
+  2.94,
+  2.95,
+  5.22
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_broca_grande.py"
+}

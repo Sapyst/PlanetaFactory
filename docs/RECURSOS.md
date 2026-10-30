@@ -146,12 +146,16 @@ Ficha de cada peça do menu: energia, o que guarda, integridade (♥), custo e a
 |---|---|---|---|---|
 | **Extrator de cristal** — Extrai cristal da jazida e despeja na esteira. | usa 90 kW · polui 10/min | 300 | 10 placa de ferro, 5 engrenagem, 5 placa de cobre | início |
 | **Broca** — Fura a jazida e despeja minério na esteira. | usa 90 kW · polui 10/min | 300 | 8 placa de ferro, 4 engrenagem, 5 pedra | início |
+| **Broca grande** — Fura a jazida 2,5× mais rápido e polui 20% menos por minério; despeja na esteira ao sul. | usa 300 kW · polui 20/min | 500 | 15 barra de aço, 10 liga leve, 15 engrenagem, 4 motor | Broca grande |
 | **Fornalha** — Funde minério em placas (queima carvão). | polui 4/min | 200 | 10 pedra | início |
+| **Fornalha de aço** — Funde 2× mais rápido com o mesmo fogo e polui 25% menos por produto (queima carvão). | polui 6/min | 300 | 6 barra de aço, 10 tijolo | Fornalha de aço |
+| **Fornalha elétrica** — Funde 2× mais rápido só com energia (180 kW): sem carvão e sem poluição direta; 2 encaixes de módulo. | usa 180 kW | 350 | 10 barra de aço, 5 circuito, 10 tijolo | Fornalha elétrica |
 | **Montadora** — Monta peças por receita. | usa 150 kW · polui 3/min | 300 | 12 placa de ferro, 6 engrenagem, 6 placa de cobre | início |
 | **Montadora 2** — Monta as mesmas peças mais rápido (1,0 contra 0,75), com 2 encaixes de módulo. | usa 200 kW · polui 3/min | 400 | 10 barra de aço, 10 engrenagem, 6 circuito, 2 motor | Montadora 2 |
 | **Refinador** — Processa fluidos. | usa 420 kW · polui 6/min | 350 | 5 barra de aço, 10 tubo, 5 circuito | Refino de seiva |
 | **Refinador 2** — Processa fluidos 2× mais rápido e suja a metade por produto; 2ª entrada de fluido ao sul. | usa 700 kW · polui 6/min | 500 | 30 barra de aço, 30 tubo, 6 processador, 10 liga leve, 4 motor | Refinador 2 |
 | **Laboratório** — Pesquisa com pacotes. | usa 60 kW | 150 | 10 placa de ferro, 10 placa de cobre, 5 engrenagem | início |
+| **Laboratório 2** — Pesquisa 2× mais rápido com os mesmos pacotes (2 encaixes de módulo). | usa 150 kW | 300 | 15 barra de aço, 20 placa de cobre, 4 processador, 2 motor | Laboratório 2 |
 | **Terraplenagem** — Libera Aplainar o chão em qualquer lugar. | — | 400 | 30 placa de ferro, 15 engrenagem, 40 pedra | início |
 
 ### Limpeza

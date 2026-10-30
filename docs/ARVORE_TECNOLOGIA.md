@@ -466,17 +466,17 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Refinador | 3×3 | temos | receitas com fluido | `refino` |
 | Laboratório | 3×3 | temos | pesquisa com pacotes | início |
 | Terraplenagem | 3×3 | temos | libera aplainar (e, com pesquisa, cavar canal e recuperar solo) | início |
-| Fornalha de aço | 2×2 | falta | vel. 2,0 com combustível, −25% de poluição | `fornalha_aco` |
-| Fornalha elétrica | 2×2 | falta | vel. 2,0 sem combustível, 2 módulos | `fornalha_eletrica` |
+| Fornalha de aço | 2×2 | temos (lote 10) | vel. 2,0 com combustível (o mesmo fogo: metade por produto), −25% de poluição por produto | `fornalha_aco` |
+| Fornalha elétrica | 2×2 | temos (lote 10) | vel. 2,0 sem combustível (180 kW), sem poluição direta, 2 módulos (vazios; boca de fluido a oeste) | `fornalha_eletrica` |
 | Fundição de cristal | 3×3 | falta | vel. 4,0, 4 módulos, minério direto em aço | `fundicao_cristal` |
 | Montadora 2 / Montadora 3 | 3×3 | temos a 2 (lote 10) / falta a 3 | vel. 1,0 e 2 módulos (encaixes vazios até os módulos existirem; boca de fluido a oeste) / vel. 1,5 e 4 módulos | `montadora_2`, `montadora_3` |
 | Montadora quântica | 3×3 | falta | vel. 2,5, 4 módulos, 2 receitas ao mesmo tempo | `montadora_4` |
 | Refinador 2 | 3×3 | temos (lote 10) | vel. 2,0, 3 módulos (vazios), metade da sujeira por produto, 2ª entrada de fluido ao sul | `refinador_2` |
 | Forja quântica | 3×3 | falta | processador quântico, pacote quântico, mapa estelar | `computacao_quantica` |
-| Broca grande | 3×3 | falta | 2,5× mais rápida, −20% de poluição por minério | `broca_grande` |
+| Broca grande | 3×3 | temos (lote 10) | 2,5× mais rápida (300 kW), −20% de poluição por minério; despeja na esteira ao sul (S1); boca de fluido a oeste | `broca_grande` |
 | Extrator ressonante | 3×3 | falta | 2× mais rápido no cristal | `extrator_2` |
 | Broca de núcleo | 3×3 | falta | jazida esgotada rende 10% para sempre | `broca_profunda` |
-| Laboratório 2 / Laboratório quântico | 3×3 | falta | 2× e 2 módulos / 4× e 4 módulos | `laboratorio_2`, `laboratorio_3` |
+| Laboratório 2 / Laboratório quântico | 3×3 | temos o 2 (lote 10) / falta o quântico | 2× e 2 módulos (vazios; 150 kW; boca de fluido a leste) / 4× e 4 módulos | `laboratorio_2`, `laboratorio_3` |
 | Irradiador de módulos | 3×3 | falta | divide 2 módulos com as máquinas em 3 tiles | `irradiador_modulos` |
 
 ### Limpeza
@@ -699,6 +699,17 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
   fluido ao sul. Com ele a **estação de tratamento** sai do "em desenvolvimento". Nenhuma das duas troca a máquina
   antiga no lugar (a árvore não prevê): constrói-se ao lado. O pacote de tempestade continua saindo também na
   montadora comum.
+- **Lote 10, 2ª parte (fornalha de aço, fornalha elétrica, broca grande, laboratório 2).** As mesmas receitas e jazidas
+  das máquinas de base; também não trocam a antiga no lugar. **Fornalha de aço** (`fornalha_aco`): velocidade 2,0 com o
+  mesmo fogo de 90 kW (metade do combustível por produto) e 6/min de poluição, 3 por produto contra 4 (−25%). **Fornalha
+  elétrica** (`fornalha_eletrica`): velocidade 2,0, 180 kW, sem combustível, sem poluição direta (sem fumaça, sem despejo
+  na água, não acende o mato), 2 encaixes (vazios), boca de fluido a oeste sem uso. **Broca grande** (`broca_grande`):
+  velocidade 1,25 (2,5× os 0,5 da broca), 300 kW, 20/min de poluição (−20% por minério), despeja na esteira pela saída sul
+  como a broca, ganha a produtividade de mineração; boca de fluido a oeste sem uso. **Laboratório 2** (`laboratorio_2`):
+  velocidade 2,0 (multiplica as melhorias de velocidade de pesquisa), 150 kW, 2 encaixes (vazios), pacotes por braço;
+  boca de fluido a leste sem uso. Dependem delas, e **seguem em desenvolvimento**: a `computacao_quantica` (o laboratório
+  2 era um dos seus pré-requisitos, agora resolvido; falta ela mesma, com a forja quântica e o pacote quântico), o
+  `laboratorio_3`, a `fundicao_cristal` e a `broca_profunda`. Custos de construção, kW e vida são estimativa (a árvore não dá).
 - **Em desenvolvimento (pedido de Sapyst).** Tudo o que ainda não entrou no jogo aparece em cinza escuro com a
   etiqueta "Em desenvolvimento": na tela de pesquisa, as "em breve" e as jogáveis travadas por pacote ou pesquisa que
   ainda não existe (nó clicável só para ver o detalhe, que diz o motivo; o botão vira "Em desenvolvimento" desligado;

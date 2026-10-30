@@ -49,6 +49,7 @@ func _ready() -> void:
 		"lote17": _roteiro_lote17()
 		"lote13": _roteiro_lote13()
 		"lote14": _roteiro_lote14()
+		"lote10": _roteiro_lote10()
 		"chegada":                                     # -- novo roteiro chegada abertura --fixed-fps 30: a cápsula cai e vira o núcleo
 			for q in [30, 150, 225, 235, 260, 330, 420, 450, 470, 490]:
 				em(q, func():
@@ -1667,6 +1668,76 @@ func _roteiro_lote14() -> void:
 			cena._sel = {"estrutura": id}
 			cena._detalhe()
 		print("LOTE14 painéis ok; rede ", f.rede.estat_de(ids.ns)))
+
+
+## Lote 10 (produção I, 2ª parte): fornalha de aço, fornalha elétrica e laboratório 2 no mesmo poste; broca grande na
+## jazida, com gerador próprio. Abastece e abre os painéis. `-- modo demo roteiro lote10`.
+func _roteiro_lote10() -> void:
+	var ids := {}
+	em(2, func():
+		Sessao.config.fps = false
+		var m: MapaOcupacao = cena.mapa
+		var con: Construtor = cena.construtor
+		var o := Vector2i(9999, 0)
+		for r in range(60, 400, 4):
+			for k in 48:
+				var t := Vector2i((Vector2.from_angle(k * TAU / 48.0) * r).round())
+				if o.x == 9999 and m.gerador.distribuicao.jazida(t + Vector2i(1, 1)).get("tipo", "") in Registro.estruturas.broca_grande.requer_jazida:
+					var ok := true
+					for i in range(-2, 22):
+						for j in range(-3, 8):
+							var q := t + Vector2i(i, j)
+							if m.gerador.terreno(q) != GeradorMundo.Terreno.TERRA or m.gerador.nivel(q) != m.gerador.nivel(t) or m.gerador.em_encosta(q) or m.tiles.has(q):
+								ok = false
+					if ok:
+						o = t
+		print("LOTE10 chão ", o)
+		if o.x == 9999:
+			return
+		for i in range(-2, 22):
+			for j in range(-3, 8):
+				m.limpar_obstaculo(o + Vector2i(i, j))
+		var p := func(nome: String, d: Vector2i) -> int:
+			cena.sincronizar(con.executar(con.plano_peca(nome, o + d, 0)))
+			return int(m.tiles.get(o + d, -1))
+		ids["broca"] = p.call("broca_grande", Vector2i(0, 0))
+		var e: Dictionary = m.estruturas[ids.broca]
+		var pm := Grade.porta_no_mundo(Registro.modelos.broca_grande.portas[0], e.minimo, e.area, e.rot)
+		cena.sincronizar(con.executar(con.plano_linha("esteira", pm.tile_fora, pm.tile_fora + pm.dir, Construtor.rot_do_fluxo(Grade.DIRECOES.find(pm.dir)))))
+		ids["ge"] = p.call("gerador", Vector2i(6, 0))
+		p.call("poste_energia", Vector2i(4, 2))
+		p.call("poste_energia", Vector2i(10, 2))
+		p.call("poste_energia", Vector2i(16, 2))
+		ids["aco"] = p.call("fornalha_aco", Vector2i(9, 3))
+		ids["ele"] = p.call("fornalha_eletrica", Vector2i(12, 3))
+		ids["lab"] = p.call("laboratorio_2", Vector2i(16, 5))
+		print("LOTE10 construiu ", ids.values())
+		cena.camera.alvo = Grade.centro_mundo(o + Vector2i(9, 2))
+		cena.camera.distancia = 30.0
+		cena.camera.posicionar())
+	em(6, func():
+		var f: Fabrica = cena.fabrica
+		f.reconstruir()
+		f.combustivel[ids.ge] = 5000.0
+		f.combustivel[ids.aco] = 8.0
+		for k in ["aco", "ele"]:
+			var mq: Maquina = f.maquinas[ids[k]]
+			for i in 40:
+				f.destino_em(cena.mapa.estruturas[ids[k]].minimo).receber("minerio_ferro")
+			print("LOTE10 ", k, " receita ", mq.receita_id)
+		cena.pesquisa.ativa = "aco"
+		f.laboratorios[ids.lab].pacotes = {"pacote_pesquisa": 10})
+	em(120, func():
+		var f: Fabrica = cena.fabrica
+		for k in ["broca", "aco", "ele", "lab"]:
+			var id: int = ids[k]
+			var an: Animador = cena._animador(id)
+			print("LOTE10 %s: %s kw %.0f comb %.1f emissão %.3f anima %s" % [k, cena.mapa.estruturas[id].nome, f.kw_de(id), f.combustivel.get(id, 0.0), f.emissao.get(id, 0.0),
+					an.ativo if an != null else "sem animador"])
+			cena._sel = {"estrutura": id}
+			cena._detalhe()
+		print("LOTE10 broca: ", f.maquinas[ids.broca].receita_id, " na esteira ", f.caminhos.filter(func(c): return not c.esteira.itens.is_empty()).size())
+		print("LOTE10 pacotes do laboratório ", f.laboratorios[ids.lab].pacotes))
 
 
 ## Lote 13 (energia I): gerador → poste alto → poste alto a 28 m → montadora; o fio desenhado e o anel girando.

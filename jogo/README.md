@@ -305,6 +305,12 @@ Tudo que se constrói funciona — a mini-fábrica da demo é só um mapa pronto
 - **Montadora 2 / Refinador 2** (lote 10): máquinas de receita com "maquina" igual à da 1 (mesmas receitas),
   velocidade 1,0 / 2,0 e "encaixes_modulo" 2 / 3 (só mostrados no painel: os módulos não existem). O refinador 2 tem
   uma 2ª entrada de fluido (S1) e suja o mesmo por minuto (metade por produto).
+- **Fornalha de aço / Fornalha elétrica / Broca grande / Laboratório 2** (lote 10): "maquina" `fornalha` em duas (a escolha
+  da receita pelo que chega olha "maquina", não o nome; `combustivel` só na de aço, cujo fogo é o mesmo `FOGO_KW`; a
+  elétrica é consumidora comum, sem `poluicao`, fora de `despejo` e `maquinas_quentes` em ambiente.json); `broca_grande` na
+  lista `DESPEJA_NA_ESTEIRA` e com "maquina" `broca` (jazida, produtividade); `laboratorio_2` entra em
+  `Fabrica.laboratorios` pelo grupo e conta `velocidade` da regra em `lab.t` (o Animador toca enquanto
+  `Fabrica.lab_trabalhando`; o laboratório 1 segue como era). `-- modo demo roteiro lote10` (use `--fixed-fps 30`).
 - **Sensor de varredura** (lote 17; `ambiente/varredura.gd`, regra "varredura" em `estruturas.json`): consumidor de
   150 kW; `Varredura.tick` revela, por sensor, o próximo chunk de `ordem(id)` (mais perto do centro primeiro) a cada
   `intervalo_s` × energia, até `chunks` (6) ou `chunks_profunda` (16, modo `varredura_profunda` da pesquisa

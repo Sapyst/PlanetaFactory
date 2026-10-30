@@ -1,0 +1,77 @@
+{
+ "nome": "fornalha_eletrica",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Fornalha elétrica 2×2 (estudo_fornalha_eletrica.py): cuba de arco com 3 eletrodos de grafite e braços de cobre, transformador com radiador, exaustão até o ciclone, baia com 2 encaixes de módulo, boca de fluido a oeste e bica de lingotes ao norte. Velocidade 2,0, sem combustível e sem poluição direta.",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.5,
+    -1.0,
+    0.23
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_N0",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    -0.5,
+    1.0,
+    0.23
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_ENT_O1",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    -1.0,
+    0.0,
+    0.35
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  }
+ ],
+ "tris": 5515,
+ "dims": [
+  1.97,
+  1.97,
+  2.7
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_fornalha_eletrica.py"
+}

@@ -302,7 +302,7 @@ func _montar_maquinas() -> void:
 			combustivel[id] = 0.0
 		if Registro.estruturas.get(e.nome, {}).has("agua_por_mj") and not agua_reator.has(id):
 			agua_reator[id] = 0.0
-		if e.nome == "laboratorio" and not laboratorios.has(id):
+		if Registro.estruturas.get(e.nome, {}).get("grupo", "") == "laboratorio" and not laboratorios.has(id):
 			laboratorios[id] = {"pacotes": {}, "t": 0.0, "energia": 0.0}
 		if e.nome in DISTRIBUIDORES and not distribuidores.has(id):
 			distribuidores[id] = {"buffer": [], "vez": 0}
@@ -547,7 +547,7 @@ func pedir_trilho(id: int, kw: float) -> void:
 ## Ponta de caminho: lateral de outra esteira (carga lateral) ou porta de entrada de máquina/estação/torre.
 ## Só extratores (broca, extrator de cristal) despejam direto na esteira em frente — como uma broca de verdade.
 ## Toda outra construção recebe e entrega itens um a um pelas mãos de um braço (nada entra ou sai sozinho).
-const DESPEJA_NA_ESTEIRA := ["broca_minerio", "extrator_cristal"]
+const DESPEJA_NA_ESTEIRA := ["broca_minerio", "broca_grande", "extrator_cristal"]
 
 
 func _ligar_pontas() -> void:
@@ -888,7 +888,7 @@ func tick(dt: float) -> void:
 		var lab: Dictionary = laboratorios[id]
 		if pesquisa == null or pesquisa.ativa == "" or not lab_tem_unidade(lab) or lab.energia <= 0.0:
 			continue
-		lab.t += dt * lab.energia
+		lab.t += dt * lab.energia * float(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("velocidade", 1.0))   # laboratório 2: 2×
 		if lab.t >= pesquisa.tempo_por_pacote():
 			lab.t = 0.0
 			for t in pesquisa.tipos_ativa():          # uma unidade: 1 pacote de cada tipo
@@ -944,6 +944,12 @@ func lab_tem_unidade(lab: Dictionary) -> bool:
 		if int(lab.pacotes.get(t, 0)) <= 0:
 			return false
 	return true
+
+
+## O laboratório está pesquisando agora (pesquisa ativa, uma unidade de pacotes dentro, energia)? Anima o laboratório 2.
+func lab_trabalhando(id: int) -> bool:
+	var lab: Dictionary = laboratorios.get(id, {})
+	return not lab.is_empty() and pesquisa != null and pesquisa.ativa != "" and lab_tem_unidade(lab) and float(lab.energia) > 0.0
 
 
 ## Pacotes que o laboratório aceita: o básico sempre; os outros quando a pesquisa ativa pede ou quando a receita
@@ -1562,8 +1568,8 @@ class _NaMaquina:
 	func aceita(i: String) -> bool:
 		if _combustivel(i):
 			return f.combustivel[id] < Fabrica.ESTOQUE_FOGO_MJ
-		if m.receita.is_empty() and m.nome == "fornalha":
-			return _receita_para(i) != ""           # fornalha escolhe a receita pelo que chega
+		if m.receita.is_empty() and Registro.estruturas.get(m.nome, {}).get("maquina", "") == "fornalha":
+			return _receita_para(i) != ""           # as fornalhas escolhem a receita pelo que chega
 		return m.aceita(i)
 	func receber(i: String) -> bool:
 		if not aceita(i):

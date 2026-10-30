@@ -1,0 +1,62 @@
+{
+ "nome": "fornalha_aco",
+ "categoria": "maquinas",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Fornalha de aço 2×2 (estudo_fornalha_aco.py): casco rebitado com anel de sopro e 6 ventaneiras, elevador skip na entrada sul, soprador, recuperador com chaminé alta e bica com corrente de lingoteiras na saída norte. Velocidade 2,0 (a fornalha faz 1,0); queima combustível.",
+ "ocupa_canto": false,
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.5,
+    -1.0,
+    0.23
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_N0",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    -0.5,
+    1.0,
+    0.23
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  }
+ ],
+ "tris": 6456,
+ "dims": [
+  1.97,
+  2.015,
+  3.53
+ ],
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "anima": true,
+ "estudo": "estudo_fornalha_aco.py"
+}

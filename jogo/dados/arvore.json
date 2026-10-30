@@ -489,6 +489,7 @@
    ],
    "tempo": 6.0,
    "libera": "Fornalha de aço 2×2 (velocidade 2,0, −25% de poluição; queima combustível)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "mineracao_1": {
@@ -1107,6 +1108,7 @@
    ],
    "tempo": 8.0,
    "libera": "Fornalha elétrica 2×2 (velocidade 2,0, sem combustível, 2 encaixes de módulo)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "captador_carga": {
@@ -1335,6 +1337,7 @@
    ],
    "tempo": 8.0,
    "libera": "Broca grande 3×3 (2,5× velocidade, −20% de poluição por minério)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "extrator_2": {
@@ -1437,6 +1440,7 @@
    ],
    "tempo": 8.0,
    "libera": "Laboratório 2 3×3 (2× velocidade, 2 encaixes de módulo)",
+   "existente": true,
    "tipo": "estrutura"
   },
   "drones_frota_1": {

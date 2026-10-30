@@ -8,6 +8,7 @@
                "cheio_s": 1800, "por_emissao": 0.0006, "do_chao": 0.0008, "chuva_limpa_s": 150},
  "oleo_chance": {
   "broca_minerio": 0.0012,
+  "broca_grande": 0.0012,
   "gerador": 0.0018,
   "refinador": 0.0025,
   "montadora": 0.0008,
@@ -16,9 +17,11 @@
  "oleo_some": 0.00015,
  "despejo": {
   "fornalha": 0.004,
+  "fornalha_aco": 0.004,
   "refinador": 0.008,
   "gerador": 0.003,
-  "broca_minerio": 0.002
+  "broca_minerio": 0.002,
+  "broca_grande": 0.002
  },
  "despejo_raio": 8,
  "agua_corre": 0.12,
@@ -34,6 +37,7 @@
   "chance_maquina": 0.0004,
   "maquinas_quentes": [
    "fornalha",
+   "fornalha_aco",
    "gerador",
    "refinador"
   ],

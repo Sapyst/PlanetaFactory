@@ -1062,6 +1062,7 @@ var _lancadores: Array = []                 ## lançadores de sementes (o laço 
 var _receptores: Array = []                 ## receptores de cápsulas (o laço toca uma vez por cápsula)
 var _transportadores: Array = []            ## transportadores quânticos (anéis giram enquanto trocam itens)
 var _silos: Array = []                      ## silos de lançamento (robôs e umbilicais montando ou lançando)
+var _labs_2: Array = []                     ## laboratórios 2 (carrossel, gaveta e braço enquanto pesquisam)
 var _postes_altos: Array = []               ## postes altos (o anel de ressonância gira passando energia)
 var _turbinas_rio: Array = []               ## turbinas de correnteza (rotor e boia no ritmo do rio)
 var _geradores_fl: Array = []               ## geradores a fluido (ventiladores, volante e anel enquanto queimam)
@@ -1084,6 +1085,7 @@ func _animar_estruturas() -> void:
 		_transportadores = mapa.estruturas.keys().filter(func(i): return Transportador.eh_transportador(mapa.estruturas[i].nome))
 		_silos = mapa.estruturas.keys().filter(func(i): return SiloLancamento.eh_silo(mapa.estruturas[i].nome))
 		_postes_altos = mapa.estruturas.keys().filter(func(i): return mapa.estruturas[i].nome == "poste_alto")
+		_labs_2 = mapa.estruturas.keys().filter(func(i): return mapa.estruturas[i].nome == "laboratorio_2")
 		_paineis_2 = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).has("perda_nuvem"))
 		_singularidades = mapa.estruturas.keys().filter(func(i): return mapa.estruturas[i].nome == "nucleo_singularidade")
 		_geradores_fl = mapa.estruturas.keys().filter(func(i): return Fabrica.eh_gerador_fluido(mapa.estruturas[i].nome) or Fabrica.eh_reator(mapa.estruturas[i].nome))
@@ -1096,6 +1098,11 @@ func _animar_estruturas() -> void:
 		var a := _animador(id)
 		if a != null:
 			a.ativo = animar_tudo or fabrica.maquinas[id].estado == Maquina.Estado.TRABALHANDO
+	# laboratório 2: carrossel, gaveta e braço (laço do estudo) só enquanto pesquisa
+	for id in _labs_2:
+		var a := _animador(id)
+		if a != null:
+			a.ativo = animar_tudo or fabrica.lab_trabalhando(id)
 	# bomba de estação: ventoinha, ponteiro e setas trabalham enquanto ela move fluido
 	for id in _bombas_est:
 		var a := _animador(id)
@@ -1876,6 +1883,8 @@ func _detalhe() -> void:
 			if not t in tipos and int(lab.pacotes[t]) > 0:
 				partes.append("%s %d (parado)" % [Pesquisa.nome_tipo(t), int(lab.pacotes[t])])
 		linhas.append("Pacotes: %s\nEnergia: %d%%" % [", ".join(partes), lab.energia * 100])
+		if regra.has("velocidade"):
+			linhas.append("Velocidade %.0f× · encaixes de módulo: 0 de %d (os módulos ainda estão em desenvolvimento)" % [float(regra.velocidade), int(regra.get("encaixes_modulo", 0))])
 		if pesquisa.ativa != "":
 			linhas.append("Cada unidade gasta: %s" % ", ".join(tipos.map(func(t): return "1 " + Pesquisa.nome_tipo(t))))
 		opcoes.append({"texto": "⚗  Abrir a pesquisa", "acao": abrir_pesquisa})
