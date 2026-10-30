@@ -239,6 +239,7 @@
    ],
    "tempo": 5.0,
    "libera": "Camada Poluição/Sujeira na visão de recursos (V) e aviso de fúria dos ninhos",
+   "existente": true,
    "tipo": "estrutura"
   },
   "ferrovia": {
@@ -307,6 +308,7 @@
    ],
    "tempo": 5.0,
    "libera": "Receita briquete (4 biomassa → 1 briquete de 10 MJ; queima com −30% de poluição)",
+   "existente": true,
    "tipo": "receita"
   },
   "automacao": {
@@ -323,6 +325,7 @@
    ],
    "tempo": 5.0,
    "libera": "Receita pacote de automação; laboratório aceita o pacote",
+   "existente": true,
    "tipo": "receita"
   },
   "torre_metralhadora": {
@@ -495,6 +498,7 @@
    ],
    "tempo": 6.0,
    "libera": "+10% de minério por ciclo (broca e extrator)",
+   "existente": true,
    "tipo": "melhoria"
   },
   "pesquisa_vel_1": {
@@ -515,6 +519,7 @@
    ],
    "tempo": 6.0,
    "libera": "+20% de velocidade dos laboratórios",
+   "existente": true,
    "tipo": "melhoria"
   },
   "trem_automatico": {
@@ -599,6 +604,7 @@
    ],
    "tempo": 6.0,
    "libera": "+20% de dano da torre básica",
+   "existente": true,
    "tipo": "melhoria"
   },
   "transmissao": {
@@ -1344,6 +1350,7 @@
    ],
    "tempo": 8.0,
    "libera": "+10% de minério por ciclo",
+   "existente": true,
    "tipo": "melhoria"
   },
   "pesquisa_vel_2": {
@@ -1369,6 +1376,7 @@
    ],
    "tempo": 8.0,
    "libera": "+30% de velocidade dos laboratórios",
+   "existente": true,
    "tipo": "melhoria"
   },
   "laboratorio_2": {
@@ -1868,6 +1876,7 @@
    ],
    "tempo": 8.0,
    "libera": "+30% de dano da torre básica",
+   "existente": true,
    "tipo": "melhoria"
   },
   "cadencia_energia_1": {
@@ -1893,6 +1902,7 @@
    ],
    "tempo": 8.0,
    "libera": "+20% de tiros por segundo e −10% de energia por tiro",
+   "existente": true,
    "tipo": "melhoria"
   },
   "mina_pulso": {
@@ -2480,6 +2490,7 @@
    ],
    "tempo": 12.0,
    "libera": "+10% de minério por ciclo",
+   "existente": true,
    "tipo": "melhoria"
   },
   "pesquisa_vel_3": {
@@ -2513,6 +2524,7 @@
    ],
    "tempo": 12.0,
    "libera": "+40% de velocidade dos laboratórios",
+   "existente": true,
    "tipo": "melhoria"
   },
   "drones_frota_2": {
@@ -3176,6 +3188,7 @@
    ],
    "tempo": 12.0,
    "libera": "+30% de dano da torre básica",
+   "existente": true,
    "tipo": "melhoria"
   },
   "cadencia_energia_2": {
@@ -3213,6 +3226,7 @@
    ],
    "tempo": 12.0,
    "libera": "+20% de tiros por segundo",
+   "existente": true,
    "tipo": "melhoria"
   },
   "dano_artilharia_1": {
@@ -4350,6 +4364,7 @@
    ],
    "tempo": 30.0,
    "libera": "+10% de minério por nível — infinita (custo × 1,5 por nível)",
+   "existente": true,
    "tipo": "infinita"
   },
   "pesquisa_infinita": {
@@ -4391,6 +4406,7 @@
    ],
    "tempo": 30.0,
    "libera": "+10% de velocidade dos laboratórios por nível — infinita (custo × 1,5 por nível)",
+   "existente": true,
    "tipo": "infinita"
   },
   "dano_bala_infinito": {
@@ -4574,6 +4590,7 @@
    ],
    "tempo": 30.0,
    "libera": "+10% de dano da torre básica por nível — infinita (custo × 1,5 por nível)",
+   "existente": true,
    "tipo": "infinita"
   },
   "escudo_infinito": {

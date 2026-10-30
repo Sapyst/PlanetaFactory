@@ -66,3 +66,61 @@ func test_caminho_das_esteiras() -> void:
 		maximo = maxf(maximo, p.y)
 	perto(minimo, 0.0, 1e-4)
 	perto(maximo, 1.0, 1e-4)
+
+
+## Leitura ambiental (monitor_ambiental): camada poluição/sujeira na visão V só depois da pesquisa; ficha e fúria.
+func test_camada_poluicao_sujeira() -> void:
+	var v := _visao()
+	var p := Pesquisa.new()
+	v.poluicao = Poluicao.new(v.gerador)
+	v.ambiente = AmbienteVivo.new(v.gerador, v.mapa)
+	v.camada_liberada = p.camada_liberada
+	verificar(p.jogavel("monitor_ambiental"), "Leitura ambiental é jogável")
+	verificar(not v.poluicao_disponivel(), "sem a pesquisa, sem camada")
+	v.alternar()
+	igual(v.camada, "recursos", "V: recursos")
+	verificar(not v.alternar(), "sem clima nem pesquisa: V de novo desliga")
+	p.concluidas = {"monitor_ambiental": true}
+	verificar(v.poluicao_disponivel(), "com a pesquisa, a camada existe")
+	v.alternar()
+	v.alternar()
+	igual(v.camada, "poluicao", "V de novo: poluição/sujeira")
+	verificar(not v.alternar(), "e depois desliga")
+	var t := Vector2i(3, 4)
+	v.ambiente.somar(t, AmbienteVivo.SUJ, 0.05)
+	v.ambiente.somar(t, AmbienteVivo.OLEO, 0.03)
+	perto(v.sujeira_em(t), 0.08, 1e-4, "sujeira do tile = sujeira + óleo + água suja")
+	v.poluicao.emitir(t, 12.0)
+	v.camada = "poluicao"
+	verificar(v.descrever(t).contains("Poluição do ar: 12.0"), "ficha mostra a poluição do ar (%s)" % v.descrever(t))
+	verificar(v.descrever(t).contains("sujeira 5%"), "ficha mostra a sujeira do chão")
+	verificar(VisaoRecursos.cor_sujeira(0.12).r < VisaoRecursos.cor_sujeira(0.01).r, "mais sujo = mais escuro/avermelhado")
+	verificar(VisaoRecursos.rotulo_furia(0.7)[0].begins_with("⚠"), "fúria alta vira aviso")
+	verificar(not VisaoRecursos.rotulo_furia(0.0)[0].begins_with("⚠"), "ninho em paz não avisa")
+	v._ready()                                                    # monta de verdade (sem tela): blocos + rótulos
+	var cam := CameraJogo.new()
+	cam.alvo = Grade.centro_mundo(t)
+	cam.distancia = 20.0                                          # perto: bloco de 1 tile
+	v.camera = cam
+	v._montar_poluicao(Rect2i(-20, -20, 40, 40))
+	verificar(v._tiles.multimesh.instance_count >= 2, "um bloco de chão sujo e um de ar poluído (%d)" % v._tiles.multimesh.instance_count)
+	verificar(v._ativos.size() >= 1, "rótulo da poluição do ar")
+	cam.free()
+	v.free()
+
+
+func test_ninhos_furiosos() -> void:
+	var g := GeradorMundo.new(1337)
+	var m := MapaOcupacao.new(g)
+	var c := Colonia.new(m, Poluicao.new(g), 3)
+	for id in c.ninhos:
+		c.ninhos[id].furia = 0.0
+	igual(c.ninhos_furiosos(0.5).size(), 0, "nenhum ninho furioso")
+	if not c.ninhos.is_empty():
+		var id: int = c.ninhos.keys()[0]
+		c.ninhos[id].furia = 0.6
+		igual(c.ninhos_furiosos(0.5), [id], "ninho com fúria 60% entra no aviso")
+	var p := Pesquisa.new()
+	verificar(not p.camada_liberada("poluicao"), "aviso só depois da pesquisa")
+	p.concluidas = {"monitor_ambiental": true}
+	verificar(p.camada_liberada("poluicao"), "Leitura ambiental libera a camada e o aviso")

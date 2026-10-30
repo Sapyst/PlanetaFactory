@@ -20,6 +20,8 @@ var progresso := 0.0         ## 0..1
 var estado := Estado.SEM_RECEITA
 var jazida_restante := -1    ## -1 = não usa jazida
 var produzidos := 0
+var produtividade := 0.0     ## fração extra de produto por ciclo (melhoria de mineração: 0,1 = +10%)
+var extra := 0.0             ## barra de produtividade: ao passar de 1, sai um ciclo de graça
 var _dormindo := false
 
 
@@ -147,6 +149,11 @@ func tick(dt: float) -> void:
 		produzidos += 1
 		if jazida_restante > 0:
 			jazida_restante -= 1
+		extra += produtividade                  # produtividade: produto a mais sem gastar insumo nem jazida
+		while extra >= 1.0 - 1e-6:
+			extra -= 1.0
+			for item in vai:
+				saidas[item] = int(saidas.get(item, 0)) + int(vai[item])
 
 
 func dormindo() -> bool:

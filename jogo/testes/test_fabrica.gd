@@ -201,7 +201,7 @@ func test_nucleo_custos_e_pesquisa() -> void:
 	_rodar(f, 10.0)
 	igual(int(c.inventario.get("pedra", 0)), 4, "4 pedras entraram no núcleo pelo braço")
 	p.escolher("defesa")
-	f.laboratorios[lab].pacotes = 8
+	f.laboratorios[lab].pacotes = {"pacote_pesquisa": 8}
 	var feito := false
 	for i in 30 * 60:
 		f.tick(1.0 / 30.0)

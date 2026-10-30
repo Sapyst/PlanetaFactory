@@ -5,11 +5,15 @@ extends Node3D
 ##  - zonas: nome de cada bioma e de cada água no meio da mancha (grade grossa + agrupamento por vizinhança);
 ##  - ficha do tile sob o mouse/dedo: zona, jazida, elemento natural (e o que rende ao limpar) ou construção;
 ##  - camada **vento** (V de novo): mapa de calor do vento médio de cada lugar (média medida × fator do lugar,
-##    VentoLocal) e setas no chão na direção média; a ficha mostra o vento médio do tile.
+##    VentoLocal) e setas no chão na direção média; a ficha mostra o vento médio do tile;
+##  - camada **poluição/sujeira** (V de novo, depois da pesquisa Leitura ambiental): chão sujo (sujeira + óleo +
+##    água suja, AmbienteVivo) em blocos do amarelo ao marrom-avermelhado, a nuvem de poluição do ar por chunk e,
+##    em cada ninho, a fúria das aranhas (aviso em vermelho quando passa de FURIA_AVISO).
 ## Só lê o gerador e o mapa; refaz o que está na vista quando a câmera anda ou muda de zoom.
 
 const FADE := 5.0
 const MAX_ROTULOS := 40
+const FURIA_AVISO := 0.5              ## ninho a partir daqui aparece em vermelho (e o mundo avisa)
 
 var gerador: GeradorMundo
 var mapa: MapaOcupacao
@@ -18,6 +22,11 @@ var ligada := false
 var camada := "recursos"              ## "recursos" ou "vento"
 var clima: Clima
 var vento_local: VentoLocal
+var poluicao: Poluicao                 ## (opcional) camada poluição/sujeira
+var ambiente: AmbienteVivo
+var colonia: Colonia
+var camada_liberada: Callable          ## func(nome) -> bool: camada que depende de pesquisa (Pesquisa.camada_liberada)
+var _t_poluicao := 0.0
 var _setas: MultiMeshInstance3D
 var areas_interface: Callable          ## → Array[Rect2] da interface (rótulo não fica embaixo)
 
@@ -73,17 +82,24 @@ func _ready() -> void:
 	visible = false
 
 
-## Desligada → recursos → vento (se houver clima) → desligada.
+## Desligada → recursos → vento (se houver clima) → poluição/sujeira (se pesquisada) → desligada.
 func alternar() -> bool:
 	if not ligada:
 		ligada = true
 		camada = "recursos"
 	elif camada == "recursos" and clima != null and vento_local != null:
 		camada = "vento"
+	elif camada != "poluicao" and poluicao_disponivel():
+		camada = "poluicao"
 	else:
 		ligada = false
 	_feito_em = Vector3.INF
 	return ligada
+
+
+## A camada poluição/sujeira só existe depois da pesquisa (monitor_ambiental) e com o ambiente ligado.
+func poluicao_disponivel() -> bool:
+	return ambiente != null and poluicao != null and camada_liberada.is_valid() and bool(camada_liberada.call("poluicao"))
 
 
 func _process(delta: float) -> void:
@@ -93,6 +109,11 @@ func _process(delta: float) -> void:
 	_ficha.visible = ligada
 	if not visible:
 		return
+	if camada == "poluicao":                          # a sujeira muda com o tempo: refaz a cada segundo
+		_t_poluicao -= delta
+		if _t_poluicao <= 0.0:
+			_t_poluicao = 1.0
+			_feito_em = Vector3.INF
 	var aqui := Vector3(camera.alvo.x, camera.alvo.z, camera.distancia)
 	var passo := maxf(6.0, camera.distancia * 0.2)
 	if Vector2(aqui.x, aqui.y).distance_to(Vector2(_feito_em.x, _feito_em.y)) > passo \
@@ -120,6 +141,9 @@ func _montar() -> void:
 	_setas.visible = camada == "vento"
 	if camada == "vento":
 		_montar_vento(v)
+		return
+	if camada == "poluicao":
+		_montar_poluicao(v)
 		return
 	var rotulos: Array[Dictionary] = []
 	# jazidas: manchas das células que tocam a vista (e as fixas do spawn)
@@ -200,6 +224,69 @@ func _montar_vento(v: Rect2i) -> void:
 	_desenhar_rotulos([{"texto": "Vento médio %d%% %s" % [clima.vento_medio.length() * 100, Clima.nome_rumo(clima.vento_medio)],
 			"pos": centro, "cor": Color(0.85, 0.95, 1.0), "tam": 1.0,
 			"sub": "predomina %s nesta estação · cor = vento do lugar" % Clima.nome_rumo(clima.rumo_atual()), "prio": 0}])
+
+
+## Chão sujo: 0 (nada) → amarelo-claro → marrom-avermelhado no "sujo cheio" da fúria (AmbienteVivo.furia_em).
+static func cor_sujeira(s: float) -> Color:
+	var cheio := float(Registro.inimigos.get("furia", {}).get("sujo_cheio", 0.12))
+	var x := clampf(s / cheio, 0.0, 1.0)
+	return Color(0.95, 0.85, 0.35).lerp(Color(0.55, 0.18, 0.08), x)
+
+
+## Sujeira do chão num tile: sujeira + óleo + água suja (o que deixa os ninhos furiosos).
+func sujeira_em(t: Vector2i) -> float:
+	return ambiente.valor(t, AmbienteVivo.SUJ) + ambiente.valor(t, AmbienteVivo.OLEO) + ambiente.valor(t, AmbienteVivo.AGUA)
+
+
+## Fúria de um ninho em texto e cor (verde em paz, âmbar irritado, vermelho = aviso).
+static func rotulo_furia(f: float) -> Array:
+	if f >= FURIA_AVISO:
+		return ["⚠ Ninho furioso %d%%" % roundi(f * 100), Color(1.0, 0.35, 0.25), "chão sujo em volta: aranhas mais fortes e rápidas"]
+	if f > 0.15:
+		return ["Ninho irritado %d%%" % roundi(f * 100), Color(1.0, 0.75, 0.3), "limpe o chão em volta para acalmar"]
+	return ["Ninho em paz", Color(0.55, 0.9, 0.55), ""]
+
+
+func _montar_poluicao(v: Rect2i) -> void:
+	var mm := _tiles.multimesh
+	var passo := maxi(1, int(camera.distancia / 22.0))
+	var esc := Basis().scaled(Vector3(passo, 1, passo))
+	var trs: Array[Transform3D] = []
+	var cores: Array[Color] = []
+	# ar: um quadrado por chunk poluído (embaixo)
+	var tc := Grade.TAM_CHUNK
+	for cy in range(floori(v.position.y / float(tc)), floori(v.end.y / float(tc)) + 1):
+		for cx in range(floori(v.position.x / float(tc)), floori(v.end.x / float(tc)) + 1):
+			var p := poluicao.em_chunk(Vector2i(cx, cy))
+			if p > 0.05:
+				trs.append(Transform3D(Basis().scaled(Vector3(tc, 1, tc)), Grade.ponto_mundo(Vector2(cx, cy) * tc + Vector2.ONE * tc / 2.0, 0.04)))
+				cores.append(Color(0.62, 0.25, 0.85, clampf(log(1.0 + p) / 8.0, 0.08, 0.4)))
+	# chão: blocos com sujeira (só os chunks que têm algum valor; de longe, amostra o meio do bloco)
+	for y in range(v.position.y, v.end.y, passo):
+		for x in range(v.position.x, v.end.x, passo):
+			var t := Vector2i(x, y)
+			if not ambiente.dados.has(Grade.chunk_de(t)):
+				continue
+			var s := sujeira_em(t + Vector2i(passo, passo) / 2)
+			if s > 0.004:
+				trs.append(Transform3D(esc, Grade.ponto_mundo(Vector2(t) + Vector2(passo, passo) * 0.5, 0.05)))
+				cores.append(Color(cor_sujeira(s), 0.72))
+	mm.instance_count = trs.size()
+	for i in trs.size():
+		mm.set_instance_transform(i, trs[i])
+		mm.set_instance_color(i, cores[i])
+	var rotulos: Array[Dictionary] = []
+	if colonia != null:
+		for id in colonia.ninhos:
+			var n: Dictionary = colonia.ninhos[id]
+			if not v.has_point(Vector2i(Vector2(n.centro).floor())):
+				continue
+			var r := rotulo_furia(float(n.get("furia", 0.0)))
+			rotulos.append({"texto": r[0], "pos": n.centro, "cor": r[1], "tam": 1.0, "sub": r[2], "prio": 0 if r[2] != "" else 1})
+	var centro := Grade.tile_de_mundo(camera.alvo)
+	rotulos.append({"texto": "Poluição do ar aqui: %.1f · total %.0f" % [poluicao.em(centro), poluicao.total()], "pos": Vector2(centro),
+			"cor": Color(0.85, 0.7, 1.0), "tam": 0.8, "sub": "roxo = ar · amarelo → marrom = chão sujo", "prio": 2})
+	_desenhar_rotulos(rotulos)
 
 
 ## Seta plana (haste + ponta) deitada no chão, apontando para +x.
@@ -442,7 +529,10 @@ func descrever(t: Vector2i) -> String:
 		linhas.append(_d.agua.get(GeradorMundo.Terreno.keys()[ter], "Água"))
 	else:
 		linhas.append(_d.biomas.get(gerador.bioma(t), gerador.bioma(t)))
-	if clima != null and vento_local != null:
+	if camada == "poluicao" and ambiente != null and poluicao != null:
+		linhas.append("Poluição do ar: %.1f · chão: sujeira %d%%, óleo %d%%, água suja %d%%" % [poluicao.em(t),
+				ambiente.valor(t, AmbienteVivo.SUJ) * 100, ambiente.valor(t, AmbienteVivo.OLEO) * 100, ambiente.valor(t, AmbienteVivo.AGUA) * 100])
+	elif clima != null and vento_local != null:
 		var lugar := vento_local.fator(t, clima.vento_medio)
 		linhas.append("Vento médio aqui: %d%% %s (o lugar dá %+d%%)" % [vento_medio_em(t) * 100, Clima.nome_rumo(clima.vento_medio), (lugar - 1.0) * 100])
 	var j := gerador.distribuicao.jazida(t)

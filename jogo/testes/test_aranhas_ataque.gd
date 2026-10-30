@@ -300,3 +300,40 @@ func test_torre_com_melhoria_de_dano() -> void:
 		verificar(not c.aranhas.has(a), "aranha morreu (bônus %s)" % b)
 		tiros.append(n)
 	verificar(tiros[1] < tiros[0], "com +100%% de dano precisa de menos tiros (%d < %d)" % [tiros[1], tiros[0]])
+
+
+## Cadência da torre de energia (cadencia_energia_1/2): mais tiros no mesmo tempo; e −10% de energia por tiro.
+func test_torre_com_melhoria_de_cadencia() -> void:
+	var tiros := []
+	var gasto := []
+	for b in [0.0, 1.0]:
+		var s := _cenario()
+		var m: MapaOcupacao = s[0]
+		var c: Colonia = s[2]
+		var fonte: int = s[3]
+		var bonus_cad: float = b
+		c.bonus = func(chave: String) -> float:
+			return bonus_cad if chave == "cadencia_torre_energia" else (0.1 if chave == "economia_tiro_torre" and bonus_cad > 0.0 else 0.0)
+		var mjs := []
+		c.torre_energia = func(_id: int, mj: float) -> bool:
+			mjs.append(mj)
+			return true
+		m.colocar("torre_defesa", Vector2i(-28, 0), 0)
+		var a := c._nova_aranha(s[4])
+		c.aranhas[a].estado = Colonia.E.ATACANDO
+		c.aranhas[a].alvo = fonte
+		c.aranhas[a].pos = Vector2(-31, 1)
+		var n := 0
+		for i in 30 * 2:
+			c.aranhas[a].vida = 1e9                     # não morre: conta só a cadência
+			c.aranhas[a].pos = Vector2(-31, 1)
+			c.tick(1.0 / 30.0, [])
+			for e in c.eventos:
+				if e.tipo == "tiro": n += 1
+		tiros.append(n)
+		gasto.append(mjs[0] if not mjs.is_empty() else 0.0)
+	verificar(tiros[0] > 0, "torre atirou (%d tiros em 2 s)" % tiros[0])
+	verificar(tiros[1] >= tiros[0] * 3 / 2, "com +100%% de cadência atira bem mais (%d × %d; recarga anda em passos de 1/30 s)" % [tiros[1], tiros[0]])
+	var base := float(Registro.estruturas.torre_defesa.tiro_mj)
+	perto(gasto[0], base, 1e-6, "tiro normal gasta %.3f MJ" % base)
+	perto(gasto[1], base * 0.9, 1e-6, "com a melhoria, −10% de energia por tiro")

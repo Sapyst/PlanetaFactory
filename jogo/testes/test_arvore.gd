@@ -63,7 +63,8 @@ func test_sem_ciclos() -> void:
 
 
 ## Toda chave de "bonus" em progressao.json tem quem a use no jogo (senão a pesquisa não faria nada).
-const BONUS_USADOS := ["dano_torre_energia", "dano_bala", "velocidade_pesquisa"]
+const BONUS_USADOS := ["dano_torre_energia", "dano_bala", "velocidade_pesquisa", "produtividade_mineracao",
+		"cadencia_torre_energia", "economia_tiro_torre"]
 
 
 func test_melhorias() -> void:
@@ -72,7 +73,7 @@ func test_melhorias() -> void:
 		for k in p.pesquisas()[id].get("bonus", {}):
 			verificar(k in BONUS_USADOS, "bônus %s de %s é lido por algum sistema" % [k, id])
 		if not p.pesquisas()[id].get("bonus", {}).is_empty():
-			igual(p.arvore()[id].tipo, "melhoria", "pesquisa com bônus é melhoria na árvore: " + id)
+			igual(p.arvore()[id].tipo, "infinita" if p.infinita(id) else "melhoria", "pesquisa com bônus é melhoria na árvore: " + id)
 	perto(p.bonus("dano_torre_energia"), 0.0, 1e-6, "sem pesquisa, sem bônus")
 	p.concluidas = {"defesa": true, "dano_energia_1": true}
 	perto(p.bonus("dano_torre_energia"), 0.2, 1e-6, "dano 1: +20%")

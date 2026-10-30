@@ -323,6 +323,15 @@ func _morder(ar: Dictionary, id: int, dt: float) -> void:
 		destruir.call(id)
 
 
+## Ninhos com fúria a partir de `limite` (aviso da Leitura ambiental).
+func ninhos_furiosos(limite := 0.5) -> Array:
+	var out := []
+	for id in ninhos:
+		if float(ninhos[id].get("furia", 0.0)) >= limite:
+			out.append(id)
+	return out
+
+
 ## Fúria da aranha = a do ninho dela (0 se o ninho caiu).
 func furia(ar: Dictionary) -> float:
 	var n: Variant = ninhos.get(ar.ninho)
@@ -406,15 +415,16 @@ func _torres(dt: float) -> void:
 			continue
 		# atira com a energia guardada; munição (se algum braço trouxe) é a reserva quando a energia acaba
 		var chave := "dano_torre_energia"                     # melhoria que vale para este tiro
-		if torre_energia.is_valid() and torre_energia.call(id, float(regra.get("tiro_mj", 0.05))):
-			pass
+		var cadencia := float(regra.get("cadencia", 3))
+		if torre_energia.is_valid() and torre_energia.call(id, tiro_mj()):
+			cadencia *= 1.0 + _bonus("cadencia_torre_energia")
 		elif t.municao > 0:
 			t.municao -= 1
 			chave = "dano_bala"
 		else:
 			continue
-		t.recarga = 1.0 / float(regra.get("cadencia", 3))
-		var dano: float = float(regra.get("dano", 8)) * (1.0 + (float(bonus.call(chave)) if bonus.is_valid() else 0.0))
+		t.recarga = 1.0 / cadencia
+		var dano: float = float(regra.get("dano", 8)) * (1.0 + _bonus(chave))
 		eventos.append({"tipo": "tiro", "torre": id, "de": c, "para": t.mira, "aranha": alvo, "ninho": ninho})
 		if alvo >= 0:
 			aranhas[alvo].vida -= dano
@@ -427,6 +437,15 @@ func _torres(dt: float) -> void:
 				eventos.append({"tipo": "ninho_destruido", "id": ninho, "pos": ninhos[ninho].centro})
 				ninhos.erase(ninho)
 				mapa.remover(ninho)
+
+
+func _bonus(chave: String) -> float:
+	return float(bonus.call(chave)) if bonus.is_valid() else 0.0
+
+
+## Energia de um tiro da torre (MJ): a melhoria "economia_tiro_torre" (cadência de energia 1) gasta menos.
+func tiro_mj() -> float:
+	return float(Registro.estruturas["torre_defesa"].get("tiro_mj", 0.05)) * maxf(0.1, 1.0 - _bonus("economia_tiro_torre"))
 
 
 ## Munição que chegou à torre (braço/esteira, via Fabrica).

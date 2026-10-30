@@ -341,6 +341,10 @@ func _criar_desenhos() -> void:
 	_visao.camera = camera
 	_visao.clima = clima
 	_visao.vento_local = vento_local
+	_visao.poluicao = poluicao
+	_visao.ambiente = ambiente
+	_visao.colonia = colonia
+	_visao.camada_liberada = pesquisa.camada_liberada
 	_visao.areas_interface = func() -> Array[Rect2]: return controle.barra.areas_ocupadas()
 	add_child(_visao)
 	var da := DesenhoAmbiente.new()
@@ -974,7 +978,10 @@ func _tick_mundo(dt: float) -> void:
 		_fabrica_suja = false
 	fabrica.tick(dt)
 	for id in fabrica.concluidas:
-		controle._avisar("Pesquisa concluída: %s" % pesquisa.pesquisas()[id].nome)
+		if pesquisa.infinita(id):
+			controle._avisar("%s: nível %d concluído (segue no %d)" % [pesquisa.pesquisas()[id].nome, pesquisa.nivel(id), pesquisa.nivel(id) + 1])
+		else:
+			controle._avisar("Pesquisa concluída: %s" % pesquisa.pesquisas()[id].nome)
 		Som.tocar("pesquisa")
 		controle.barra.atualizar_bloqueios()
 	# quem trabalhou polui no próprio chunk e vira alvo das aranhas por 60 s
@@ -1199,7 +1206,17 @@ func _detalhe() -> void:
 	elif fabrica.distribuidores.has(id):
 		linhas.append("Passando: %s" % (", ".join(fabrica.distribuidores[id].buffer.map(_nome_item)) if not fabrica.distribuidores[id].buffer.is_empty() else "nada"))
 	elif fabrica.laboratorios.has(id):
-		linhas.append("Pacotes de pesquisa: %d de 10\nEnergia: %d%%" % [fabrica.laboratorios[id].pacotes, fabrica.laboratorios[id].energia * 100])
+		var lab: Dictionary = fabrica.laboratorios[id]
+		var tipos: Array = pesquisa.tipos_ativa() if pesquisa.ativa != "" else ["pacote_pesquisa"]
+		var partes: Array[String] = []
+		for t in tipos:
+			partes.append("%s %d/%d" % [Pesquisa.nome_tipo(t), int(lab.pacotes.get(t, 0)), Fabrica.LAB_MAX])
+		for t in lab.pacotes:                                   # sobras de outra pesquisa
+			if not t in tipos and int(lab.pacotes[t]) > 0:
+				partes.append("%s %d (parado)" % [Pesquisa.nome_tipo(t), int(lab.pacotes[t])])
+		linhas.append("Pacotes: %s\nEnergia: %d%%" % [", ".join(partes), lab.energia * 100])
+		if pesquisa.ativa != "":
+			linhas.append("Cada unidade gasta: %s" % ", ".join(tipos.map(func(t): return "1 " + Pesquisa.nome_tipo(t))))
 		opcoes.append({"texto": "⚗  Abrir a pesquisa", "acao": abrir_pesquisa})
 	elif fabrica.baus.has(id):
 		var n := 0
@@ -1306,7 +1323,8 @@ func _detalhe_pesquisa() -> void:
 	else:
 		if pesquisa.ativa != "":
 			var at: Dictionary = pesquisa.pesquisas()[pesquisa.ativa]
-			linhas.append("Pesquisando: %s — %d de %d pacotes" % [at.nome, pesquisa.feitos, at.pacotes])
+			linhas.append("Pesquisando: %s%s — %d de %d (%s)" % [at.nome, " nível %d" % (pesquisa.nivel(pesquisa.ativa) + 1) if pesquisa.infinita(pesquisa.ativa) else "",
+					pesquisa.feitos, pesquisa.unidades(pesquisa.ativa), pesquisa.custo_texto(pesquisa.ativa)])
 		else:
 			linhas.append("Escolha o que pesquisar.")
 		linhas.append("Laboratório (com energia) gasta pacotes de pesquisa.\nPacote: montadora com 1 cristal lapidado + 1 engrenagem.")
@@ -1321,13 +1339,13 @@ func _detalhe_pesquisa() -> void:
 			if pesquisa.concluidas.has(id):
 				linhas.append("Feita: %s" % pq.nome)
 			elif pesquisa.disponivel(id):
-				botoes.append({"texto": "%s (%d pacotes) — %s" % [pq.nome, pq.pacotes, resumo], "ligado": pesquisa.ativa == id,
+				botoes.append({"texto": "%s (%s) — %s" % [pq.nome, pesquisa.custo_texto(id), resumo], "ligado": pesquisa.ativa == id,
 						"acao": func(): pesquisa.escolher(id); _detalhe()})
 			else:
 				var falta: Array[String] = []
 				for rq in pq.get("requer", []):
 					if not pesquisa.concluidas.has(rq):
-						falta.append(pesquisa.pesquisas()[rq].nome)
+						falta.append(pesquisa.pesquisas().get(rq, pesquisa.arvore().get(rq, {"nome": rq})).nome)   # pode ser "em breve"
 				linhas.append("Depois de %s: %s" % [" e ".join(falta), pq.nome])
 	controle.barra.detalhe("Pesquisa", "\n".join(linhas), botoes)
 
@@ -1351,7 +1369,23 @@ func _painel_maquina(id: int) -> Dictionary:
 	return d
 
 
+## Leitura ambiental (pesquisa monitor_ambiental): avisa uma vez quando um ninho fica furioso (chão sujo em volta).
+var _furiosos: Dictionary = {}
+
+
+func _avisar_furia() -> void:
+	if modo == "demo" or not pesquisa.camada_liberada("poluicao"):
+		return
+	var agora := {}
+	for id in colonia.ninhos_furiosos(VisaoRecursos.FURIA_AVISO):
+		agora[id] = true
+		if not _furiosos.has(id):
+			controle._avisar("⚠ Ninho furioso (%d%%): chão sujo em volta. Veja em Recursos → Sujeira." % roundi(float(colonia.ninhos[id].furia) * 100))
+	_furiosos = agora
+
+
 func _hud() -> void:
+	_avisar_furia()
 	if not _sel.is_empty():
 		_detalhe()
 	var atacando := 0
@@ -1370,5 +1404,5 @@ func _hud() -> void:
 			principais.append("%d %s" % [int(inventario.get(k, 0)), {"placa_ferro": "ferro", "placa_cobre": "cobre"}.get(k, _nome_item(k).to_lower())])
 		texto += "\nNúcleo: " + ", ".join(principais)
 		if pesquisa.ativa != "":
-			texto += "\nPesquisa: %s %d/%d" % [pesquisa.pesquisas()[pesquisa.ativa].nome, pesquisa.feitos, pesquisa.pesquisas()[pesquisa.ativa].pacotes]
+			texto += "\nPesquisa: %s %d/%d" % [pesquisa.pesquisas()[pesquisa.ativa].nome, pesquisa.feitos, pesquisa.unidades(pesquisa.ativa)]
 	controle.barra.situacao(texto, "Ataque! %d aranha(s) vindo" % atacando if atacando > 0 else "")

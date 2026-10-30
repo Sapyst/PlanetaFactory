@@ -163,14 +163,35 @@ func _area_vista(cam: CameraJogo) -> Rect2:
 	return Rect2(c - Vector2(raio, raio), Vector2(raio, raio) * 2.0)
 
 
+## Troca o matiz da parte colorida (cristal/tijolo) mantendo saturação e brilho: pacote de automação = frasco do
+## pacote de pesquisa com líquido âmbar; briquete = tijolos na cor da biomassa (o ícone é derivado do mesmo jeito,
+## ferramentas/derivar_icone.gd).
+static func _tingir(malha: Mesh, matiz: float) -> void:
+	for s in malha.get_surface_count():
+		var m := malha.surface_get_material(s) as ShaderMaterial
+		if m == null or not m.resource_name.begins_with("P_Cristal") and not m.resource_name.begins_with("P_Tijolo"):
+			continue
+		m = m.duplicate()
+		var c: Color = m.get_shader_parameter("cor")
+		m.set_shader_parameter("cor", Color.from_hsv(matiz, c.s, c.v, c.a))
+		var e = m.get_shader_parameter("cor_emissao")
+		if e is Color:
+			m.set_shader_parameter("cor_emissao", Color.from_hsv(matiz, e.s, e.v, e.a))
+		malha.surface_set_material(s, m)
+
+
 func _instancia(item: String) -> MultiMeshInstance3D:
 	if _mm.has(item):
 		return _mm[item]
-	if not Registro.modelos.has(item):
+	var info: Dictionary = Registro.itens.get(item, {})
+	var base: String = info.get("modelo_de", item)          # item sem modelo próprio usa o de outro (com outra cor)
+	if not Registro.modelos.has(base):
 		return null
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.mesh = Materiais.malha_de(load(Registro.modelos[item].modelo))
+	mm.mesh = Materiais.malha_de(load(Registro.modelos[base].modelo))
+	if info.has("matiz"):
+		_tingir(mm.mesh, float(info.matiz))
 	mm.instance_count = 64
 	mm.visible_instance_count = 0
 	var mmi := MultiMeshInstance3D.new()

@@ -20,6 +20,7 @@ const ESTOQUE_FOGO_MJ := 8.0     ## aceita combustível até ter isso guardado
 const ESTOQUE_GERADOR_MJ := 40.0
 const TIROS_POR_MUNICAO := 10
 const BAU_MAX := 1600
+const LAB_MAX := 10              ## pacotes de cada tipo que o laboratório guarda
 ## Modo de trabalho (opção interna de máquina elétrica): [velocidade, energia, poluição].
 const MODOS := {"eco": [0.5, 0.4, 0.6], "normal": [1.0, 1.0, 1.0], "turbo": [1.5, 2.0, 1.6]}
 
@@ -30,12 +31,13 @@ var maquinas: Dictionary = {}          ## id → Maquina
 var bracos: Dictionary = {}            ## id → Braco
 var baus: Dictionary = {}              ## id → {item: n}
 var combustivel: Dictionary = {}       ## id (fornalha/gerador) → MJ guardado
+var fator_fogo: Dictionary = {}        ## id → poluição do que está queimando (média pelos MJ; briquete 0,7, carvão 1)
 var estoques: Dictionary = {}          ## id da estação → {enviar, recebido} (o mundo passa o mesmo dicionário dos trens)
 var torre_receber: Callable            ## func(id, tiros) — a colônia guarda a munição das torres
 var emissao: Dictionary = {}           ## id → pontos de poluição emitidos no último tick
 var estoque_nucleo: Dictionary = {}    ## o mesmo dicionário do inventário do Construtor (tudo que entra no núcleo)
 var pesquisa: Pesquisa = null
-var laboratorios: Dictionary = {}      ## id → {pacotes, t, energia}
+var laboratorios: Dictionary = {}      ## id → {pacotes: {item: n}, t, energia}
 var concluidas: Array[String] = []     ## pesquisas terminadas no último tick (o mundo avisa)
 var passos := 0                        ## quantos ticks já rodaram (o desenho só refaz quando muda)
 var redes_fluido: Array[Dictionary] = []    ## {fluido, qtd, cap, membros: Array[int]}
@@ -53,6 +55,7 @@ var sol := 1.0                         ## 0..1: quanto os painéis solares rende
 var vento := 0.5                       ## força do vento (0..~1,6) para turbina sem valor próprio
 var vento_turbina: Dictionary = {}     ## id da turbina → vento no lugar dela (clima × VentoLocal × rajada), o mundo passa
 var juncoes: Array[Dictionary] = []    ## itens que acabaram de entrar pela lateral: {caminho, pos, lado, passo} (desenho desliza)
+var _melhorias_de := ""                ## assinatura das pesquisas já aplicadas nas máquinas (refaz quando muda)
 
 const EXTRA_JUNCAO := 0.375            ## m além da borda na rampa de junção (o item para a 0,25 m do eixo da vizinha)
 
@@ -75,7 +78,7 @@ func reconstruir() -> void:
 	var vivos := {}
 	for id in mapa.estruturas:
 		vivos[id] = true
-	for d in [maquinas, bracos, baus, combustivel, laboratorios, distribuidores, acumulado, carga_torre]:
+	for d in [maquinas, bracos, baus, combustivel, fator_fogo, laboratorios, distribuidores, acumulado, carga_torre]:
 		for id in d.keys():
 			if not vivos.has(id):
 				d.erase(id)
@@ -222,7 +225,7 @@ func _montar_maquinas() -> void:
 		if e.nome == "gerador" and not combustivel.has(id):
 			combustivel[id] = 0.0
 		if e.nome == "laboratorio" and not laboratorios.has(id):
-			laboratorios[id] = {"pacotes": 0, "t": 0.0, "energia": 0.0}
+			laboratorios[id] = {"pacotes": {}, "t": 0.0, "energia": 0.0}
 		if (e.nome == "divisor" or e.nome == "juncao") and not distribuidores.has(id):
 			distribuidores[id] = {"buffer": [], "vez": 0}
 		if Registro.estruturas.get(e.nome, {}).has("acumula_mj") and not acumulado.has(id):
@@ -484,9 +487,34 @@ static func valor_combustivel(item: String) -> float:
 	return float(Registro.itens.get(item, {}).get("combustivel_mj", 0.0))
 
 
+## Põe um item de combustível no estoque de fogo (fornalha/gerador). A poluição de quem queima segue a média do
+## que está guardado, pesada pelos MJ (`poluicao_queima` em itens.json: briquete 0,7 = −30%; sem campo = 1).
+func por_combustivel(id: int, item: String) -> void:
+	var mj := valor_combustivel(item)
+	var antes := float(combustivel.get(id, 0.0))
+	var f_antes := float(fator_fogo.get(id, 1.0))
+	var f_item := float(Registro.itens.get(item, {}).get("poluicao_queima", 1.0))
+	combustivel[id] = antes + mj
+	fator_fogo[id] = (f_antes * antes + f_item * mj) / maxf(antes + mj, 1e-6)
+
+
+## Melhorias pesquisadas que mudam números das máquinas: produtividade de mineração na broca e no extrator.
+## Barato de conferir a cada tick (só refaz quando a lista de concluídas muda ou as máquinas mudam).
+func _aplicar_melhorias() -> void:
+	var assin := "%d|%d|%s" % [maquinas.size(), mapa.versao, pesquisa.assinatura() if pesquisa != null else ""]
+	if assin == _melhorias_de:
+		return
+	_melhorias_de = assin
+	var prod := pesquisa.bonus("produtividade_mineracao") if pesquisa != null else 0.0
+	for id in maquinas:
+		var tipo: String = Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("maquina", "") if mapa.estruturas.has(id) else ""
+		(maquinas[id] as Maquina).produtividade = prod if tipo in ["broca", "extrator"] else 0.0
+
+
 # ------------------------------------------------------------------ tick
 func tick(dt: float) -> void:
 	passos += 1
+	_aplicar_melhorias()
 	while not juncoes.is_empty() and passos - int(juncoes[0].passo) > 6:
 		juncoes.pop_front()
 	emissao.clear()
@@ -563,12 +591,13 @@ func tick(dt: float) -> void:
 	concluidas.clear()
 	for id in laboratorios:
 		var lab: Dictionary = laboratorios[id]
-		if pesquisa == null or pesquisa.ativa == "" or lab.pacotes <= 0 or lab.energia <= 0.0:
+		if pesquisa == null or pesquisa.ativa == "" or not lab_tem_unidade(lab) or lab.energia <= 0.0:
 			continue
 		lab.t += dt * lab.energia
 		if lab.t >= pesquisa.tempo_por_pacote():
 			lab.t = 0.0
-			lab.pacotes -= 1
+			for t in pesquisa.tipos_ativa():          # uma unidade: 1 pacote de cada tipo
+				lab.pacotes[t] = int(lab.pacotes[t]) - 1
 			var fim := pesquisa.avancar()
 			if fim != "":
 				concluidas.append(fim)
@@ -578,10 +607,31 @@ func tick(dt: float) -> void:
 		c.esteira.tick(dt)
 
 
+## O laboratório tem 1 pacote de cada tipo que a pesquisa ativa pede?
+func lab_tem_unidade(lab: Dictionary) -> bool:
+	for t in pesquisa.tipos_ativa():
+		if int(lab.pacotes.get(t, 0)) <= 0:
+			return false
+	return true
+
+
+## Pacotes que o laboratório aceita: o básico sempre; os outros quando a pesquisa ativa pede ou quando a receita
+## do pacote já está liberada (dá para estocar antes de escolher a próxima pesquisa).
+func lab_aceita(lab: Dictionary, item: String) -> bool:
+	var ok := item == "pacote_pesquisa" or (pesquisa != null and (item in pesquisa.tipos_ativa() or pesquisa.pacote_liberado(item)))
+	return ok and int(lab.pacotes.get(item, 0)) < LAB_MAX
+
+
+## Salvos antigos guardavam só um número (pacotes básicos).
+static func _lab_normalizar(lab: Dictionary) -> void:
+	if not lab.pacotes is Dictionary:
+		lab.pacotes = {"pacote_pesquisa": int(lab.pacotes)} if int(lab.pacotes) > 0 else {}
+
+
 ## Pontos de poluição: `poluicao` de estruturas.json é por minuto de trabalho.
 func _emitir(id: int, segundos: float) -> void:
 	var nome: String = mapa.estruturas[id].nome
-	var p := float(Registro.estruturas.get(nome, {}).get("poluicao", 0.0))
+	var p := float(Registro.estruturas.get(nome, {}).get("poluicao", 0.0)) * float(fator_fogo.get(id, 1.0))
 	if p > 0.0:
 		emissao[id] = float(emissao.get(id, 0.0)) + p / 60.0 * segundos * float(modo(id)[2])
 
@@ -735,12 +785,12 @@ func estado() -> Dictionary:
 	for id in maquinas:
 		var m: Maquina = maquinas[id]
 		maq[id] = {"receita": m.receita_id, "entradas": m.entradas, "saidas": m.saidas, "progresso": m.progresso,
-				"produzidos": m.produzidos, "fluidos": m.fluidos}
+				"produzidos": m.produzidos, "fluidos": m.fluidos, "extra": m.extra}
 	var br := {}
 	for id in bracos:
 		var b: Braco = bracos[id]
 		br[id] = {"segurando": b.segurando, "estado": b.estado, "t": b.t}
-	return {"maquinas": maq, "bracos": br, "baus": baus, "combustivel": combustivel, "laboratorios": laboratorios, "acumulado": acumulado,
+	return {"maquinas": maq, "bracos": br, "baus": baus, "combustivel": combustivel, "fator_fogo": fator_fogo, "laboratorios": laboratorios, "acumulado": acumulado,
 			"distribuidores": distribuidores, "fluidos": _guardar_fluidos(), "itens": _guardar_itens(), "carga_torre": carga_torre}
 
 
@@ -760,6 +810,7 @@ func restaurar(d: Dictionary) -> void:
 		m.progresso = s.progresso
 		m.produzidos = s.produzidos
 		m.fluidos = s.get("fluidos", {})
+		m.extra = float(s.get("extra", 0.0))
 		m.acordar()
 	for id in d.get("bracos", {}):
 		if bracos.has(id):
@@ -772,6 +823,9 @@ func restaurar(d: Dictionary) -> void:
 			baus[id].merge(d.baus[id], true)
 	for id in d.get("combustivel", {}):
 		combustivel[id] = d.combustivel[id]
+	for id in d.get("fator_fogo", {}):
+		if combustivel.has(id):
+			fator_fogo[id] = d.fator_fogo[id]
 	for id in d.get("carga_torre", {}):
 		if carga_torre.has(id):
 			carga_torre[id] = d.carga_torre[id]
@@ -787,6 +841,7 @@ func restaurar(d: Dictionary) -> void:
 	for id in d.get("laboratorios", {}):
 		if laboratorios.has(id):
 			laboratorios[id].merge(d.laboratorios[id], true)
+			_lab_normalizar(laboratorios[id])
 	var itens: Array[Dictionary] = []
 	itens.assign(d.get("itens", []))
 	_restaurar_itens(itens)
@@ -862,7 +917,7 @@ class _NaMaquina:
 		if not aceita(i):
 			return false
 		if _combustivel(i):
-			f.combustivel[id] += Fabrica.valor_combustivel(i)
+			f.por_combustivel(id, i)
 			m.acordar()
 			return true
 		if m.receita.is_empty():
@@ -952,7 +1007,7 @@ class _NoGerador:
 		return Fabrica.valor_combustivel(i) > 0.0 and f.combustivel.get(id, 0.0) < Fabrica.ESTOQUE_GERADOR_MJ
 	func receber(i: String) -> bool:
 		if not aceita(i): return false
-		f.combustivel[id] = f.combustivel.get(id, 0.0) + Fabrica.valor_combustivel(i)
+		f.por_combustivel(id, i)
 		return true
 
 
@@ -971,10 +1026,10 @@ class _NoLab:
 	func _init(p_f: Fabrica, p_lab: Dictionary) -> void:
 		f = p_f
 		lab = p_lab
-	func aceita(i: String) -> bool: return i == "pacote_pesquisa" and lab.pacotes < 10
+	func aceita(i: String) -> bool: return f.lab_aceita(lab, i)
 	func receber(i: String) -> bool:
 		if not aceita(i): return false
-		lab.pacotes += 1
+		lab.pacotes[i] = int(lab.pacotes.get(i, 0)) + 1
 		return true
 
 

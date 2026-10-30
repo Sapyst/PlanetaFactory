@@ -33,3 +33,13 @@ Lista: ver docs/ARVORE_TECNOLOGIA.md (Estruturas: temos × precisamos) e arte/es
 Sapyst: "vai terminar literalmente toda a tech-tree e tudo mais. Faltando só as fotos com testes mesmo."
 Entrega: TODAS as estruturas num ÚNICO painel (uma imagem/página com todas as fotos juntas, ex.: mosaico ou página
 com a grade inteira + resultado dos testes), para ela não precisar abrir uma por uma.
+
+### Progresso da fase 2
+- [x] 2.1 pacotes por tipo, automação, melhorias (mineração, pesquisa, dano/cadência de energia), briquete,
+      leitura ambiental, infinitas (algumas travadas por pré-requisitos "em breve")
+- [ ] 2.2a combate da era base: metralhadora (munição, dano/cadência de bala), muro de tijolo
+- [ ] 2.2b logística da era base: esteira rápida (logistica_3), braço com filtro, divisor com filtro, silo, cano subterrâneo
+- [ ] 2.3 água (bomba d'água, refrigeradas, coletor de chuva, condensador, filtro com água limpa, supressor), químico
+- [ ] 2.4 combate do meio: lança-foguetes, mina, muros de liga/campo, escudo, artilharia, pacote militar
+- [ ] 2.5 clima: para-raios, captador, pacote tempestade, semeador de nuvens, defletor, cúpula, regulador
+- [ ] 2.6 drones (estação, reparo, combate, logísticos), limpeza nova, energia/produção que tiverem estudo

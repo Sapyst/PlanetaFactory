@@ -9,7 +9,7 @@ Gerado a partir da tabela principal de `ARVORE_TECNOLOGIA.md`. Leia da esquerda 
 | Verde | Era base (35 tecnologias) |
 | Azul | Era do meio (60 tecnologias) |
 | Roxo | Era super avançada (71 tecnologias, das quais 10 são melhorias infinitas) |
-| Amarelo com borda grossa | Uma das 15 pesquisas que já existem no jogo (`jogo/dados/progressao.json`); a cor substitui a da era: 12 na era base, 3 na era do meio |
+| Amarelo com borda grossa | Uma das 32 pesquisas que já existem no jogo (`jogo/dados/progressao.json`); a cor substitui a da era: 18 na era base, 7 na era do meio, 7 na era super avançada |
 | Laranja com borda vermelha | Objetivo final: foguete de proliferação |
 | Cinza tracejado | (só nos diagramas por era) pré-requisito que vem de uma era anterior |
 

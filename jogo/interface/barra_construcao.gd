@@ -583,7 +583,7 @@ func fechar_detalhe() -> void:
 
 func ligar_recursos(sim: bool, camada := "recursos") -> void:
 	_destacar(_botoes_ferr["recursos"], sim, Tema.cor("agua"))
-	texto_ferramenta("recursos", "◈ Vento" if sim and camada == "vento" else "◈ Recursos")
+	texto_ferramenta("recursos", "◈ Vento" if sim and camada == "vento" else ("◈ Sujeira" if sim and camada == "poluicao" else "◈ Recursos"))
 
 
 func ligar_poluicao(sim: bool) -> void:

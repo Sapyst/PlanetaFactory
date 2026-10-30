@@ -29,6 +29,8 @@
  "municao":          {"maquina": "montadora", "entradas": {"silex": 2, "placa_cobre": 1}, "saidas": {"municao": 1}, "tempo": 1.0},
  "celula":           {"maquina": "montadora", "entradas": {"bateria": 2, "nucleo_cristal": 1}, "saidas": {"celula_energia": 1}, "tempo": 10.0},
  "pesquisa":         {"maquina": "montadora", "entradas": {"cristal_lapidado": 1, "engrenagem": 1}, "saidas": {"pacote_pesquisa": 1}, "tempo": 5.0},
+ "briquete":         {"maquina": "montadora", "entradas": {"biomassa": 4}, "saidas": {"briquete": 1}, "tempo": 2.0},
+ "pacote_automacao": {"maquina": "montadora", "entradas": {"motor": 1, "circuito": 2}, "saidas": {"pacote_automacao": 2}, "tempo": 10.0},
 
  "bateria":          {"maquina": "refinador", "entradas": {"placa_cobre": 1, "placa_ferro": 1}, "entradas_fluido": {"seiva": 20}, "saidas": {"bateria": 1}, "tempo": 4.0}
 }

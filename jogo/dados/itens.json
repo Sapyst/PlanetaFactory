@@ -23,5 +23,7 @@
  "modulo_controle":  {"nome": "Módulo de controle","grupo": "avancado",     "pilha": 50},
  "municao":          {"nome": "Munição",          "grupo": "avancado",      "pilha": 200},
  "celula_energia":   {"nome": "Célula de energia","grupo": "avancado",      "pilha": 50},
- "pacote_pesquisa":  {"nome": "Pacote de pesquisa","grupo": "avancado",     "pilha": 200}
+ "pacote_pesquisa":  {"nome": "Pacote de pesquisa","grupo": "avancado",     "pilha": 200},
+ "pacote_automacao": {"nome": "Pacote de automação","grupo": "avancado",    "pilha": 200, "modelo_de": "pacote_pesquisa", "matiz": 0.07},
+ "briquete":         {"nome": "Briquete",         "grupo": "intermediario", "pilha": 50, "combustivel_mj": 10.0, "poluicao_queima": 0.7, "modelo_de": "tijolo", "matiz": 0.78}
 }

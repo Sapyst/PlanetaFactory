@@ -181,14 +181,14 @@ func _atualizar() -> void:
 	if pesquisa.livre:
 		_status.text = "Demonstração: tudo já está liberado."
 	elif not at.is_empty():
-		_status.text = "Pesquisando %s — %d de %d pacotes" % [at.nome, pesquisa.feitos, at.pacotes]
+		_status.text = "Pesquisando %s — %d de %d (%s)" % [at.nome, pesquisa.feitos, pesquisa.unidades(pesquisa.ativa), pesquisa.custo_texto(pesquisa.ativa)]
 	else:
 		_status.text = "Toque numa pesquisa para ver e escolher."
 	_barra.visible = not at.is_empty()
 	if not at.is_empty():
-		_barra.max_value = float(at.pacotes)
+		_barra.max_value = float(pesquisa.unidades(pesquisa.ativa))
 		_barra.value = float(pesquisa.feitos)
-	var assin := "%s|%s|%d|%s" % [pesquisa.ativa, pesquisa.concluidas.keys(), pesquisa.feitos, _sel]
+	var assin := "%s|%s|%d|%s" % [pesquisa.ativa, pesquisa.assinatura(), pesquisa.feitos, _sel]
 	if assin == _assinatura:
 		return
 	var primeira := _assinatura == ""
@@ -465,11 +465,16 @@ func _situacao(id: String) -> String:
 func _situacao_jogavel(id: String, pq: Dictionary) -> String:
 	if pesquisa.concluidas.has(id):
 		return "✓ concluída"
+	var n := pesquisa.unidades(id)
+	var nt := pesquisa.tipos(id).size()
+	var custo := "%d pacotes" % n if nt == 1 else "%d × %d tipos" % [n, nt]
+	if pesquisa.infinita(id):
+		custo = "nível %d · %s" % [pesquisa.nivel(id) + 1, custo]
 	if pesquisa.ativa == id:
-		return "pesquisando %d/%d" % [pesquisa.feitos, int(pq.pacotes)]
+		return "pesquisando %d/%d" % [pesquisa.feitos, n]
 	if pesquisa.disponivel(id):
-		return "%d pacotes" % int(pq.pacotes)
-	return "🔒 %d pacotes" % int(pq.pacotes)
+		return custo
+	return "🔒 " + custo
 
 
 ## Ícone do nó: a primeira peça que libera; sem peça, o primeiro item das receitas.
@@ -509,7 +514,7 @@ func _mostrar_detalhe() -> void:
 		c.queue_free()
 	if _sel == "" or not _no(_sel).size():
 		var l := Label.new()
-		l.text = "Toque numa pesquisa da árvore.\n\nO laboratório (com energia) gasta pacotes de pesquisa. A montadora faz cada pacote com 1 cristal lapidado + 1 engrenagem; um braço leva os pacotes ao laboratório."
+		l.text = "Toque numa pesquisa da árvore.\n\nO laboratório (com energia) gasta pacotes de pesquisa: cada unidade gasta 1 pacote de cada tipo pedido. A montadora faz o pacote básico com 1 cristal lapidado + 1 engrenagem; um braço leva os pacotes ao laboratório."
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		l.add_theme_font_size_override("font_size", 15)
 		_det.add_child(l)
@@ -539,12 +544,32 @@ func _mostrar_detalhe() -> void:
 		return
 	var custo := HBoxContainer.new()
 	custo.add_theme_constant_override("separation", 8)
-	custo.add_child(Casa.nova(_tex_item("pacote_pesquisa"), str(int(pq.pacotes))))
+	for t in pesquisa.tipos(_sel):                                 # uma casa por tipo de pacote
+		custo.add_child(Casa.nova(_tex_item(t), str(pesquisa.unidades(_sel)), "pacote " + Pesquisa.nome_tipo(t)))
 	var cl := Label.new()
-	cl.text = "pacotes de pesquisa\n%d s cada no laboratório" % pq.get("tempo", 5)
+	cl.text = "%s\n%s s por unidade no laboratório" % [pesquisa.custo_texto(_sel), String.num(float(pq.get("tempo", 5)), 1).trim_suffix(".0")]
+	cl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	cl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cl.add_theme_font_size_override("font_size", 14)
 	custo.add_child(cl)
 	_det.add_child(custo)
+	var faltam_pacotes: Array[String] = []
+	for t in pesquisa.tipos(_sel):
+		if not Registro.itens.has(t):
+			faltam_pacotes.append(Pesquisa.nome_tipo(t))
+	if not faltam_pacotes.is_empty():                             # depende de pacote que ainda é "em breve"
+		var fl := Label.new()
+		fl.text = "Pacote %s: em breve (a receita vem numa pesquisa que ainda não está no jogo)." % ", ".join(faltam_pacotes)
+		fl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		fl.add_theme_font_size_override("font_size", 14)
+		fl.add_theme_color_override("font_color", Tema.cor("info"))
+		_det.add_child(fl)
+	if pesquisa.infinita(_sel):                                   # infinita: nível feito e o próximo custo
+		var nl := Label.new()
+		nl.text = "Nível feito: %d · o próximo custa ×%s" % [pesquisa.nivel(_sel), String.num(Pesquisa.CUSTO_NIVEL, 1)]
+		nl.add_theme_font_size_override("font_size", 14)
+		nl.add_theme_color_override("font_color", Tema.cor("info"))
+		_det.add_child(nl)
 	if not pq.get("bonus", {}).is_empty():                        # melhoria: diz o efeito, não há casas
 		var ml := Label.new()
 		ml.text = "Melhora"
@@ -573,7 +598,7 @@ func _mostrar_detalhe() -> void:
 			casas.add_child(Casa.nova(_tex_item(it), "", "receita: " + nm))
 			nomes.append("receita de " + nm.to_lower())
 	var ln := Label.new()
-	ln.text = ", ".join(nomes) if not nomes.is_empty() else "—"
+	ln.text = ", ".join(nomes) if not nomes.is_empty() else str(pq.get("texto", "—"))   # ex.: camada nova da visão
 	if nomes.is_empty() and not pq.get("bonus", {}).is_empty():   # só melhora: sem seção "Libera" vazia
 		tl.visible = false
 		casas.visible = false
@@ -598,10 +623,12 @@ func _mostrar_detalhe() -> void:
 		b.text = "✓ Concluída"
 		b.disabled = true
 	elif pesquisa.ativa == _sel:
-		b.text = "Pesquisando… %d/%d" % [pesquisa.feitos, pq.pacotes]
+		b.text = "Pesquisando… %d/%d" % [pesquisa.feitos, pesquisa.unidades(_sel)]
+		if pesquisa.infinita(_sel):
+			b.text = "Nível %d: %d/%d (segue sozinha)" % [pesquisa.nivel(_sel) + 1, pesquisa.feitos, pesquisa.unidades(_sel)]
 		b.disabled = true
 	elif pesquisa.disponivel(_sel):
-		b.text = "Pesquisar"
+		b.text = "Pesquisar nível %d" % (pesquisa.nivel(_sel) + 1) if pesquisa.infinita(_sel) else "Pesquisar"
 		var id := _sel
 		b.pressed.connect(RolagemToque.so_clique(func():
 			Som.tocar("clique")
