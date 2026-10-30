@@ -33,5 +33,7 @@
  "liga_leve":        {"nome": "Liga leve",        "grupo": "intermediario", "pilha": 100, "modelo_de": "placa_cobre", "matiz": 0.55},
  "processador":      {"nome": "Processador",      "grupo": "avancado",      "pilha": 100, "modelo_de": "circuito", "matiz": 0.78},
  "foguete":          {"nome": "Foguete",          "grupo": "avancado",      "pilha": 50,  "modelo_de": "municao", "matiz": 0.22},
- "granada":          {"nome": "Granada de artilharia", "grupo": "avancado", "pilha": 20,  "modelo_de": "municao", "matiz": 0.58}
+ "granada":          {"nome": "Granada de artilharia", "grupo": "avancado", "pilha": 20,  "modelo_de": "municao", "matiz": 0.58},
+ "cristal_carregado": {"nome": "Cristal carregado", "grupo": "avancado",   "pilha": 50,  "modelo_de": "cristal_lapidado", "matiz": 0.80},
+ "pacote_tempestade": {"nome": "Pacote de tempestade", "grupo": "avancado", "pilha": 200, "modelo_de": "pacote_pesquisa", "matiz": 0.72}
 }

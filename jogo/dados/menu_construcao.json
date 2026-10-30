@@ -94,6 +94,18 @@
    ]
   },
   {
+   "nome": "Clima",
+   "pecas": [
+    "para_raios",
+    "para_raios_2",
+    "captador_carga",
+    "semeador_nuvens",
+    "defletor_vento",
+    "cupula_raios",
+    "regulador_clima"
+   ]
+  },
+  {
    "nome": "Trilhos",
    "pecas": [
     "trilho_reto",
@@ -176,7 +188,14 @@
   "muro_liga": "Muro de liga",
   "muro_escudo": "Muro de campo",
   "mina_pulso": "Mina de pulso",
-  "gerador_escudo": "Gerador de escudo"
+  "gerador_escudo": "Gerador de escudo",
+  "para_raios": "Para-raios",
+  "para_raios_2": "Para-raios de cristal",
+  "captador_carga": "Captador de carga",
+  "semeador_nuvens": "Semeador de nuvens",
+  "defletor_vento": "Defletor de vento",
+  "cupula_raios": "Cúpula contra raios",
+  "regulador_clima": "Regulador climático"
  },
  "jazidas": {
   "jazida_cristal": "cristal",

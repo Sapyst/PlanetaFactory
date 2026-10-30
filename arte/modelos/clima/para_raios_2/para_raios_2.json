@@ -1,0 +1,36 @@
+{
+ "nome": "para_raios_2",
+ "categoria": "clima",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Para-raios de cristal 1×1: mastro mais grosso com estais em dois níveis, bobina em carretel de fenolite, copa de cobre com quatro garras segurando o cristal, anéis de campo; bobina de choque e 6 capacitores. Pega os raios em 22 m (200 MJ por raio).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "ponta_raio": [
+  0.0,
+  0.0,
+  4.51
+ ],
+ "tris": 3237,
+ "dims": [
+  0.95,
+  0.958,
+  4.513
+ ],
+ "anima": false,
+ "estudo": "estudo_para_raios.py"
+}

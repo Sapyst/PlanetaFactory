@@ -79,7 +79,8 @@
     "nublado": 2,
     "tufao": 0.3
    },
-   "raios": true
+   "raios": true,
+   "raios_por_s": 0.1
   },
   "tufao": {
    "nuvens": 1.0,
@@ -96,6 +97,7 @@
     "chuva": 3
    },
    "raios": true,
+   "raios_por_s": 0.15,
    "tufao": true
   }
  },
@@ -108,6 +110,8 @@
   "tufao": "Tufão"
  },
  "chuva_absorcao": 0.8,
+ "_raios": "tempestade e tufão soltam raios (raios_por_s do estado: 1 a cada 10 s / 7 s). Cada um cai a até raio_sorteio m de uma construção sorteada, as altas com mais chance (peso = altura²; Raios): para-raios/captador/cúpula pegam; sem proteção, a construção mais alta a até busca m leva dano (e a vegetação em volta pode pegar fogo, fogo_tentativas tiles); no chão, árvore/mato pega fogo ou fica a marca queimada",
+ "raios": {"raio_sorteio": 20, "busca": 3.0, "dano": 150, "fogo_tentativas": 3, "altura_arvore": 4.0},
  "_nota_estacoes": "Estações: ciclo de duracao_s cada; 'pesos' multiplica o peso de ir para cada estado; 'secura' 0..1 (incêndio); 'grama' tom da grama.",
  "estacao_s": 604800,
  "dia_s": 720,

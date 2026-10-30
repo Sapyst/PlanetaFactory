@@ -1,0 +1,31 @@
+{
+ "nome": "defletor_vento",
+ "categoria": "clima",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Defletor de vento 2×2: coluna giratória sobre coroa dentada, dois ventiladores dutados e cascata de cinco palhetas com pistões; biruta, anemômetro e domo-sensor. Com energia, o vento num raio de 40 m sopra para onde ele aponta (frente da peça) e não passa de forte (sem ventania de tufão).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 8138,
+ "dims": [
+  2.0,
+  2.0,
+  3.978
+ ],
+ "anima": true,
+ "estudo": "estudo_clima_2x2.py"
+}

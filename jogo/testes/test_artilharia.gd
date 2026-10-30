@@ -54,7 +54,9 @@ func test_granada_e_pesquisa() -> void:
 	p.concluidas = {"torre_foguetes": true, "liga_leve": true}
 	verificar(not p.disponivel("artilharia"), "travada: espera a cartografia")
 	verificar(not p.jogavel("cartografia"), "cartografia ainda em breve (sem sensor de varredura)")
-	verificar(not p.jogavel("dano_artilharia_1") and not p.jogavel("alcance_artilharia_1"), "melhorias da artilharia (tempestade) em breve")
+	verificar(p.jogavel("dano_artilharia_1") and p.jogavel("alcance_artilharia_1"), "melhorias da artilharia ligadas (fase 2.5, tempestade)")
+	p.concluidas["ciencia_tempestade"] = true
+	verificar(not p.disponivel("dano_artilharia_1"), "melhorias esperam a própria artilharia (travada pela cartografia)")
 	p.livre = true
 	verificar(p.peca_liberada("artilharia") and p.receita_liberada("granada"), "no modo livre (demo) já se constrói")
 

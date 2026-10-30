@@ -1,0 +1,82 @@
+{
+ "nome": "captador_carga",
+ "categoria": "clima",
+ "tipo": "estrutura",
+ "area": [
+  2,
+  2
+ ],
+ "descricao": "Captador de carga 2×2: câmara octogonal com banho d'água e carrossel de cestos, pórtico de eletrodos de grafite, banco de capacitores e mastro treliçado com coroa de pontas e cristal-guia. A cada raio que pega carrega 1 cristal lapidado (30 de água) em cristal carregado; a sobra do raio vai para os acumuladores.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [
+  {
+   "nome": "PORTA_ITEM_ENT_S1",
+   "tipo": "ITEM",
+   "io": "ENT",
+   "pos": [
+    0.5,
+    -1.0,
+    0.2
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_ITEM_SAI_O0",
+   "tipo": "ITEM",
+   "io": "SAI",
+   "pos": [
+    -1.0,
+    -0.5,
+    0.25
+   ],
+   "dir": [
+    -1,
+    0,
+    0
+   ]
+  },
+  {
+   "nome": "PORTA_FLUIDO_ENT_N0",
+   "tipo": "FLUIDO",
+   "io": "ENT",
+   "pos": [
+    -0.5,
+    1.0,
+    0.275
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ]
+  }
+ ],
+ "ponta_raio": [
+  0.7766,
+  0.76,
+  3.67
+ ],
+ "tris": 9054,
+ "dims": [
+  1.975,
+  1.995,
+  3.67
+ ],
+ "anima": true,
+ "estudo": "estudo_captador_carga.py"
+}

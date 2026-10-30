@@ -26,6 +26,18 @@ Você é a IA do núcleo que caiu no planeta. O objetivo é crescer: extrair, fa
 - **Química** (refino + bomba d'água): **resina** (seiva por uma boca do refinador, água pela outra) e o **pacote
   químico** (resina + bateria + água), o terceiro tipo de pacote do laboratório. **Bioquímica** libera o **pacote
   ecológico**, que só sai com **água limpa**.
+- **Clima** (aba Clima): em **tempestade** e **tufão** caem **raios** de verdade, perto da fábrica, nos pontos altos.
+  Sem proteção, o raio tira 150 de vida da construção mais alta e pode pôr fogo no mato em volta (dentro da bolha de um
+  gerador de escudo carregado, o escudo absorve). O **Para-raios** (automação + aço) pega todo raio que cairia a até
+  14 m e, ligado num poste, manda 120 MJ para os acumuladores; o **de cristal** pega em 22 m (200 MJ). O **Captador de
+  carga** pega os raios a até 10 m e, com cristal lapidado (braço na boca sul) e água (cano ao norte), transforma cada
+  raio em um **cristal carregado** (sai a oeste) — o ingrediente do **pacote de tempestade** (cristal carregado +
+  módulo de controle + liga leve na montadora), liberado pela **Ciência de tempestade**. Com ele: dano 4 e cadência 2
+  da torre de energia, **Escudo 2** (bolha de 12 m, 1.000 de dano) e o **Muro de campo**, mais as melhorias de bala e
+  foguete. Máquinas de clima (precisam de energia): **Semeador de nuvens** (chove em 40 m: apaga fogo e enche coletores),
+  **Cúpula contra raios** (nenhum raio em 30 m), **Defletor de vento** (o vento de 40 m sopra para onde ele aponta —
+  gire com R —, sem ventania de tufão) e **Regulador climático** (céu firme ou chuva mansa em 80 m, sem raio nem
+  tufão); os dois últimos esperam tecnologias que ainda vão chegar.
 - **Defesa do meio** (aba Defesa): **Ciência militar** (metralhadora + muro de tijolo + automação) libera o **pacote
   militar** (2 munições + 1 aço + 2 tijolos na montadora), que abre as melhorias de bala e da torre de energia.
   O **Lança-foguetes** 3×3 recebe **foguetes** (resina + aço + circuito) pela boca sul e acerta grupos de aranhas

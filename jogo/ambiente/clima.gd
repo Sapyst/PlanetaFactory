@@ -145,7 +145,7 @@ func tick(dt: float) -> void:
 		pocas = maxf(0.0, pocas - dt * 0.0035)
 	_vento(dt)
 	deslocamento += direcao_vento * (1.5 + 6.0 * valores.vento) * dt
-	if _d.estados[atual].get("raios", false) and ativo and _rng.randf() < dt * 0.07:
+	if _d.estados[atual].get("raios", false) and ativo and _rng.randf() < dt * float(_d.estados[atual].get("raios_por_s", 0.07)):
 		if eventos.size() < 4:
 			eventos.append("raio")
 

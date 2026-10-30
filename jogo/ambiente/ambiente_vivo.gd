@@ -15,6 +15,9 @@ extends RefCounted
 ##    limpam o chão em volta e absorvem poluição do ar.
 ##  - água (fase 2.3): bomba d'água com água suja na tomada rende menos; supressor de incêndio com água apaga o fogo
 ##    no raio dele e, enquanto tem água, a vegetação em volta não pega fogo (molhada).
+##  - clima local (fase 2.5, ClimaLocal): o fogo sente a chuva e o vento do lugar (semeador de nuvens: chove ali,
+##    nada pega fogo e o que queima apaga; defletor: o fogo anda para onde ele aponta); tufão não machuca construção
+##    no raio do defletor ou do regulador. Os raios (Raios) acendem fogo e deixam o chão queimado.
 ## Os valores são por tile (dado de simulação); o desenho é contínuo (mistura suave + ruído, nunca em quadrados).
 ## Só existem chunks com algum valor: o custo segue a sujeira, não o tamanho do mapa.
 
@@ -47,6 +50,7 @@ var queima_arvore: Dictionary = {}   ## tile → segundos que a árvore já quei
 var encardido: Dictionary = {}       ## id da estrutura → 0 limpa .. 1 imunda (tempo e trabalho sujam, chuva lava)
 var _estacao_ant := -1
 var _protegidos: Array[Vector3] = []  ## (x, y, raio) dos supressores com água e energia: ali não pega fogo
+var clima_local: ClimaLocal          ## (opcional) máquinas de clima: chuva/vento do lugar no fogo, tufão não machuca
 
 
 func _init(p_gerador: GeradorMundo, p_mapa: MapaOcupacao, semente := 9) -> void:
@@ -570,6 +574,8 @@ func _inflamavel(t: Vector2i) -> bool:
 		return false
 	if not _protegidos.is_empty() and protegido(t):
 		return false
+	if clima_local != null and not clima_local.zonas.is_empty() and clima_local.chuva_em(Vector2(t) + Vector2(0.5, 0.5), 0.0) >= 0.5:
+		return false                                          # chovendo ali (semeador, regulador em chuva): molhado
 	if not gerador.distribuicao.jazida(t).is_empty() or valor(t, QUEIM) > 0.6:
 		return false
 	return gerador.bioma(t) in _d.fogo.inflamavel
@@ -590,8 +596,15 @@ func _fogo(chuva: float, vento: Vector2, secura: float, tufao: bool) -> void:
 	var novos: Array[Vector2i] = []
 	var apagar: Array[Vector2i] = []
 	var esp: float = float(_d.fogo.espalha) * (0.3 + secura) * (3.0 if tufao else 1.0)
+	var local := clima_local != null and not clima_local.zonas.is_empty()
 	for t in fogo:
-		fogo[t] -= 1.0 + chuva * float(_d.fogo.chuva_apaga) * 10.0
+		var ch := chuva
+		var vt := vento
+		if local:
+			var pt := Vector2(t) + Vector2(0.5, 0.5)
+			ch = clima_local.chuva_em(pt, chuva)
+			vt = clima_local.vento_em(pt, vento.normalized(), vento.length())
+		fogo[t] -= 1.0 + ch * float(_d.fogo.chuva_apaga) * 10.0
 		somar(t, QUEIM, 0.22)
 		if _tem_arvore(t):
 			queima_arvore[t] = float(queima_arvore.get(t, 0.0)) + 1.0
@@ -600,8 +613,8 @@ func _fogo(chuva: float, vento: Vector2, secura: float, tufao: bool) -> void:
 			continue
 		for d in Grade.DIRECOES:
 			var n: Vector2i = t + d
-			var a_favor := maxf(0.0, Vector2(d).dot(vento))
-			if _rng.randf() < esp * (1.0 + a_favor * float(_d.fogo.vento_mult)) * (1.0 - chuva):
+			var a_favor := maxf(0.0, Vector2(d).dot(vt))
+			if _rng.randf() < esp * (1.0 + a_favor * float(_d.fogo.vento_mult)) * (1.0 - ch):
 				if _inflamavel(n):
 					novos.append(n)
 			var id: int = mapa.tiles.get(n, -1)
@@ -642,6 +655,9 @@ func _tufao(vento: Vector2) -> void:
 	var frageis: Array = _d.tufao.frageis
 	for id in mapa.estruturas.keys():
 		if mapa.estruturas.has(id) and mapa.estruturas[id].nome in frageis and dano.is_valid():
+			var e: Dictionary = mapa.estruturas[id]
+			if clima_local != null and clima_local.sem_tufao(Grade.centro_da_area(e.minimo, e.area, e.rot)):
+				continue                                      # defletor / regulador: sem ventania aqui
 			dano.call(id, float(_d.tufao.dano))
 	var leva: float = _d.tufao.espalha_sujeira
 	var passo := Vector2i(Vector2(vento.normalized() * 2.0).round())

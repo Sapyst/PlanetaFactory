@@ -3,6 +3,9 @@ extends Node3D
 ## Desenha o Clima (só lê a lógica):
 ##  - parâmetros globais de shader: sombra das nuvens (correndo com o vento) e chão molhado — ver clima.gdshaderinc;
 ##  - luz: sol e céu baixam com as nuvens; relâmpago acende tudo por um instante e o trovão vem depois;
+##  - raio: cai onde a lógica (Raios) mandou — na ponta do para-raios, no topo da construção atingida, no chão; na
+##    cúpula contra raios bate no campo e um segundo arco desce do alto dela até o cristal; o clarão e o trovão
+##    enfraquecem e atrasam com a distância da câmera;
 ##  - dia e noite (Clima.hora): o sol anda de leste a oeste e baixa, fica alaranjado no fim da tarde, some; à noite a
 ##    mesma luz vira lua (azulada, fraca, vinda de outro lado — a troca acontece com as duas apagadas no horizonte),
 ##    céu e ambiente escurecem para azul-noite e os cristais das máquinas passam a se destacar;
@@ -38,6 +41,7 @@ var camera: CameraJogo
 var ambiente: WorldEnvironment
 var sol: DirectionalLight3D
 var fontes_calor: Callable           ## → Array de Vector3 (x, z do mundo, raio): onde a névoa abre
+var raios: Raios                     ## (opcional) onde cada raio caiu; sem ele, o raio cai num ponto qualquer da vista
 
 var _chuva: GPUParticles3D
 var _proc: ParticleProcessMaterial
@@ -452,11 +456,29 @@ func _criar_raio() -> void:
 
 
 func _relampagos(delta: float) -> void:
+	if raios != null:
+		for q in raios.quedas:
+			var chao := Grade.ponto_mundo(q.pos, 0.0)
+			var topo := Grade.ponto_mundo(q.pos, float(q.alt))
+			var linhas: Array = [[topo + Vector3(randf_range(-6, 6), 45.0, randf_range(-6, 6)), topo]]
+			if q.tipo == "cupula":                       # bate no campo, desce do alto da cúpula até o cristal
+				var c: Vector2 = q.centro
+				var pt: Vector3 = q.ponta
+				linhas.append([Grade.ponto_mundo(c, float(q.raio_cupula)), Grade.ponto_mundo(Vector2(pt.x, pt.y), pt.z)])
+			var longe := Vector2(camera.alvo.x - chao.x, camera.alvo.z - chao.z).length()
+			var perto := clampf(1.0 - longe / maxf(30.0, camera.distancia * 3.0), 0.25, 1.0)
+			_flash = maxf(_flash, perto)
+			_vida_raio = 0.22
+			_desenhar_raio(linhas)
+			_trovoes.append(randf_range(0.3, 0.8) + longe / 340.0)      # o som vem depois (343 m/s)
+		raios.quedas.clear()
 	for ev in clima.eventos:
 		if ev == "raio":
 			_flash = 1.0
 			_vida_raio = 0.22
-			_desenhar_raio()
+			var r := camera.distancia * 0.5
+			var p := camera.alvo + Vector3(randf_range(-r, r), 0, randf_range(-r * 0.7, r * 0.7))
+			_desenhar_raio([[p + Vector3(0, 45.0, 0), p]])
 			_trovoes.append(randf_range(0.6, 2.6))
 	clima.eventos.clear()
 	# dois piscos: acende, cai, volta um pouco e apaga
@@ -474,28 +496,30 @@ func _relampagos(delta: float) -> void:
 			_trovoes.remove_at(i)
 
 
-## Linha quebrada do céu ao chão num ponto aleatório da vista, em fita virada para a câmera.
-func _desenhar_raio() -> void:
-	var r := camera.distancia * 0.5
-	var chao := camera.alvo + Vector3(randf_range(-r, r), 0, randf_range(-r * 0.7, r * 0.7))
-	var pts: Array[Vector3] = []
-	var n := 9
-	for i in n + 1:
-		var t := float(i) / n
-		var p := chao + Vector3(0, 45.0 * (1.0 - t), 0)
-		if i > 0 and i < n:
-			p += Vector3(randf_range(-2.2, 2.2), 0, randf_range(-2.2, 2.2))
-		pts.append(p)
+## Linhas quebradas (cada uma [de, até], mundo) em fita virada para a câmera: núcleo branco e halo largo.
+func _desenhar_raio(linhas: Array) -> void:
 	_malha_raio.clear_surfaces()
 	_malha_raio.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
-	for camada in [[1.4, Color(0.55, 0.65, 1.0, 0.10)], [0.18, Color(0.95, 0.97, 1.0, 1.0)]]:
-		_malha_raio.surface_set_color(camada[1])
-		for i in n:
-			var a := pts[i]
-			var b := pts[i + 1]
-			var olho := (camera.global_position - a).normalized()
-			var lado := (b - a).normalized().cross(olho).normalized() * float(camada[0])
-			var q := [a - lado, a + lado, b + lado, b - lado]
-			for k in [0, 1, 2, 0, 2, 3]:
-				_malha_raio.surface_add_vertex(q[k])
+	var olho_em := camera.global_position if camera.is_inside_tree() else camera.position
+	for ln in linhas:
+		var de: Vector3 = ln[0]
+		var ate: Vector3 = ln[1]
+		var n := clampi(int(de.distance_to(ate) / 5.0), 3, 10)
+		var desvio := minf(2.2, de.distance_to(ate) * 0.06)
+		var pts: Array[Vector3] = []
+		for i in n + 1:
+			var p := de.lerp(ate, float(i) / n)
+			if i > 0 and i < n:
+				p += Vector3(randf_range(-desvio, desvio), 0, randf_range(-desvio, desvio))
+			pts.append(p)
+		for camada in [[1.4, Color(0.55, 0.65, 1.0, 0.10)], [0.18, Color(0.95, 0.97, 1.0, 1.0)]]:
+			_malha_raio.surface_set_color(camada[1])
+			for i in n:
+				var a := pts[i]
+				var b := pts[i + 1]
+				var olho := (olho_em - a).normalized()
+				var lado := (b - a).normalized().cross(olho).normalized() * float(camada[0]) * (0.5 if ln != linhas[0] else 1.0)
+				var q := [a - lado, a + lado, b + lado, b - lado]
+				for k in [0, 1, 2, 0, 2, 3]:
+					_malha_raio.surface_add_vertex(q[k])
 	_malha_raio.surface_end()

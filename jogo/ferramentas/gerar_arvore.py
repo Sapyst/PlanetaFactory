@@ -73,7 +73,7 @@ def ler_custos():
 
 
 MELHORIAS = ('dano_', 'cadencia_', 'alcance_', 'mineracao_', 'pesquisa_vel_', 'drones_bateria', 'drones_frota',
-             'drones_velocidade', 'drones_defesa', 'harmonia_ninhos', 'simbiose')
+             'drones_velocidade', 'drones_defesa', 'harmonia_ninhos', 'simbiose', 'escudo_2')
 
 
 def tipo_de(i, n):

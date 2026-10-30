@@ -32,6 +32,7 @@ var _fumacinhas: Dictionary = {}        ## id da torre → {no: CPUParticles3D, 
 var _voos: Array[Dictionary] = []       ## foguetes/granadas no ar: {no, rastro, de, para, t, dur, arco}
 var _aneis: Array[Dictionary] = []      ## pulsos da mina e impactos no escudo: {no, t, dur, raio}
 var carga: Callable                     ## (opcional) func(id) -> MJ guardados (gerador de escudo: a bolha some sem carga)
+var carga_max: Callable                 ## (opcional) func(id) -> MJ de carga cheia (com a melhoria do escudo 2)
 var _bolhas: Dictionary = {}            ## id do gerador de escudo → {no: MeshInstance3D, mat, impacto}
 const CAMPO := preload("res://render/shaders/campo_escudo.gdshader")
 
@@ -555,9 +556,12 @@ func _sincronizar_bolhas(delta: float) -> void:
 		var e: Dictionary = mapa.estruturas[id]
 		var regra: Dictionary = Registro.estruturas.get(e.nome, {})
 		var c := Grade.centro_da_area(e.minimo, e.area, e.rot)
+		var r := colonia.raio_escudo(e.nome)
+		if _bolhas.has(id) and absf(float(_bolhas[id].raio) - r) > 0.01:     # escudo 2 aumentou a bolha: refaz
+			(_bolhas[id].no as Node).queue_free()
+			_bolhas.erase(id)
 		if not _bolhas.has(id):
 			var esf := SphereMesh.new()
-			var r := float(regra.escudo.get("raio", 8.0))
 			esf.radius = r
 			esf.height = r
 			esf.is_hemisphere = true
@@ -571,11 +575,11 @@ func _sincronizar_bolhas(delta: float) -> void:
 			no.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			add_child(no)
 			no.position = Grade.ponto_mundo(c, 0.0)
-			_bolhas[id] = {"no": no, "mat": m, "impacto": 0.0, "forca": -1.0}
+			_bolhas[id] = {"no": no, "mat": m, "impacto": 0.0, "forca": -1.0, "raio": r}
 		var b: Dictionary = _bolhas[id]
 		var f := 0.0
 		if carga.is_valid():
-			f = clampf(float(carga.call(id)) / maxf(1e-6, float(regra.get("carga_mj", 1.0))), 0.0, 1.0)
+			f = clampf(float(carga.call(id)) / maxf(1e-6, float(carga_max.call(id)) if carga_max.is_valid() else float(regra.get("carga_mj", 1.0))), 0.0, 1.0)
 		b.impacto = maxf(0.0, float(b.impacto) - delta * 3.0)
 		(b.no as Node3D).visible = f > 0.01 and _perto_da_vista(c)
 		(b.mat as ShaderMaterial).set_shader_parameter("forca", 0.35 + 0.65 * f)

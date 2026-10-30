@@ -1,0 +1,36 @@
+{
+ "nome": "para_raios",
+ "categoria": "clima",
+ "tipo": "estrutura",
+ "area": [
+  1,
+  1
+ ],
+ "descricao": "Para-raios 1×1: laje com poço de inspeção, mastro de aço em três gomos com estais, captor Franklin no topo, descida de cobre em isoladores, caixa com centelhador de chifres, contador de descargas e capacitores. Pega os raios num raio de 14 m (120 MJ por raio para os acumuladores da rede dele).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "ponta_raio": [
+  0.0,
+  0.0,
+  3.8853
+ ],
+ "tris": 2500,
+ "dims": [
+  0.951,
+  0.95,
+  3.893
+ ],
+ "anima": false,
+ "estudo": "estudo_para_raios.py"
+}

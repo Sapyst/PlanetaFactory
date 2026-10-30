@@ -71,7 +71,9 @@ func test_pesquisas() -> void:
 	p.concluidas["muro_liga"] = true
 	verificar(p.peca_liberada("muro_liga"), "libera o muro de liga")
 	verificar(not p.disponivel("muro_escudo"), "muro de campo espera o escudo 2 (tempestade)")
-	verificar(not p.jogavel("escudo_2"), "escudo 2 ainda em breve")
+	verificar(p.jogavel("escudo_2"), "escudo 2 ligado (fase 2.5)")
+	p.concluidas.merge({"escudo_1": true, "ciencia_tempestade": true, "escudo_2": true})
+	verificar(p.disponivel("muro_escudo"), "com o escudo 2 o muro de campo fica pesquisável")
 	p.livre = true
 	verificar(p.peca_liberada("muro_escudo"), "no modo livre (demo) o campo já se constrói")
 

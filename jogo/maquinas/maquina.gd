@@ -171,5 +171,32 @@ func tick(dt: float) -> void:
 				saidas[item] = int(saidas.get(item, 0)) + int(vai[item])
 
 
+## Tem insumo para um ciclo e lugar na saída (captador esperando raio).
+func pronta() -> bool:
+	return not receita.is_empty() and _tem_insumos() and not _saida_cheia()
+
+
+func saida_cheia() -> bool:
+	return _saida_cheia()
+
+
+## Um ciclo inteiro na hora, sem tempo nem energia (captador de carga: o raio faz o trabalho). false = não pôde.
+func ciclo_agora() -> bool:
+	if not pronta():
+		return false
+	var precisa: Dictionary = receita.get("entradas", {})
+	for item in precisa:
+		entradas[item] = int(entradas[item]) - int(precisa[item])
+	var precisa_f: Dictionary = receita.get("entradas_fluido", {})
+	for f in precisa_f:
+		fluidos[f] = float(fluidos[f]) - float(precisa_f[f])
+	var vai: Dictionary = receita.get("saidas", {})
+	for item in vai:
+		saidas[item] = int(saidas.get(item, 0)) + int(vai[item])
+	produzidos += 1
+	_acordar()
+	return true
+
+
 func dormindo() -> bool:
 	return _dormindo

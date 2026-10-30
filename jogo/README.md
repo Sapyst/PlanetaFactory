@@ -211,6 +211,20 @@ Tudo que se constrói funciona — a mini-fábrica da demo é só um mapa pronto
   arco com rastro, explosão, anel do pulso, bolha (shader `render/shaders/campo_escudo`, a parede do muro de campo
   usa `campo_parede`), selo/estojo ejetado maior ("capsula" em modelos.json) e `Animador.boca()`. Sem janela:
   `-- modo demo roteiro combate`.
+- Clima (fase 2.5): **raios** (`ambiente/raios.gd`, `Raios`): o evento "raio" do `Clima` (`raios_por_s` do estado)
+  vira um ponto do mapa (a até `raio_sorteio` m de uma construção sorteada por altura²); regulador (`ClimaLocal.sem_raio`)
+  cancela, cúpula pega, para-raios/captador (`capta_raio`: raio, mj, prioridade) pegam o mais perto; sem proteção, a
+  construção mais alta a `busca` m leva `dano` (`Colonia._escudo_absorve` antes) e acende fogo (`AmbienteVivo._acender`)
+  / marca o chão queimado. A energia entra nos acumuladores da rede da peça (`Fabrica.injetar`; para-raios e captador
+  têm papel "fonte" na `Fiacao`). Captador: `Maquina.ciclo_agora()` (receita `carregar_cristal`, `por_raio`; anima
+  `capta_raio.anima_s` depois). Contador `Raios.descargas` (salvo). Desenho: `DesenhoClima` desenha cada `Raios.quedas`
+  no lugar (ponta do para-raios, topo da construção; na cúpula, campo + arco até o cristal), clarão e trovão pela
+  distância. **Máquinas de clima** (`ambiente/clima_local.gd`, `ClimaLocal`; regra `clima_local`: tipo, raio): zonas só
+  com energia; `chuva_em` (coletor: `Fabrica.chuva_maq`; fogo do `AmbienteVivo`), `vento_em` (turbina, fogo, desenho
+  da turbina; poluição: `Poluicao.vento_chunks`), `sem_tufao`, `sem_raio`. `DesenhoClimaLocal`: cúpula de campo
+  (shader `campo_escudo`, acende ao pegar raio) e chuva em anel só no círculo do semeador. Escudo 2: bônus
+  `escudo_raio`, `escudo_carga`, `escudo_recarga` (`Colonia.raio_escudo`, `Fabrica.carga_max`, `kw_de`). Sem janela:
+  `-- modo demo roteiro clima`.
 - Extrator/broca mineram a jazida de baixo; fornalha escolhe a receita pelo que chega e queima carvão/biomassa;
   montadora/refinador: receita escolhida no painel. Elétricos precisam de poste (cobertura 2,5) ligado a gerador com combustível.
 - Torre: cada munição que chega (braço ou esteira na porta sul) = 10 tiros. Quem trabalha polui (e vira alvo por 60 s).

@@ -183,5 +183,70 @@ com a grade inteira + resultado dos testes), para ela não precisar abrir uma po
     cruzamento no jogo (pose do laço); (10) ícones das 8 peças novas pelo render Workbench do icones.py (só esses);
     ícones dos 5 itens derivados (derivar_icone.gd: liga leve da placa de cobre, processador do circuito, foguete e
     granada da munição, pacote militar do pacote de pesquisa).
-- [ ] 2.5 clima: para-raios, captador, pacote tempestade, semeador de nuvens, defletor, cúpula, regulador
+- [x] 2.5 clima (arte/estudos/conv_clima.py; testes test_raios.gd, test_para_raios.gd, test_captador_carga.gd,
+      test_ciencia_tempestade.gd, test_maquinas_clima.gd; roteiro sem janela `-- modo demo roteiro clima`). Pesquisas novas
+      (15), custos e pré-requisitos da árvore: para_raios, captador_carga, ciencia_tempestade, para_raios_2,
+      semeadura_nuvens, cupula_tempestade, escudo_2, dano_bala_4, cadencia_bala_3, dano_foguete_2, cadencia_foguete_2
+      jogáveis; controle_vento (pede `turbina_alta`), controle_clima (pede `computacao_quantica`), dano_artilharia_1 e
+      alcance_artilharia_1 (pedem a artilharia, travada pela cartografia) ligadas mas travadas pela árvore. Itens novos:
+      cristal carregado e pacote de tempestade (modelo e ícone derivados com outro matiz). Aba nova **Clima** na barra.
+  - **Raios** (não existiam: só o desenho num ponto qualquer da vista). `ambiente/raios.gd` (Raios, lógica pura): o
+    evento "raio" do Clima (`raios_por_s`: tempestade 0,1, tufão 0,15) cai a até 20 m de uma construção sorteada pelo
+    peso altura² (o raio procura o ponto alto). Ordem: regulador cancela; cúpula com energia pega; para-raios/captador
+    no raio deles pegam (captador antes, `prioridade`); sem proteção, a construção mais alta a até 3 m leva 150 de dano
+    (o escudo carregado absorve: 3 MJ) e até 3 tiles de mato em volta podem pegar fogo; no chão, o mato pega fogo (na
+    chuva apaga em segundos) ou fica a marca queimada (canal QUEIM do chão, nada de filtro). Contador de descargas
+    salvo. O desenho (`DesenhoClima`) bate o raio no lugar: ponta do para-raios, topo da construção; na cúpula, no
+    campo + arco do alto dela até o cristal; clarão mais fraco e trovão mais atrasado longe da câmera.
+  - Para-raios 1×1 (2.500 triângulos) e de cristal (3.237): coleções 'pr'/'pc' do estudo, efeitos fora, brita e
+    Lichtenberg cortados na borda do tile; `ponta_raio` no .json. 14 m / 120 MJ e 22 m / 200 MJ; papel "fonte" na
+    Fiacao (o poste liga neles) e a energia vai para os acumuladores da rede (`Fabrica.injetar`, pelo espaço livre de
+    cada um, sem limite de potência). Sem rede: só proteção.
+  - Captador de carga 2×2 (9.054 triângulos, 16 peças com a animação do estudo — carrossel, eletrodos —, toca 4 s
+    depois de cada raio). Pega em 10 m, antes dos para-raios. Cada raio: 1 cristal lapidado + 30 água → 1 cristal
+    carregado (`Maquina.ciclo_agora`, receita `carregar_cristal` com `por_raio`); a sobra (60 MJ) vai para a rede.
+    Estado "de prontidão" com insumo; portas do estudo (ITEM_ENT_S1, ITEM_SAI_O0, FLUIDO_ENT_N0).
+  - Pacote de tempestade (cristal carregado + módulo de controle + liga leve → 2, 15 s) na **montadora** (a montadora 2
+    da árvore não existe). Conferido: dano_energia_4 e cadencia_energia_2 ficam pesquisáveis com a ciência de
+    tempestade e somam +30% / +20% na torre; **escudo 2** (bônus `escudo_raio` 0,5 → 12 m, `escudo_carga` 1,5 → 20 MJ
+    = 1.000 de dano, `escudo_recarga` 1 → 400 kW; a bolha do desenho refaz no raio novo) e com ele o **muro de campo**
+    ficam jogáveis.
+  - Máquinas de clima (`ambiente/clima_local.gd`, ClimaLocal; regra `clima_local`), só ligadas e com energia:
+    **semeador de nuvens** 2×2 (9.272 triângulos, 300 kW): chuva ≥ 75% em 40 m — coletor de chuva rende no lugar
+    (`Fabrica.chuva_maq`), o fogo apaga e nada pega fogo; desenho: chuva de verdade só no círculo (partículas em anel a
+    22 m, `DesenhoClimaLocal`), some quando o planeta já chove mais. **Defletor de vento** 2×2 (8.138 triângulos, 19
+    peças móveis, 250 kW): o vento de 40 m sopra para a frente da peça (gira com R; a cabeça do estudo virou 66° = 22
+    dentes, pinhões seguem engrenados), entre 30% e 80% — tufão não machuca, turbinas não entram em proteção (e a
+    animação delas vira para lá), o fogo anda para lá e a poluição dos chunks cobertos vaza para lá
+    (`Poluicao.vento_chunks`). **Cúpula contra raios** 3×3 (7.087 triângulos, 8,4 m, 400 kW): nenhum raio em 30 m, a
+    descarga vai para os acumuladores (120 MJ); desenho: meia esfera de campo (shader campo_escudo, quase invisível)
+    que acende ao pegar raio. **Regulador climático** 3×3 (11.446 triângulos, 1,5 MW): no painel, céu firme (sem chuva)
+    ou chuva mansa (40%) em 80 m; nos dois, sem raio, sem tufão e vento até 40%.
+  - Conferido sem imagem, por BVH no Blender: no defletor nada que gira cruza peça fixa (fora o rolamento, face com
+    face) depois de tirar o trecho dos feixes de cabo que atravessava a coroa no estudo; no regulador os pratos das
+    antenas cruzavam os braços-garra no estudo — ficaram a 0,72 (sem cruzar nos quadros 1/25/49/73). No captador e no
+    semeador só sobram encaixes do próprio desenho (cristais e cestos no banho, eletrodos nas buchas e no tampo,
+    culatra e hastes nas luvas/camisas, cabos presos na caixa das bobinas). Cúpula (guarda-chuva apertado acima de 4 m)
+    e regulador (escala 0,75) usam transformação contínua: o que não se tocava continua sem se tocar.
+  - Verificação: 65.079 verificações, 0 falhas (testar.sh); os 124 scripts compilam (carregados sem janela); a demo e
+    `-- modo demo roteiro clima` rodam sem erro (raios no captador, para-raios, de cristal, chão com fogo, cúpula).
+  - Pendências: (1) nada visto em imagem (sem fotos): conferir as 7 silhuetas, o recorte na borda (brita e Lichtenberg
+    do para-raios, esteiras e mastro queimado do captador), o guarda-chuva da cúpula apertado a 0,64, o regulador a
+    0,75 com antenas a 0,72, o raio batendo na ponta/no campo, a cúpula de 30 m e a chuva em anel do semeador;
+    (2) **balanço**: o cristal carregado só vem de raio (1 por raio no captador; tempestade/tufão ~10–15% do tempo) —
+    a era de tempestade fica lenta; ver com Sapyst (mais raios, mais cristais por raio ou o regulador puxando
+    tempestade); (3) pacote de tempestade na montadora comum (montadora 2 sem estudo); (4) defletor e regulador
+    travados pela árvore (turbina alta e computação quântica sem estudo; no modo demonstração se constroem);
+    (5) o regulador muda só a lógica: a chuva do planeta continua caindo na vista dentro do raio dele, sem furo nas
+    nuvens, sem chão seco; o chão molhado/poças do semeador seguem o clima do planeta (shader global); o defletor não
+    tem efeito visual (linhas de fluxo, folhas e capim voando do estudo saíram; grama e nuvens seguem o vento do
+    planeta); (6) para-raios sem animação (arcos, faíscas, LEDs de carga saíram); o semeador anima só 2 peças
+    (carrossel/culatra), sem chama nos queimadores nem estojo ejetado; a ventoinha 1 do defletor fica parada (24 voltas
+    no laço = múltiplo exato dos quadros que o para_jogo compara; a 2 gira); o saco da biruta perdeu a ondulação
+    (shape key); (7) portas do captador como no estudo: itens a 0,20/0,25 m e água a 0,275 m (canos do jogo a 0,35);
+    (8) o raio não machuca aranha nem ninho, não cai em drone (drones_tempestade, fase 2.6) e o para-raios não protege
+    do tufão; munição carregada, módulos 2 e reator de cristal (que usam o cristal carregado) seguem em breve;
+    (9) ícones das 7 peças pelo render Workbench do icones.py (só esses); ícones do cristal carregado e do pacote de
+    tempestade derivados (derivar_icone.gd); (10) diagramas por era do ARVORE_TECNOLOGIA_FLUXO.md seguem com a lista
+    antiga (só a legenda foi atualizada, como nas fases anteriores).
 - [ ] 2.6 drones (estação, reparo, combate, logísticos), limpeza nova, energia/produção que tiverem estudo

@@ -42,6 +42,7 @@ func _ready() -> void:
 		"limpeza": _roteiro_limpeza()
 		"agua": _roteiro_agua()
 		"combate": _roteiro_combate()
+		"clima": _roteiro_clima()
 		"energia": _roteiro_energia()
 		"vento":                                       # rajadas passando na grama, depois a camada de vento da visão
 			em(2, func():
@@ -884,6 +885,119 @@ func _roteiro_combate() -> void:
 		print("COMBATE eventos ", cont)
 		print("COMBATE munição ", col.torres.keys().map(func(t): return [cena.mapa.estruturas[t].nome if cena.mapa.estruturas.has(t) else "?", col.torres[t].municao]))
 		print("COMBATE escudo MJ ", snappedf(float(cena.fabrica.carga_torre.get(ids.get("gerador_escudo", -1), -1.0)), 0.01), " vidas ", vidas, " aranhas ", col.aranhas.size()))
+
+
+## Clima (fase 2.5) sem janela: num chão plano monta gerador, postes, acumuladores, para-raios (comum e de cristal),
+## captador de carga (com cristal e água), semeador com coletor de chuva, defletor, cúpula e regulador, solta uma
+## tempestade e raios em pontos escolhidos (no captador, na cúpula, no regulador, no para-raios, numa fornalha
+## desprotegida) e imprime o que aconteceu e os painéis. `-- modo demo roteiro clima`.
+func _roteiro_clima() -> void:
+	var ids := {}
+	var w := [Vector2i(9999, 0)]
+	em(2, func():
+		Sessao.config.fps = false
+		var g := Grade.gerador
+		var m: MapaOcupacao = cena.mapa
+		for r in range(40, 300, 3):
+			for k in 48:
+				var t := Vector2i((Vector2.from_angle(k * TAU / 48.0) * r).round())
+				if w[0].x != 9999:
+					break
+				var ok := true
+				for i in range(-2, 34):
+					for j in range(-2, 14):
+						var q := t + Vector2i(i, j)
+						if g.terreno(q) != GeradorMundo.Terreno.TERRA or g.nivel(q) != g.nivel(t) or g.em_encosta(q) or m.tiles.has(q):
+							ok = false
+				if ok:
+					w[0] = t
+		var o: Vector2i = w[0]
+		print("CLIMA chão ", o)
+		if o.x == 9999:
+			return
+		_sem_ninhos(o + Vector2i(16, 6))
+		for i in range(-2, 34):
+			for j in range(-2, 14):
+				m.limpar_obstaculo(o + Vector2i(i, j))
+		var con: Construtor = cena.construtor
+		var p := func(pl: Array[Dictionary]) -> void: cena.sincronizar(con.executar(pl))
+		p.call(con.plano_peca("gerador", o + Vector2i(0, 0), 0))
+		for x in [3, 8, 13, 18, 23, 28]:
+			p.call(con.plano_peca("poste_energia", o + Vector2i(x, 3), 0))
+		p.call(con.plano_peca("acumulador", o + Vector2i(4, 0), 0))
+		p.call(con.plano_peca("acumulador", o + Vector2i(9, 0), 0))
+		p.call(con.plano_peca("para_raios", o + Vector2i(7, 5), 0))
+		p.call(con.plano_peca("para_raios_2", o + Vector2i(30, 5), 0))
+		p.call(con.plano_peca("captador_carga", o + Vector2i(14, 0), 0))
+		p.call(con.plano_peca("semeador_nuvens", o + Vector2i(1, 6), 0))
+		p.call(con.plano_peca("coletor_chuva", o + Vector2i(4, 9), 0))
+		p.call(con.plano_peca("defletor_vento", o + Vector2i(19, 0), 1))
+		p.call(con.plano_peca("cupula_raios", o + Vector2i(24, 0), 0))
+		p.call(con.plano_peca("fornalha", o + Vector2i(11, 9), 0))
+		for id in m.estruturas:
+			ids[m.estruturas[id].nome] = id
+		print("CLIMA construiu ", ids.keys())
+		cena.clima.forcar("tempestade", true)
+		cena.camera.alvo = Grade.centro_mundo(o + Vector2i(15, 6))
+		cena.camera.distancia = 26.0
+		cena.camera.posicionar())
+	em(6, func():
+		if w[0].x == 9999:
+			return
+		var f: Fabrica = cena.fabrica
+		f.reconstruir()
+		for id in f.combustivel:
+			f.combustivel[id] = 500.0
+		if ids.has("captador_carga"):
+			var mq: Maquina = f.maquinas[ids.captador_carga]
+			mq.receber("cristal_lapidado")
+			mq.receber("cristal_lapidado")
+			mq.receber_fluido("agua", 90.0))
+	em(40, func():                                       # raios em pontos escolhidos
+		if w[0].x == 9999:
+			return
+		var r: Raios = cena.raios
+		var o := Vector2(w[0])
+		var cu: int = ids.get("cupula_raios", -1)
+		if cu >= 0:                                      # cúpula desligada: os outros pegam
+			cena.mapa.estruturas[cu]["desligada"] = true
+		cena.clima_local.atualizar()
+		for alvo in [["captador", Vector2(15.5, 1.5)], ["para_raios", Vector2(7.5, 8.5)], ["fornalha", Vector2(12.0, 10.0)],
+				["para_raios_2", Vector2(31.0, 12.0)], ["chão_longe", Vector2(-40.0, 40.0)]]:
+			var q := r.cair(o + alvo[1])
+			print("CLIMA raio em %s → %s (alt %.1f, %s MJ)" % [alvo[0], q.tipo, float(q.get("alt", 0.0)), q.get("mj", "-")])
+		if cu >= 0:
+			cena.mapa.estruturas[cu].erase("desligada")
+		cena.clima_local.atualizar()
+		for alvo in [["cupula_ligada", Vector2(31.0, 12.0)], ["captador_sob_a_cupula", Vector2(15.5, 1.5)]]:
+			var q := r.cair(o + alvo[1])
+			print("CLIMA raio em %s → %s (alt %.1f, %s MJ)" % [alvo[0], q.tipo, float(q.get("alt", 0.0)), q.get("mj", "-")]))
+	em(120, func():
+		var cl: ClimaLocal = cena.clima_local
+		print("CLIMA zonas ", cl.zonas.map(func(z): return [z.tipo, z.raio]))
+		if ids.has("coletor_chuva"):
+			print("CLIMA chuva no coletor ", cena.fabrica.chuva_maq.get(ids.coletor_chuva, -1.0)))
+	var k := 0
+	for nome in ["para_raios", "para_raios_2", "captador_carga", "semeador_nuvens", "defletor_vento", "cupula_raios", "coletor_chuva"]:
+		k += 1
+		em(150 + k * 20, func():
+			if ids.has(nome) and cena.mapa.estruturas.has(ids[nome]):
+				cena._sel = {"estrutura": ids[nome]}
+				cena._detalhe()
+				print("CLIMA painel ", nome))
+	em(900, func():
+		var f: Fabrica = cena.fabrica
+		var r: Raios = cena.raios
+		var mq: Maquina = f.maquinas.get(ids.get("captador_carga", -1))
+		print("CLIMA raios total %d, descargas %s" % [r.total, r.descargas])
+		print("CLIMA acumulado ", f.acumulado.values().map(func(v): return snappedf(v, 0.1)))
+		if mq != null:
+			print("CLIMA captador ", Maquina.Estado.keys()[mq.estado], " pronto ", mq.saidas, " dentro ", mq.entradas, " agua ", mq.fluidos)
+		var vidas := {}
+		for nome in ids:
+			if cena.colonia.vida.has(ids[nome]):
+				vidas[nome] = snappedf(float(cena.colonia.vida[ids[nome]]), 0.1)
+		print("CLIMA vidas ", vidas, " fogo ", cena.ambiente.fogo.size()))
 
 
 func _roteiro_limpeza() -> void:

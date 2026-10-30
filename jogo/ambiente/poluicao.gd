@@ -4,7 +4,8 @@ extends RefCounted
 ##  - o chão absorve (fração do que tem × multiplicador do bioma, mais um mínimo fixo) — floresta limpa mais, deserto menos;
 ##  - o que passa de `minimo_espalhar` vaza uma fração para os 4 chunks vizinhos (a nuvem se alastra) — com vento,
 ##    a maior parte vai vento abaixo (`vento_a_favor`, 70%) e o resto se divide pelos 4 lados;
-##  - ninhos (Colonia) também absorvem — e é isso que vira aranha.
+##  - ninhos (Colonia) também absorvem — e é isso que vira aranha;
+##  - no raio de um defletor de vento a nuvem vaza para onde ele aponta (`vento_chunks`; regulador: sem vento).
 ## Só chunks com poluição existem no dicionário: o custo é proporcional à nuvem, não ao mapa.
 
 const PASSO := 1.0
@@ -12,6 +13,7 @@ const PASSO := 1.0
 var valores: Dictionary = {}          ## chunk → pontos
 var chuva := 0.0                      ## 0..1, vem do clima: chuva lava o ar (chão absorve mais)
 var vento := Vector2.ZERO             ## do clima: direção (para onde sopra, grade) × força 0..1
+var vento_chunks: Dictionary = {}     ## chunk → vento forçado ali (defletor de vento: ClimaLocal.vento_chunks)
 var gerador: GeradorMundo
 var _mult: Dictionary = {}            ## chunk → multiplicador de absorção (cache)
 var _acum := 0.0
@@ -74,9 +76,10 @@ func _passo() -> void:
 			continue
 		if v > minimo:
 			var vaza := v * difusao * PASSO * 4.0
+			var pk: Array[float] = pesos if not vento_chunks.has(k) else pesos_vento(vento_chunks[k])
 			for i in Grade.DIRECOES.size():
 				var d: Vector2i = Grade.DIRECOES[i]
-				novo[k + d] = float(novo.get(k + d, 0.0)) + vaza * pesos[i]
+				novo[k + d] = float(novo.get(k + d, 0.0)) + vaza * pk[i]
 			v -= vaza
 		novo[k] = float(novo.get(k, 0.0)) + v
 	valores.clear()
@@ -87,10 +90,11 @@ func _passo() -> void:
 
 ## Fração do que vaza que vai para cada vizinho (Grade.DIRECOES): sem vento, 1/4 para cada; com vento forte,
 ## `vento_a_favor` vai para os lados a favor (pelo ângulo) e o resto se divide igual pelos 4.
-func pesos_vento() -> Array[float]:
+func pesos_vento(v: Variant = null) -> Array[float]:
+	var w: Vector2 = vento if v == null else v
 	var r: Array[float] = []
-	var forca := clampf(vento.length(), 0.0, 1.0)
-	var dir := vento.normalized() if forca > 1e-4 else Vector2.ZERO
+	var forca := clampf(w.length(), 0.0, 1.0)
+	var dir := w.normalized() if forca > 1e-4 else Vector2.ZERO
 	var favor := float(_d.get("vento_a_favor", 0.7))
 	var soma := 0.0
 	for d in Grade.DIRECOES:

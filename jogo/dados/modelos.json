@@ -1,4 +1,294 @@
 {
+ "captador_carga": {
+  "nome": "captador_carga",
+  "categoria": "clima",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Captador de carga 2×2: câmara octogonal com banho d'água e carrossel de cestos, pórtico de eletrodos de grafite, banco de capacitores e mastro treliçado com coroa de pontas e cristal-guia. A cada raio que pega carrega 1 cristal lapidado (30 de água) em cristal carregado; a sobra do raio vai para os acumuladores.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [
+   {
+    "nome": "PORTA_ITEM_ENT_S1",
+    "tipo": "ITEM",
+    "io": "ENT",
+    "pos": [
+     0.5,
+     -1.0,
+     0.2
+    ],
+    "dir": [
+     0,
+     -1,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_ITEM_SAI_O0",
+    "tipo": "ITEM",
+    "io": "SAI",
+    "pos": [
+     -1.0,
+     -0.5,
+     0.25
+    ],
+    "dir": [
+     -1,
+     0,
+     0
+    ]
+   },
+   {
+    "nome": "PORTA_FLUIDO_ENT_N0",
+    "tipo": "FLUIDO",
+    "io": "ENT",
+    "pos": [
+     -0.5,
+     1.0,
+     0.275
+    ],
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  ],
+  "ponta_raio": [
+   0.7766,
+   0.76,
+   3.67
+  ],
+  "tris": 9054,
+  "dims": [
+   1.975,
+   1.995,
+   3.67
+  ],
+  "anima": true,
+  "estudo": "estudo_captador_carga.py",
+  "modelo": "res://assets/modelos/clima/captador_carga.glb"
+ },
+ "cupula_raios": {
+  "nome": "cupula_raios",
+  "categoria": "clima",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Cúpula contra raios 3×3: torre de treliça sobre isoladores, anéis captores e guarda-chuva de varetas com pontas, cristal da IA no topo; banco de capacitores, centelhador, retificador. Com energia, projeta uma cúpula de 30 m: nenhum raio cai dentro; a descarga vai para os acumuladores.",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "ponta_raio": [
+   -0.0045,
+   -0.0017,
+   8.44
+  ],
+  "tris": 7087,
+  "dims": [
+   3.001,
+   3.002,
+   8.44
+  ],
+  "anima": false,
+  "estudo": "estudo_clima_3x3.py",
+  "modelo": "res://assets/modelos/clima/cupula_raios.glb"
+ },
+ "defletor_vento": {
+  "nome": "defletor_vento",
+  "categoria": "clima",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Defletor de vento 2×2: coluna giratória sobre coroa dentada, dois ventiladores dutados e cascata de cinco palhetas com pistões; biruta, anemômetro e domo-sensor. Com energia, o vento num raio de 40 m sopra para onde ele aponta (frente da peça) e não passa de forte (sem ventania de tufão).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 8138,
+  "dims": [
+   2.0,
+   2.0,
+   3.978
+  ],
+  "anima": true,
+  "estudo": "estudo_clima_2x2.py",
+  "modelo": "res://assets/modelos/clima/defletor_vento.glb"
+ },
+ "para_raios": {
+  "nome": "para_raios",
+  "categoria": "clima",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Para-raios 1×1: laje com poço de inspeção, mastro de aço em três gomos com estais, captor Franklin no topo, descida de cobre em isoladores, caixa com centelhador de chifres, contador de descargas e capacitores. Pega os raios num raio de 14 m (120 MJ por raio para os acumuladores da rede dele).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "ponta_raio": [
+   0.0,
+   0.0,
+   3.8853
+  ],
+  "tris": 2500,
+  "dims": [
+   0.951,
+   0.95,
+   3.893
+  ],
+  "anima": false,
+  "estudo": "estudo_para_raios.py",
+  "modelo": "res://assets/modelos/clima/para_raios.glb"
+ },
+ "para_raios_2": {
+  "nome": "para_raios_2",
+  "categoria": "clima",
+  "tipo": "estrutura",
+  "area": [
+   1,
+   1
+  ],
+  "descricao": "Para-raios de cristal 1×1: mastro mais grosso com estais em dois níveis, bobina em carretel de fenolite, copa de cobre com quatro garras segurando o cristal, anéis de campo; bobina de choque e 6 capacitores. Pega os raios em 22 m (200 MJ por raio).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "ponta_raio": [
+   0.0,
+   0.0,
+   4.51
+  ],
+  "tris": 3237,
+  "dims": [
+   0.95,
+   0.958,
+   4.513
+  ],
+  "anima": false,
+  "estudo": "estudo_para_raios.py",
+  "modelo": "res://assets/modelos/clima/para_raios_2.glb"
+ },
+ "regulador_clima": {
+  "nome": "regulador_clima",
+  "categoria": "clima",
+  "tipo": "estrutura",
+  "area": [
+   3,
+   3
+  ],
+  "descricao": "Regulador climático 3×3: pedestal blindado com braços que seguram o anel estator e o núcleo de cristal levitando entre anéis; antenas parabólicas, canhões de calor e torres de vapor. Com energia, escolhe o clima num raio de 80 m (céu firme ou chuva mansa; sem raio nem tufão).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 11446,
+  "dims": [
+   2.98,
+   2.98,
+   4.271
+  ],
+  "anima": true,
+  "estudo": "estudo_clima_3x3.py",
+  "modelo": "res://assets/modelos/clima/regulador_clima.glb"
+ },
+ "semeador_nuvens": {
+  "nome": "semeador_nuvens",
+  "categoria": "clima",
+  "tipo": "estrutura",
+  "area": [
+   2,
+   2
+  ],
+  "descricao": "Semeador de nuvens 2×2: canhão vertical de semeadura com bobinas violeta, carrossel de cartuchos de iodeto, queimadores de solo com tanque de reagente e garrafas. Com energia, chama chuva num raio de 40 m (apaga fogo, enche coletores de chuva).",
+  "ocupa_canto": false,
+  "partes": [
+   {
+    "nome": "corpo",
+    "pai": null,
+    "pivo": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  ],
+  "portas": [],
+  "tris": 9272,
+  "dims": [
+   2.0,
+   2.0,
+   3.416
+  ],
+  "anima": true,
+  "estudo": "estudo_clima_2x2.py",
+  "modelo": "res://assets/modelos/clima/semeador_nuvens.glb"
+ },
  "artilharia": {
   "nome": "artilharia",
   "categoria": "defesa",

@@ -61,6 +61,8 @@ var _melhorias_de := ""                ## assinatura das pesquisas já aplicadas
 var chuva := 0.0                       ## 0..1: chuva do clima de agora (coletor de chuva; o mundo passa)
 var neblina := 0.0                     ## 0..1: neblina do clima de agora (condensador; o mundo passa)
 var jatos: Dictionary = {}             ## id do supressor → ponto (grade) do fogo que ele está molhando (o ambiente põe)
+var chuva_maq: Dictionary = {}         ## id do coletor de chuva → chuva no lugar dele (semeador/regulador; o mundo passa)
+var raio_em: Dictionary = {}           ## id do captador → s de animação que restam depois do raio (descarga nos eletrodos)
 
 const DISTRIBUIDORES := ["divisor", "juncao", "divisor_filtro"]
 ## Saídas do divisor pelo lado do modelo (porta PORTA_ITEM_SAI_<lado>): o item entra pelo sul e segue para o norte.
@@ -241,6 +243,8 @@ func _montar_maquinas() -> void:
 					m.definir_receita("condensar_neblina", Registro.receitas["condensar_neblina"])
 				"supressor":
 					m.definir_receita("borrifar_agua", Registro.receitas["borrifar_agua"])
+				"captador":
+					m.definir_receita("carregar_cristal", Registro.receitas["carregar_cristal"])
 				"filtro":
 					m.definir_receita("filtrar_agua", Registro.receitas["filtrar_agua"])
 				"coletor":
@@ -266,6 +270,52 @@ func _montar_maquinas() -> void:
 			acumulado[id] = 0.0
 		if Registro.estruturas.get(e.nome, {}).has("carga_mj") and not carga_torre.has(id):
 			carga_torre[id] = 0.0
+
+
+## Carga máxima (MJ) da torre de energia / gerador de escudo, com as melhorias (escudo 2: "escudo_carga").
+func carga_max(id: int) -> float:
+	var regra: Dictionary = Registro.estruturas.get(mapa.estruturas[id].nome, {})
+	var cap := float(regra.get("carga_mj", 1.0))
+	if regra.has("escudo"):
+		cap *= 1.0 + _bonus("escudo_carga")
+	return cap
+
+
+func _bonus(chave: String) -> float:
+	return pesquisa.bonus(chave) if pesquisa != null else 0.0
+
+
+## Energia de um raio (para-raios, captador, cúpula) entrando na rede de `id`: vai para os acumuladores dela, cada um
+## pelo espaço livre que tem (sem limite de potência: é um pulso). Devolve quanto coube (MJ); o resto se perde.
+func injetar(id: int, mj: float) -> float:
+	if not _membros.has(id) or mj <= 0.0:
+		return 0.0
+	var r: int = _membros[id].rede
+	var livres: Array = []
+	var cabe := 0.0
+	for k in _membros:
+		var a: Dictionary = _membros[k]
+		if a.rede == r and a.acum_cap > 0.0 and ligada(k):
+			livres.append(k)
+			cabe += a.acum_cap - a.acum_mj
+	if cabe <= 0.0:
+		return 0.0
+	var poe := minf(mj, cabe)
+	for k in livres:
+		var a: Dictionary = _membros[k]
+		a.acum_mj = minf(a.acum_cap, a.acum_mj + poe * (a.acum_cap - a.acum_mj) / cabe)
+		acumulado[k] = a.acum_mj
+	return poe
+
+
+## Raio no captador de carga: um ciclo na hora (1 cristal lapidado + 30 de água → 1 carregado) se tiver insumo e
+## lugar na saída. A descarga anima os eletrodos por alguns segundos.
+func raio_no_captador(id: int) -> bool:
+	var m: Maquina = maquinas.get(id)
+	if m == null:
+		return false
+	raio_em[id] = float(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("capta_raio", {}).get("anima_s", 4.0))
+	return m.ciclo_agora()
 
 
 ## Energia que chega na estrutura agora (0..1: satisfação da rede dela; 0 se não está ligada a nada).
@@ -318,6 +368,8 @@ func kw_de(id: int) -> float:
 		return 0.0
 	if kw > 0.0:
 		kw *= float(modo(id)[1])
+		if regra.has("escudo"):
+			kw *= 1.0 + _bonus("escudo_recarga")          # escudo 2: recarga 2×
 	match regra.get("renovavel", ""):
 		"sol": kw *= sol
 		"vento": kw *= curva_turbina(float(vento_turbina.get(id, vento)))
@@ -589,12 +641,12 @@ func tick(dt: float) -> void:
 		elif mb.kw < 0.0:
 			mb.combustivel_mj = combustivel.get(id, 0.0)
 		if carga_torre.has(id):                 # torre: puxa da rede só enquanto não está cheia
-			var cap := float(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("carga_mj", 1.0))
+			var cap := carga_max(id)
 			mb.kw = kw_de(id) if float(carga_torre[id]) < cap - 1e-4 else 0.0
 	rede.tick(dt)
 	for id in carga_torre:
 		if _membros.has(id) and float(_membros[id].kw) > 0.0:
-			var cap := float(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("carga_mj", 1.0))
+			var cap := carga_max(id)
 			carga_torre[id] = minf(cap, float(carga_torre[id]) + float(_membros[id].kw) * rede.satisfacao(id) * dt / 1000.0)
 	for id in _membros:
 		var m: Dictionary = _membros[id]
@@ -621,11 +673,20 @@ func tick(dt: float) -> void:
 			m.energia = 1.0 if combustivel[id] > 0.0 and ligada(id) else 0.0
 		match m.receita_id:
 			"coletar_chuva":
-				m.clima = chuva if ligada(id) else 0.0
+				m.clima = float(chuva_maq.get(id, chuva)) if ligada(id) else 0.0
 			"condensar_neblina":
 				m.clima = neblina
 			"borrifar_agua":
 				continue                        # supressor: o ambiente decide quando borrifa (há fogo no raio?)
+			"carregar_cristal":                 # captador: só trabalha quando um raio cai nele (Raios)
+				var t := float(raio_em.get(id, 0.0))
+				if t > 0.0:
+					raio_em[id] = t - dt
+					m.estado = Maquina.Estado.TRABALHANDO
+				else:
+					raio_em.erase(id)
+					m.estado = Maquina.Estado.PRONTIDAO if m.pronta() else (Maquina.Estado.SAIDA_CHEIA if m.saida_cheia() else Maquina.Estado.SEM_INSUMO)
+				continue
 		m.tick(dt)
 		if m.estado == Maquina.Estado.TRABALHANDO:
 			_emitir(id, dt * m.energia)

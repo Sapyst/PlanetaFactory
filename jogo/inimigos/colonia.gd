@@ -583,7 +583,8 @@ func _escudo_absorve(id: int, dano: float, de: Vector2) -> bool:
 		var eg: Dictionary = mapa.estruturas[g]
 		var esc: Dictionary = Registro.estruturas[eg.nome].escudo
 		var cg := Grade.centro_da_area(eg.minimo, eg.area, eg.rot)
-		if _dist_estrutura(cg, e) > float(esc.get("raio", 8.0)):
+		var raio := raio_escudo(eg.nome)
+		if _dist_estrutura(cg, e) > raio:
 			continue
 		if not torre_energia.call(g, dano * float(esc.get("mj_por_dano", 0.02))):
 			continue
@@ -591,9 +592,14 @@ func _escudo_absorve(id: int, dano: float, de: Vector2) -> bool:
 		if _t_escudo[g] <= 0.0:                         # impacto na bolha (desenho): no máximo 4 por segundo
 			_t_escudo[g] = 0.25
 			var dir := (de - cg)
-			eventos.append({"tipo": "escudo", "id": g, "centro": cg, "pos": cg + dir.normalized() * float(esc.get("raio", 8.0)) if dir.length() > 0.01 else de})
+			eventos.append({"tipo": "escudo", "id": g, "centro": cg, "pos": cg + dir.normalized() * raio if dir.length() > 0.01 else de})
 		return true
 	return false
+
+
+## Raio da bolha do gerador de escudo, com a melhoria (escudo 2: "escudo_raio" 0,5 → 8 m vira 12 m).
+func raio_escudo(nome: String) -> float:
+	return float(Registro.estruturas[nome].escudo.get("raio", 8.0)) * (1.0 + _bonus("escudo_raio"))
 
 
 func _regenerar(dt: float) -> void:

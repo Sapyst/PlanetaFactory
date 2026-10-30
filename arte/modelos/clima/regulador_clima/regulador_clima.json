@@ -1,0 +1,31 @@
+{
+ "nome": "regulador_clima",
+ "categoria": "clima",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Regulador climático 3×3: pedestal blindado com braços que seguram o anel estator e o núcleo de cristal levitando entre anéis; antenas parabólicas, canhões de calor e torres de vapor. Com energia, escolhe o clima num raio de 80 m (céu firme ou chuva mansa; sem raio nem tufão).",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "tris": 11446,
+ "dims": [
+  2.98,
+  2.98,
+  4.271
+ ],
+ "anima": true,
+ "estudo": "estudo_clima_3x3.py"
+}

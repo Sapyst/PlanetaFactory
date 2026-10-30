@@ -1,6 +1,6 @@
 # Árvore de tecnologia
 
-Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 62 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (algumas ainda esperam um pré-requisito ou pacote "em breve"; o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras aparecem como "em breve" até a estrutura, o item ou o pacote existir. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
+Proposta completa da pesquisa do PlanetaFactory, do primeiro pacote ao foguete de proliferação. No jogo, a tela de pesquisa mostra esta árvore inteira (`jogo/dados/arvore.json`, gerado por `jogo/ferramentas/gerar_arvore.py` a partir de `ARVORE_TECNOLOGIA.mmd` e das tabelas de balanceamento abaixo): as 77 pesquisas de `jogo/dados/progressao.json` se pesquisam de verdade (algumas ainda esperam um pré-requisito ou pacote "em breve"; o laboratório gasta 1 pacote de cada tipo por unidade e as infinitas sobem de nível com custo × 1,5); as outras aparecem como "em breve" até a estrutura, o item ou o pacote existir. Cada tecnologia tem um tipo — estrutura nova, receita nova, melhoria (bônus no que já existe, campo `bonus` lido por `Pesquisa.bonus`), infinita ou objetivo. Fontes: `progressao.json`, `estruturas.json`, `itens.json`, `receitas.json`, `menu_construcao.json`, `docs/PLANO_CLIMA.md`.
 
 ## Eras e pacotes de pesquisa
 
@@ -524,9 +524,9 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Artilharia | 3×3 | temos | granadas (guarda 10), 1 disparo a cada 4 s, 150 de dano em área (raio 4 m), só mira ninhos de 16 a 120 m; travada pela árvore (`cartografia` ainda em breve) | `artilharia` |
 | Muro de tijolo | 1×1 | temos | 700 ♥ (`muro_tijolo`, 5 tijolos) | `muros_reforcados` |
 | Muro de liga | 1×1 | temos | 1.500 ♥ (4 liga leve + 1 aço); no jogo nenhuma aranha escala, vale a vida | `muro_liga` |
-| Muro de campo | 1×1 | temos | 800 ♥, regenera 5 ♥/s × energia da rede (10 kW por pilar); parede de campo desenhada por shader; travado pela árvore (`escudo_2`, tempestade) | `muro_escudo` |
+| Muro de campo | 1×1 | temos | 800 ♥, regenera 5 ♥/s × energia da rede (10 kW por pilar); parede de campo desenhada por shader; pesquisável depois do escudo 2 (tempestade) | `muro_escudo` |
 | Mina de pulso | 1×1 | temos | aranha a 1,2 m dispara: atordoa as aranhas em 3 m por 3 s (paradas, sem morder), rearma em 20 s; sem energia, baixa (passam por cima) | `mina_pulso` |
-| Gerador de escudo | 2×2 | temos | bolha de 8 m: mordida em construção dentro dela gasta a carga do gerador (8 MJ = 400 de dano) em vez de vida; recarrega da rede a 200 kW (40 s) | `escudo_1` |
+| Gerador de escudo | 2×2 | temos | bolha de 8 m: mordida (e raio) em construção dentro dela gasta a carga do gerador (8 MJ = 400 de dano) em vez de vida; recarrega da rede a 200 kW (40 s). Escudo 2: 12 m, 20 MJ = 1.000 de dano, 400 kW | `escudo_1`, `escudo_2` |
 
 ### Trilhos
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
@@ -544,13 +544,13 @@ modelo do nível anterior com outra cor de luz e detalhe.
 ### Clima (categoria nova)
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
 |---|---|---|---|---|
-| Para-raios | 1×1 | falta | pega raios em 14 m, 120 MJ por raio | `para_raios` |
-| Para-raios de cristal | 1×1 | falta | 22 m, 200 MJ por raio | `para_raios_2` |
-| Captador de carga | 2×2 | falta | transforma cristal lapidado + água em cristal carregado a cada raio | `captador_carga` |
-| Semeador de nuvens | 2×2 | falta | chama chuva em 40 m | `semeadura_nuvens` |
-| Defletor de vento | 2×2 | falta | fixa a direção do vento em 40 m | `controle_vento` |
-| Cúpula contra raios | 3×3 | falta | nenhum raio em 30 m | `cupula_tempestade` |
-| Regulador climático | 3×3 | falta | escolhe o clima em 80 m | `controle_clima` |
+| Para-raios | 1×1 | temos | pega o raio que cairia a até 14 m da ponta (protege em volta); 120 MJ por raio para os acumuladores da rede dele | `para_raios` |
+| Para-raios de cristal | 1×1 | temos | 22 m, 200 MJ por raio | `para_raios_2` |
+| Captador de carga | 2×2 | temos | mastro que pega os raios a até 10 m (antes dos para-raios): cada raio carrega 1 cristal lapidado + 30 água em 1 cristal carregado; a sobra (60 MJ) vai para a rede | `captador_carga` |
+| Semeador de nuvens | 2×2 | temos | 300 kW: chove ≥ 75% em 40 m (apaga fogo, nada pega fogo, enche coletores) | `semeadura_nuvens` |
+| Defletor de vento | 2×2 | temos | 250 kW: o vento de 40 m sopra para a frente da peça, entre 30% e 80% (sem tufão; fogo e poluição vão junto); travado pela árvore (`turbina_alta` em breve) | `controle_vento` |
+| Cúpula contra raios | 3×3 | temos | 400 kW: nenhum raio em 30 m (a cúpula pega e manda 120 MJ para os acumuladores) | `cupula_tempestade` |
+| Regulador climático | 3×3 | temos | 1,5 MW: céu firme ou chuva mansa em 80 m, sem raio nem tufão; travado pela árvore (`computacao_quantica` em breve) | `controle_clima` |
 
 ### Drones (categoria nova)
 | Peça | Tamanho | Situação | O que faz | Pesquisa |
@@ -578,7 +578,7 @@ modelo do nível anterior com outra cor de luz e detalhe.
 | Transportador quântico | 3×3 | falta | troca itens entre colônias | `transportador_quantico` |
 | Silo de lançamento | 3×3 | falta | monta e lança o foguete de proliferação | `silo_lancamento` |
 
-**Contagem:** 51 linhas "temos" e **59 linhas "falta"** (uma linha pode juntar variantes, como a família da esteira
+**Contagem:** 58 linhas "temos" e **52 linhas "falta"** (uma linha pode juntar variantes, como a família da esteira
 rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima, Drones, Lógica, Proliferação).
 
 ## Decisões e pontos em aberto
@@ -594,6 +594,14 @@ rápida ou os três baús logísticos), em 8 categorias atuais e 4 novas (Clima,
   campo estão ligados, mas travados pela árvore: a artilharia pede `cartografia` (que pede o sensor de varredura,
   ainda sem estudo) e o muro de campo pede `escudo_2` (ciência de tempestade, fase 2.5). Dano de energia 4, cadência
   de energia 2, foguetes 2 e as melhorias da artilharia também esperam o pacote de tempestade.
+- **Clima (fase 2.5).** Os **raios** passaram a cair no mapa (`jogo/ambiente/raios.gd`): tempestade (1 a cada 10 s) e
+  tufão (1 a cada 7 s) soltam raios a até 20 m de uma construção sorteada, as altas com mais chance (peso = altura²).
+  Sem proteção, a construção mais alta a até 3 m leva 150 de dano (o escudo absorve) e a vegetação em volta pode pegar
+  fogo; no chão, o mato pega fogo ou fica a marca queimada. Para-raios, captador e cúpula pegam antes. O **pacote de
+  tempestade** sai na **montadora** comum: a montadora 2 da tabela ainda não existe (sem estudo). Com ele ficam
+  pesquisáveis dano de energia 4, cadência de energia 2, escudo 2 (e o muro de campo), balas 4/3, foguetes 2 e as
+  melhorias da artilharia (estas esperam a própria artilharia). O **defletor** fica travado pela `turbina_alta` e o
+  **regulador** pela `computacao_quantica` (ambas em breve); no modo demonstração os dois se constroem.
 - **Água limpa** (`agua_limpa`, do filtro) serve em toda receita que pede água; água do rio não serve onde se pede
   limpa (pacote ecológico). Resina bebe dois fluidos: seiva por uma boca do refinador e água pela outra.
 - **As 14 pesquisas originais não mudam** (a 15ª, `dano_energia_1`, entrou depois como a primeira melhoria jogável: +20% de dano da torre com energia). Mesmos IDs, pré-requisitos e custos (incluindo `energia`, que existe no jogo

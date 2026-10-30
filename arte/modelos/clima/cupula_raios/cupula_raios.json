@@ -1,0 +1,36 @@
+{
+ "nome": "cupula_raios",
+ "categoria": "clima",
+ "tipo": "estrutura",
+ "area": [
+  3,
+  3
+ ],
+ "descricao": "Cúpula contra raios 3×3: torre de treliça sobre isoladores, anéis captores e guarda-chuva de varetas com pontas, cristal da IA no topo; banco de capacitores, centelhador, retificador. Com energia, projeta uma cúpula de 30 m: nenhum raio cai dentro; a descarga vai para os acumuladores.",
+ "ocupa_canto": false,
+ "partes": [
+  {
+   "nome": "corpo",
+   "pai": null,
+   "pivo": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "portas": [],
+ "ponta_raio": [
+  -0.0045,
+  -0.0017,
+  8.44
+ ],
+ "tris": 7087,
+ "dims": [
+  3.001,
+  3.002,
+  8.44
+ ],
+ "anima": false,
+ "estudo": "estudo_clima_3x3.py"
+}

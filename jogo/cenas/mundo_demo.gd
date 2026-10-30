@@ -21,6 +21,8 @@ var _fabrica_suja := false
 var poluicao: Poluicao
 var clima: Clima
 var ambiente: AmbienteVivo
+var clima_local: ClimaLocal             ## máquinas de clima (semeador, defletor, cúpula, regulador)
+var raios: Raios                        ## raios da tempestade (caem no mapa, para-raios pegam)
 var agua: AguaJogo                     ## buracos/canais escavados que enchem a partir de rio/lago
 var colonia: Colonia
 var grafo := GrafoTrilhos.new()
@@ -106,6 +108,15 @@ func _ready() -> void:
 	agua = AguaJogo.new(gerador, mapa)
 	ambiente.dano = func(id: int, pontos: float) -> void: _danificar(id, pontos)
 	ambiente.poluicao = poluicao
+	clima_local = ClimaLocal.new(mapa)
+	clima_local.energia = fabrica.energia
+	ambiente.clima_local = clima_local
+	raios = Raios.new(mapa, semente)
+	raios.fabrica = fabrica
+	raios.ambiente = ambiente
+	raios.colonia = colonia
+	raios.clima_local = clima_local
+	raios.dano = func(id: int, pontos: float) -> void: _danificar(id, pontos)
 	colonia.ambiente = ambiente
 	fabrica.estoques = estoques
 	fabrica.estoque_nucleo = inventario
@@ -241,7 +252,7 @@ func salvar() -> void:
 	var ok := Salvamento.gravar({"modo": modo, "semente": semente, "tempo": _tempo,
 			"camera": [camera.alvo, camera.distancia, camera.angulo],
 			"mapa": {"estruturas": mapa.estruturas, "limpos": mapa.limpos.keys(), "prox": mapa._prox_id, "arvores": mapa.arvores},
-			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores, "clima": clima.estado(), "aplainado": gerador.aplainados(), "ambiente": ambiente.estado(), "agua": agua.estado(), "descoberta": descoberta.estado(),
+			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores, "clima": clima.estado(), "aplainado": gerador.aplainados(), "ambiente": ambiente.estado(), "agua": agua.estado(), "descoberta": descoberta.estado(), "raios": raios.estado(),
 			"estoques": estoques, "inventario": inventario, "pesquisa": pesquisa.estado(),
 			"trens": trens.map(func(t: Trem): return t.para_salvar()), "prox_trem": _prox_trem})
 	if ok and is_instance_valid(controle):
@@ -260,6 +271,7 @@ func _carregar(d: Dictionary) -> void:
 	if d.has("ambiente"):
 		ambiente.restaurar(d.ambiente)
 	descoberta.restaurar(d.get("descoberta", {}))
+	raios.restaurar(d.get("raios", {}))
 	for t in d.get("aplainado", {}):
 		gerador.aplainar(t, d.aplainado[t])
 	agua.restaurar(d.get("agua", {}))
@@ -315,6 +327,7 @@ func _criar_desenhos() -> void:
 	_desenho_colonia.mapa = mapa
 	_desenho_colonia.animadores_torre = _animador
 	_desenho_colonia.carga = func(id: int) -> float: return float(fabrica.carga_torre.get(id, 0.0))
+	_desenho_colonia.carga_max = fabrica.carga_max
 	add_child(_desenho_colonia)
 	_desenho_trens = DesenhoTrens.new()
 	add_child(_desenho_trens)
@@ -365,7 +378,14 @@ func _criar_desenhos() -> void:
 	dc.sol = $Sol
 	dc.fontes_calor = _fontes_calor
 	dc.mapa = mapa
+	dc.raios = raios
 	add_child(dc)
+	var dcl := DesenhoClimaLocal.new()               # cúpula de campo, chuva do semeador, clarão na cúpula
+	dcl.clima_local = clima_local
+	dcl.raios = raios
+	dcl.camera = camera
+	dcl.clima = clima
+	add_child(dcl)
 	var dpl := DesenhoPlataformas.new()
 	dpl.mapa = mapa
 	dpl.agua = agua
@@ -938,6 +958,7 @@ func _fontes_calor() -> Array:
 ## Animação segue a simulação: máquina mexe só trabalhando; braço pela fase do ciclo.
 var _versao_bracos := -1
 var _turbinas: Array = []
+var _maq_clima: Array = []                  ## semeador, defletor, cúpula, regulador (animam com a zona ativa)
 var _arcos := ArcosEletricos.new()
 
 
@@ -945,6 +966,7 @@ func _animar_estruturas() -> void:
 	if _versao_bracos != mapa.versao:              # vizinho mudou: refaz onde cada braço pega/solta
 		_versao_bracos = mapa.versao
 		_turbinas = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).get("renovavel", "") == "vento")
+		_maq_clima = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).has("clima_local"))
 		for id in fabrica.bracos:
 			var ab := _animador(id)
 			if ab != null and mapa.estruturas.has(id):
@@ -971,16 +993,27 @@ func _animar_estruturas() -> void:
 		var a := _animador(id)
 		if a == null or not mapa.estruturas.has(id):
 			continue
-		var cap := float(Registro.estruturas.get(mapa.estruturas[id].nome, {}).get("carga_mj", 1.0))
+		var cap := fabrica.carga_max(id)
 		var f := 1.0 if animar_tudo else clampf(float(fabrica.carga_torre.get(id, 0.0)) / cap, 0.0, 1.0)
 		a.ativo = f > 0.01
 		a.brilho = f
+	# máquinas de clima: a animação do estudo toca enquanto a zona delas está ativa (ligada e com energia)
+	if not _maq_clima.is_empty():
+		var ativas := {}
+		for z in clima_local.zonas:
+			ativas[z.id] = true
+		for id in _maq_clima:
+			var a := _animador(id)
+			if a != null:
+				a.ativo = animar_tudo or ativas.has(id)
+				a.brilho = 1.0 if a.ativo else 0.2
 	for id in _turbinas:
 		if mapa.estruturas.has(id):
 			var a := _animador(id)
 			if a != null:
 				a.ativo = animar_tudo or fabrica.ligada(id)
-				a.rumo_vento = clima.direcao_vento
+				var et: Dictionary = mapa.estruturas[id]
+				a.rumo_vento = clima_local.vento_em(Grade.centro_da_area(et.minimo, et.area, et.rot), clima.direcao_vento, 1.0).normalized()
 				var vt := float(fabrica.vento_turbina.get(id, fabrica.vento))
 				a.ritmo = 0.15 if fabrica.em_protecao(id) else (0.0 if Fabrica.curva_turbina(vt) <= 0.0 else 0.3 + vt)
 	# silo de granel: canecas, rosca e comporta trabalham por 2 s depois que algo entra ou sai
@@ -1022,13 +1055,21 @@ func _tick_mundo(dt: float) -> void:
 	fabrica.vento = float(clima.valores.vento)
 	fabrica.chuva = float(clima.valores.chuva)          # coletor de chuva
 	fabrica.neblina = float(clima.valores.neblina)      # condensador de neblina
+	clima_local.atualizar()                             # máquinas de clima com energia mudam o tempo em volta
 	fabrica.vento_turbina.clear()
 	for id in _turbinas:
 		if mapa.estruturas.has(id):
 			var et: Dictionary = mapa.estruturas[id]
 			var c := Grade.centro_da_area(et.minimo, et.area, et.rot)
-			fabrica.vento_turbina[id] = clima.vento_em(c) * vento_local.fator(Vector2i(c.floor()), clima.direcao_vento)
+			fabrica.vento_turbina[id] = clima_local.forca_vento_em(c, clima.vento_em(c) * vento_local.fator(Vector2i(c.floor()), clima.direcao_vento))
+	fabrica.chuva_maq.clear()
+	if not clima_local.zonas.is_empty():
+		for id in fabrica.maquinas:
+			if fabrica.maquinas[id].receita_id == "coletar_chuva" and mapa.estruturas.has(id):
+				var ec: Dictionary = mapa.estruturas[id]
+				fabrica.chuva_maq[id] = clima_local.chuva_em(Grade.centro_da_area(ec.minimo, ec.area, ec.rot), fabrica.chuva)
 	poluicao.vento = clima.direcao_vento * float(clima.valores.vento)
+	poluicao.vento_chunks = clima_local.vento_chunks()
 	if _fabrica_suja:
 		fabrica.reconstruir()
 		_fabrica_suja = false
@@ -1054,6 +1095,7 @@ func _tick_mundo(dt: float) -> void:
 		fontes_vivas.append({"id": id, "pos": Grade.centro_da_area(e.minimo, e.area, e.rot)})
 	clima.poluicao_total = poluicao.total()
 	clima.tick(dt)
+	raios.tick(clima)                                   # o raio cai num ponto do mapa (para-raios, dano, fogo)
 	poluicao.chuva = clima.valores.chuva
 	ambiente.tick(dt, fabrica, clima)
 	agua.tick(dt)
@@ -1252,9 +1294,15 @@ func _detalhe() -> void:
 				linhas.append("Tomada limpa: %d de água/s" % Registro.receitas.bombear_agua.saidas_fluido.agua if ca <= 0.0
 						else "Água suja na tomada: %d%% — rende %d%% menos (um Filtro de água perto limpa)" % [ca * 100, ca * float(regra.get("agua_suja_perde", 0.6)) * 100])
 			"coletor_chuva":
-				linhas.append("Chuva agora: %d%% → %.0f de água/s (até %d com chuva forte); tanque %.0f de %d"
-						% [fabrica.chuva * 100, fabrica.chuva * Registro.receitas.coletar_chuva.saidas_fluido.agua, Registro.receitas.coletar_chuva.saidas_fluido.agua,
+				var ch := float(fabrica.chuva_maq.get(id, fabrica.chuva))
+				linhas.append("Chuva aqui: %d%% → %.0f de água/s (até %d com chuva forte); tanque %.0f de %d"
+						% [ch * 100, ch * Registro.receitas.coletar_chuva.saidas_fluido.agua, Registro.receitas.coletar_chuva.saidas_fluido.agua,
 						float(m.fluidos.get("agua", 0.0)), m.tanque_fluido])
+			"captador":
+				var cr: Dictionary = regra.capta_raio
+				linhas.append("Pega os raios a até %d m (antes dos para-raios) · raios pegos: %d" % [cr.raio, int(raios.descargas.get(id, 0))])
+				linhas.append("Cada raio carrega 1 cristal lapidado (30 de água) em 1 cristal carregado; a sobra (%d MJ) vai para os acumuladores da rede" % cr.mj)
+				linhas.append("Tempo agora: %s%s" % [clima.nome(), " — raios caindo" if Registro.clima.estados[clima.atual].get("raios", false) else " (raios só em tempestade e tufão)"])
 			"condensador":
 				linhas.append("Neblina agora: %d%% → %.0f de água/s (até %d com neblina; mais no inverno)"
 						% [fabrica.neblina * 100, fabrica.neblina * Registro.receitas.condensar_neblina.saidas_fluido.agua, Registro.receitas.condensar_neblina.saidas_fluido.agua])
@@ -1285,6 +1333,29 @@ func _detalhe() -> void:
 				var rec: Dictionary = Registro.receitas[r]
 				botoes.append({"texto": "%s  ←  %s" % [_lista_receita(rec, "saidas"), _lista_receita(rec, "entradas")],
 						"ligado": m.receita_id == r, "acao": func(): fabrica.escolher_receita(id, r); _detalhe()})
+	elif regra.get("grupo", "") == "para_raios":
+		var cr: Dictionary = regra.capta_raio
+		linhas.append("Pega os raios a até %d m da ponta: protege o que está em volta · raios pegos: %d" % [cr.raio, int(raios.descargas.get(id, 0))])
+		linhas.append("%d MJ por raio para os acumuladores da rede (poste perto); sem acumulador, é só proteção" % cr.mj)
+	elif regra.has("clima_local"):
+		var cl: Dictionary = regra.clima_local
+		var ativa := false
+		for z in clima_local.zonas:
+			ativa = ativa or z.id == id
+		linhas.append(("Ativa num raio de %d m" % cl.raio) if ativa else "Parada (precisa de energia: poste perto)")
+		match String(cl.tipo):
+			"chuva":
+				linhas.append("Chama chuva (%d%% pelo menos): apaga o fogo, nada pega fogo e os coletores de chuva enchem" % (float(cl.chuva) * 100))
+			"vento":
+				linhas.append("O vento sopra %s (para onde a peça aponta — gire para mudar), entre %d%% e %d%%: sem ventania de tufão; fogo e poluição vão junto"
+						% [Clima.nome_rumo(Grade.girar(Vector2(0, 1), int(e.rot))), float(cl.vento_min) * 100, float(cl.vento_max) * 100])
+			"cupula":
+				linhas.append("Nenhum raio cai dentro: a cúpula pega e manda %d MJ para os acumuladores · raios pegos: %d" % [regra.capta_raio.mj, int(raios.descargas.get(id, 0))])
+			"regulador":
+				var modo_c := String(e.get("modo_clima", cl.get("modo", "firme")))
+				linhas.append("Sem raio, sem tufão e vento manso no raio; agora: %s" % ("céu firme (sem chuva)" if modo_c != "chuva" else "chuva mansa"))
+				for mc in [["firme", "Céu firme"], ["chuva", "Chuva mansa"]]:
+					opcoes.append({"texto": mc[1], "ligado": modo_c == mc[0], "acao": func(): e["modo_clima"] = mc[0]; _detalhe()})
 	elif e.nome == "nucleo":
 		var linhas_n: Array[String] = []
 		var chaves := inventario.keys()
@@ -1355,11 +1426,11 @@ func _detalhe() -> void:
 		linhas.append("Armada — aranha a menos de %.1f m dispara" % float(pu.gatilho) if rec <= 0.0 else "Rearmando: %.0f s" % rec)
 		linhas.append("Atordoa as aranhas em %.0f m por %.0f s; rearma em %.0f s" % [float(pu.raio), float(pu.atordoa), float(pu.rearme)])
 	elif e.nome == "gerador_escudo":
-		var cap := float(regra.get("carga_mj", 1.0))
+		var cap := fabrica.carga_max(id)
 		var c_e := float(fabrica.carga_torre.get(id, 0.0))
 		var esc: Dictionary = regra.escudo
-		linhas.append("Escudo: %d de %d de dano (%.1f de %.0f MJ) · recarrega da rede a %d kW" % [int(c_e / float(esc.mj_por_dano)), int(cap / float(esc.mj_por_dano)), c_e, cap, regra.get("energia_kw", 0)])
-		linhas.append("Bolha de %d m: mordida em construção dentro dela gasta o escudo, não a vida" % int(esc.raio))
+		linhas.append("Escudo: %d de %d de dano (%.1f de %.0f MJ) · recarrega da rede a %d kW" % [int(c_e / float(esc.mj_por_dano)), int(cap / float(esc.mj_por_dano)), c_e, cap, fabrica.kw_de(id)])
+		linhas.append("Bolha de %d m: mordida ou raio em construção dentro dela gasta o escudo, não a vida" % roundi(colonia.raio_escudo(e.nome)))
 	elif e.nome == "muro_escudo":
 		linhas.append("Regenera %.0f ♥/s com energia (agora: %d%%)" % [float(regra.regenera), roundi(fabrica.energia(id) * 100)])
 	elif e.nome == "torre_defesa":
@@ -1415,6 +1486,8 @@ func _detalhe() -> void:
 		"fonte":
 			if regra.has("acumula_mj"):
 				linhas.append("Guardado: %.1f de %.0f MJ · carrega/descarrega até %d kW" % [fabrica.acumulado.get(id, 0.0), regra.acumula_mj, regra.acumula_kw])
+			elif regra.has("capta_raio"):
+				linhas.append("Na rede: %s" % ("ligado (o raio vai para os acumuladores)" if fabrica.rede.nos.has(id) and Fiacao.ligacoes(mapa, e) > 0 else "sem poste — o raio só é aterrado"))
 			else:
 				var agora: float = -fabrica.kw_de(id)
 				var nota: String = {"sol": " (sol agora: %d%%)" % (fabrica.sol * 100)}.get(regra.get("renovavel", ""), "")
