@@ -44,6 +44,49 @@ Lista: ver docs/ARVORE_TECNOLOGIA.md (Estruturas: temos × precisamos) e arte/es
 Sapyst: "vai terminar literalmente toda a tech-tree e tudo mais. Faltando só as fotos com testes mesmo."
 Entrega: TODAS as estruturas num ÚNICO painel (uma imagem/página com todas as fotos juntas, ex.: mosaico ou página
 com a grade inteira + resultado dos testes), para ela não precisar abrir uma por uma.
+- [x] **Feita em 2026-10-30.** Painel: arte/estudos/fotos/painel_final.png (3984×8053; painel_final.jpg, 2600 px; fora do git).
+  141 fotos: as 131 peças do menu + 10 de conferência. Roteiro `-- modo demo roteiro fotos_finais [so <peça>]`
+  (jogo/interface/roteiro_fotos.gd) + arte/estudos/painel_final.py. Fotos e dados por modelo em arte/estudos/fotos/final/.
+  Mesma luz e elevação de câmera (50°), distância ajustada ao tamanho da peça, animações ligadas. Variantes de esteira têm foto
+  própria. Máquina solta, sem energia nem insumo (`animar_tudo`). Sem janela visível: Xwayland privado sem gerenciador de janelas,
+  `--gpu-index 1 --audio-driver Dummy`, user:// isolado por XDG_DATA_HOME.
+  - **Testes**: 73.254 verificações, 0 falhas; 187 scripts compilam; demo e os roteiros combate, clima, drones, limpeza2, chegada,
+    lote10/11/13/14/16/17, agua e trem rodam sem erro de script (só o aviso de recursos na saída, que já existia). 166 pesquisas.
+  - **Desempenho** (`-- modo demo roteiro carga mostruario|patio`; Radeon 890M, 1280×720, tudo animando, sem vsync; celular NÃO
+    medido): mostruário, 467 estruturas, 655 mil tris somados: zoom 44 m 33 fps (30,6 ms; p95 57,9; GPU 15,2; 5,9 mi tris desenhados
+    com sombras; 3.670 chamadas), zoom 25 m 51 fps, zoom 90 m 43 fps. Pátio, 1.175 estruturas (350 máquinas, 4 de cada), 2,6 mi tris
+    somados: zoom 44 m 17 fps (59,4 ms; p95 79,1; GPU 20,8; 6,5 mi tris; 5.369 chamadas), 25 m 24 fps, 90 m 22 fps; quadro dominado
+    pela CPU. O chão soma 2,2 mi tris, mais que qualquer grupo de peças. Mais pesadas: núcleo 13.721, núcleo de singularidade
+    12.620, semeador de bioma 11.852, laboratório 11.756, refinador 2 11.577, regulador climático 11.446, estação de tratamento
+    11.393, viveiro 2 11.375, biodigestor 11.194, terraplenagem 11.165 (fora da conta: cápsula da abertura, 17.426).
+  - **Problemas objetivos** (nada corrigido; ver seção seguinte).
+
+### Problemas encontrados na fase 5
+Bugs medidos:
+- **cano_reto, cano_curva, cano_t**: `Materiais.malha_de` ignora a translação do nó `_corpo` do .glb, e o lote desenha a malha fora do
+  lugar: reto +19,84 m em X (foto `cano_deslocado`), curva 3 m e T 2 m em Z. Afeta toda rede de canos.
+- **cano_cruz, cano_subterraneo_entrada/saida**: mesma causa, nó com y 0,36–0,37 e x/z ~0,2: desenhados ~0,36 m baixos e fora do eixo.
+- **Fábrica grande**: no pátio (1.175 estruturas) o log dá 3.685× "Too many instances using shader instance variables"
+  (`instance uniform` em material_pf.gdshader; project.godot sem buffer_size próprio). Mostruário (467) não dá.
+- **rampa_desce (todas as classes)**: sem piso no tile da rampa; a grama atravessa o trecho que chega ao chão.
+Conferência visual, por peça:
+- **painel_solar**: só a estrutura; não se vê placa (buraco de vidro). painel_solar_2 está bom.
+- **estacao_drones**: laje com manchas pretas irregulares. **estacao** (telhado) e **acumulador** (topo dos tanques): pintas pretas
+  (reconversão pendente da fase 1).
+- **purificador_ar_2**: 7 m em 3×3, três tubos pretos no topo e miolo emaranhado. **coletor_chuva**, **viveiro**: escuros e
+  emaranhados, silhueta não se lê.
+- **silo_granel**: peça amarela solta, flutuando atrás do topo. **coletor_chuva**: ponto lilás solto acima. **mina_pulso**: placa em
+  triângulo e caco solto fora do anel. **braco**: bola laranja sem textura no chão, fora da base; base cinza lisa, destoa dos outros braços.
+- **extrator_cristal, extrator_ressonante**: mancha preta opaca no alto (provável fumaça; origem não confirmada).
+- **cano_subterraneo_entrada/saida, braco_quantico**: pequenos e confusos.
+- **Caixa além da área** (m × área; pode ser cabo ou peça móvel): terraplenagem 6,2×6,1 em 3×3, nucleo 5,7×5,7 em 3×3, viveiro 4,2×3,9 em 2×2,
+  coletor_lixo 3,7×3,0 em 2×2, coletor_lixo_2 3,2×2,1 em 2×2, artilharia 3,7 em 3, estacao 3,05 em 2×3.
+- **nucleo**: corpo central pequeno para o papel e para os 3×3 (só o exterior das raízes chega à borda); foto sem piso, fora do menu.
+- **Antigos, sem textura**: plataforma_agua (284 tris), ponte_agua (150), ninho_aranha (264), aranha (632), poca de seiva amarela chapada
+  sob a **bomba**, nucleo_queda (cone laranja chapado).
+- **Classes de esteira**: rápida, expressa e quântica só diferem na faixa fina; no painel quase não se distinguem.
+- Sem achado: textura preta (0 superfícies abaixo de 3% de luminância na varredura), escala absurda, modelo que falta no menu.
+- Não conferido nesta rodada: efeitos em ação (raio, bolha, holograma, tiro, voo do foguete), pois as fotos são de peça solta.
 
 ### Progresso da fase 2
 - [x] 2.1 pacotes por tipo, automação, melhorias (mineração, pesquisa, dano/cadência de energia), briquete,

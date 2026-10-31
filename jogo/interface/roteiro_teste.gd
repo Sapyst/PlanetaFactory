@@ -27,6 +27,10 @@ func _ready() -> void:
 		"estresse": _roteiro_estresse()
 		"fundo": em(2, func(): cena.controle.barra.visible = false)
 		"vitrine": _roteiro_vitrine()
+		"fotos_finais", "carga":                       # fase 5: fotos de todas as peças / desempenho (roteiro_fotos.gd)
+			var rf := RoteiroFotos.new()
+			rf.rt = self
+			add_child(rf)
 		"panorama": _roteiro_panorama()
 		"fios": _roteiro_fios()
 		"rota": _roteiro_rota()
@@ -1498,6 +1502,13 @@ func _tris(m: Mesh) -> int:
 		var v: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
 		t += (idx.size() if idx.size() > 0 else v.size()) / 3
 	return t
+
+
+func _tris_superficie(m: Mesh, s: int) -> int:
+	var a := m.surface_get_arrays(s)
+	var idx: PackedInt32Array = a[Mesh.ARRAY_INDEX] if a[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+	var v: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+	return (idx.size() if idx.size() > 0 else v.size()) / 3
 
 
 func _inventario() -> void:
