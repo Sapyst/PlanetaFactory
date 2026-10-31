@@ -1,7 +1,7 @@
 extends Caso
 ## Braço com filtro (braco_filtro, fase 2.2b): modelo de estudo_bracos_novos.py (arte/estudos/conv_logistica_base.py:
 ## scanner na garra, painel de 5 luzes, giroflex), IK com giro/braco1/braco2/garra + pistão (camisa/haste); só pega os
-## itens escolhidos pelo jogador, até 5 (filtro_max). Os outros braços pegam o que o destino aceitar.
+## itens escolhidos pelo jogador, até 5 (filtro_max). Todo outro braço escolhe 1 item, ou fica em Auto.
 
 
 func _c() -> Construtor:
@@ -25,7 +25,7 @@ func test_dados_e_modelo() -> void:
 	igual(int(r.get("alcance", 0)), 1, "alcance 1")
 	verificar(float(r.get("energia_kw", 0)) > 0.0, "usa energia")
 	verificar(Fiacao.papel("braco_filtro") == "consumo", "liga num poste como os outros braços")
-	verificar(not Registro.estruturas.braco.has("filtro_max"), "o braço comum não tem filtro")
+	verificar(not Registro.estruturas.braco.has("filtro_max"), "o braço comum não tem filtro_max: escolhe 1")
 	var md: Dictionary = Registro.modelos.get("braco_filtro", {})
 	igual(md.get("estudo", ""), "conv_logistica_base.py", "convertido do estudo")
 	var partes := {}
@@ -118,3 +118,45 @@ func test_filtro_salvo() -> void:
 	igual(f.bracos[b].filtro, "engrenagem", "um item só: pega direto da máquina/baú por nome")
 	f.reconstruir()
 	igual(f.bracos[b].filtros, ["engrenagem"], "continua depois de remontar")
+
+
+## Todo braço escolhe 1 item; o com filtro, até 5. Tocar de novo no escolhido volta ao Auto.
+func test_todo_braco_escolhe_um() -> void:
+	for nome in Registro.estruturas:
+		if Registro.estruturas[nome].get("grupo", "") == "braco":
+			igual(Fabrica.max_filtros(nome), 5 if nome == "braco_filtro" else 1, "quantos %s escolhe" % nome)
+	igual(Fabrica.escolher_filtro([], "carvao", 1), ["carvao"], "escolhe")
+	igual(Fabrica.escolher_filtro(["carvao"], "pedra", 1), ["pedra"], "troca, não soma")
+	igual(Fabrica.escolher_filtro(["carvao"], "carvao", 1), [], "de novo: Auto")
+	igual(Fabrica.escolher_filtro(["a", "b"], "c", 1), ["c"], "save antigo com vários: tocar deixa um só")
+	igual(Fabrica.escolher_filtro(["a", "b"], "c", 3), ["a", "b", "c"], "com filtro soma")
+	igual(Fabrica.escolher_filtro(["a", "b", "c"], "b", 3), ["a", "c"], "com filtro tira")
+	igual(Fabrica.escolher_filtro(["a", "b", "c"], "d", 3), ["a", "b", "c"], "cheio não muda")
+	for it in Registro.itens:
+		verificar(TelaPesquisa._tex_item(it) != null, "ícone de %s para a grade" % it)
+
+
+## Braço comum com 1 item: só tira esse da esteira, e o filtro passa por salvar e carregar (texto do save → remontar).
+func test_braco_comum_pega_um_e_salva() -> void:
+	var c := _c()
+	var f := Fabrica.new(c.mapa)
+	_por(c, "gerador", Vector2i(8, 6))
+	_por(c, "poste_energia", Vector2i(11, 6))
+	_por(c, "poste_energia", Vector2i(5, 3))
+	c.executar(c.plano_linha("esteira", Vector2i(-3, 0), Vector2i(8, 0), 0))
+	var b := _por(c, "braco", Vector2i(1, 1), 0)
+	var bau := _por(c, "bau", Vector2i(1, 2), 0)
+	c.mapa.estruturas[b]["filtros"] = ["carvao"]
+	var volta = str_to_var(var_to_str(c.mapa.estruturas))
+	igual(volta[b].get("filtros", []), ["carvao"], "o filtro vai no save")
+	c.mapa.estruturas[b] = volta[b]
+	f.reconstruir()
+	igual(f.bracos[b].filtro, "carvao", "remontado com o filtro do save")
+	for id in f.combustivel: f.combustivel[id] = 30.0
+	var e: EsteiraCaminho = f.caminhos[f._no_tile[Vector2i(-3, 0)][0]].esteira
+	for i in 30 * 30:
+		if i % 30 == 0:
+			e.inserir_na_entrada(["pedra", "carvao"][(i / 30) % 2])
+		f.tick(1.0 / 30.0)
+	verificar(int(f.baus[bau].get("carvao", 0)) > 3, "pegou carvão (%s)" % f.baus[bau])
+	igual(int(f.baus[bau].get("pedra", 0)), 0, "pedra passa reta")

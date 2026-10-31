@@ -82,6 +82,10 @@ vento_dir={
 "type": "vec2",
 "value": Vector2(1, 0)
 }
+vento_tempo={
+"type": "float",
+"value": 0.0
+}
 rajada={
 "type": "vec3",
 "value": Vector3(-1e+06, 0, 12)

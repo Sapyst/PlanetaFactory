@@ -185,6 +185,12 @@ static func nome_rumo(v: Vector2) -> String:
 	return "de " + melhor
 
 
+## Ritmo do balanço da vegetação para a força do vento: sobe pouco (30% da calmaria à ventania). Vento forte é mais
+## amplitude e mais inclinação (shaders); subir a velocidade junto com a força parecia o jogo acelerado.
+static func ritmo_vento(forca: float) -> float:
+	return 1.0 + 0.3 * clampf(forca, 0.0, 1.0)
+
+
 ## Força do vento no ponto (grade), 0..~1,6: estado do clima + rajada passando (sem o fator do lugar: VentoLocal).
 func vento_em(p: Vector2) -> float:
 	var v: float = valores.vento

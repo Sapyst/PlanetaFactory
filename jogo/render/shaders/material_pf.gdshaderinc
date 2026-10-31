@@ -30,24 +30,39 @@ varying float v_sorte;            // 0..1 por instância (cada árvore muda de f
 void vertex() {
 	vec3 mundo = MODEL_MATRIX[3].xyz;                     // por instância (MultiMesh) ou por objeto
 	float fase = mundo.x * 0.37 + mundo.z * 0.61;
+	v_alt = VERTEX.y;
+	v_sorte = fract(sin(dot(mundo.xz, vec2(12.9898, 78.233))) * 43758.5453);
 	if (vento > 0.0) {
-		float h = max(VERTEX.y, 0.0);
-		float intensidade = clamp(length(vento_dir) - 0.4, 0.0, 1.0);
-		float raj = rajada_em(mundo);
-		// balanço próprio (cresce com o vento) + inclinação a favor do vento (sutil na brisa, forte na rajada)
-		float s = sin(TIME * (1.2 + 1.2 * intensidade) + fase) * 0.6 + sin(TIME * 3.7 + fase * 2.1) * 0.25;
-		VERTEX.x += s * h * h * 0.06 * vento * (0.5 + intensidade);
-		VERTEX.z += cos(TIME * 1.3 + fase) * h * h * 0.03 * vento * (0.5 + intensidade);
+		// Vegetação. Curva pela altura real: o pé firme, a copa cede (saturando, senão a árvore alta entortaria demais).
+		// Força = quanto inclina a favor do vento (deslocamento médio) + trancos; o balanço por cima quase não muda de
+		// ritmo. Cada planta no seu tempo. O topo desce conforme inclina: a planta curva, não estica.
+		float h = max(VERTEX.y, 0.0) * length(MODEL_MATRIX[1].xyz);
+		float flex = h * h / (0.55 + 0.3 * h) * vento;
+		float i_v = vento_intensidade();
+		float forte = vento_forte();
 		vec2 dw = vento_mundo();
-		float inclina = (0.01 + 0.035 * intensidade + 0.09 * raj) * (0.85 + 0.15 * sin(TIME * 2.3 + fase)) * h * h * vento;
-		VERTEX += inverse(mat3(MODEL_MATRIX)) * vec3(dw.x, 0.0, dw.y) * inclina;
+		vec2 lado = vec2(-dw.y, dw.x);
+		float t = vento_tempo + v_sorte * 6.283;
+		float tranco = vento_tranco(mundo.xz, dw, v_sorte);
+		float inclina = 0.004 + 0.05 * forte + 0.012 * i_v * tranco + 0.1 * forte * tranco + 0.07 * rajada_em(mundo);
+		float amp = 0.008 + 0.012 * i_v + 0.014 * forte;
+		float vai = sin(t * 1.1 + fase) * 0.7 + sin(t * 2.6 + fase * 1.7) * 0.3;
+		float tremor = sin(t * 7.0 + fase * 3.0) * (0.0015 + 0.005 * forte * tranco);      // folha agitando no tranco
+		vec2 d_mundo = dw * (inclina + (vai + tremor) * amp) + lado * cos(t * 0.9 + fase) * amp * 0.6;
+		d_mundo *= flex;
+		float d_len = length(d_mundo);
+		float teto = h * 0.6 + 0.001;
+		if (d_len > teto) {
+			d_mundo *= teto / d_len;
+			d_len = teto;
+		}
+		float desce = d_len * d_len / (2.0 * (h + 0.001));
+		VERTEX += inverse(mat3(MODEL_MATRIX)) * vec3(d_mundo.x, -desce, d_mundo.y);
 	}
 	if (boiar > 0.0) {
 		VERTEX.y += sin(TIME * 1.2 + fase) * 0.015 * boiar;
 	}
 	v_dist = rolagem_uv2 ? UV2.y : UV.y;
-	v_alt = VERTEX.y;
-	v_sorte = fract(sin(dot(mundo.xz, vec2(12.9898, 78.233))) * 43758.5453);
 	v_mundo = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
 

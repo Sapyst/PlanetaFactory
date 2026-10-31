@@ -59,6 +59,7 @@ float aneis_chuva(vec2 p, float t) {
 // ao longo do vento (m), amplitude, largura (m): uma faixa de vento mais forte que atravessa o mapa.
 global uniform vec2 vento_dir;
 global uniform vec3 rajada;
+global uniform float vento_tempo;     // relógio do vento (Clima.ritmo_vento): sobe só um pouco de ritmo com a força e nunca salta
 float rajada_em(vec3 mundo) {
 	vec2 d = length(vento_dir) > 0.01 ? normalize(vento_dir) : vec2(1.0, 0.0);
 	float x = dot(vec2(mundo.x, -mundo.z), d) - rajada.x;
@@ -68,6 +69,33 @@ float rajada_em(vec3 mundo) {
 vec2 vento_mundo() {
 	vec2 d = length(vento_dir) > 0.01 ? normalize(vento_dir) : vec2(1.0, 0.0);
 	return vec2(d.x, -d.y);
+}
+
+// Força do vento agora, 0 calmaria .. 1 ventania, e a parte "forte" dela: 0 no vento de um dia limpo, 1 na tempestade.
+// O que distingue vento forte é ISTO multiplicando amplitude e inclinação, não a velocidade da animação: frequência
+// multiplicada por força faz a planta parecer um vídeo acelerado (e dá salto de fase quando a força muda).
+float vento_intensidade() { return clamp(length(vento_dir) - 0.4, 0.0, 1.0); }
+float vento_forte() { return smoothstep(0.35, 1.0, vento_intensidade()); }
+
+// Uma rajada irregular por vez: frentes que andam a favor do vento (vizinhos pegam quase juntos, `sorte` atrasa cada
+// planta), com subida rápida e volta lenta; cada frente tem a sua força e parte delas nem vem.
+float _vento_frente(float c) {
+	float id = floor(c);
+	float f = c - id;
+	float g = fract(sin(id * 12.9898 + 4.1) * 43758.5453);
+	return smoothstep(0.0, 0.09, f) * (1.0 - f) * (1.0 - f) * mix(0.35, 1.0, g) * smoothstep(0.12, 0.3, g) * 1.3;
+}
+// Tranco de uma camada só (grama: milhões de vértices). p em (x, z) do mundo, d = vento_mundo(). 0..1
+float vento_tranco_leve(vec2 p, vec2 d, float sorte) {
+	float lado = dot(p, vec2(-d.y, d.x));
+	return _vento_frente(vento_tempo * 0.14 - dot(p, d) * 0.03 + sin(lado * 0.06) * 0.2 + sorte * 0.1);
+}
+// Duas camadas sem múltiplo comum entre si: o ritmo das rajadas não se repete (árvores e arbustos). 0..1
+float vento_tranco(vec2 p, vec2 d, float sorte) {
+	float lado = dot(p, vec2(-d.y, d.x));
+	float a = vento_tranco_leve(p, d, sorte);
+	float b = _vento_frente(vento_tempo * 0.083 - dot(p, d) * 0.018 + sin(lado * 0.04 + 1.3) * 0.25 + sorte * 0.22 + 0.37);
+	return 1.0 - (1.0 - clamp(a, 0.0, 1.0)) * (1.0 - clamp(b, 0.0, 1.0));
 }
 
 // Estação para a folhagem: índice (0 primavera, 1 verão, 2 outono, 3 inverno) + fração já passada dela.

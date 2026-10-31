@@ -24,6 +24,9 @@ func _ready() -> void:
 		"poluicao": _roteiro_poluicao()
 		"painel": _roteiro_painel()
 		"salvar": _roteiro_salvar()
+		"roda_ui": _roteiro_roda_ui()
+		"fotos_ui": _roteiro_fotos_ui()
+		"vento_cmp": _roteiro_vento_cmp()
 		"estresse": _roteiro_estresse()
 		"fundo": em(2, func(): cena.controle.barra.visible = false)
 		"vitrine": _roteiro_vitrine()
@@ -2624,6 +2627,171 @@ func _roteiro_salvar() -> void:
 		cena.salvar()
 		print("DIGITAL ", digital(cena))
 		get_tree().quit())
+
+
+## Roda do mouse de verdade (push_input): sobre o mapa dá zoom; sobre qualquer interface, não. Imprime RODA_UI OK/FALHA
+## e sai (funciona sem janela: -- modo demo roteiro roda_ui).
+func _roteiro_roda_ui() -> void:
+	var falhas: Array[String] = []
+	var roda := func(p: Vector2, sentido := MOUSE_BUTTON_WHEEL_UP) -> float:
+		var cam: CameraJogo = cena.camera
+		var antes := cam.distancia
+		for pressionado in [true, false]:
+			var ev := InputEventMouseButton.new()
+			ev.button_index = sentido
+			ev.pressed = pressionado
+			ev.position = _jan(p)
+			ev.global_position = _jan(p)
+			get_viewport().push_input(ev)
+		return cam.distancia - antes
+	var conf := func(nome: String, p: Vector2, deve: bool) -> void:
+		var mudou: bool = absf(roda.call(p)) > 0.0001
+		print("  roda em %s %s: %s" % [nome, p, "zoom" if mudou else "sem zoom"])
+		if mudou != deve:
+			falhas.append(nome)
+	process_mode = Node.PROCESS_MODE_ALWAYS        # o menu de pausa para a árvore
+	em(3, func(): cena.controle.barra._tocar_categoria(0))
+	em(5, func():
+		var barra: BarraConstrucao = cena.controle.barra
+		var tela_r := get_viewport().get_visible_rect()
+		# o ponto do mapa fica entre o status e o painel de peças
+		conf.call("mapa", Vector2(tela_r.size.x * 0.4, tela_r.size.y * 0.5), true)
+		conf.call("mapa embaixo", Vector2(tela_r.size.x * 0.4, tela_r.size.y - 30.0), true)
+		conf.call("painel de peças", barra._painel_pecas.get_global_rect().get_center(), false)
+		conf.call("categorias", barra.centro_de("cat:0"), false)
+		conf.call("ferramentas", barra.centro_de("menu"), false)
+		conf.call("status", barra._info.get_global_rect().get_center(), false)
+		cena._sel = {"estrutura": cena.mapa.estruturas.keys()[0]}
+		cena._detalhe())
+	em(8, func():
+		var barra: BarraConstrucao = cena.controle.barra
+		conf.call("detalhe", barra._detalhe.get_global_rect().get_center(), false)
+		if barra._recursos != null and barra._recursos.visible:
+			conf.call("recursos", barra._recursos.get_global_rect().get_center(), false)
+		cena._sel = {}
+		cena._detalhe()
+		barra.fechar_pecas()
+		cena.pausa.abrir())
+	em(11, func():
+		conf.call("menu de pausa", get_viewport().get_visible_rect().get_center(), false)
+		if not Toque.sobre_ui(get_tree(), get_viewport().get_visible_rect().get_center()):
+			falhas.append("sobre_ui no menu de pausa")
+		cena.pausa.fechar()
+		cena.abrir_pesquisa())
+	em(14, func():
+		conf.call("tela de pesquisa", get_viewport().get_visible_rect().get_center(), false)
+		cena.abrir_pesquisa())
+	em(17, func():
+		conf.call("mapa de novo", get_viewport().get_visible_rect().size * Vector2(0.4, 0.5), true)
+		print("RODA_UI ", "OK" if falhas.is_empty() else "FALHA %s" % str(falhas))
+		get_tree().quit())
+
+
+## Mesmo lugar e câmera, céu limpo x tufão: uma foto a cada 0,4 s por 12 s, para comparar amplitude e ritmo. Só para
+## conferir: -- modo demo roteiro vento_cmp <pasta> (com --fixed-fps 30)
+func _roteiro_vento_cmp() -> void:
+	var args := OS.get_cmdline_user_args()
+	var pasta: String = args[args.find("vento_cmp") + 1]
+	var foto := func(nome: String) -> void:
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png(pasta.path_join(nome + ".png"))
+	for c in cena.find_children("*", "CanvasLayer", true, false):
+		c.visible = false
+	var cam: CameraJogo = cena.camera
+	cam.set_process(false)
+	cena.controle.process_mode = Node.PROCESS_MODE_DISABLED
+	var alvo := Vector3(float(args[args.find("vento_cmp") + 2]), 0.0, float(args[args.find("vento_cmp") + 3]))
+	var enquadrar := func() -> void:
+		cam.alvo = alvo
+		cam.distancia = float(args[args.find("vento_cmp") + 4])
+		cam.posicionar()
+		cena.clima.direcao_vento = Vector2(1, 0)
+	var q := 5
+	for forca in [0.35, 1.0]:                         # céu limpo em ambos: só o vento muda (chuva atrapalharia a comparação)
+		var f: float = forca
+		for i in 30 + 30 * 12:
+			em(q + i, func(): cena.clima.valores.vento = f)
+		em(q, func():
+			cena.clima.forcar("limpo", true)
+			enquadrar.call())
+		q += 30
+		for i in 30:
+			var k: int = i
+			em(q + i * 12, func():
+				enquadrar.call()
+				foto.call("v%03d_%02d" % [roundi(f * 100), k]))
+		q += 30 * 12 + 2
+	em(q, func(): get_tree().quit())
+
+
+## Conferência da interface nova (estoque e painel do braço), com a tela de verdade. Só para conferir: as imagens vão
+## para a pasta do argumento: -- modo novo roteiro fotos_ui <pasta>
+func _roteiro_fotos_ui() -> void:
+	var args := OS.get_cmdline_user_args()
+	var pasta: String = args[args.find("fotos_ui") + 1]
+	var foto := func(nome: String) -> void:
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png(pasta.path_join(nome + ".png"))
+		print("foto ", nome)
+	var estoque_cheio := func() -> void:
+		for k in Registro.itens:
+			cena.inventario[k] = 3 + (k.hash() % 2000 + 2000) % 2000
+		cena.inventario["placa_ferro"] = 123456
+	var braco := func(nome: String) -> void:
+		var con: Construtor = cena.construtor
+		cena.sincronizar(con.executar(con.plano_peca(nome, Vector2i(6, 6), 0)))
+		for id in cena.mapa.estruturas:
+			if cena.mapa.estruturas[id].nome == nome:
+				cena.fabrica.reconstruir()
+				cena._sel = {"estrutura": id}
+				cena.mapa.estruturas[id]["filtros"] = ["carvao"]
+				cena.fabrica.reconstruir()
+				cena._detalhe()
+	em(4, func(): cena.controle.barra.indicador_salvando(true))
+	em(10, func(): foto.call("a_kit_inicial"))
+	em(14, func():
+		cena.controle.barra.indicador_salvando(false)
+		estoque_cheio.call())
+	em(25, func(): foto.call("b_estoque_vertical"))
+	em(28, func():
+		Sessao.config.recursos_orientacao = "horizontal"
+		cena._hud())
+	em(35, func(): foto.call("c_estoque_horizontal"))
+	em(38, func():
+		Sessao.config.recursos_orientacao = "vertical"
+		braco.call("braco"))
+	em(48, func(): foto.call("d_braco_comum"))
+	em(50, func():                                  # aperta os botões de verdade da grade
+		var e: Dictionary = cena.mapa.estruturas[cena._sel.estrutura]
+		var barra: BarraConstrucao = cena.controle.barra
+		var aperta := func(dica: String) -> void:
+			for b in barra._det_botoes.find_children("*", "Button", true, false):
+				if b.tooltip_text == dica or b.text.begins_with(dica):
+					(b as Button).pressed.emit()
+					return
+		aperta.call("Pedra")
+		print("FILTRO_UI pedra -> ", e.filtros, " ", cena.fabrica.bracos[cena._sel.estrutura].filtro)
+		aperta.call("Carvão")
+		print("FILTRO_UI troca -> ", e.filtros)
+		aperta.call("Carvão")
+		print("FILTRO_UI de novo -> ", e.filtros)
+		aperta.call("Pedra")
+		aperta.call("Auto")
+		print("FILTRO_UI auto -> ", e.filtros, " '", cena.fabrica.bracos[cena._sel.estrutura].filtro, "'"))
+	em(52, func():
+		cena._sel = {}
+		cena._detalhe()
+		cena.controle.barra._tocar_categoria(1))
+	em(60, func(): foto.call("e_pecas_abertas"))
+	em(64, func():
+		cena.controle.barra.fechar_pecas()
+		cena.pausa.abrir())
+	em(66, func():
+		cena.pausa._config.visible = true
+		cena.pausa._caixa.visible = false)
+	em(72, func(): foto.call("f_config"))
+	em(78, func(): get_tree().quit())
+	process_mode = Node.PROCESS_MODE_ALWAYS
 
 
 ## Estresse: 2 400 esteiras + 20 torres + itens; mede quadros por segundo e chamadas de desenho na janela real.

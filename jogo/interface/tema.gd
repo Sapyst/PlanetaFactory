@@ -80,6 +80,15 @@ static func chapa_estilo() -> StyleBoxTexture:
 	return s
 
 
+## A mesma chapa com rebites, com margens curtas (painéis pequenos, como o estoque do núcleo).
+static func chapa_compacta() -> StyleBoxTexture:
+	var s := StyleBoxTexture.new()
+	s.texture = _tex("chapa", func(): return _chapa(96, true))
+	s.set_texture_margin_all(12)
+	s.set_content_margin_all(8)
+	return s
+
+
 static func botao_estilo(estado: String) -> StyleBoxTexture:
 	var s := StyleBoxTexture.new()
 	s.texture = _tex("botao_" + estado, func(): return _placa(48, estado))

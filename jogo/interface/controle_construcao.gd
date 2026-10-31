@@ -305,9 +305,11 @@ func _unhandled_input(e: InputEvent) -> void:
 	elif e is InputEventScreenDrag:
 		_toque_arrastou(e)
 	elif e is InputEventMagnifyGesture:
-		camera.zoom(1.0 / e.factor)
+		if not Toque.sobre_ui(get_tree(), e.position):
+			camera.zoom(1.0 / e.factor)
 	elif e is InputEventPanGesture:
-		camera.arrastar(-e.delta * 8.0)
+		if not Toque.sobre_ui(get_tree(), e.position):
+			camera.arrastar(-e.delta * 8.0)
 
 
 func _tecla(e: InputEventKey) -> void:
@@ -344,8 +346,9 @@ func _tecla(e: InputEventKey) -> void:
 func _mouse_botao(e: InputEventMouseButton) -> void:
 	_por_toque = false
 	match e.button_index:
-		MOUSE_BUTTON_WHEEL_UP: camera.zoom(0.9)
-		MOUSE_BUTTON_WHEEL_DOWN: camera.zoom(1.1)
+		MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN:      # sobre a interface a roda é dela (rola a lista ou nada)
+			if not Toque.sobre_ui(get_tree(), e.position):
+				camera.zoom(0.9 if e.button_index == MOUSE_BUTTON_WHEEL_UP else 1.1)
 		MOUSE_BUTTON_MIDDLE: _arrasto_camera = e.pressed
 		MOUSE_BUTTON_RIGHT:
 			_botao_dir = e.pressed

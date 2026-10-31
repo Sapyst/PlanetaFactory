@@ -585,6 +585,13 @@ func _carga(tipo: String) -> void:
 		total += int(cache[mdl])
 		por[nome] = int(por.get(nome, 0)) + 1
 	print("CARGA %s: %d estruturas, %d mil triângulos somando todas as estruturas, %d nós" % [tipo, cena.mapa.estruturas.size(), total / 1000, Performance.get_monitor(Performance.OBJECT_NODE_COUNT)])
+	var ts0 := Time.get_ticks_usec()
+	var dados: Dictionary = cena._dados_salvar()
+	var ts1 := Time.get_ticks_usec()
+	var copia := dados.duplicate(true)
+	var ts2 := Time.get_ticks_usec()
+	var txt := var_to_str(copia)
+	print("SALVAR %s: montar %.1f ms + copiar %.1f ms no quadro; texto em outra thread %.1f ms, %d KB" % [tipo, (ts1 - ts0) / 1000.0, (ts2 - ts1) / 1000.0, (Time.get_ticks_usec() - ts2) / 1000.0, txt.length() / 1024])
 	RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
 	for d in [d_padrao, 25.0, 90.0]:
 		cam.alvo = centro

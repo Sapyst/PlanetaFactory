@@ -20,8 +20,8 @@ godot --headless --path jogo --fixed-fps 30 --quit-after 4000 -- acelerar 8 rela
 - Menu inicial (`cenas/menu.tscn`): **Continuar**, **Novo jogo** (núcleo no spawn + kit inicial; construir custa itens do
   núcleo, remover devolve, limpar árvore/rocha rende material; pesquisa libera peças e receitas), **Demonstração**
   (fábrica pronta, tudo liberado, sem custo, não salva) e **Configurações** (volumes, tamanho da interface, sombras,
-  autosalvar). Esc / botão Menu = pausa (salvar, carregar, configurações, sair).
-- Salvo em `user://salvos/partida.sav` (texto; grava em .tmp e troca): a cada 2 min, ao fechar e quando o Android
+  orientação do estoque, autosalvar). Esc / botão Menu = pausa (salvar, carregar, configurações, sair).
+- Salvo em `user://salvos/partida.sav` (texto; grava em .tmp e troca): a cada `autosalvar_s` (desligado, 1, 2, 5, 10, 15 ou 30 min; padrão 2; `nucleo/auto_salvar.gd`; os dados saem no quadro e o texto + disco vão para outra thread, com "Salvando…" na tela; nunca na demo nem na abertura; os testes gravam em `user://testes_salvos`), ao fechar e quando o Android
   manda o app para o fundo. Núcleo destruído = derrota (o salvo é apagado).
 - Pesquisa (botão Pesquisa / T): laboratório com energia gasta pacotes de pesquisa (montadora: cristal lapidado +
   engrenagem). Árvore e custos em `dados/progressao.json`.
@@ -74,6 +74,7 @@ tiles (`Construtor.PASSO_POSTE`). O anel do topo anima com `Fabrica.transmitindo
 - `Clima`: cada estação tem um rumo predominante (`vento_de` em `clima.json`); a direção do momento oscila ±40° em
   volta dele e vira devagar na troca de estação. **Rajadas**: frentes de vento mais forte (+18 a +43%) que nascem a
   barlavento de onde a câmera olha e atravessam o mapa (`vento_em(p)`); a grama e as árvores se curvam quando passam.
+- Balanço da vegetação (`clima.gdshaderinc`, `material_pf.gdshaderinc`, `grama.gdshader`): força é amplitude, não velocidade. O relógio `vento_tempo` é somado aos poucos (`Clima.ritmo_vento`: no máximo +30% na ventania), nunca TIME × força, que parecia jogo acelerado e saltava de fase quando a força mudava. Vento forte: inclinação média a favor do vento + trancos (`vento_tranco`: frentes irregulares que andam com o vento, sobem rápido e voltam devagar), cada planta no seu tempo, com curva pela altura e teto; o topo desce ao inclinar, para não esticar a malha. Hélices de turbina continuam acelerando com o vento. Roteiro de comparação: `-- modo demo roteiro vento_cmp <pasta> <x> <z> <dist>`, com `--fixed-fps 30`.
   `vento_medio` = média móvel de 10 min de jogo (vai no save).
 - `ambiente/vento_local.gd`: fator do lugar — alto +12% por nível acima do entorno (até +36%), baixada até −24%,
   campo aberto/praia/beira-mar +15%, floresta/pântano −30%, árvores plantadas −6% cada, a sotavento de construção
@@ -151,7 +152,9 @@ vista. Contador de FPS embutido (ligado por padrão na fase de testes; Configura
 - Painel de detalhe como gaveta: do status até a borda de baixo, a lista rola dentro (nunca passa da tela). Em
   máquinas, cabeçalho com ícone, receita em casas (`interface/casa.gd`: número = o que tem; borda vermelha = falta),
   saída e barras de progresso e energia. Laboratório: botão "Abrir a pesquisa".
-- Status do canto compacto (hora/clima, núcleo, pesquisa); tocar abre tudo.
+- Status do canto compacto (hora/clima, pesquisa); tocar abre tudo. Estoque do núcleo à parte (`interface/painel_recursos.gd`): casas de ícone + número, coluna (padrão, abaixo do status) ou linha, em Configurações; reparte em mais colunas se não couber, desvia da gaveta de detalhe e para antes das ferramentas e peças.
+- Tamanho da interface (`config.texto`): 0,68 a 1,6, padrão 0,8 (o antigo mínimo). Config antiga exatamente no antigo padrão 1,0 desce para 0,8, uma vez (`ui_v2`); no celular segue o padrão de 1,35.
+- Roda do mouse: o Godot deixa a roda atravessar os Controls (`mouse_force_pass_scroll_events`), e ela chegava ao mapa. `Toque.sobre_ui` procura qualquer Control que receba mouse na posição, em todos os CanvasLayer; sem registro por painel. Vale também para os gestos de trackpad. Roteiro: `-- modo demo roteiro roda_ui`.
 - Modo construção: faixa listrada no alto dizendo o que a mão faz, com Sair; grade 1×1 no chão em volta do cursor.
 - Estilo de fábrica (`interface/tema.gd`, texturas geradas por código): chapas grafite gastas com chanfro e rebites,
   filete de cobre, listras de perigo amarelo-sujo e preto na faixa e no Sair; paleta por situação (`Tema.COR`:
@@ -213,8 +216,7 @@ Tudo que se constrói funciona — a mini-fábrica da demo é só um mapa pronto
   (`Construtor.CLASSES_ESTEIRA`; modelos `<peça>_rapida`, faixa vermelha; regra própria em estruturas.json), 3,75 m/s,
   passagem até 6 tiles livres (só liga entrada e saída da mesma classe). Trocar de classe no meio da linha parte o
   caminho em dois, ligados pela ponta (`elos` em `Fabrica._montar_esteiras`); traçar uma classe por cima da outra
-  troca a peça (devolve o custo da velha, cobra a nova). **Braço com filtro**: até 5 itens (`filtro_max`), escolhidos
-  no painel; os outros braços pegam o que o destino aceitar. **Divisor com filtro**: `filtro_item` sai só pela
+  troca a peça (devolve o custo da velha, cobra a nova). Todo braço escolhe no painel (grade de ícones) **1 item** ou Auto (`Fabrica.escolher_filtro`, campo `filtros` da estrutura, vai no save); **Braço com filtro**: até 5 itens (`filtro_max`). **Divisor com filtro**: `filtro_item` sai só pela
   `saida_filtro`; o resto tenta a `prioridade` primeiro (Frente/Direita/Esquerda no painel; sem = rodízio).
   **Silo de granel** 3×3: armazém de 20.000 de um tipo só (`um_tipo`). **Cano subterrâneo**: a entrada liga na
   primeira saída alinhada à frente, mesma rotação, até 9 tiles livres — uma rede de fluido só.

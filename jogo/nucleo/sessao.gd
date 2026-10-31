@@ -3,10 +3,14 @@ extends Node
 ##   modo: "novo" (mundo do zero, com núcleo e kit inicial), "continuar" (carrega o salvo), "demo" (fábrica pronta,
 ##   construção livre sem custo).
 
-const ARQ_CONFIG := "user://configuracoes.cfg"
+const TEXTO_PADRAO := 0.8                ## tamanho da interface: o antigo mínimo virou o padrão
+const TEXTO_MIN := 0.68                  ## ~15% abaixo do padrão
+const TEXTO_MAX := 1.6
+const TEXTO_PADRAO_ANTIGO := 1.0
 
+static var arq_config := "user://configuracoes.cfg"     ## os testes trocam (nunca gravam na configuração real)
 var modo := "demo"
-var config := {"volume": 0.8, "sombras": true, "texto": 1.0, "autosalvar_s": 120, "resolucao": 1.0, "fps": true, "clima": true, "grama": true}   ## fps ligado por padrão na fase de testes
+var config := {"volume": 0.8, "sombras": true, "texto": TEXTO_PADRAO, "autosalvar_s": 120, "resolucao": 1.0, "fps": true, "clima": true, "grama": true, "recursos_orientacao": "vertical", "recursos_resumo": false}   ## fps ligado por padrão na fase de testes
 
 
 func _init() -> void:
@@ -16,15 +20,26 @@ func _init() -> void:
 		config.sombras = false
 		DesenhoChunk.densidade_grama = 22.0         # gramado mais ralo no celular
 	var cf := ConfigFile.new()
-	var tinha := cf.load(ARQ_CONFIG) == OK
+	var tinha := cf.load(arq_config) == OK
 	if tinha:
 		for k in config:
 			config[k] = cf.get_value("jogo", k, config[k])
+	config.texto = texto_migrado(float(config.texto), tinha, tinha and cf.has_section_key("jogo", "ui_v2"), eh_celular())
+	config["ui_v2"] = true
 	# celular: a tela base tem 720 de altura e o botão de 48 dá ~4,5 mm — pequeno para o dedo. Interface 1,35× por
 	# padrão (botões ~6–7 mm); quem já tinha configuração salva sobe para pelo menos isso uma vez.
 	if eh_celular() and (not tinha or not cf.has_section_key("jogo", "ui_celular")):
 		config.texto = maxf(float(config.texto), 1.35)
 	config["ui_celular"] = true
+
+
+## Tamanho da interface de quem vem de antes da faixa nova. O arquivo grava tudo junto, então "nunca mexeu" só dá para
+## ver pelo valor: quem está exatamente no antigo padrão desce para o novo; quem escolheu outro fica. Uma vez só (ui_v2).
+## No celular não se aplica: lá o padrão é subir para os 1,35× do dedo.
+static func texto_migrado(valor: float, tinha_arquivo: bool, ja_migrou: bool, celular: bool) -> float:
+	if not tinha_arquivo or ja_migrou or celular or not is_equal_approx(valor, TEXTO_PADRAO_ANTIGO):
+		return valor
+	return TEXTO_PADRAO
 
 
 ## Celular de verdade, ou o PC simulando um (-- celular: escala de interface e limiares do toque).
@@ -36,7 +51,7 @@ func salvar_config() -> void:
 	var cf := ConfigFile.new()
 	for k in config:
 		cf.set_value("jogo", k, config[k])
-	cf.save(ARQ_CONFIG)
+	cf.save(arq_config)
 
 
 ## Aplica as configurações: tamanho da interface, volume (barramento Efeitos) e sombras do sol.

@@ -128,3 +128,19 @@ func test_visao_camada_vento() -> void:
 	igual(v.camada, "vento", "depois vento")
 	verificar(not v.alternar(), "depois desliga")
 	v.free()
+
+
+## Vento forte é amplitude, não velocidade: o ritmo quase não muda e nenhum shader multiplica o tempo pela força
+## (além de parecer jogo acelerado, TIME × força salta de fase quando a força muda).
+func test_vento_forte_nao_acelera() -> void:
+	perto(Clima.ritmo_vento(0.0), 1.0, 0.001, "calmaria")
+	verificar(Clima.ritmo_vento(1.0) <= 1.35, "ventania acelera pouco (%.2f)" % Clima.ritmo_vento(1.0))
+	var re := RegEx.create_from_string("(TIME|vento_tempo)\\s*\\*\\s*\\([^)]*(intensidade|forte|i_v)")
+	for f in ["material_pf.gdshaderinc", "grama.gdshader", "clima.gdshaderinc"]:
+		var txt := FileAccess.get_file_as_string("res://render/shaders/" + f)
+		verificar(txt != "", "achou " + f)
+		igual(re.search(txt), null, "%s: tempo multiplicado pela força" % f)
+	var veg := FileAccess.get_file_as_string("res://render/shaders/material_pf.gdshaderinc")
+	verificar(veg.contains("vento_tranco(") and veg.contains("vento_tempo"), "vegetação com trancos e relógio próprio")
+	var gr := FileAccess.get_file_as_string("res://render/shaders/grama.gdshader")
+	verificar(gr.contains("vento_tranco_leve(") and gr.contains("vento_tempo"), "grama também")

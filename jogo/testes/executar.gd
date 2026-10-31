@@ -5,6 +5,9 @@ extends SceneTree
 ## Sai com código 1 se algo falhar.
 
 func _initialize() -> void:
+	# testes nunca gravam no save nem na configuração de quem está jogando
+	Salvamento.pasta = "user://testes_salvos"
+	load("res://nucleo/sessao.gd").arq_config = "user://testes_configuracoes.cfg"
 	var filtro := ""
 	var args := OS.get_cmdline_user_args()
 	if args.size() > 0:

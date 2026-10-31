@@ -705,12 +705,31 @@ static func alcance_origem(e: Dictionary) -> int:
 	return int(r.get("alcance", 1))
 
 
-## Itens que o braço pega. O Braço com filtro escolhe até `filtro_max` (estruturas.json); os outros braços pegam o
-## que o destino aceitar (Auto) — filtro que um braço comum já tinha de salvo antigo continua valendo.
+## Itens que o braço pega; vazio = Auto (o que o destino aceitar). Todo braço escolhe 1 item no painel; o Braço com
+## filtro escolhe até `filtro_max` (estruturas.json). Save antigo com vários itens num braço comum continua valendo
+## até o jogador mudar (por isso só corta quem tem `filtro_max`).
 static func filtros_de(e: Dictionary) -> Array:
 	var fl: Array = e.get("filtros", [])
 	var mx := int(Registro.estruturas.get(e.nome, {}).get("filtro_max", 0))
 	return fl.slice(0, mx) if mx > 0 and fl.size() > mx else fl
+
+
+## Quantos itens o jogador pode escolher neste braço.
+static func max_filtros(nome: String) -> int:
+	return maxi(int(Registro.estruturas.get(nome, {}).get("filtro_max", 1)), 1)
+
+
+## Lista depois de tocar em `item`. Até 1 item: troca, e tocar no escolhido volta ao Auto. Até mx: liga/desliga, e
+## cheio devolve a mesma lista (quem chama avisa).
+static func escolher_filtro(lista: Array, item: String, mx: int) -> Array:
+	if mx <= 1:
+		return [] if lista == [item] else [item]
+	var nova := lista.duplicate()
+	if nova.has(item):
+		nova.erase(item)
+	elif nova.size() < mx:
+		nova.append(item)
+	return nova
 
 
 func _portas(id: int) -> Array[Dictionary]:

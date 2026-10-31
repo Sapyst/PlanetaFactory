@@ -60,8 +60,12 @@ var semente := SEMENTE
 var inventario: Dictionary = {}     ## estoque do núcleo (o mesmo dicionário no Construtor e na Fabrica)
 var pesquisa: Pesquisa
 var pausa: MenuPausa
-var _salvar_em := 0.0
-var _autosalvar := true
+var _auto_salvar := AutoSalvar.new()
+var _autosalvar := true                 ## esta partida salva sozinha? (demo, roteiros e relatório não)
+var _abertura_rodando := false
+var _indicador_salvando := 0.0          ## segundos que o "Salvando…" ainda fica na tela (para dar tempo de ler)
+var _salvar_no_quadro := false          ## o aviso aparece um quadro antes de montar os dados, para já estar na tela
+var _salvando_auto := false
 var construtor: Construtor
 var controle: ControleConstrucao
 var _nos: Dictionary = {}           ## id da estrutura → Node3D (peças miúdas vão para _lotes)
@@ -186,7 +190,6 @@ func _ready() -> void:
 	pausa.pode_salvar = modo != "demo"
 	pausa.pediu_salvar.connect(salvar)
 	add_child(pausa)
-	_salvar_em = float(Sessao.config.autosalvar_s)
 	Sessao.aplicar.call_deferred()
 	# jogo novo: o núcleo chega do espaço (abertura; um toque pula)
 	if modo == "novo" and dados.is_empty() and _no_nucleo != null and (not args.has("roteiro") or args.has("abertura")):
@@ -195,7 +198,10 @@ func _ready() -> void:
 		ab.camera_jogo = camera
 		ab.barra = controle.barra
 		controle.process_mode = Node.PROCESS_MODE_DISABLED
-		ab.terminou.connect(func(): controle.process_mode = Node.PROCESS_MODE_INHERIT)
+		_abertura_rodando = true
+		ab.terminou.connect(func():
+			controle.process_mode = Node.PROCESS_MODE_INHERIT
+			_abertura_rodando = false)
 		add_child(ab)
 	var ci := args.find("clima")
 	if ci >= 0 and args.size() > ci + 1:
@@ -283,6 +289,7 @@ func _destruido(id: int) -> void:
 	sincronizar(construtor.destruir(id))
 	if era_nucleo:
 		Som.tocar("derrota")
+		_autosalvar = false                     # partida acabou: nem o relógio nem fechar o jogo recriam o save
 		Salvamento.apagar()
 		pausa.abrir(true)
 
@@ -291,14 +298,46 @@ func _destruido(id: int) -> void:
 func salvar() -> void:
 	if modo == "demo":
 		return
-	var ok := Salvamento.gravar({"modo": modo, "semente": semente, "tempo": _tempo,
+	var ok := Salvamento.gravar(_dados_salvar())
+	if is_instance_valid(controle):
+		controle._avisar("Jogo salvo" if ok else "Não consegui salvar")
+
+
+## Salvar automático: os dados saem aqui (quadro atual) e o disco fica em segundo plano; a partida não para.
+func _salvar_auto() -> void:
+	_salvando_auto = Salvamento.gravar_em_segundo_plano(_dados_salvar())
+
+
+func _dados_salvar() -> Dictionary:
+	return {"modo": modo, "semente": semente, "tempo": _tempo,
 			"camera": [camera.alvo, camera.distancia, camera.angulo],
 			"mapa": {"estruturas": mapa.estruturas, "limpos": mapa.limpos.keys(), "prox": mapa._prox_id, "arvores": mapa.arvores},
 			"fabrica": fabrica.estado(), "colonia": colonia.estado(), "poluicao": poluicao.valores, "clima": clima.estado(), "aplainado": gerador.aplainados(), "ambiente": ambiente.estado(), "agua": agua.estado(), "descoberta": descoberta.estado(), "varredura": varredura.estado(), "lancador": lancador.estado(), "genese": genese.estado(), "raios": raios.estado(), "drones": drones.estado(),
 			"estoques": estoques, "inventario": inventario, "pesquisa": pesquisa.estado(),
-			"trens": trens.map(func(t: Trem): return t.para_salvar()), "prox_trem": _prox_trem})
-	if ok and is_instance_valid(controle):
-		controle._avisar("Jogo salvo")
+			"trens": trens.map(func(t: Trem): return t.para_salvar()), "prox_trem": _prox_trem}
+
+
+## Relógio do salvar automático e o aviso "Salvando…" (fica ao menos 0,8 s para dar para ler).
+func _passo_autosalvar(dt: float) -> void:
+	if not _autosalvar:
+		return
+	if _salvar_no_quadro:
+		_salvar_no_quadro = false
+		_salvar_auto()
+	elif _auto_salvar.avancar(dt, float(Sessao.config.autosalvar_s), not _abertura_rodando and not Salvamento.em_andamento()):
+		_salvar_no_quadro = true
+		_indicador_salvando = 0.8
+		controle.barra.indicador_salvando(true)
+	if _indicador_salvando > 0.0:
+		_indicador_salvando -= dt
+		if _indicador_salvando <= 0.0 and Salvamento.em_andamento():
+			_indicador_salvando = 0.05           # disco lento: o aviso fica até acabar
+		elif _indicador_salvando <= 0.0:
+			controle.barra.indicador_salvando(false)
+	if _salvando_auto and not Salvamento.em_andamento():
+		_salvando_auto = false
+		if not Salvamento.concluir():
+			controle._avisar("Não consegui salvar")
 
 
 func _carregar(d: Dictionary) -> void:
@@ -348,7 +387,7 @@ func _carregar(d: Dictionary) -> void:
 func _notification(what: int) -> void:
 	# fechar a janela / celular mandar o app para o fundo: salva antes
 	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_APPLICATION_PAUSED:
-		if _autosalvar:
+		if _autosalvar and not _abertura_rodando:
 			salvar()
 
 
@@ -972,11 +1011,7 @@ func _montar_fabrica() -> void:
 
 # ------------------------------------------------------------------ simulação
 func _process(delta: float) -> void:
-	if _autosalvar:
-		_salvar_em -= delta / maxf(Engine.time_scale, 0.001)
-		if _salvar_em <= 0.0:
-			_salvar_em = float(Sessao.config.autosalvar_s)
-			salvar()
+	_passo_autosalvar(delta / maxf(Engine.time_scale, 0.001))
 	for i in relogio.avancar(delta):
 		_tick_mundo(relogio.dt())
 	_animar_estruturas()
@@ -1743,6 +1778,7 @@ func _detalhe() -> void:
 	var linhas: Array[String] = []
 	var botoes := []
 	var opcoes := []                     ## opções internas (reparar, ligar, modo) vêm antes das receitas
+	var grade_filtro := []               ## escolha de itens do braço (grade de ícones): por último no painel
 	var regra: Dictionary = Registro.estruturas.get(e.nome, {})
 	var vida_max: float = regra.get("vida", 0)
 	if vida_max > 0.0:
@@ -2052,31 +2088,7 @@ func _detalhe() -> void:
 					if ab != null:
 						_posar_braco(ab, e)
 					_detalhe()})
-		var filtros: Array = e.get("filtros", [])
-		var mx := int(regra.get("filtro_max", 0))
-		if mx <= 0 and filtros.is_empty():
-			linhas.append("Pega: tudo o que o destino aceitar (para escolher os itens, use o Braço com filtro)")
-		else:
-			linhas.append("Pega: %s (só pega o que o destino aceitar)" % ("tudo (Auto)" if filtros.is_empty() else ", ".join(filtros.map(_nome_item))))
-			if mx > 0:
-				linhas.append("Filtro: %d de %d itens escolhidos" % [filtros.size(), mx])
-			botoes.append({"texto": "Auto — pega o que vier", "ligado": filtros.is_empty(),
-					"acao": func(): e["filtros"] = []; b.filtros = []; b.filtro = ""; _detalhe()})
-		if mx > 0:                               # Braço com filtro: escolhe até mx itens
-			var itens_ord: Array = Registro.itens.keys()
-			itens_ord.sort_custom(func(a, c): return _nome_item(a) < _nome_item(c))
-			for it in itens_ord:
-				botoes.append({"texto": _nome_item(it), "ligado": filtros.has(it), "acao": func():
-					var lista: Array = e.get("filtros", []).duplicate()
-					if lista.has(it): lista.erase(it)
-					elif lista.size() >= mx:
-						controle._avisar("O filtro escolhe até %d itens — tire um antes" % mx)
-						return
-					else: lista.append(it)
-					e["filtros"] = lista
-					b.filtros = lista
-					b.filtro = lista[0] if lista.size() == 1 else ""
-					_detalhe()})
+		_opcoes_filtro_braco(e, b, linhas, grade_filtro)
 	match Fiacao.papel(e.nome):
 		"consumo":
 			var fontes := Fiacao.ligacoes(mapa, e)
@@ -2134,8 +2146,42 @@ func _detalhe() -> void:
 					"ligado": e.get("modo", "normal") == mo[0], "acao": func(): e["modo"] = mo[0]; _fabrica_suja = true; _detalhe()})
 	if linhas.is_empty():
 		linhas.append(Registro.modelos.get(Construtor.modelo_de(e), {}).get("descricao", ""))
-	barra.detalhe(titulo, "\n".join(linhas), opcoes + botoes)
+	barra.detalhe(titulo, "\n".join(linhas), opcoes + botoes + grade_filtro)
 	barra.detalhe_maquina(_painel_maquina(id))
+
+
+## Escolha do que o braço pega: Auto ou um item (todo braço); o Braço com filtro escolhe até `filtro_max`. A grade de
+## ícones vem por último no painel, porque é a parte longa (o resto continua à vista sem rolar).
+func _opcoes_filtro_braco(e: Dictionary, b: Braco, linhas: Array[String], grade: Array) -> void:
+	var filtros: Array = e.get("filtros", [])
+	var mx := Fabrica.max_filtros(e.nome)
+	var mudar := func(lista: Array) -> void:
+		e["filtros"] = lista
+		b.filtros = lista
+		b.filtro = lista[0] if lista.size() == 1 else ""
+		_detalhe()
+	linhas.append("Pega: %s" % ("tudo o que o destino aceitar (Auto)" if filtros.is_empty() else ", ".join(filtros.map(_nome_item))))
+	linhas.append("Toque em até %d itens abaixo; de novo para tirar." % mx if mx > 1 else "Toque num item abaixo para pegar só ele; de novo volta ao Auto.")
+	grade.append({"texto": "Auto: pega o que vier", "ligado": filtros.is_empty(), "acao": func(): mudar.call([])})
+	var nomes_grupo := {"recurso": "Recursos", "intermediario": "Peças", "avancado": "Avançados"}
+	var por_grupo := {}
+	for it in Registro.itens:
+		var g: String = Registro.itens[it].get("grupo", "avancado")
+		if not por_grupo.has(g):
+			por_grupo[g] = []
+		por_grupo[g].append(it)
+	for g in nomes_grupo:
+		var lista: Array = por_grupo.get(g, [])
+		lista.sort_custom(func(x, y): return _nome_item(x) < _nome_item(y))
+		grade.append({"titulo": nomes_grupo[g]})
+		for it in lista:
+			grade.append({"texto": _nome_item(it), "icone": TelaPesquisa._tex_item(it), "ligado": filtros.has(it), "acao": func():
+				var atual: Array = e.get("filtros", [])
+				var nova := Fabrica.escolher_filtro(atual, it, mx)
+				if nova == atual and not atual.has(it):
+					controle._avisar("O filtro escolhe até %d itens: tire um antes" % mx)
+					return
+				mudar.call(nova)})
 
 
 ## Estação de drones: frota, o que cada um faz e o tipo (opções internas).
@@ -2341,10 +2387,7 @@ func _hud() -> void:
 	var texto := "%s %s · %s · %s · Vento %d%% %s\nPoluição aqui: %.1f   ·   total: %.0f\nNinhos: %d   ·   aranhas: %d\nMunição nas torres: %d   ·   trens: %d" % [
 			clima.periodo(), clima.relogio(), clima.nome_estacao(), clima.nome(), clima.vento_em(clima.foco) * 100, Clima.nome_rumo(clima.direcao_vento), aqui, poluicao.total(), colonia.ninhos.size(), colonia.aranhas.size(), municao, trens.size()]
 	if modo != "demo":
-		var principais: Array[String] = []
-		for k in ["placa_ferro", "engrenagem", "placa_cobre", "pedra"]:
-			principais.append("%d %s" % [int(inventario.get(k, 0)), {"placa_ferro": "ferro", "placa_cobre": "cobre"}.get(k, _nome_item(k).to_lower())])
-		texto += "\nNúcleo: " + ", ".join(principais)
+		controle.barra.estoque(inventario)
 		if pesquisa.ativa != "":
 			texto += "\nPesquisa: %s %d/%d" % [pesquisa.pesquisas()[pesquisa.ativa].nome, pesquisa.feitos, pesquisa.unidades(pesquisa.ativa)]
 	controle.barra.situacao(texto, "Ataque! %d aranha(s) vindo" % atacando if atacando > 0 else "")

@@ -43,6 +43,9 @@ var _det_titulo: Label
 var _det_texto: Label
 var _det_botoes: VBoxContainer
 var _det_assinatura := ""
+var _recursos: PainelRecursos
+var _salvando: Label
+var _raiz: Control
 signal fechar_detalhe_pedido
 var _cat := 0
 var _selecionada := ""
@@ -286,6 +289,13 @@ func _ready() -> void:
 		_botoes_acao[a[0]] = b
 	marcar("", false)
 	_criar_faixa(raiz)
+	_recursos = PainelRecursos.new()
+	_recursos.horizontal = str(Sessao.config.get("recursos_orientacao", "vertical")) == "horizontal"
+	_recursos.resumo = bool(Sessao.config.get("recursos_resumo", false))
+	_recursos.mudou_resumo = func(v: bool): Sessao.config["recursos_resumo"] = v; Sessao.salvar_config()
+	raiz.add_child(_recursos)
+	_paineis.append(_recursos)
+	_raiz = raiz
 	get_viewport().size_changed.connect(_ajustar_tamanhos)
 	_ajustar_tamanhos()
 
@@ -360,6 +370,54 @@ func _process(_d: float) -> void:
 		_posicionar_detalhe()
 	if _faixa != null and _faixa.visible:
 		_posicionar_faixa()
+	if _recursos != null and _recursos.visible:
+		_posicionar_recursos()
+
+
+## Estoque do núcleo: canto esquerdo, logo abaixo do status. Em coluna ou em linha, conforme a configuração; com a
+## gaveta de detalhe aberta, vai para o lado dela.
+func estoque(itens: Dictionary) -> void:
+	_recursos.horizontal = str(Sessao.config.get("recursos_orientacao", "vertical")) == "horizontal"
+	_recursos.atualizar(itens)
+	_posicionar_recursos()
+
+
+func _posicionar_recursos() -> void:
+	var tela := get_viewport().get_visible_rect().size
+	var pos := Vector2(float(_seg.get("left", 12)), _canto.get_global_rect().end.y + 6.0)
+	if _detalhe.visible:
+		pos.x = _detalhe.get_global_rect().end.x + 6.0
+	var baixo := tela.y - float(_seg.get("bottom", 10))
+	if _dica_painel.visible:
+		baixo = minf(baixo, _dica_painel.get_global_rect().position.y - 6.0)
+	# à direita, o que estiver na altura dele: ferramentas, faixa do modo construção, peças e categorias
+	var dir := (_abas.get_parent() as Control).get_global_rect().position.x
+	for p in [_ferr.get_parent(), _faixa, _painel_pecas]:
+		var c := p as Control
+		if c.visible and c.get_global_rect().end.y > pos.y:
+			dir = minf(dir, c.get_global_rect().position.x)
+	_recursos.organizar(dir - pos.x - 6.0 if _recursos.horizontal else baixo - pos.y)
+	if _recursos.position != pos:
+		_recursos.position = pos
+	var tam := _recursos.get_combined_minimum_size()          # encolhe também (Control sozinho só cresce)
+	if _recursos.size != tam:
+		_recursos.size = tam
+
+
+## Aviso discreto do salvar automático (não pega mouse nem empurra nada).
+func indicador_salvando(sim: bool) -> void:
+	if _salvando == null:
+		_salvando = Label.new()
+		_salvando.text = "Salvando…"
+		_salvando.add_theme_font_size_override("font_size", 13)
+		_salvando.add_theme_color_override("font_color", Tema.cor("titulo"))
+		_salvando.add_theme_color_override("font_outline_color", Color.BLACK)
+		_salvando.add_theme_constant_override("outline_size", 4)
+		_salvando.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_raiz.add_child(_salvando)
+	var status := (_info.get_parent() as Control).get_global_rect()
+	_salvando.position = Vector2(status.end.x + 10.0, status.position.y + 6.0)   # ao lado do status
+	_salvando.visible = sim
 
 
 func _posicionar_detalhe() -> void:
@@ -490,7 +548,7 @@ func _mostrar_status() -> void:
 		return
 	var curtas: Array[String] = [linhas[0]]
 	for l in linhas:
-		if l.begins_with("Núcleo:") or l.begins_with("Pesquisa:"):
+		if l.begins_with("Pesquisa:"):
 			curtas.append(l)
 	_info.text = "\n".join(curtas) + "   ▾"
 
@@ -561,13 +619,31 @@ func detalhe(titulo: String, texto: String, botoes: Array) -> void:
 	_detalhe.visible = true
 	_det_titulo.text = titulo
 	_det_texto.text = texto
-	var assin := titulo + "|" + "|".join(botoes.map(func(b): return "%s%s" % [b.texto, b.get("ligado", false)]))
+	var assin := titulo + "|" + "|".join(botoes.map(func(b): return "%s%s" % [b.get("texto", b.get("titulo", "")), b.get("ligado", false)]))
 	if assin == _det_assinatura:
 		return
 	_det_assinatura = assin
 	for c in _det_botoes.get_children():
 		c.queue_free()
+	var grade: HFlowContainer = null             # botões com "icone" seguidos ficam lado a lado
 	for b in botoes:
+		if b.has("titulo"):
+			var cab := Label.new()
+			cab.text = b.titulo
+			cab.add_theme_font_size_override("font_size", 14)
+			cab.add_theme_color_override("font_color", COR_TITULO)
+			_det_botoes.add_child(cab)
+			grade = null
+			continue
+		if b.has("icone"):
+			if grade == null:
+				grade = HFlowContainer.new()
+				grade.add_theme_constant_override("h_separation", 3)
+				grade.add_theme_constant_override("v_separation", 3)
+				_det_botoes.add_child(grade)
+			grade.add_child(_botao_icone(b))
+			continue
+		grade = null
 		var bt := Button.new()
 		bt.text = b.texto
 		bt.focus_mode = Control.FOCUS_NONE
@@ -576,6 +652,21 @@ func detalhe(titulo: String, texto: String, botoes: Array) -> void:
 		bt.pressed.connect(RolagemToque.so_clique(b.acao))
 		_det_botoes.add_child(bt)
 		_destacar(bt, b.get("ligado", false), COR_DESTAQUE)
+
+
+## Casa de escolha em grade: só o ícone (o nome fica na dica); o escolhido ganha a moldura âmbar.
+func _botao_icone(b: Dictionary) -> Button:
+	var bt := Button.new()
+	bt.icon = b.icone
+	bt.expand_icon = true
+	bt.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	bt.tooltip_text = b.texto
+	bt.focus_mode = Control.FOCUS_NONE
+	bt.custom_minimum_size = Vector2(46, 46)
+	bt.add_theme_constant_override("icon_max_width", 34)
+	bt.pressed.connect(RolagemToque.so_clique(b.acao))
+	_destacar(bt, b.get("ligado", false), COR_DESTAQUE)
+	return bt
 
 
 func fechar_detalhe() -> void:

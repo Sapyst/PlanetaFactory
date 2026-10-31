@@ -5,7 +5,7 @@ No jogo novo, a abertura mostra a chegada: a cápsula de reentrada despenca em b
 pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
 
 ## O que você tem no começo
-- **Núcleo:** guarda tudo o que você junta (os números no canto de cima). Gera um pouco de energia sem fio: máquinas a
+- **Núcleo:** guarda tudo o que você junta (coluna de ícones com números à esquerda; o nome aparece ao parar o mouse em cima). Gera um pouco de energia sem fio: máquinas a
   até 7 m da borda dele funcionam sem poste.
 - **Kit inicial:** 160 placas de ferro, 60 engrenagens, 60 placas de cobre, 80 pedras, 16 tubos, 40 carvões e
   10 munições. Construir gasta itens do núcleo; remover devolve.
@@ -17,7 +17,7 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
 - **A exceção é o núcleo**: a esteira que termina apontando para ele entrega direto no estoque, por qualquer lado, sem
   braço. Para encher o núcleo: broca → esteira → núcleo. (Só o núcleo: o posto avançado continua pedindo braço.)
 - Mais tarde (pesquisas com pacote de automação): **Esteira rápida** (o dobro de itens; arraste por cima da comum
-  para trocar), **Braço com filtro** e **Divisor com filtro** (toque neles para escolher os itens), **Silo de
+  para trocar), **Braço com filtro** (escolhe até 5 itens) e **Divisor com filtro** (toque neles para escolher), **Silo de
   granel** (20.000 de um tipo só) e **Cano subterrâneo** (passa o cano por baixo da terra, até 9 tiles).
 - Com pacote químico: **Esteira expressa** (Logística 4: o triplo da comum, faixa azul; passagem até 8 tiles) e
   **Braço empilhador** (pega até 4 itens iguais de uma vez e solta um por um). Como a rápida, arraste a expressa por
@@ -207,7 +207,7 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
 | Ação | PC | Celular |
 |---|---|---|
 | Mover a câmera | arrastar / WASD | arrastar (o chão fica preso no dedo) |
-| Zoom | roda do mouse | pinça (aproxima onde estão os dedos) |
+| Zoom | roda do mouse sobre o mapa (sobre a interface, a roda é só da interface) | pinça (aproxima onde estão os dedos) |
 | Rolar uma lista | roda do mouse | arrastar em qualquer ponto dela, até em cima dos botões |
 | Construir | escolher a peça na barra da direita e clicar | tocar na peça e no lugar |
 | Girar a peça | R | botão da peça |
@@ -216,5 +216,17 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
 | Ver jazidas / vento | V (de novo: vento) | botão Recursos |
 | Pesquisa | T | botão ⚗ |
 | Ver uma máquina | clicar com a mão vazia | tocar |
+
+## Braços: pegar um item só
+Toque em qualquer braço: no painel, **Auto** pega o que o destino aceitar; tocar num ícone faz ele pegar só aquele item
+(parando o mouse, aparece o nome), e tocar de novo volta ao Auto. Bom para tirar um item de uma esteira misturada. O
+**Braço com filtro** é o que escolhe vários (até 5).
+
+## Configurações (menu inicial ou pausa)
+- **Tamanho da interface:** de 68% a 160%; o padrão agora é 80%.
+- **Estoque de recursos na tela:** vertical (padrão, canto esquerdo) ou horizontal. A alça "menos/tudo" no fim dele
+  alterna entre só os principais e tudo o que há no núcleo.
+- **Salvar sozinho a cada:** desligado, 1, 2, 5, 10, 15 ou 30 min (padrão 2). Aparece "Salvando…" no alto, sem parar o
+  jogo. Não salva na demonstração nem durante a abertura.
 
 Veja também: `docs/RECURSOS.md` (jazidas, biomas e a ficha de cada construção).

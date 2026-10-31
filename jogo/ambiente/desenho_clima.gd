@@ -71,6 +71,8 @@ var mexer_ceu := true                ## medição: false deixa o céu parado (o 
 var _preenche: DirectionalLight3D
 
 
+var _vento_tempo := 0.0              ## relógio do balanço da vegetação (somado aos poucos: mudar a força não dá salto)
+
 func _ready() -> void:
 	var env := ambiente.environment
 	_base = {"sol": sol.light_energy, "ceu": env.ambient_light_energy, "neblina": env.fog_light_color,
@@ -104,6 +106,8 @@ func _process(delta: float) -> void:
 	RenderingServer.global_shader_parameter_set("pocas", clima.pocas)
 	RenderingServer.global_shader_parameter_set("chuva_agora", v.chuva)
 	RenderingServer.global_shader_parameter_set("vento_dir", clima.direcao_vento * (0.4 + v.vento))
+	_vento_tempo += delta * Clima.ritmo_vento(float(v.vento))
+	RenderingServer.global_shader_parameter_set("vento_tempo", _vento_tempo)
 	RenderingServer.global_shader_parameter_set("estacao_atual", float(clima.estacao) + clamp(clima.t_estacao / float(Registro.clima.get("estacao_s", 604800)), 0.0, 0.999))
 	var rj: Dictionary = clima.rajada
 	RenderingServer.global_shader_parameter_set("rajada", Vector3(float(rj.frente), float(rj.amp), float(rj.largura)) if not rj.is_empty() else Vector3(-1.0e6, 0.0, 12.0))
