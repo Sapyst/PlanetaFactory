@@ -446,6 +446,39 @@ def _partes_braco(peca):
     return ps
 
 
+def _braco_rustico():
+    """O braço normal vem da lib_pf, em cor lisa: destoava dos outros dois (assados da sujeira do estudo). Aqui ganha as
+    tintas sujas do estudo_braco_variantes e uma chapa de chão levando o terminal de energia, que ficava solto no canto do
+    tile, fora da base (no jogo parecia uma bola laranja largada no chão)."""
+    import bpy, bmesh
+    from mathutils import Vector
+    sys.path.insert(0, AQUI)
+    import mats
+    from base3d import caixa, tubo
+    tintas = {
+        'P_Faixa': mats.material('Amarelo', (0.72, 0.48, 0.05), 0, 0.42, ferrugem=0.5, desgaste=0.95, sujeira=0.9),
+        'P_Escuro': mats.material('Grafite', (0.07, 0.075, 0.08), 0, 0.5, ferrugem=0.4, desgaste=0.75, sujeira=0.8),
+        'P_Aco': mats.material('Placa de ferro', (0.30, 0.29, 0.28), 1.0, 0.45, pintura=False, ferrugem=0.9, sujeira=0.7),
+        'P_Metal': mats.material('Aço', (0.42, 0.43, 0.44), 1.0, 0.42, pintura=False, ferrugem=0.85, sujeira=0.8, escovado=True),
+        'P_Cobre': mats.material('Cobre velho', (0.40, 0.21, 0.11), 1.0, 0.5, pintura=False, ferrugem=0.3, sujeira=1.0),
+    }
+    for o in bpy.context.scene.objects:
+        if o.type != 'MESH':
+            continue
+        for s in o.material_slots:
+            if s.material is not None and s.material.name.split('.')[0] in tintas:
+                s.material = tintas[s.material.name.split('.')[0]]
+    bm = bmesh.new()
+    caixa(bm, Vector((0.295, -0.295, 0.02)), (0.21, 0.21, 0.04))           # chapa do terminal, encostada na base
+    tubo(bm, Vector((0.17, -0.13, 0.07)), Vector((0.29, -0.30, 0.05)), 0.012, 8)   # conduíte da caixa de ligação até a chapa
+    me = bpy.data.meshes.new('chapa_terminal')
+    bm.to_mesh(me)
+    bm.free()
+    me.materials.append(tintas['P_Aco'])
+    ch = bpy.data.objects.new('braco_chapa_terminal', me)
+    bpy.context.scene.collection.objects.link(ch)
+
+
 def _montar_braco(peca):
     import bpy
     if peca == 'braco':
@@ -457,6 +490,7 @@ def _montar_braco(peca):
         m.montar()
         for o in [o for o in bpy.data.objects if o.name.startswith('PORTA_')]:
             bpy.data.objects.remove(o, do_unlink=True)
+        _braco_rustico()
         return
     estudo = os.path.join(AQUI, 'estudo_braco_variantes.py')
     sys.argv = [sys.argv[0], '--python', estudo, '--', 'nada']

@@ -437,11 +437,11 @@
    }
   ],
   "portas": [],
-  "tris": 1648,
+  "tris": 4011,
   "dims": [
-   1.006,
-   1.004,
-   0.382
+   1.003,
+   1.005,
+   0.383
   ],
   "anima": false,
   "estudo": "estudo_muros_mina.py",
@@ -1325,11 +1325,11 @@
     ]
    }
   ],
-  "tris": 8112,
+  "tris": 9423,
   "dims": [
    2.0,
-   1.995,
-   1.406
+   2.0,
+   1.403
   ],
   "anima": true,
   "estudo": "estudo_drones.py",
@@ -1379,10 +1379,10 @@
     0.372
    ]
   ],
-  "tris": 6066,
+  "tris": 10372,
   "dims": [
-   1.995,
-   2.028,
+   1.994,
+   1.994,
    1.683
   ],
   "anima": true,
@@ -1432,7 +1432,7 @@
   "descricao": "Acumulador de cristal 2×2 (estudo_acumulador_cristal.py): 4 câmaras de titânio com um cristal de tempestade levitando em cada, coluna central com 16 barras de LED e anel de foco, radiador criogênico com ventilador e barramentos de cobre ao sul. Guarda 600 MJ, troca até 4 MW.",
   "ocupa_canto": false,
   "portas": [],
-  "tris": 5846,
+  "tris": 7238,
   "dims": [
    1.99,
    1.92,
@@ -1642,11 +1642,11 @@
     0.372
    ]
   ],
-  "tris": 5004,
+  "tris": 8348,
   "dims": [
    1.906,
-   1.905,
-   1.02
+   1.906,
+   1.021
   ],
   "anima": true,
   "estudo": "estudo_painel_solar.py",
@@ -3489,7 +3489,7 @@
    }
   ],
   "portas": [],
-  "tris": 6781,
+  "tris": 6780,
   "dims": [
    2.0,
    2.0,
@@ -3521,11 +3521,11 @@
    }
   ],
   "portas": [],
-  "tris": 6678,
+  "tris": 11474,
   "dims": [
-   2.962,
+   2.971,
    2.96,
-   4.17
+   4.19
   ],
   "anima": true,
   "estudo": "estudo_silo.py",
@@ -3627,7 +3627,7 @@
     0.19
    ]
   ],
-  "tris": 1962,
+  "tris": 2002,
   "dims": [
    0.686,
    0.752,
@@ -4102,10 +4102,10 @@
    ],
    "cabo_l0": 0.43
   },
-  "tris": 7860,
+  "tris": 8159,
   "dims": [
    0.89,
-   3.943,
+   3.947,
    1.502
   ],
   "partes": [
@@ -4728,11 +4728,11 @@
     ]
    }
   ],
-  "tris": 1087,
+  "tris": 2876,
   "dims": [
-   0.982,
+   0.988,
    1.0,
-   1.107
+   1.112
   ],
   "anima": false,
   "estudo": "estudo_cano_subterraneo.py",
@@ -4776,11 +4776,11 @@
     ]
    }
   ],
-  "tris": 1103,
+  "tris": 2855,
   "dims": [
-   0.982,
+   0.981,
    1.0,
-   1.116
+   1.111
   ],
   "anima": false,
   "estudo": "estudo_cano_subterraneo.py",
@@ -4902,11 +4902,11 @@
     ]
    }
   ],
-  "tris": 5738,
+  "tris": 10756,
   "dims": [
    1.985,
    1.994,
-   3.581
+   3.582
   ],
   "anima": true,
   "estudo": "estudo_coletor_chuva.py",
@@ -9485,11 +9485,11 @@
     0.372
    ]
   ],
-  "tris": 7757,
+  "tris": 8028,
   "dims": [
-   3.691,
-   2.99,
-   2.192
+   2.822,
+   2.01,
+   2.19
   ],
   "anima": true,
   "estudo": "estudo_coletor_lixo.py",
@@ -10865,11 +10865,11 @@
     0.372
    ]
   ],
-  "tris": 13721,
+  "tris": 14004,
   "dims": [
-   5.742,
-   5.715,
-   2.609
+   3.148,
+   3.122,
+   2.61
   ],
   "anima": true,
   "estudo": "estudo_nucleo.py",
@@ -10961,11 +10961,11 @@
     ]
    }
   ],
-  "tris": 8446,
+  "tris": 16130,
   "dims": [
-   3.014,
-   3.029,
-   7.027
+   3.011,
+   3.026,
+   5.77
   ],
   "anima": true,
   "estudo": "estudo_purificador_atmosferico.py",
@@ -11277,10 +11277,10 @@
    }
   ],
   "portas": [],
-  "tris": 11165,
+  "tris": 11034,
   "dims": [
-   6.183,
-   6.081,
+   3.06,
+   3.06,
    3.638
   ],
   "anima": true,
@@ -11342,11 +11342,11 @@
     0.372
    ]
   ],
-  "tris": 7561,
+  "tris": 10674,
   "dims": [
-   4.306,
-   3.952,
-   2.167
+   2.06,
+   2.06,
+   2.104
   ],
   "anima": true,
   "estudo": "estudo_viveiro.py",
@@ -12151,11 +12151,11 @@
     ]
    }
   ],
-  "tris": 9136,
+  "tris": 10717,
   "dims": [
    3.043,
    3.04,
-   2.054
+   2.071
   ],
   "anima": true,
   "estudo": "estudo_estacao.py",

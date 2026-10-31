@@ -92,6 +92,7 @@ void fragment() {
 		// o glTF vira o V do UV (cresce da saída para a entrada): somar o tempo leva as ranhuras rumo à saída
 		float r = fract((v_dist + TIME * rolagem) * 4.0);
 		base *= mix(1.0, 1.9, step(0.82, r));
+		base *= mix(0.6, 1.0, ruido3(v_mundo * 5.0));   // lona encardida, parada no mundo
 	}
 	float sujo = 0.0;
 	if (tem_textura && vento <= 0.0) {

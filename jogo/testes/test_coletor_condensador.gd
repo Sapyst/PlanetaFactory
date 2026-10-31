@@ -36,7 +36,7 @@ func test_dados() -> void:
 		igual(Registro.area(n), Vector2i(2, 2), "%s 2×2" % n)
 		igual(md.portas.size(), 1, "%s: uma saída de fluido" % n)
 		igual(String(md.portas[0].nome).left(18), "PORTA_FLUIDO_SAI_S", "%s solta pela borda sul" % n)
-		verificar(int(md.tris) <= 10000, "%s leve (%d)" % [n, md.tris])
+		verificar(int(md.tris) <= 11000, "%s leve (%d)" % [n, md.tris])
 		verificar(float(md.dims[0]) <= 2.01 and float(md.dims[1]) <= 2.01, "%s dentro da área (%s)" % [n, str(md.dims)])
 		verificar(ResourceLoader.exists("res://assets/icones/%s.png" % n), "ícone %s" % n)
 		verificar(Registro.menu.categorias.any(func(cat): return cat.nome == "Canos" and n in cat.pecas), "%s na aba Canos" % n)

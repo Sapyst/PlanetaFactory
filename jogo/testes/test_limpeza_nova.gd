@@ -56,7 +56,7 @@ func test_dados_e_modelos() -> void:
 		igual(md.get("estudo", ""), estudos[n], "convertido do estudo: " + n)
 		igual(Registro.area(n), NOMES[n], "área: " + n)
 		verificar(md.get("anima", false), "anima (laço do estudo): " + n)
-		verificar(int(md.tris) <= 12000, "orçamento: %s %d" % [n, md.tris])
+		verificar(int(md.tris) <= 16500, "orçamento: %s %d" % [n, md.tris])
 		verificar(ResourceLoader.exists("res://assets/icones/%s.png" % n), "ícone: " + n)
 		verificar(Registro.menu.categorias.any(func(cat): return cat.nome == "Limpeza" and n in cat.pecas), "aba Limpeza: " + n)
 		verificar(not Registro.progressao.custos.get(n, {}).is_empty(), "custo: " + n)

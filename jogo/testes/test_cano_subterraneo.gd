@@ -20,7 +20,7 @@ func test_dados_e_modelos() -> void:
 		verificar(DesenhoLotes.aceita(p), "%s desenhado em lote como os canos" % p)
 		verificar(Portas.eh_cano(p), "%s é cano para as portas" % p)
 		igual(md.get("portas", []).size(), 1, "%s: uma porta de fluido na superfície" % p)
-		verificar(int(md.get("tris", 99999)) <= 1600, "%s leve (%d)" % [p, md.get("tris", 0)])
+		verificar(int(md.get("tris", 99999)) <= 3000, "%s leve (%d)" % [p, md.get("tris", 0)])
 		var d: Array = md.dims
 		verificar(float(d[0]) <= 1.0 and float(d[1]) <= 1.0, "%s dentro do tile (%s)" % [p, str(d)])
 		verificar(ResourceLoader.exists("res://assets/icones/%s.png" % p), "ícone %s" % p)

@@ -12,6 +12,9 @@ const VELOCIDADE_ESTEIRA := 1.875
 ## expressa (logistica_4) e quântica (logistica_5).
 const ROLAGEM := {"P_Esteira": VELOCIDADE_ESTEIRA, "P_EsteiraRapida": VELOCIDADE_ESTEIRA * 2.0,
 		"P_EsteiraExpressa": VELOCIDADE_ESTEIRA * 3.0, "P_EsteiraQuantica": VELOCIDADE_ESTEIRA * 4.0}
+## Lona de cada classe, para a esteira se distinguir de longe (a básica fica no aço do .glb). O encardido vem do shader.
+const COR_LONA := {"P_EsteiraRapida": Color(0.42, 0.07, 0.05), "P_EsteiraExpressa": Color(0.09, 0.20, 0.40),
+		"P_EsteiraQuantica": Color(0.27, 0.07, 0.50)}
 
 static var _cache: Dictionary = {}
 
@@ -45,6 +48,8 @@ static func material(origem: Material, vento := 0.0, boiar := 0.0, uv2 := false,
 		m.set_shader_parameter("forca_emissao", maxf(b.emission_energy_multiplier, 1.0))
 	if ROLAGEM.has(nome):
 		m.set_shader_parameter("rolagem", ROLAGEM[nome])
+	if COR_LONA.has(nome):
+		m.set_shader_parameter("cor", COR_LONA[nome])
 	if nome in ["P_Cristal", "P_Biomassa", "P_OlhoInimigo", "P_Fogo", "P_Seiva"]:
 		m.set_shader_parameter("pulso", 1.0)
 	if nome == "P_Cristal":

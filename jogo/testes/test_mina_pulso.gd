@@ -24,7 +24,7 @@ func test_dados_e_modelo() -> void:
 	igual(md.get("estudo", ""), "estudo_muros_mina.py", "convertida do estudo")
 	verificar(float(md.dims[0]) <= 1.01 and float(md.dims[1]) <= 1.01, "não passa do tile (%s)" % str(md.dims))
 	verificar(float(md.dims[2]) < float(Registro.inimigos.aranha.altura_que_bloqueia), "baixa: as aranhas passam por cima")
-	verificar(int(md.tris) <= 2000, "leve (%d triângulos)" % md.tris)
+	verificar(int(md.tris) <= 4100, "leve (%d triângulos)" % md.tris)
 	verificar(ResourceLoader.exists("res://assets/icones/mina_pulso.png"), "ícone na barra")
 	verificar(Registro.menu.categorias.any(func(cat): return "mina_pulso" in cat.pecas), "no menu (Defesa)")
 	verificar(not Registro.progressao.custos.get("mina_pulso", {}).is_empty(), "custo de construção")

@@ -48,6 +48,14 @@ PORTA_SEMEADOR = [
 ]
 
 
+# fase 5: a fuligem do estudo, assada sem a luz dele, deixava a torre e os ventiladores pretos, e o miolo sumia; aqui a
+# fuligem pesa menos da metade e a casca atrás dos painéis é chapa, não preto
+PURIFICADOR_CLARO = [
+    ("f2.inputs[1].default_value = forca", "f2.inputs[1].default_value = forca * 0.4"),
+    ("suavizar(obj('casca_interna', bm, 'fuligem'))", "suavizar(obj('casca_interna', bm, 'chapa'))"),
+]
+
+
 def _executar(estudo, args, trocas=()):
     caminho = os.path.join(AQUI, estudo)
     cod = open(caminho, encoding='utf-8').read()
@@ -185,7 +193,7 @@ if __name__ == '__main__':
     elif _peca == 'purificador_ar':
         _executar('estudo_limpeza_2x2.py', ['nada', 'purificador'], SEM_FOTO)
     elif _peca == 'purificador_ar_2':
-        _executar('estudo_purificador_atmosferico.py', ['nada'])
+        _executar('estudo_purificador_atmosferico.py', ['nada'], PURIFICADOR_CLARO)
     elif _peca == 'viveiro_2':
         _executar('estudo_viveiro2_semeador.py', ['viveiro2', 'nada'])
     elif _peca == 'semeador_bioma':

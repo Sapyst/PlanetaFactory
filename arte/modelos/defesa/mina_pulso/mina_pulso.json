@@ -20,11 +20,11 @@
   }
  ],
  "portas": [],
- "tris": 1648,
+ "tris": 4011,
  "dims": [
-  1.006,
-  1.004,
-  0.382
+  1.003,
+  1.005,
+  0.383
  ],
  "anima": false,
  "estudo": "estudo_muros_mina.py"

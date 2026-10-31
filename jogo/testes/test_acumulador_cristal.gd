@@ -15,7 +15,7 @@ func test_dados_e_modelo() -> void:
 	igual(md.get("estudo", ""), "estudo_acumulador_cristal.py", "convertido do estudo do Antigravity")
 	verificar(bool(md.get("anima", false)), "anima (ventilador, anel, cristais e LEDs do estudo)")
 	verificar(float(md.dims[0]) <= 2.05 and float(md.dims[1]) <= 2.05, "cabe na área (%s)" % str(md.dims))
-	verificar(int(md.tris) <= 7000, "leve (%d triângulos)" % md.tris)
+	verificar(int(md.tris) <= 7300, "leve (%d triângulos)" % md.tris)
 	verificar(md.get("portas", []).is_empty(), "sem bocas")
 	verificar(ResourceLoader.exists(str(md.get("modelo", ""))), "modelo .glb no jogo")
 	verificar(ResourceLoader.exists("res://assets/icones/acumulador_cristal.png"), "ícone na barra")

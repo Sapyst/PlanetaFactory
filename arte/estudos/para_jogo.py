@@ -21,6 +21,15 @@ Opções de CONFIG além de script/cat/tris/tex/tirar:
   estudo    nome do estudo gravado no .json quando `script` é um conv_*.py que monta o estudo com remendos
   quadros   duração da animação exportada em quadros (padrão 96 = laço de 4 s; a chegada do núcleo usa 240)
   animacao  nome da animação no .glb (padrão "trabalho", que o Animador toca em laço; a chegada usa "chegada")
+  por_peca  True = reduz peça por peça ANTES de juntar (ver reduzir_por_peca), em vez de uma taxa só no fim
+  cotas     com por_peca: {pedaço do nome: triângulos} para peça que manda na silhueta
+  intactos  com por_peca: pedaços de nome das malhas que não entram na redução
+  frac_miudo  com por_peca: lado da caixa (m) abaixo do qual a peça miúda (parafuso, gota) sai se o orçamento não couber
+  vidro_opaco {pedaço do nome: (r, g, b)}: vidro que é superfície principal fica, opaco e sujo, com essa cor
+  cortar_fixos  False ou (x0, x1, y0, y1): o que NÃO se mexe não passa desse retângulo: ilha toda fora sai (pedra,
+            entulho, mancha no chão de um objeto que se espalha pela cena), o que cruza a borda é cortado nela.
+            Objeto com nome em `cortar_exceto` (substrings) fica como está (telhado que cobre a linha, por exemplo)
+  trocas    [(trecho, novo)]: remendos no código do estudo antes de rodar
   amostras  quadros onde se compara a posição para achar o que se mexe (padrão: 8 do laço; movimento curto, como o
             recuo do lançador de sementes nos quadros 50–57, precisa de amostras mais densas)
 
@@ -63,6 +72,11 @@ for _f in sorted(_glob.glob(os.path.join(AQUI, 'conv_*.py'))):
     _mod = _iu.module_from_spec(_spec)
     _spec.loader.exec_module(_mod)
     CONFIG.update(getattr(_mod, 'CONFIG', {}))
+# correções da conferência visual da fase 5 (docs/PLANO_INTEGRACAO.md), todas num lugar só
+_spec = _iu.spec_from_file_location('ajustes_fase5', os.path.join(AQUI, 'ajustes_fase5.py'))
+_mod = _iu.module_from_spec(_spec)
+_spec.loader.exec_module(_mod)
+_mod.aplicar(CONFIG)
 
 
 CENARIO_RIO = ('margem', 'rio', 'enrocamento', 'juncos', 'pedras', 'galhos_rio', 'escuma', 'espuma', 'espuma_suja',
@@ -127,6 +141,9 @@ def montar_estudo(cfg):
     sys.argv = [sys.argv[0], '--python', caminho, '--'] + list(cfg.get('args', ['nada']))
     sys.path.insert(0, AQUI)
     codigo = open(caminho, encoding='utf-8').read()
+    for velho, novo in cfg.get('trocas', ()):       # remendo no código do estudo, sem mexer no arquivo dele
+        assert velho in codigo, 'trecho não achado: ' + velho[:60]
+        codigo = codigo.replace(velho, novo, 1)
     exec(compile(codigo, caminho, 'exec'), {'__name__': '__main__', '__file__': caminho})
 
 
@@ -234,8 +251,34 @@ def fora_da_area(o, w, d, m=0.06):
     return x1 < -w / 2 - m or x0 > w / 2 + m or y1 < -d / 2 - m or y0 > d / 2 + m
 
 
+def material_opaco(nome, cor):
+    """Vidro falso: cor escura opaca com a sujeira dos estudos (o assado não vê transparência)."""
+    import mats
+    return mats.material(nome, cor, 0, 0.35, pintura=False, sujeira=0.9, desgaste=0.0)
+
+
+def so_efeito(m):
+    """Material sem superfície para assar (só emissão, transparência ou refração: tremor de calor, campo, holograma):
+    o assado sai um sólido preto."""
+    if m is None or not m.use_nodes:
+        return False
+    tipos = {n.type for n in m.node_tree.nodes}
+    return not tipos & {'BSDF_PRINCIPLED', 'BSDF_DIFFUSE', 'BSDF_GLOSSY', 'BSDF_ANISOTROPIC'} and \
+        bool(tipos & {'BSDF_TRANSPARENT', 'BSDF_REFRACTION', 'BSDF_GLASS', 'EMISSION'})
+
+
 def limpar(cfg, w, d):
     sc = bpy.context.scene
+    for sub, cor in cfg.get('vidro_opaco', {}).items():
+        novo = None
+        for o in sc.objects:
+            if o.type == 'MESH' and sub in o.name.lower():
+                novo = novo or material_opaco('Vidro falso ' + sub, cor)
+                if o.data.users > 1:
+                    o.data = o.data.copy()
+                for s in o.material_slots:
+                    s.link = 'OBJECT'
+                    s.material = novo
     tirar = [t.lower() for t in cfg['tirar']] + list(EFEITO)
     for o in list(sc.objects):
         nome = o.name.lower()
@@ -244,6 +287,7 @@ def limpar(cfg, w, d):
         if o.type == 'MESH':
             sai = sai or not o.data.polygons or any(tem_volume(m) for m in mats) or any(vidro(m) for m in mats)
             sai = sai or any(mancha_suave(m) for m in mats)
+            sai = sai or (cfg.get('por_peca', False) and bool(mats) and all(so_efeito(m) for m in mats))
             sai = sai or fora_da_area(o, w, d, cfg.get('margem', 0.06)) or o.hide_render
         if sai:
             bpy.data.objects.remove(o, do_unlink=True)
@@ -297,6 +341,108 @@ def reduzir(o, alvo):
     mod.use_collapse_triangulate = True
     bpy.context.view_layer.objects.active = o
     bpy.ops.object.modifier_apply(modifier=mod.name)
+
+
+def reduzir_por_peca(cfg, malhas):
+    """Uma taxa só no corpo inteiro derruba primeiro o que é plano: chapa, placa e coluna de 12 faces viram lascas em
+    triângulo e cascas sem o lado de fora (somem no jogo, que não desenha o verso). Aqui cada peça tem a sua cota:
+    a peça com menos faces que a cota fica inteira e só a malha pesada desce. Se nem assim couber, a peça miúda sai
+    antes de lascar o resto."""
+    alvo = int(cfg['tris'] * 0.9)
+    itens = [(o, tris(o)) for o in malhas if not any(brilha(s.material) for s in o.material_slots)]
+    for sub, cota in cfg.get('cotas', {}).items():    # peça que manda na silhueta: cota própria, fora da conta geral
+        for o, t in itens:
+            if sub in o.name and t > cota:
+                if o.data.users > 1:
+                    o.data = o.data.copy()
+                reduzir(o, cota)
+    fixas = cfg.get('cotas', {})
+    alvo -= sum(tris(o) for o, _ in itens if any(i in o.name for i in fixas))
+    itens = [(o, t) for o, t in itens if not any(i in o.name for i in fixas)]
+    inteiros = cfg.get('intactos', ())                # chapas soltas (quad a quad): reduzir vira lasca, então ficam
+    alvo -= sum(t for o, t in itens if any(i in o.name for i in inteiros))
+    itens = [(o, t) for o, t in itens if not any(i in o.name for i in inteiros)]
+    total = sum(t for _, t in itens)
+    if total <= alvo:
+        return
+
+    def lado(o):
+        return max(o.dimensions)
+
+    miudo = cfg.get('frac_miudo', 0.03)
+    sai = [o for o, _ in itens if lado(o) < miudo and not (o.animation_data and o.animation_data.action)]
+    nomes = {o.name for o in sai}
+    if total - sum(t for o, t in itens if o.name in nomes) < alvo * 3:   # só compensa quando a conta está muito acima
+        itens = [(o, t) for o, t in itens if o.name not in nomes]
+        for o in sai:
+            bpy.data.objects.remove(o, do_unlink=True)
+    peso = {o.name: min(2.0, max(0.15, lado(o))) ** 0.6 for o, _ in itens}
+    lo, hi = 1.0, float(max(t for _, t in itens))
+    for _ in range(40):
+        c = (lo + hi) / 2
+        if sum(min(t, c * peso[o.name]) for o, t in itens) > alvo:
+            hi = c
+        else:
+            lo = c
+    for o, t in itens:
+        cota = max(12, int(lo * peso[o.name]))
+        if t <= cota:
+            continue
+        if o.data.users > 1:
+            o.data = o.data.copy()
+        if o.data.shape_keys:
+            o.shape_key_clear()
+        reduzir(o, cota)
+    print('POR_PECA', len(itens), 'peças', total, '→', sum(tris(o) for o, _ in itens), 'cota %.0f' % lo)
+
+
+def cortar_fixos(objs, ret, exceto=()):
+    """Peça fixa invadindo o tile vizinho: tira as ilhas de fora e corta o resto na borda da área."""
+    x0, x1, y0, y1 = ret
+    for o in list(objs):
+        if any(e in o.name.lower() for e in exceto):
+            continue
+        cantos = [o.matrix_world @ Vector(c) for c in o.bound_box]
+        if (min(c.x for c in cantos) >= x0 and max(c.x for c in cantos) <= x1 and
+                min(c.y for c in cantos) >= y0 and max(c.y for c in cantos) <= y1):
+            continue
+        if o.data.users > 1:
+            o.data = o.data.copy()
+        mw = o.matrix_world.copy()
+        bm = bmesh.new()
+        bm.from_mesh(o.data)
+        bm.transform(mw)
+        visto, apagar = set(), []
+        for v in bm.verts:
+            if v in visto:
+                continue
+            ilha, pilha = [], [v]
+            visto.add(v)
+            while pilha:
+                u = pilha.pop()
+                ilha.append(u)
+                for e in u.link_edges:
+                    w = e.other_vert(u)
+                    if w not in visto:
+                        visto.add(w)
+                        pilha.append(w)
+            if (max(u.co.x for u in ilha) <= x0 or min(u.co.x for u in ilha) >= x1 or
+                    max(u.co.y for u in ilha) <= y0 or min(u.co.y for u in ilha) >= y1):
+                apagar += ilha
+        bmesh.ops.delete(bm, geom=apagar, context='VERTS')
+        for co, no in (((x1, 0, 0), (1, 0, 0)), ((x0, 0, 0), (-1, 0, 0)), ((0, y1, 0), (0, 1, 0)), ((0, y0, 0), (0, -1, 0))):
+            bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], plane_co=Vector(co), plane_no=Vector(no),
+                                   clear_outer=True)
+        bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+        if not bm.faces:
+            bm.free()
+            objs.remove(o)
+            bpy.data.objects.remove(o, do_unlink=True)
+            continue
+        bm.transform(mw.inverted())
+        bm.to_mesh(o.data)
+        bm.free()
+        o.data.update()
 
 
 def copia(o):
@@ -374,6 +520,8 @@ def assar(baixos, altos, lado, nome):
     sc.render.engine = 'CYCLES'
     sc.cycles.samples = 8
     try:
+        if os.environ.get('PF_ASSAR_CPU'):         # GPU ocupada (jogo aberto): assa no processador
+            raise RuntimeError('cpu')
         pr = bpy.context.preferences.addons['cycles'].preferences
         pr.compute_device_type = 'OPTIX'
         pr.get_devices()
@@ -446,6 +594,9 @@ def main():
     if cfg.get('depois_de_montar'):
         cfg['depois_de_montar'](sc)
     malhas = [o for o in sc.objects if o.type == 'MESH']
+    if cfg.get('por_peca'):
+        reduzir_por_peca(cfg, malhas)
+        malhas = [o for o in sc.objects if o.type == 'MESH']
     # peças que o jogo mexe pelo nome: juntadas por parte, com pivô; saem da animação do estudo
     pecas = []
     usados = set()
@@ -465,6 +616,8 @@ def main():
     brilhantes = [o for o in malhas if any(brilha(s.material) for s in o.material_slots)]
     fixos = [o for o in malhas if o.name not in din and o not in brilhantes]
     moveis = [o for o in malhas if o.name in din and o not in brilhantes]
+    if cfg.get('cortar_fixos'):
+        cortar_fixos(fixos, cfg['cortar_fixos'], cfg.get('cortar_exceto', ()))
     brilho_anima = any(o.name in din for o in brilhantes)   # peça acesa que se mexe (anel do poste alto) também anima
     total = sum(tris(o) for o in fixos + moveis) or 1
     # alto (detalhado) guardado para assar; baixo reduzido ao orçamento
@@ -472,7 +625,8 @@ def main():
     pares = []
     if corpo:
         alto = copia(corpo)
-        reduzir(corpo, int(cfg['tris'] * 0.75))
+        if not cfg.get('por_peca'):
+            reduzir(corpo, int(cfg['tris'] * 0.75))
         pares.append((corpo, alto))
     t_moveis = sum(tris(o) for o in moveis) or 1
     for i, o in enumerate(moveis):
@@ -481,7 +635,8 @@ def main():
         bpy.context.view_layer.objects.active = o
         bpy.ops.object.make_single_user(object=True, obdata=True)
         alto = copia(o)
-        reduzir(o, max(24, int(cfg['tris'] * 0.25 * tris(o) / t_moveis)))
+        if not cfg.get('por_peca'):
+            reduzir(o, max(24, int(cfg['tris'] * 0.25 * tris(o) / t_moveis)))
         o.name = f'{nome}_m{i}'                     # nome neutro: o Animador do jogo não mexe por cima
         pares.append((o, alto))
     for o in brilhantes:

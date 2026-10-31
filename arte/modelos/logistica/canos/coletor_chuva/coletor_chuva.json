@@ -36,11 +36,11 @@
    ]
   }
  ],
- "tris": 5738,
+ "tris": 10756,
  "dims": [
   1.985,
   1.994,
-  3.581
+  3.582
  ],
  "anima": true,
  "estudo": "estudo_coletor_chuva.py"

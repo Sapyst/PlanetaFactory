@@ -76,7 +76,7 @@ Bugs medidos (corrigidos em 2026-10-30; teste: jogo/testes/test_malha_no_lugar.g
 - [x] **rampa_desce (todas as classes)**: o modelo não tinha culpa. `DesenhoChunk.atualizar` sem `crescer_de` durante o crescimento do piso (1,6 s, disparado
   pelo pilar do trecho alto) era sobrescrita pela mistura com a imagem final antiga; e o que ficava além do raio de 7 m nunca chegava à final.
   Afetava qualquer peça posta logo depois de outra construção no chunk. Também: a margem de chunks tocados era 1 tile, com piso espalhando 2.
-Conferência visual, por peça:
+Conferência visual, por peça (lista original; o que foi feito está em "Correção da conferência", logo abaixo):
 - **painel_solar**: só a estrutura; não se vê placa (buraco de vidro). painel_solar_2 está bom.
 - **estacao_drones**: laje com manchas pretas irregulares. **estacao** (telhado) e **acumulador** (topo dos tanques): pintas pretas
   (reconversão pendente da fase 1).
@@ -94,6 +94,36 @@ Conferência visual, por peça:
 - **Classes de esteira**: rápida, expressa e quântica só diferem na faixa fina; no painel quase não se distinguem.
 - Sem achado: textura preta (0 superfícies abaixo de 3% de luminância na varredura), escala absurda, modelo que falta no menu.
 - Não conferido nesta rodada: efeitos em ação (raio, bolha, holograma, tiro, voo do foguete), pois as fotos são de peça solta.
+
+Correção da conferência (2026-10-31; ajustes por peça em arte/estudos/ajustes_fase5.py, código em para_jogo.py):
+- **Causa da maioria (não era vidro)**: a redução usava uma taxa só no corpo inteiro. Chapa, placa e coluna de 12 faces viravam lascas em triângulo
+  e cascas sem o lado de fora, e o jogo não desenha o verso. Foi isso que "sumiu" com as placas do painel solar e a torre do elevador do silo
+  (a peça amarela solta era a cabeça dela), soltou o ponto lilás do coletor de chuva e fez a placa em triângulo da mina. Conferido em Blender com
+  corte de verso ligado. Novo `por_peca` em para_jogo.py (`reduzir_por_peca`): cada malha tem cota própria, a leve fica inteira, só a pesada desce.
+  Opções novas: `cotas`, `intactos`, `vidro_opaco`, `cortar_fixos`, `trocas`, `PF_ASSAR_CPU=1` (com o jogo dela na NVIDIA, o assado na GPU falha; rodar
+  também com `CUDA_VISIBLE_DEVICES=` vazio). Sem `por_peca`, a conversão segue como antes.
+- **Peças reconvertidas** (tris antes → depois): painel_solar 5.004 → 8.348; estacao_drones 8.112 → 9.423; estacao 9.136 → 10.717; acumulador 6.066 →
+  10.372; silo_granel 6.678 → 11.474; coletor_chuva 5.738 → 10.756; mina_pulso 1.648 → 4.011; braco 1.962 → 2.002; terraplenagem 11.165 → 11.034;
+  viveiro 7.561 → 10.674; coletor_lixo 7.757 → 8.028; nucleo 13.721 → 14.004; purificador_ar_2 8.446 → 16.130 (a mais pesada de todas);
+  cano_subterraneo_entrada 1.087 → 2.876; _saida 1.103 → 2.855; braco_quantico 7.860 → 8.159; acumulador_cristal 5.846 → 7.238; bau_grande 6.781 → 6.780.
+  Soma das 18: 115.671 → 154.881 (+34%). **Fps não medido de novo; celular não medido.** Os limites de triângulos de 5 testes subiram por causa disso
+  (test_mina_pulso, test_cano_subterraneo, test_limpeza_nova, test_coletor_condensador, test_acumulador_cristal).
+- **As outras peças (fora dessa lista) seguem na redução antiga** e podem ter o mesmo defeito em grau menor; não foram varridas.
+- **Manchas pretas**: estacao_drones e acumulador eram decalques opacos do estudo (`conves_fuligem`, `maq_fuligem`, `chamusco`), retirados; estacao eram os
+  furos de ferrugem da telha, que agora saem fechados (`trocas`). **extrator_cristal/ressonante**: não era malha: era a fumaça do jogo (`render/efeitos.gd`),
+  que nasce no topo da caixa do modelo; extrator e broca não têm chaminé, entraram em `SEM_CHAMINE` (as brocas fariam o mesmo trabalhando).
+- **braco**: a bola laranja era o terminal de energia no canto do tile, sem base embaixo: ganhou chapa de chão e conduíte. Tintas sujas no lugar da cor lisa da lib_pf.
+- **purificador_ar_2**: os três "tubos pretos" eram o tremor de calor do estudo (material só de refração, assado preto), novo filtro `so_efeito`: altura 7,03 → 5,77 m.
+  Fuligem do estudo a 40% e casca interna em chapa, via `PURIFICADOR_CLARO` em conv_limpeza.py.
+- **Vidro**: acumulador_cristal, bau_grande e cano subterrâneo com vidro opaco escuro. Sem mudança: painel_solar_2, laboratórios e reatores (janelas pequenas, leem bem).
+- **Além da área**: terraplenagem 3,06×3,06, nucleo 3,15×3,12 e viveiro 2,06×2,06 (torrões, pedras, cápsulas e árvores saíram; raízes e cabos cortados na borda); coletor_lixo
+  2,82×2,01 (poças saíram). **Ficam de propósito**: braços do coletor_lixo (2,82) e coletor_lixo_2 (3,2), que se mexem, mas estão fora do tile já na pose de repouso, não só
+  num instante: decisão de Sapyst; cano da artilharia (3,7, alto e gira); balanço do pórtico da estacao (3,04, por cima da linha, é o desenho).
+- **nucleo**: só com escala não dá (as pétalas já chegam à borda). Corpo maior = mudar `R_CORPO` (0,62 m) em estudo_nucleo.py, ajustando pétalas e bocas, e estudo_nucleo_queda.py junto. Não feito.
+- **Esteiras**: `Materiais.COR_LONA` (vermelho, azul-aço, violeta) e encardido na lona pelo shader, valendo para toda a classe; nenhum modelo reconvertido.
+- **Abertos**: braco_quantico ainda confuso (anéis soltos em volta, são o campo do estudo); triângulo vermelho pequeno no chão ao lado da mina na foto, fora da caixa do modelo (±0,5 m), origem não achada;
+  mina continua um monte de terra que quase esconde o anel violeta. painel_final.png não foi remontado (fotos novas em fotos/final/ só das peças mudadas).
+- Verificação: 73.770 verificações, 0 falhas; 188 scripts compilam; demo sem janela (`--quit-after 400 -- modo demo` e `--quit-after 600 res://cenas/mundo_demo.tscn`) sem erro de script.
 
 ### Progresso da fase 2
 - [x] 2.1 pacotes por tipo, automação, melhorias (mineração, pesquisa, dano/cadência de energia), briquete,

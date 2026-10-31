@@ -10,6 +10,8 @@ extends Node3D
 
 const DIST_ICONES := 60.0
 const VIDA_MARCA := 90.0
+## Poluem, mas não têm chaminé: a fumaça nascia no topo da caixa do modelo e virava uma bola preta parada no alto da torre.
+const SEM_CHAMINE := ["extrator_cristal", "extrator_ressonante", "broca_minerio", "broca_grande", "broca_nucleo"]
 
 var fabrica: Fabrica
 var mostrar_icones := true          ## mostruário (vídeos) desliga
@@ -76,7 +78,7 @@ func _metal() -> StandardMaterial3D:
 
 func _atualizar_fumaca() -> void:
 	for id in fabrica.emissao:
-		if not _fumaca.has(id) and mapa.estruturas.has(id):
+		if not _fumaca.has(id) and mapa.estruturas.has(id) and not mapa.estruturas[id].nome in SEM_CHAMINE:
 			_fumaca[id] = _criar_fumaca(id)
 	for id in _fumaca.keys():
 		var p: CPUParticles3D = _fumaca[id]

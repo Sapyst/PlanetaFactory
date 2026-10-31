@@ -20,11 +20,11 @@
   }
  ],
  "portas": [],
- "tris": 6678,
+ "tris": 11474,
  "dims": [
-  2.962,
+  2.971,
   2.96,
-  4.17
+  4.19
  ],
  "anima": true,
  "estudo": "estudo_silo.py"

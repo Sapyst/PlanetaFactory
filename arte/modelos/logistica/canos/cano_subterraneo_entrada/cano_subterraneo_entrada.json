@@ -36,11 +36,11 @@
    ]
   }
  ],
- "tris": 1087,
+ "tris": 2876,
  "dims": [
-  0.982,
+  0.988,
   1.0,
-  1.107
+  1.112
  ],
  "anima": false,
  "estudo": "estudo_cano_subterraneo.py"
