@@ -22,10 +22,12 @@ dados = json.load(open(os.path.join(FINAL, "dados.json"), encoding="utf8"))
 mods = dados["modelos"]
 rot = menu["rotulos"]
 modelo_de = {"esteira": "esteira_reta", "cano": "cano_reto", "trem": "locomotiva", "trem_tanque": "vagao_tanque", "trem_eletrico": "locomotiva_eletrica",
-             "rampa_desce": "esteira_rampa", "muro_centro": "muro_centro"}
-EXTRA = ["nucleo", "ninho_aranha", "plataforma_agua", "ponte_agua", "nucleo_queda", "aranha_montada", "drone_reparo", "drone_defesa", "drone_logistico"]
+             "rampa_desce": "esteira_rampa", "muro_centro": "muro_centro", "nucleo_queda_fim": "nucleo_queda"}
+EXTRA = ["nucleo", "ninho_aranha", "plataforma_agua", "ponte_agua", "plataforma_grade", "poca_seiva", "nucleo_queda", "nucleo_queda_fim", "aranha_montada",
+         "drone_reparo", "drone_defesa", "drone_logistico"]
 NOMES_EXTRA = {"nucleo": "Núcleo", "ninho_aranha": "Ninho de aranha", "plataforma_agua": "Plataforma na água", "ponte_agua": "Ponte na água",
-               "nucleo_queda": "Cápsula do núcleo (abertura)", "aranha_montada": "Aranha", "drone_reparo": "Drone de reparo", "drone_defesa": "Drone de combate",
+               "nucleo_queda": "Cápsula do núcleo (descendo)", "nucleo_queda_fim": "Cápsula do núcleo (último quadro)", "aranha_montada": "Aranha (a do jogo, com IK)",
+               "plataforma_grade": "Emenda: plataformas e pontes", "poca_seiva": "Poça de seiva", "drone_reparo": "Drone de reparo", "drone_defesa": "Drone de combate",
                "drone_logistico": "Drone logístico"}
 cats = [(c["nome"], c["pecas"]) for c in menu["categorias"]] + [("Fora do menu (conferência)", EXTRA)]
 

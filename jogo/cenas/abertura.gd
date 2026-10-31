@@ -325,6 +325,9 @@ func _trocar() -> void:
 	nucleo.rotation = Vector3.ZERO
 	nucleo.scale = Vector3.ONE
 	nucleo.visible = true
+	for c in nucleo.get_children():
+		if c is Animador:                        # o último quadro da chegada é o quadro 1 do laço do núcleo
+			(c as Animador).reiniciar()
 
 
 func _acabar() -> void:

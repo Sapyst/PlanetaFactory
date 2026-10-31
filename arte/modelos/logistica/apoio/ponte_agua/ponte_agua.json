@@ -20,15 +20,17 @@
   }
  ],
  "portas": [],
- "tris": 150,
+ "tris": 320,
  "dims": [
-  0.988,
+  1.06,
   1.0,
-  1.9
+  1.93
  ],
  "materiais": [
   "P_Aco",
   "P_Cristal",
   "P_Escuro"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_ponte_agua.py"
 }

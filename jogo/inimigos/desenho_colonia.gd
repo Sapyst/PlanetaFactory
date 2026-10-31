@@ -173,6 +173,9 @@ func _sincronizar_ninhos(delta: float) -> void:
 			Materiais.converter(no)
 			no.position = Grade.ponto_mundo(n.centro)
 			no.rotation.y = fposmod(n.centro.x * 1.7 + n.centro.y * 0.9, TAU)
+			var anim := Animador.new()                 # laço do estudo: mandíbulas, coroa e bioplasma pulsando
+			anim.modelo = "ninho_aranha"
+			no.add_child(anim)
 			_ninhos[id] = no
 		# obra: cresce do chão, tremendo
 		var alvo: float = 0.25 + 0.75 * n.obra

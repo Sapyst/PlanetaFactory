@@ -89,7 +89,7 @@ Conferência visual, por peça (lista original; o que foi feito está em "Corre�
 - **Caixa além da área** (m × área; pode ser cabo ou peça móvel): terraplenagem 6,2×6,1 em 3×3, nucleo 5,7×5,7 em 3×3, viveiro 4,2×3,9 em 2×2,
   coletor_lixo 3,7×3,0 em 2×2, coletor_lixo_2 3,2×2,1 em 2×2, artilharia 3,7 em 3, estacao 3,05 em 2×3.
 - **nucleo**: corpo central pequeno para o papel e para os 3×3 (só o exterior das raízes chega à borda); foto sem piso, fora do menu.
-- **Antigos, sem textura**: plataforma_agua (284 tris), ponte_agua (150), ninho_aranha (264), aranha (632), poca de seiva amarela chapada
+- **Antigos, sem textura** (resolvido: ver "Pedido 2"): plataforma_agua (284 tris), ponte_agua (150), ninho_aranha (264), aranha (632), poca de seiva amarela chapada
   sob a **bomba**, nucleo_queda (cone laranja chapado).
 - **Classes de esteira**: rápida, expressa e quântica só diferem na faixa fina; no painel quase não se distinguem.
 - Sem achado: textura preta (0 superfícies abaixo de 3% de luminância na varredura), escala absurda, modelo que falta no menu.
@@ -729,6 +729,35 @@ Correção da conferência (2026-10-31; ajustes por peça em arte/estudos/ajuste
     pronta; (6) números estimados: kW, vida, custos, tempos dos módulos, efeitos das munições; módulo de produtividade vale em toda
     receita (no Factorio, só intermediários) e o irradiador não leva produtividade; (7) bocas de fluido sem função nas 6 peças; (8) módulo
     só entra pelo painel, vindo do núcleo (braço não encaixa).
+
+### Pedido 2: modelos antigos, cápsula, painel e fps de novo (2026-10-31)
+Ver docs/BRIEF_ANTIGRAVITY_2.md. Conversão: arte/estudos/conv_antigos.py (remendos dos estudos ficam lá); teste novo: jogo/testes/test_modelos_antigos.gd.
+- [x] **Modelos** (tris, limite do pedido): plataforma_agua 568 (600), ponte_agua 320 (400), poca_seiva 174 (300), aranha_corpo 656 (1.500), aranha_femur 136 (200), aranha_tibia 84
+  (150), ninho_aranha 1.232 (5.000). Nenhum passou. `por_peca` ligado em todos; nenhum precisou de redução, o peso real ficou abaixo do alvo.
+  - **Plataforma e ponte**: uma malha só (`Materiais.malha_de` só pega a primeira). Plataforma 1,00×1,00 m exatos no topo, pés em 0, topo em 1,90 = `ERGUIDO`. Antes: 0,96×0,984, com fresta. Ponte emenda
+    em ±0,50 no fluxo, deque em 1,90, guias em 1,93. Foto `plataforma_grade`: sem fresta.
+  - **Poça**: uma malha, seiva numa superfície P_Seiva lisa fora do assado; crosta e seiva escurecidas no conv. As bolhas do estudo saíram: a poça é MultiMesh do chunk, não anima.
+  - **Aranha**: quadris conferidos em `MarchaAranha.QUADRIS`/`QUADRIL_Z`, fêmur vai do quadril ao joelho, ponta da tíbia em 0,90. O estudo fazia o cone do pé ao contrário (base larga no pé): desvirado no conv. Olhos separados
+    e com o nome P_OlhoInimigo, senão a fúria (`Aranha.definir_furia`) não os acha. `aranha_montada` refeita dos 3 .glb (`blender -b --python conv_antigos.py -- aranha_montada`), porque estudo_drones.py a usa; a foto agora é a Aranha real, com IK.
+  - **Ninho**: o `DesenhoColonia` ganhou Animador (o laço não tocava). No conv: blocos de minério para dentro dos 3×3, tampas na casca oca, e chão da câmara e chaminé acesos, porque o vermelho do estudo era a luz LuzNinho.
+- [x] **Cápsula (nucleo_queda)**: 16.654 tris. **Causa do cone laranja**: a brasa da reentrada liga Emission Strength a um nó em ogiva e placas ablativas; `brilha()` trata a malha inteira como luz, material liso P_Fogo e redução a 200 tris.
+  Agora são assadas, com a mancha da brasa como queimado na cor (conv_nucleo.py, `_preparar`). Achados no caminho: `hide_render` não vai para o glTF, então a ogiva ejetada ficava parada no ar a 4,5 m, e cabos-raiz, fragmentos, terra das pétalas e cratera
+  (apagados pela limpeza) brotavam só na troca. Viraram escala quase zero animada. Cristal e frestas ficam acesos como no núcleo. Mesmo recorte do núcleo (±1,53; sem pedras, torrões, rachaduras).
+  **Troca cápsula → núcleo**: caixa da pose final bate com a do núcleo a menos de 0,15 m (test_nucleo_queda.gd, `test_sem_pulo_na_troca`); `Abertura._trocar` volta o laço do núcleo ao quadro 1. Quadros 454–459 da abertura gravada: sem pulo visível, mas a placa "falta entrada" cobre boa parte do núcleo nessa hora.
+- [x] **Painel**: arte/estudos/fotos/painel_final.png e .jpg (143 fotos; extras novos: plataforma_grade, poca_seiva, nucleo_queda_fim). cano_deslocado.jpg removida.
+- [x] **Baterias**: 73.827 verificações, 0 falhas; 189 scripts compilam; demo e 37 roteiros sem janela sem erro de script (só o aviso de recursos na saída, que já existia). Nenhum limite de teste subiu.
+- **Desempenho** (`roteiro carga`; Radeon 890M, 1280×720, tudo animando, sem vsync; sem outro jogo aberto, NVIDIA parada, carga ~1,4, com Claude e Antigravity abertos; 2 rodadas; celular NÃO medido):
+  mostruário, 465 estruturas, 659 mil tris somados: 44 m 67–70 fps (p95 26–27 ms; GPU 11–12 ms; 5,9 mi tris desenhados; 3.667 chamadas), 25 m 130–132, 90 m 125–126.
+  Pátio, 1.176 estruturas, 2,76 mi tris somados: 44 m 52–57 fps (p95 23–26 ms; GPU 9,8 ms; 6,6 mi tris; 5.345 chamadas), 25 m 73–77, 90 m 53.
+  **Não comparar direto com os 33 e 17 fps da fase 5**: aquelas rodadas não têm condição anotada e as do A/B foram com outro jogo aberto. O que dá para comparar é o desenhado: mostruário 5,9 → 5,9 mi, pátio 6,5 → 6,6 mi (+2%). Não houve A/B só dos 34%, com e sem as 18 peças, na mesma condição.
+  Mais pesadas: cápsula 16.654 (só na abertura), purificador atmosférico 16.130, núcleo 14.004, núcleo de singularidade 12.620, semeador de bioma 11.852, laboratório 11.756.
+- **Problemas objetivos restantes** (painel e abertura):
+  - **núcleo (abertura e jogo novo)**: 4 placas "falta entrada" por cima do núcleo já na abertura, cobrindo a troca.
+  - **poca_seiva**: discos separados, um por tile, sem as manchas contínuas; sem brilho molhado visível de cima; sem bolhas.
+  - **ninho_aranha**: o capim atravessa a base na foto. O código do piso (`DesenhoChunk`) também pula o ninho, então é provável no jogo; não conferido em partida. O interior segue cinza, só o chão e a chaminé brilham.
+  - **extrator_cristal, extrator_ressonante**: capim atravessando a base e um traço preto em diagonal no alto da foto (origem não confirmada).
+  - **estacao_drones**: laje ainda manchada de escuro. **mina_pulso**: lascas soltas em volta. **braco_quantico**: pequeno e confuso. **nucleo**: corpo pequeno para os 3×3.
+  - **plataforma_agua, ponte_agua**: deque limpo e claro, com a mesma textura em todo tile; sem conferir na água nesta rodada, só em grade no chão e no roteiro `agua` sem erro.
 
 ### Lista para a fase 3 — estruturas da árvore ainda sem estudo/modelo
 (Fonte: "Estruturas: temos × precisamos" do docs/ARVORE_TECNOLOGIA.md. Entre parênteses, o que cada uma destrava do que

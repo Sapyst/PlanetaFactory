@@ -30,6 +30,8 @@ Opções de CONFIG além de script/cat/tris/tex/tirar:
             entulho, mancha no chão de um objeto que se espalha pela cena), o que cruza a borda é cortado nela.
             Objeto com nome em `cortar_exceto` (substrings) fica como está (telhado que cobre a linha, por exemplo)
   trocas    [(trecho, novo)]: remendos no código do estudo antes de rodar
+  sem_escala_animada  True = peça com escala quase zero no quadro 1 (some/aparece por escala: a chegada do núcleo): mede
+            e assa a peça em escala 1, senão a redução a trata como miúda e o assado não acerta o raio
   amostras  quadros onde se compara a posição para achar o que se mexe (padrão: 8 do laço; movimento curto, como o
             recuo do lançador de sementes nos quadros 50–57, precisa de amostras mais densas)
 
@@ -367,6 +369,8 @@ def reduzir_por_peca(cfg, malhas):
         return
 
     def lado(o):
+        if cfg.get('sem_escala_animada'):
+            return max(abs(o.bound_box[6][k] - o.bound_box[0][k]) for k in range(3))
         return max(o.dimensions)
 
     miudo = cfg.get('frac_miudo', 0.03)
@@ -668,9 +672,16 @@ def main():
             alto = copia(po)
             reduzir(po, pd.get('tris', int(cfg['tris'] * 0.12)))
             pares.append((po, alto))
+    if cfg.get('sem_escala_animada'):
+        for par in pares:
+            for o in par:
+                o.scale = (1, 1, 1)
+        bpy.context.view_layer.update()
     assar([b for b, _ in pares], [a for _, a in pares], cfg['tex'], nome)
     for _, a in pares:
         bpy.data.objects.remove(a, do_unlink=True)
+    if cfg.get('sem_escala_animada'):
+        sc.frame_set(1)
     # raiz, portas (do .json atual do jogo) e exportação com a animação "trabalho"
     for pn, pd, _ in pecas:                            # hierarquia das partes (o jogo lê o pai em modelos.json)
         pai = objs_partes.get(pd.get('pai', 'corpo')) or corpo

@@ -10,8 +10,8 @@ extends Node
 const ELEVACAO := 50.0                  ## graus acima do horizonte (a mesma em todas as fotos)
 const ANGULO := 0.6
 const ESPERA := 45                      ## quadros depois de posta (chão redesenhado, animação no meio)
-const EXTRAS := ["nucleo", "ninho_aranha", "plataforma_agua", "ponte_agua", "nucleo_queda", "aranha_montada",
-		"drone_reparo", "drone_defesa", "drone_logistico"]
+const EXTRAS := ["nucleo", "ninho_aranha", "plataforma_agua", "ponte_agua", "plataforma_grade", "poca_seiva", "nucleo_queda", "nucleo_queda_fim",
+		"aranha_montada", "drone_reparo", "drone_defesa", "drone_logistico"]
 const TRENS := ["locomotiva", "locomotiva_eletrica", "vagao_carga", "vagao_tanque"]
 
 var rt: RoteiroTeste
@@ -354,20 +354,48 @@ func _foto_peca(nome: String, dados: Dictionary) -> void:
 	await _quadros(2)
 
 
+## Plataformas lado a lado + uma fileira de pontes, com a malha do lote: mostra a emenda (no chão, sem a descida de ERGUIDO).
+func _grade_plataformas() -> Node3D:
+	var g := Node3D.new()
+	for x in 3:
+		for z in 4:
+			var mi := MeshInstance3D.new()
+			mi.mesh = DesenhoChunk.malha("ponte_agua" if z == 3 else "plataforma_agua")
+			mi.position = Vector3(4.0, 0, x) if z == 3 else Vector3(x, 0, z)
+			g.add_child(mi)
+	return g
+
+
 func _foto_extra(nome: String, dados: Dictionary) -> void:
 	_sem_perigo()
 	var pos: Vector3 = Grade.ponto_mundo(Vector2(_o) + Vector2(0.5, 0.5))
-	var n: Node3D = load(Registro.modelos[nome].modelo).instantiate()
+	var n: Node3D
+	if nome == "aranha_montada":              # a aranha de verdade (Aranha + MarchaAranha + IK), não a prévia
+		n = Aranha.new()
+		n.position = pos
+	elif nome == "plataforma_grade":
+		n = _grade_plataformas()
+	elif nome == "poca_seiva":
+		n = Node3D.new()                      # a jazida de verdade, no mapa (as poças são do chunk)
+		pos = Grade.centro_mundo(_lugar_com_regra("bomba"), 0.0)
+	else:
+		n = load(Registro.modelos[nome.trim_suffix("_fim")].modelo).instantiate()
 	cena.add_child(n)
-	Materiais.converter(n)
+	if not nome in ["aranha_montada", "plataforma_grade", "poca_seiva"]:   # (a malha do lote já vem convertida)
+		Materiais.converter(n)
 	n.position = pos + (Vector3(0, 1.0, 0) if nome.begins_with("drone") else Vector3.ZERO)
-	if Registro.modelos[nome].get("partes", []).size() > 1 or Registro.modelos[nome].get("anima", false):
+	if nome.begins_with("nucleo_queda"):      # fechada, como desce; e aberta, no último quadro (a pose que vira o núcleo)
+		for p in n.find_children("*", "AnimationPlayer", true, false):
+			(p as AnimationPlayer).play("chegada")
+			(p as AnimationPlayer).seek(9.99 if nome.ends_with("_fim") else Abertura.Q_FECHADA_S, true)
+			(p as AnimationPlayer).pause()
+	elif Registro.modelos.has(nome) and (Registro.modelos[nome].get("partes", []).size() > 1 or Registro.modelos[nome].get("anima", false)):
 		var a := Animador.new()
 		a.ativo = true
 		a.modelo = nome
 		n.add_child(a)
 	await _quadros(2)
-	var cx := _caixa(n)
+	var cx := AABB(pos - Vector3(1.6, 0, 1.6), Vector3(3.2, 0.2, 3.2)) if nome == "poca_seiva" else _caixa(n)
 	_enquadrar(cx)
 	await _quadros(ESPERA)
 	_camera_fixa()

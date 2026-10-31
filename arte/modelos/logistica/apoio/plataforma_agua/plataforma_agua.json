@@ -20,15 +20,17 @@
   }
  ],
  "portas": [],
- "tris": 284,
+ "tris": 568,
  "dims": [
-  0.96,
-  0.984,
+  1.0,
+  1.0,
   1.9
  ],
  "materiais": [
   "P_Aco",
   "P_Cristal",
   "P_Escuro"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_plataforma_agua.py"
 }

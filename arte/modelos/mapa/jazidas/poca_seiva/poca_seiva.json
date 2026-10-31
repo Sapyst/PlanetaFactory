@@ -20,15 +20,17 @@
   }
  ],
  "portas": [],
- "tris": 152,
+ "tris": 174,
  "dims": [
-  0.819,
-  0.833,
-  0.084
+  0.844,
+  0.851,
+  0.071
  ],
  "materiais": [
   "P_Rocha",
   "P_RochaEscura",
   "P_Seiva"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_poca_seiva.py"
 }

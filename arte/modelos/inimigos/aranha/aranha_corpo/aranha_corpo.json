@@ -20,16 +20,18 @@
   }
  ],
  "portas": [],
- "tris": 320,
+ "tris": 656,
  "dims": [
-  0.996,
-  1.956,
-  0.598
+  1.01,
+  1.935,
+  0.745
  ],
  "materiais": [
   "P_Escuro",
   "P_Inimigo",
   "P_Metal",
   "P_OlhoInimigo"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_aranha.py"
 }
