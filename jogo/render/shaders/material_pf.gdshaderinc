@@ -14,6 +14,7 @@ uniform bool rolagem_uv2 = false;  // modelo texturizado: o UV da lona foi para 
 uniform bool por_trabalho = false;
 uniform int perfil_folha = -1;      // -1 não é folha; 0 perene, 1 caduca laranja, 2 salgueiro, 3 acácia, 4 caduca amarela
 uniform bool carbonizada = false;
+uniform bool seiva = false;         // poça de seiva: ondulação e reflexo no espaço do mundo, contínuos de uma poça para a outra
 #ifdef TRABALHO_POR_OBJETO
 instance uniform float trabalho = 1.0;   // 0 = parada (cristal quase apagado) .. 1 = trabalhando
 #endif
@@ -155,6 +156,23 @@ void fragment() {
 	ROUGHNESS = mix(1.0, mix(mix(aspereza, 0.95, sujo * 0.7), 0.45, m * 0.8), vd);   // encardido é fosco   // sem espelho: faceta molhada não pode estourar de branco
 	METALLIC = metal * vd;
 	SPECULAR = 0.5 * mix(0.05, 1.0, vd);
+	if (seiva) {
+		// tudo no espaço do mundo: poças sobrepostas leem como uma mancha só, sem emenda de brilho entre elas. Ondulação
+		// lenta e viscosa, reflexo do céu em manchas alongadas (sem transparência); de noite o reflexo se apaga.
+		vec3 q = vec3(v_mundo.xz * vec2(1.3, 2.1), TIME * 0.04);
+		float h0 = ruido3(q);
+		vec3 nw = normalize(vec3((h0 - ruido3(q + vec3(0.09, 0.0, 0.0))) * 1.6, 1.0, (h0 - ruido3(q + vec3(0.0, 0.09, 0.0))) * 1.6));
+		NORMAL = normalize((VIEW_MATRIX * vec4(nw, 0.0)).xyz);
+		vec3 ver = normalize(CAMERA_POSITION_WORLD - v_mundo);
+		float dia = smoothstep(-0.05, 0.3, sol_dir.y) * (1.0 - 0.6 * sombra_nuvem(v_mundo));
+		float borda = pow(1.0 - clamp(dot(ver, nw), 0.0, 1.0), 3.0);
+		float faixa = smoothstep(0.58, 0.72, ruido3(vec3(v_mundo.xz * vec2(0.8, 2.6) + nw.xz * 3.0, 7.0)));
+		float sol = pow(max(dot(nw, normalize(ver + sol_dir)), 0.0), 90.0);
+		ALBEDO *= 0.3;                              // no sol o marrom do material lia como chocolate ao leite
+		EMISSION += vec3(0.70, 0.57, 0.40) * (0.008 + 0.25 * borda + 0.10 * faixa) * dia * vd + vec3(1.0, 0.93, 0.8) * sol * 0.9 * dia * vd;
+		ROUGHNESS = mix(1.0, 0.2, vd);
+		SPECULAR = mix(0.03, 0.7, vd);
+	}
 	float e = forca_emissao;
 	if (pulso > 0.0) {
 		e *= 0.65 + 0.35 * sin(TIME * 2.4 + NODE_POSITION_WORLD.x);

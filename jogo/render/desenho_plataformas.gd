@@ -36,7 +36,9 @@ func _refazer() -> void:
 			if not _na_agua(t):
 				continue
 			var pos := Grade.centro_mundo(t, -ERGUIDO)
-			var b := Basis(Vector3.UP, Grade.angulo(e.rot)) if ponte else Basis()
+			# giro por tile, para o deque não repetir a mesma textura: a plataforma é simétrica nos 4 giros, a ponte em meia volta
+			var giro := Distribuicao.h(t.x, t.y, 91)
+			var b := Basis(Vector3.UP, Grade.angulo(e.rot) + (PI if giro < 0.5 else 0.0)) if ponte else Basis(Vector3.UP, floorf(giro * 4.0) * PI * 0.5)
 			(lista["ponte_agua" if ponte else "plataforma_agua"] as Array).append(Transform3D(b, pos))
 	for modelo in lista:
 		var xs: Array = lista[modelo]

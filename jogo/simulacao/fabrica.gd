@@ -598,6 +598,12 @@ func _ligar_pontas() -> void:
 		var k: int = c.tiles.size() - 1
 		var d: int = c.sai[k]
 		if d < 0:
+			# peça "fim" (save antigo, ou o núcleo chegou depois) encostada no núcleo: entrega do mesmo jeito
+			if _entrega_no_nucleo(c, k, c.entra[k]):
+				est.saida = _receber_no_nucleo
+			continue
+		if _entrega_no_nucleo(c, k, d):
+			est.saida = _receber_no_nucleo
 			continue
 		var t: Vector2i = c.tiles[k]
 		var n: Vector2i = t + Grade.DIRECOES[d]
@@ -620,7 +626,7 @@ func _ligar_pontas() -> void:
 				return true
 			continue
 		# esteira não enfia item em construção (o fim para o item; um braço pega dali) — só em peça de esteira
-		# (divisor/junção), que é esteira também
+		# (divisor/junção), que é esteira também, e no núcleo (acima)
 		var id: int = mapa.tiles.get(n, -1)
 		if nv > 0 or id < 0 or not distribuidores.has(id):
 			continue
@@ -630,6 +636,23 @@ func _ligar_pontas() -> void:
 				if dest != null:
 					est.saida = func(item: String) -> bool: return dest.aceita(item) and dest.receber(item)
 				break
+
+
+## O último tile do caminho (índice k), andando na direção d, encosta no núcleo? Só no chão e no mesmo nível de terreno;
+## vale por qualquer lado, sem precisar da boca. A entrada de passagem subterrânea não conta: ela entrega por baixo.
+func _entrega_no_nucleo(c: Dictionary, k: int, d: int) -> bool:
+	var t: Vector2i = c.tiles[k]
+	var n: Vector2i = t + Grade.DIRECOES[d]
+	var id: int = mapa.tiles.get(n, -1)
+	return id >= 0 and mapa.estruturas[id].nome == "nucleo" and c.niveis[k].y == 0 and c.papel[k] != "entrada" \
+			and mapa.gerador.nivel(n) == mapa.gerador.nivel(t)
+
+
+## O estoque do núcleo não tem limite: a esteira nunca para por ele. Lê `estoque_nucleo` na hora, porque o dicionário
+## pode ser trocado depois de montar as esteiras (mundo_demo liga o inventário depois de criar a fábrica).
+func _receber_no_nucleo(item: String) -> bool:
+	estoque_nucleo[item] = int(estoque_nucleo.get(item, 0)) + 1
+	return true
 
 
 ## Saídas de máquina/estação pelas portas empurram para a esteira em frente.

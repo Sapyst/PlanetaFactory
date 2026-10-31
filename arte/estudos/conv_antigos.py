@@ -37,17 +37,76 @@ for a_idx in range(2):
 
 o_base = obj('ninho_base', bm_base, 'chassi_escuro')"""
 
+_SEIVA_VELHA = """v_centro = bm_seiva.verts.new(Vector((0.0, 0.0, 0.024)))
+for i in range(N_LADOS):
+    ang = 2 * PI * i / N_LADOS
+    dx, dy = math.cos(ang), math.sin(ang)
+    r_s = raios_seiva[i] + 0.008
+    v_seiva.append(bm_seiva.verts.new(Vector((dx * r_s, dy * r_s, 0.022))))
+
+for i in range(N_LADOS):
+    nxt = (i + 1) % N_LADOS
+    bm_seiva.faces.new((v_centro, v_seiva[i], v_seiva[nxt]))
+"""
+_SEIVA_NOVA = """v_centro = bm_seiva.verts.new(Vector((0.0, 0.0, 0.040)))
+v_meio = []
+for i in range(N_LADOS):
+    ang = 2 * PI * i / N_LADOS
+    dx, dy = math.cos(ang), math.sin(ang)
+    r_s = raios_seiva[i] + 0.008
+    v_seiva.append(bm_seiva.verts.new(Vector((dx * r_s, dy * r_s, 0.011))))
+    v_meio.append(bm_seiva.verts.new(Vector((dx * r_s * 0.72, dy * r_s * 0.72, 0.034))))
+
+for i in range(N_LADOS):
+    nxt = (i + 1) % N_LADOS
+    bm_seiva.faces.new((v_seiva[i], v_seiva[nxt], v_meio[nxt], v_meio[i]))
+    bm_seiva.faces.new((v_centro, v_meio[i], v_meio[nxt]))
+"""
+
+# (conv_antigos) interior do ninho: forro vermelho-escuro por dentro da parede oca; no jogo a parede por dentro saía cinza
+_FORRO_NINHO = """
+base3d.M['ninho_forro'] = mats.material('ForroNinho', (0.11, 0.012, 0.012), 0.0, 0.9, pintura=False, sujeira=0.5, desgaste=0.0)
+bm_forro = bmesh.new()
+aneis_forro = [[bm_forro.verts.new(Vector((math.cos(2 * PI * s_i / SEG) * (r_in - 0.012), math.sin(2 * PI * s_i / SEG) * (r_in - 0.012), z_p))) for s_i in range(SEG)]
+               for r_in, z_p in zip(raios_int, z_alturas)]
+for a_idx in range(N_ANEIS - 1):
+    for s_i in range(SEG):
+        s_nxt = (s_i + 1) % SEG
+        if not ((a_idx < 2) and (s_i in (10, 11))):
+            bm_forro.faces.new((aneis_forro[a_idx + 1][s_i], aneis_forro[a_idx + 1][s_nxt], aneis_forro[a_idx][s_nxt], aneis_forro[a_idx][s_i]))
+obj('ninho_forro', bm_forro, 'ninho_forro')
+"""
+
 REMENDOS = {
     # a ponta da tíbia nascia ao contrário (cone com a base larga no pé): o pé é a agulha em x = 0,90
     'aranha_corpo': [],
+    # deque do estudo saía claro e com as mesmas manchas de ferrugem em todo tile: aço escuro, quase sem ferrugem
+    # (DesenhoPlataformas ainda gira cada tile, para a textura não repetir igual)
+    'plataforma_agua': [("mats.material('DeckAcoGasto', (0.28, 0.30, 0.32), 0.95, 0.45, pintura=False, ferrugem=0.85, sujeira=0.9, escovado=True)",
+                         "mats.material('DeckAcoGasto', (0.07, 0.075, 0.08), 0.95, 0.45, pintura=False, ferrugem=0.08, sujeira=0.5, escovado=True)")],
+    'ponte_agua': [("mats.material('DeckPonteGasto', (0.28, 0.30, 0.32), 0.95, 0.45, pintura=False, ferrugem=0.85, sujeira=0.9, escovado=True)",
+                    "mats.material('DeckPonteGasto', (0.07, 0.075, 0.08), 0.95, 0.45, pintura=False, ferrugem=0.08, sujeira=0.5, escovado=True)")],
     'aranha_femur': [],
-    # no sol do jogo a crosta do estudo saía clara, destacando cada poça (fica mais perto do chão escuro)
-    'poca_seiva': [("mats.material('CrostaSeca', (0.18, 0.15, 0.12)", "mats.material('CrostaSeca', (0.075, 0.06, 0.05)")],
+    # no sol do jogo a crosta do estudo saía clara, destacando cada poça (fica mais perto do chão escuro).
+    # Liam como discos separados, um por tile: agora a borda é irregular e a crosta fica ABAIXO da seiva, então a seiva da
+    # poça vizinha cobre a crosta desta e várias poças viram uma mancha só (DesenhoChunk gira, desloca e aumenta cada uma). O espelho é um domo baixo: a normal curva na borda pega o brilho molhado de qualquer ângulo.
+    'poca_seiva': [("mats.material('CrostaSeca', (0.18, 0.15, 0.12), 0.0, 0.85, pintura=False, sujeira=0.9, ferrugem=0.4)",
+                    "mats.material('CrostaSeca', (0.028, 0.022, 0.018), 0.0, 0.85, pintura=False, sujeira=0.5, ferrugem=0.0, desgaste=0.0)"),
+                   ("dy * r_ext, -0.004)", "dy * r_ext, -0.044)"),
+                   ("N_LADOS = 12", "N_LADOS = 16"),
+                   ("raios_crosta = [0.41 + 0.02 * math.sin(i * 2.3) for i in range(N_LADOS)]",
+                    "raios_crosta = [0.37 + 0.045 * math.sin(i * 2.3) + 0.03 * math.sin(i * 4.1 + 1.0) for i in range(N_LADOS)]"),
+                   ("raios_seiva = [r * 0.76 for r in raios_crosta]", "raios_seiva = [r * 0.88 for r in raios_crosta]"),
+                   ("(r_ext - 0.04), dy * (r_ext - 0.04), 0.028)", "(r_ext - 0.03), dy * (r_ext - 0.03), 0.009)"),
+                   ("dy * r_int, 0.025)", "dy * r_int, 0.009)"),
+                   (_SEIVA_VELHA, _SEIVA_NOVA),
+                   ("    (0.38, 0.08, 0.04, 0.045),\n    (-0.25, 0.32, 0.04, 0.05),\n    (-0.35, -0.15, 0.035, 0.04),\n    (0.15, -0.36, 0.035, 0.045)\n",
+                    "    (0.39, 0.07, 0.012, 0.022),\n    (-0.22, 0.32, 0.012, 0.024),\n    (-0.10, -0.37, 0.012, 0.018)\n")],
     'aranha_tibia': [("radius1=0.045, radius2=0.005, depth=0.22,\n                      matrix=Matrix.Translation((TIBIA - 0.11, 0.0, 0.0)) @ Matrix.Rotation(math.radians(-90), 4, 'Y'))",
                       "radius1=0.045, radius2=0.005, depth=0.22,\n                      matrix=Matrix.Translation((TIBIA - 0.11, 0.0, 0.0)) @ Matrix.Rotation(math.radians(90), 4, 'Y'))")],
     # blocos de minério passavam da área 3×3 (r até 1,35 + 0,34 de pedra)
     'ninho_aranha': [("r_bloco = random.uniform(1.15, 1.35)", "r_bloco = random.uniform(1.0, 1.14)"),
-                     ("\no_base = obj('ninho_base', bm_base, 'chassi_escuro')", _CAPAS_NINHO),
+                     ("\no_base = obj('ninho_base', bm_base, 'chassi_escuro')", _CAPAS_NINHO + _FORRO_NINHO),
                      # o vermelho do estudo é a LuzNinho, que não vem para o jogo: do ângulo da câmera, a boca e o topo ficavam
                      # cinza. Chão da câmara e fundo da chaminé acesos (material do bioplasma, que o jogo pulsa)
                      ("\no_nucleo = obj('nucleo_bioplasma', bm_nucleo, 'bioplasma_carmesim')",

@@ -87,7 +87,7 @@ CONFIG = {
 ZQ0 = 0.05
 EQ = 1.21 - ZQ0                         # cotovelo (pivô da lança) depois de descer a laje
 ZCQ = EQ + 0.22                          # altura do fluxo por cima da lança
-Q_ANEIS = [0.30 + 0.25 * i for i in range(3, 11)]          # anéis do rastro além da seção fixa (y do braço)
+Q_ANEIS = []          # os anéis do rastro e da descida saem: flutuavam soltos em volta do braço e confundiam a leitura da peça
 
 
 def _montar_quantico():
@@ -95,7 +95,11 @@ def _montar_quantico():
     estudo = os.path.join(AQUI, 'estudo_bracos_novos.py')
     sys.argv = [sys.argv[0], '--python', estudo, '--', 'nada']
     g = {'__name__': '__main__', '__file__': estudo}
-    exec(compile(open(estudo, encoding='utf-8').read(), estudo, 'exec'), g)
+    codigo = open(estudo, encoding='utf-8').read()
+    for velho, novo in _SEM_ANEIS:
+        assert velho in codigo, 'trecho não achado: ' + velho[:60]
+        codigo = codigo.replace(velho, novo, 1)
+    exec(compile(codigo, estudo, 'exec'), g)
     sc = bpy.context.scene
     for cn in ('filtro', 'empilhador'):
         for o in list(bpy.data.collections[cn].all_objects):
@@ -124,6 +128,11 @@ def _montar_quantico():
     raiz.animation_data_clear()
     raiz.location = (0, 0, -ZQ0)
     bpy.context.view_layer.update()
+
+
+_SEM_ANEIS = [("    for t in (0.25, 0.55, 0.85):\n        i = int(t * 24)\n        anel_campo(giro,", "    for t in ():\n        i = int(t * 24)\n        anel_campo(giro,"),
+              ("    anel_campo(giro, Vector((0, -1.0, 0.42)), Z, 0.10)\n", ""),
+              ("    while y <= 0.86 + 4 * Q_EMAX:\n        an = Parte('quantico_anel_", "    while False:\n        an = Parte('quantico_anel_")]
 
 
 def _quantico_json(sc, raiz, dados):

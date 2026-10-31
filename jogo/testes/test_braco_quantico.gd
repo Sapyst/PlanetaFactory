@@ -32,8 +32,7 @@ func test_dados_e_modelo() -> void:
 		partes[p.nome] = p
 	for n in ["lanca1", "lanca2", "lanca3", "lanca4", "ponta", "cabo", "carretel"]:
 		verificar(partes.has(n), "parte " + n)
-	for i in range(1, 9):
-		verificar(partes.has("anel%d" % i), "anel do rastro %d" % i)
+	verificar(not partes.has("anel1"), "sem o rastro de anéis soltos (pedido de Sapyst)")
 	verificar(not partes.has("braco1"), "sem IK de 2 elos (a lança fica de pé)")
 	verificar(md.has("lanca"), "medidas da lança no .json")
 	igual(md.get("portas", []).size(), 2, "pega no sul, solta no norte")
@@ -101,19 +100,17 @@ func test_lanca_estica() -> void:
 	a.modelo = "braco_quantico"
 	no.add_child(a)
 	a._ready()
-	verificar(a.tem("lanca4") and a.tem("ponta") and a.tem("anel8"), "partes achadas pelo nome")
+	verificar(a.tem("lanca4") and a.tem("ponta"), "partes achadas pelo nome")
 	var z0: float = (a._partes["ponta"] as Node3D).position.z
 	a.alcance = 3.0
 	for i in 30:
 		a._lanca_quantica(0.5)
 	perto((a._partes["ponta"] as Node3D).position.z - z0, 2.0, 1e-3, "alcance 3: a ponta anda 2 m para a origem")
 	perto((a._partes["lanca2"] as Node3D).position.z - (a._base["lanca2"] as Transform3D).origin.z, 1.0, 1e-3, "seção 2 anda 2e")
-	verificar((a._partes["anel8"] as Node3D).visible, "o último anel aparece com a lança toda esticada")
 	a.alcance = 1.0
 	for i in 30:
 		a._lanca_quantica(0.5)
 	perto((a._partes["ponta"] as Node3D).position.z, z0, 1e-3, "alcance 1: recolhida")
-	verificar(not (a._partes["anel1"] as Node3D).visible, "anéis somem com a lança recolhida")
 	a.fase_braco = 0.0
 	var p0 := a.ponto_garra()
 	a.fase_braco = 0.5

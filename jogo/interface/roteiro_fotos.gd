@@ -10,7 +10,7 @@ extends Node
 const ELEVACAO := 50.0                  ## graus acima do horizonte (a mesma em todas as fotos)
 const ANGULO := 0.6
 const ESPERA := 45                      ## quadros depois de posta (chão redesenhado, animação no meio)
-const EXTRAS := ["nucleo", "ninho_aranha", "plataforma_agua", "ponte_agua", "plataforma_grade", "poca_seiva", "nucleo_queda", "nucleo_queda_fim",
+const EXTRAS := ["nucleo", "ninho_aranha", "plataforma_agua", "ponte_agua", "plataforma_grade", "plataforma_rio", "poca_seiva", "nucleo_queda", "nucleo_queda_fim",
 		"aranha_montada", "drone_reparo", "drone_defesa", "drone_logistico"]
 const TRENS := ["locomotiva", "locomotiva_eletrica", "vagao_carga", "vagao_tanque"]
 
@@ -127,6 +127,8 @@ func _lugar_com_regra(nome: String) -> Vector2i:
 		for dx in range(-r, r + 1, 2):
 			for dy in [-r, r] if absi(dx) != r else range(-r, r + 1, 2):
 				var t: Vector2i = _o + Vector2i(dx, dy)
+				if _tem_construcao_perto(t, 12):          # poste da base de demo ligaria um cabo na peça da foto (o traço preto)
+					continue
 				var mi := con.minimo_no_cursor(nome, t, 0)
 				var mot := m.motivo_bloqueio(nome, mi, 0)
 				if mot == "":
@@ -143,6 +145,14 @@ func _lugar_com_regra(nome: String) -> Vector2i:
 					if ok:
 						return t
 	return Vector2i(999999, 0)
+
+
+func _tem_construcao_perto(t: Vector2i, r: int) -> bool:
+	for id in cena.mapa.estruturas:
+		var mi: Vector2i = cena.mapa.estruturas[id].minimo
+		if absi(mi.x - t.x) <= r and absi(mi.y - t.y) <= r:
+			return true
+	return false
 
 
 func _p(pl: Array[Dictionary]) -> String:
@@ -354,6 +364,52 @@ func _foto_peca(nome: String, dados: Dictionary) -> void:
 	await _quadros(2)
 
 
+## Plataformas e ponte de esteira em água de verdade: baús e uma esteira construídos sobre o rio.
+func _foto_rio(dados: Dictionary) -> void:
+	_sem_perigo()
+	var g: GeradorMundo = cena.gerador
+	var w := Vector2i(999999, 0)
+	for r in range(6, 400, 2):
+		for k in 96:
+			var t := _o + Vector2i((Vector2.from_angle(k * TAU / 96.0) * r).round())
+			var ok := true
+			for i in 7:
+				for j in 5:
+					ok = ok and g.eh_agua(g.terreno(t + Vector2i(i, j))) and cena.mapa.motivo_bloqueio("bau", t + Vector2i(i, j), 0) == ""
+			if ok:
+				w = t
+				break
+		if w.x != 999999:
+			break
+	var antes: Dictionary = cena.mapa.estruturas.duplicate()
+	var mot := ""
+	for i in 4:
+		for j in 3:
+			var m1 := _p(con.plano_peca("bau", w + Vector2i(i, j + 1), 0))
+			mot = m1 if m1 != "" else mot
+	var m2 := _p(con.plano_linha("esteira", w + Vector2i(5, 0), w + Vector2i(5, 4), 0))
+	mot = m2 if m2 != "" else mot
+	await _quadros(2)
+	_terminar_montagem()
+	var a := Grade.ponto_mundo(Vector2(w) + Vector2(-0.5, -0.5))
+	_enquadrar(AABB(a + Vector3(0, -1, -5), Vector3(7, 2, 5)))
+	var k2 := Grade.chunk_de(w)
+	for i in 240:
+		if cena.chunks.has(k2):
+			break
+		await get_tree().process_frame
+	await _quadros(ESPERA)
+	_camera_fixa()
+	await _foto("plataforma_rio")
+	dados.pecas["plataforma_rio"] = {"motivo": mot, "n": 13, "tile": [w.x, w.y], "caixa": [7, 2, 5], "extra": true}
+	print("FOTO %-34s extra motivo=%s tile=%s" % ["plataforma_rio", mot, w])
+	for id in cena.mapa.estruturas.keys():
+		if not antes.has(id):
+			cena.sincronizar(con.destruir(id))
+	con._historico.clear()
+	await _quadros(2)
+
+
 ## Plataformas lado a lado + uma fileira de pontes, com a malha do lote: mostra a emenda (no chão, sem a descida de ERGUIDO).
 func _grade_plataformas() -> Node3D:
 	var g := Node3D.new()
@@ -375,11 +431,19 @@ func _foto_extra(nome: String, dados: Dictionary) -> void:
 		n.position = pos
 	elif nome == "plataforma_grade":
 		n = _grade_plataformas()
+	elif nome == "plataforma_rio":
+		await _foto_rio(dados)
+		return
 	elif nome == "poca_seiva":
 		n = Node3D.new()                      # a jazida de verdade, no mapa (as poças são do chunk)
 		pos = Grade.centro_mundo(_lugar_com_regra("bomba"), 0.0)
 	else:
 		n = load(Registro.modelos[nome.trim_suffix("_fim")].modelo).instantiate()
+	var id_ninho := -1
+	if nome == "ninho_aranha":                # registrado no mapa, como no jogo: é o que tira o capim da base
+		id_ninho = cena.mapa.colocar("ninho_aranha", _o + Vector2i(-1, -1), 0)
+		for k in cena.chunks:
+			(cena.chunks[k] as DesenhoChunk).atualizar_fabrica()
 	cena.add_child(n)
 	if not nome in ["aranha_montada", "plataforma_grade", "poca_seiva"]:   # (a malha do lote já vem convertida)
 		Materiais.converter(n)
@@ -403,6 +467,10 @@ func _foto_extra(nome: String, dados: Dictionary) -> void:
 	dados.pecas[nome] = {"motivo": "", "n": 1, "tile": [_o.x, _o.y], "caixa": [cx.size.x, cx.size.y, cx.size.z], "extra": true}
 	print("FOTO %-34s extra caixa=%s" % [nome, cx.size])
 	n.queue_free()
+	if id_ninho >= 0:
+		cena.mapa.remover(id_ninho)
+		for k in cena.chunks:
+			(cena.chunks[k] as DesenhoChunk).atualizar_fabrica()
 	await _quadros(2)
 
 

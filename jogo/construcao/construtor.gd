@@ -245,7 +245,7 @@ func _plano_esteira(a: Vector2i, b: Vector2i, rot: int) -> Array[Dictionary]:
 				extra[-1]["extra"] = true
 			d_fim = d
 			break
-		if _recebe(ult, d, n):
+		if _recebe(ult, d, n, d == dirs[-1]):            # núcleo sem boca: só em frente, o traço não vira sozinho para ele
 			d_fim = d
 			break
 	if d_fim >= 0:
@@ -880,7 +880,7 @@ func _alimenta(tile: Vector2i, d: int, n := 0) -> bool:
 
 ## O tile da frente recebe itens no nível n? Esteira (que não venha de frente) ou porta de entrada de máquina.
 ## Braço não conta: a esteira termina em "fim" (para-choque) para o braço pegar.
-func _recebe(tile: Vector2i, d: int, n := 0) -> bool:
+func _recebe(tile: Vector2i, d: int, n := 0, nucleo_todo := true) -> bool:
 	var t_frente := tile + Grade.DIRECOES[d]
 	for id in mapa.ids_no_tile(t_frente):
 		var no := no_esteira(mapa.estruturas[id])
@@ -893,6 +893,8 @@ func _recebe(tile: Vector2i, d: int, n := 0) -> bool:
 	var frente := _estrutura_em(t_frente)
 	if frente.is_empty() or frente.nome.begins_with("braco") or not no_esteira(frente).is_empty():
 		return false
+	if nucleo_todo and frente.nome == "nucleo" and mapa.gerador.nivel(t_frente) == mapa.gerador.nivel(tile):
+		return true                               # o núcleo recebe a esteira por qualquer lado (Fabrica._entrega_no_nucleo)
 	for p in _portas(frente):
 		if p.io == "ENT" and p.tipo == "ITEM" and p.tile_fora == tile and p.dir == -Grade.DIRECOES[d]:
 			return true

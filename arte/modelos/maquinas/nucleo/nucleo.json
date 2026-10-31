@@ -6,7 +6,7 @@
   3,
   3
  ],
- "descricao": "Núcleo: a unidade semeadora da IA. Tudo que entra (esteira nas 4 bocas ou braço) vira estoque para construir. Partes: cristal (monólito pulsa), antena (anel gira).",
+ "descricao": "Núcleo: a unidade semeadora da IA. Tudo que entra (esteira por qualquer lado ou braço) vira estoque para construir. Partes: cristal (monólito pulsa), antena (anel gira).",
  "ocupa_canto": false,
  "partes": [
   {

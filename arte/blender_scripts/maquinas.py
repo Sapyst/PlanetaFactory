@@ -242,7 +242,7 @@ def laboratorio():
     return m
 
 def nucleo():
-    m = Modelo('nucleo', M, 3, 3, descricao='Núcleo: a unidade semeadora da IA. Tudo que entra (esteira nas 4 bocas ou braço) '
+    m = Modelo('nucleo', M, 3, 3, descricao='Núcleo: a unidade semeadora da IA. Tudo que entra (esteira por qualquer lado ou braço) '
                'vira estoque para construir. Partes: cristal (monólito pulsa), antena (anel gira).')
     p = m.parte(); base_ht(p, 3, 3)
     v = p.cil((0, 0, 0.36), 1.06, 0.52, 'P_Escuro', lados=8, rot=PI/8, r2=0.96); p.chanfrar(v, 0.04)

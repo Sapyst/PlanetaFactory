@@ -12,9 +12,10 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
 
 ## A regra principal: braço leva, esteira carrega
 - **Broca** e **extrator** tiram o recurso do chão e soltam na **esteira** encostada na saída deles.
-- A esteira leva os itens, mas **não entrega dentro de construções**. Quem tira da esteira e põe numa máquina, num baú
-  ou no núcleo é o **braço**: ele pega de um lado e solta do outro.
-- Para encher o núcleo: broca → esteira → braço → núcleo.
+- A esteira leva os itens, mas **não entrega dentro de construções**. Quem tira da esteira e põe numa máquina ou num baú
+  é o **braço**: ele pega de um lado e solta do outro.
+- **A exceção é o núcleo**: a esteira que termina apontando para ele entrega direto no estoque, por qualquer lado, sem
+  braço. Para encher o núcleo: broca → esteira → núcleo. (Só o núcleo: o posto avançado continua pedindo braço.)
 - Mais tarde (pesquisas com pacote de automação): **Esteira rápida** (o dobro de itens; arraste por cima da comum
   para trocar), **Braço com filtro** e **Divisor com filtro** (toque neles para escolher os itens), **Silo de
   granel** (20.000 de um tipo só) e **Cano subterrâneo** (passa o cano por baixo da terra, até 9 tiles).
@@ -121,7 +122,7 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
   única que faz o casco de foguete. A **Fundição de cristal** funde 4× mais rápido só com energia e leva **minério de ferro direto em
   aço** (placa, se escolher no painel). O **Extrator ressonante** dá 2× mais cristal, a **Broca de núcleo** fura 4× mais rápido que a
   broca (e continuaria rendendo 10% numa jazida esgotada) e o **Laboratório quântico** pesquisa 4× mais rápido.
-- **Módulos**: pesquise, faça na montadora e leve ao **núcleo** (braço). No painel da máquina com encaixes (fornalha elétrica, fundição,
+- **Módulos**: pesquise, faça na montadora e leve ao **núcleo** (esteira ou braço). No painel da máquina com encaixes (fornalha elétrica, fundição,
   montadoras 2/3/quântica, refinador 2, laboratórios 2/quântico) aparece um botão por módulo que você tem; tocar no encaixado tira e
   devolve ao núcleo. **Velocidade**: mais rápido, gasta mais. **Eficiência**: menos energia e poluição. **Produtividade**: produto de
   graça, mais devagar e mais sujo. O **Irradiador de módulos** (2 módulos de velocidade ou eficiência) reparte 50% de cada um com as
@@ -179,8 +180,8 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
 1. **Ache as jazidas:** aperte **V** (ou o botão **Recursos**). Cada jazida aparece colorida, com o nome, a quantidade
    e a máquina que a extrai. Perto do início sempre há cristal, ferro, cobre, **carvão** e pedra.
 2. **Carvão:** ponha uma **Broca** em cima da jazida de carvão (a mancha preta), perto do núcleo para ter energia.
-   Encoste uma **esteira** na saída da broca, leve a esteira até perto do núcleo e ponha um **braço** entre o fim da
-   esteira e o núcleo. O carvão vai entrar no núcleo.
+   Encoste uma **esteira** na saída da broca e leve a esteira até encostar no núcleo, por qualquer lado. O carvão vai
+   entrar no núcleo.
 3. **Ferro:** faça o mesmo numa jazida de ferro. O minério precisa ir para uma **Fornalha**, também por braço. A
    fornalha queima carvão: um braço põe carvão nela e outro, minério. Um terceiro braço tira as placas e põe numa
    esteira ou no núcleo.

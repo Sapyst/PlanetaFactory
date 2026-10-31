@@ -751,13 +751,22 @@ Ver docs/BRIEF_ANTIGRAVITY_2.md. Conversão: arte/estudos/conv_antigos.py (remen
   Pátio, 1.176 estruturas, 2,76 mi tris somados: 44 m 52–57 fps (p95 23–26 ms; GPU 9,8 ms; 6,6 mi tris; 5.345 chamadas), 25 m 73–77, 90 m 53.
   **Não comparar direto com os 33 e 17 fps da fase 5**: aquelas rodadas não têm condição anotada e as do A/B foram com outro jogo aberto. O que dá para comparar é o desenhado: mostruário 5,9 → 5,9 mi, pátio 6,5 → 6,6 mi (+2%). Não houve A/B só dos 34%, com e sem as 18 peças, na mesma condição.
   Mais pesadas: cápsula 16.654 (só na abertura), purificador atmosférico 16.130, núcleo 14.004, núcleo de singularidade 12.620, semeador de bioma 11.852, laboratório 11.756.
-- **Problemas objetivos restantes** (painel e abertura):
-  - **núcleo (abertura e jogo novo)**: 4 placas "falta entrada" por cima do núcleo já na abertura, cobrindo a troca.
-  - **poca_seiva**: discos separados, um por tile, sem as manchas contínuas; sem brilho molhado visível de cima; sem bolhas.
-  - **ninho_aranha**: o capim atravessa a base na foto. O código do piso (`DesenhoChunk`) também pula o ninho, então é provável no jogo; não conferido em partida. O interior segue cinza, só o chão e a chaminé brilham.
-  - **extrator_cristal, extrator_ressonante**: capim atravessando a base e um traço preto em diagonal no alto da foto (origem não confirmada).
-  - **estacao_drones**: laje ainda manchada de escuro. **mina_pulso**: lascas soltas em volta. **braco_quantico**: pequeno e confuso. **nucleo**: corpo pequeno para os 3×3.
-  - **plataforma_agua, ponte_agua**: deque limpo e claro, com a mesma textura em todo tile; sem conferir na água nesta rodada, só em grade no chão e no roteiro `agua` sem erro.
+- **Problemas objetivos restantes** (painel e abertura): resolvidos ou remanejados na rodada abaixo; só sobra o que está em "Fica para Sapyst".
+
+### Esteira direto no núcleo e defeitos do painel (2026-10-31)
+- [x] **Esteira entra no núcleo sem braço** (pedido de Sapyst). `Fabrica._ligar_pontas` + `_entrega_no_nucleo`: a última peça do caminho, no chão e no mesmo nível de terreno, que aponta para qualquer tile do núcleo entrega no `estoque_nucleo`. Vale só `nome == "nucleo"`; posto avançado, máquina e baú continuam pedindo braço. O estoque do núcleo não tem limite, então a esteira nunca para por ele. `Construtor._recebe` conta o núcleo em frente: o traço termina em reta (o traço não vira sozinho para o lado do núcleo fora da boca). Peça "fim" de save antigo encostada também entrega; entrada de passagem subterrânea não. Salvar/carregar: nada novo a guardar. Teste: jogo/testes/test_esteira_nucleo.gd. docs/COMO_JOGAR.md atualizado.
+- [x] **Núcleo sem "falta entrada"**: `Portas.mostra_aviso` exclui o núcleo; entradas opcionais.
+- [x] **Poça de seiva**: **causa** dos discos: borda clara mais alta que a seiva, mesmo contorno e alturas diferentes por tile. Agora a crosta fica abaixo da seiva e escura, contorno irregular (conv_antigos.py), `DesenhoChunk` aumenta 1,5× e nivela a altura (só poça), e o shader (`seiva` em material_pf.gdshaderinc) dá ondulação e reflexo no espaço do mundo, contínuos entre poças, sem transparência. 218 tris.
+- [x] **Capim**: **causa**: `atualizar_fabrica` pulava ninho e máquina de jazida inteiros, sem marcar nada. Agora marca B (o que a grama lê) só nos tiles da peça, sem R (sem piso).
+- [x] **Traço preto dos extratores**: **causa**: cabo de energia real (`DesenhoFios`) ligando a peça da foto a um poste da base de demo ao lado; no jogo um poste perto faz o mesmo e é o certo. O roteiro de fotos agora busca jazida longe de construção (`_tem_construcao_perto`).
+- [x] **Ninho**: forro vermelho-escuro por dentro da parede (conv_antigos.py). 1.336 tris. A foto agora registra o ninho no mapa.
+- [x] **Estação de drones**: convés com tinta quase lisa no lugar do grafite que assava em manchas; óleo fora (ajustes_fase5.py). 9.379 tris.
+- [x] **Mina de pulso**: sem capim, pedrinhas e chamusco; monte baixo e menor; anel violeta aceso em volta da tampa (a bobina do estudo ficava embaixo dela). 2.743 tris.
+- [x] **Braço quântico**: saem o rastro e os anéis da descida e do pouso (conv_lote16.py); `lanca.aneis` vazio. test_braco_quantico.gd ajustado para isso. 7.245 tris. Na foto, ele ficava pequeno porque a caixa incluía os anéis.
+- [x] **Plataforma e ponte**: deque de aço escuro quase sem ferrugem (conv_antigos.py) e giro por tile em `DesenhoPlataformas`. Conferidas na água de verdade: extra novo `plataforma_rio`.
+- [x] **Ícones**: só mina, braço quântico, estação, plataforma e ponte. **Painel** remontado (144 fotos).
+- Verificação: 73.917 verificações, 0 falhas; nenhum limite de teste subiu; demo sem janela sem erro de script.
+- **Fica para Sapyst**: (1) **corpo do núcleo pequeno para os 3×3**: não mexido, é decisão dela. (2) **Poça**: emenda, mas o brilho é reflexo largo e discreto, lê como mancha escura molhada; o terreno fura a mancha em alguns pontos; não vista com sol em outro ângulo nem em partida. (3) **Braço quântico**: a cabeça ainda tem dois anéis empilhados, presos à ponta da lança. (4) O corte de capim no ninho e nos extratores deixa um quadrado curto em volta da base. (5) Posto avançado segue com braço: decidir se deve receber como o núcleo.
 
 ### Lista para a fase 3 — estruturas da árvore ainda sem estudo/modelo
 (Fonte: "Estruturas: temos × precisamos" do docs/ARVORE_TECNOLOGIA.md. Entre parênteses, o que cada uma destrava do que

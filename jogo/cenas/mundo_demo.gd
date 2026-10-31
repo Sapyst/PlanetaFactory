@@ -1557,7 +1557,7 @@ func _opcoes_modulos(id: int, e: Dictionary, vel: float, linhas: Array[String], 
 			tem = true
 			botoes.append({"texto": "＋ %s%s" % [_nome_item(item), "" if gratis else " (%d no núcleo)" % n], "acao": func(): fabrica.por_modulo(id, item, gratis); _detalhe()})
 	if not tem:
-		linhas.append("Para encaixar: leve módulos prontos ao núcleo (montadora → braço → núcleo)")
+		linhas.append("Para encaixar: leve módulos prontos ao núcleo (montadora → braço ou esteira → núcleo)")
 
 
 ## Painel do silo de lançamento: partes, propelente, carga-semente e o botão de lançar.

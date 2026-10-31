@@ -80,8 +80,13 @@ static func preparar_dados(k: Vector2i, gerador: GeradorMundo) -> Dictionary:
 		# manchas contínuas: cada tile maior que o tile (encosta nos vizinhos), giro e deslocamento próprios
 		var r := Distribuicao.h(t.x, t.y, 77) * TAU
 		var esc := 1.15 + 0.25 * Distribuicao.h(t.x, t.y, 78)
+		if j.tipo == "poca_seiva":
+			esc *= 1.5                                 # seiva: as bordas se cobrem e as poças emendam numa mancha (modelo menor que o tile)
 		var off := Vector3(Distribuicao.h(t.x, t.y, 79) - 0.5, 0, Distribuicao.h(t.x, t.y, 80) - 0.5) * 0.3
-		_add(d.grupos, j.tipo, Transform3D(Basis(Vector3.UP, r).scaled(Vector3(esc, 1.0, esc)), Grade.centro_mundo(t, gerador.micro_em(Vector2(t))) + off))
+		var y_j := gerador.micro_em(Vector2(t))
+		if j.tipo == "poca_seiva":
+			y_j *= 0.25                                # quase na mesma altura: a borda de uma não fura a seiva da vizinha
+		_add(d.grupos, j.tipo, Transform3D(Basis(Vector3.UP, r).scaled(Vector3(esc, 1.0, esc)), Grade.centro_mundo(t, y_j) + off))
 		_add(d.tiles, j.tipo, t)
 	for dc in c.decos:
 		var tt := Vector2i(dc.pos.floor())
@@ -438,9 +443,11 @@ func atualizar_fabrica() -> void:
 				if id < 0:
 					continue
 				var nome: String = _mapa.estruturas[id].nome
-				if nome == "ninho_aranha" or Registro.estruturas.get(nome, {}).has("requer_jazida") \
-						or _mapa.estruturas[id].get("sobre_agua", false):
+				if _mapa.estruturas[id].get("sobre_agua", false):
 					continue                              # sobre a água: plataforma com pilares, o leito fica como está
+				if nome == "ninho_aranha" or Registro.estruturas.get(nome, {}).has("requer_jazida"):
+					_sem_grama_em(base + Vector2i(i - 1, j - 1), i, j, plano, valor, alvo)
+					continue                              # sem piso (o minério/chão fica à mostra), mas a vegetação baixa sai
 				var nv_e := _mapa.gerador.nivel(base + Vector2i(i - 1, j - 1))
 				for dj in range(-ESPALHA, ESPALHA + 1):
 					for di in range(-ESPALHA, ESPALHA + 1):
@@ -470,6 +477,17 @@ func atualizar_fabrica() -> void:
 			(m as ShaderMaterial).set_shader_parameter("mapa_fabrica", _tex_fabrica)
 	else:
 		_tex_fabrica.update(_img_fabrica)
+
+
+## Ninho e máquina de jazida não ganham piso, mas o capim não atravessa a base: marca "aplainar" (B) só no tile da peça, acima
+## do que o shader da grama apaga (0,35) e sem R, que é o que pinta o piso.
+func _sem_grama_em(t: Vector2i, i: int, j: int, plano: PackedFloat32Array, valor: PackedFloat32Array, alvo: PackedInt32Array) -> void:
+	var k := j * (Grade.TAM_CHUNK + 2) + i
+	if i < 0 or j < 0 or i > Grade.TAM_CHUNK + 1 or j > Grade.TAM_CHUNK + 1 or plano[k] >= 0.5:
+		return
+	plano[k] = 0.5
+	if valor[k] <= 0.0:
+		alvo[k] = _mapa.gerador.nivel(t)
 
 
 ## MultiMesh dos objetos naturais; o que fica em tile ocupado por construção (ou limpo) não aparece.

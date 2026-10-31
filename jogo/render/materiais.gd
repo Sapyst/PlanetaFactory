@@ -54,6 +54,8 @@ static func material(origem: Material, vento := 0.0, boiar := 0.0, uv2 := false,
 		m.set_shader_parameter("pulso", 1.0)
 	if nome == "P_Cristal":
 		m.set_shader_parameter("por_trabalho", true)
+	if nome == "P_Seiva":
+		m.set_shader_parameter("seiva", true)
 	# vegetação: o material assado ("<modelo>_Tex") também balança e queima (antes só os de nome P_Folha…)
 	if vento > 0.0 and (nome in ["P_Folha", "P_FolhaClara", "P_Biomassa", "P_Lodo", "P_Malaquita", "P_Cristal", "P_FungoCaule"] or nome.ends_with("_Tex") or PERFIL_FOLHA.has(nome)):
 		m.set_shader_parameter("vento", vento)
