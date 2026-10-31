@@ -1,13 +1,17 @@
 class_name Fantasma
 extends Node3D
-## Desenha um plano do Construtor: cada peça translúcida (verde = pode, vermelho = não pode, cinza = já está igual),
-## a pegada no chão tile a tile e setas nas portas (entrada aponta para dentro, saída para fora) — é assim que se lê
-## a direção de uma esteira/braço antes de construir. Cada porta tem rótulo "entra"/"sai"; porta sem nada encostado
-## (Portas.ligada) fica vermelha com "falta". Máquinas ganham uma seta grande "frente" fora da borda da frente.
+## Desenha um plano do Construtor: cada peça translúcida (verde = pode, vermelho-escuro = não pode, cinza = já está igual)
+## e a pegada no chão tile a tile. Não pode: os tiles que atrapalham ficam realçados, com o motivo curto (Bloqueios).
+## Máquina: cada porta tem o marcador de chão (MarcadorPortas) no tile exato da porta, verde se ali já encaixa em algo certo,
+## vermelho se está em falta, com a seta do fluxo; e a seta grande "frente". Caminhos (esteira, cano, braço) continuam
+## só com setas nas portas: é assim que se lê a direção antes de construir.
 ## Tudo vem de pools: nada é criado de novo a cada quadro.
 
 const VERDE := Color(0.35, 1.0, 0.55)
 const VERMELHO := Color(1.0, 0.30, 0.25)
+const VERMELHO_ESCURO := Color(0.17, 0.006, 0.005, 0.78)   ## o fantasma inteiro quando não pode: escurece, não acende (shader próprio)
+const REALCE := Color(0.95, 0.02, 0.01, 0.92)              ## tile que atrapalha (linear, sem luz)
+const MAX_MOTIVOS := 3                             ## etiquetas de motivo por desenho (um traço longo não vira parede de texto)
 const CINZA := Color(0.75, 0.78, 0.85, 0.6)
 const AMARELO := Color(1.0, 0.85, 0.3)
 
@@ -21,6 +25,7 @@ var _linhas: MeshInstance3D           ## prévia dos fios + anel do alcance do p
 var _malha_seta: ArrayMesh
 var _rotulos: Array[Label3D] = []
 var mapa: MapaOcupacao                    ## (opcional) para saber se a porta já tem algo ligado
+var _marcador: MarcadorPortas
 
 
 func _ready() -> void:
@@ -34,6 +39,25 @@ func _ready() -> void:
 	m.no_depth_test = true
 	_linhas.material_override = m
 	add_child(_linhas)
+	_marcador = MarcadorPortas.new()
+	add_child(_marcador)
+
+
+## Marcadores de porta de um plano (o que `mostrar` pinta no chão): uma entrada por porta das máquinas postas, verde se
+## já encaixa, vermelho se falta. Caminhos, baú, núcleo e torre de energia não têm porta obrigatória: sem marcador.
+static func marcadores(plano: Array[Dictionary], p_mapa: MapaOcupacao, remover := false) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if remover or p_mapa == null:
+		return out
+	for it in plano:
+		var acao: String = it.get("acao", "colocar")
+		if acao in ["aplainar", "trem", "igual", "remover", "limpar"] or not Portas.mostra_aviso(it.nome):
+			continue
+		var e := {"nome": it.nome, "minimo": it.minimo, "rot": it.rot, "area": Registro.area(it.nome)}
+		for s in Portas.estados(p_mapa, e):
+			s["cor"] = MarcadorPortas.VERDE if s.ok else MarcadorPortas.VERMELHO
+			out.append(s)
+	return out
 
 
 ## plano: itens do Construtor. remover = true pinta tudo de vermelho (o que vai sumir).
@@ -76,9 +100,10 @@ func mostrar(plano: Array[Dictionary], remover := false) -> void:
 		if remover:
 			continue
 		var maquina: bool = Portas.mostra_aviso(nome) and it.get("acao", "colocar") != "trem"
-		var e := {"nome": nome, "minimo": it.minimo, "rot": it.rot, "area": area}
 		for porta in Registro.modelos.get(nome, {}).get("portas", []):
 			if porta.tipo == "TRILHO":
+				continue
+			if maquina and mapa != null:                           # a máquina usa o marcador de chão
 				continue
 			var pm := Grade.porta_no_mundo(porta, it.minimo, area, it.rot)
 			var s := _seta(ns)
@@ -87,16 +112,8 @@ func mostrar(plano: Array[Dictionary], remover := false) -> void:
 			var p2: Vector2 = pm.pos - Vector2(pm.dir) * 0.22       # um pouco para dentro da peça
 			s.position = Grade.ponto_mundo(p2, float(porta.pos[2]) + 0.30 + alt)
 			s.rotation = Vector3(0, atan2(-d.x, d.y), 0)            # −Z da seta → direção d da grade
-			var solta: bool = maquina and mapa != null and not Portas.ligada(mapa, e, porta)
-			var cor_seta := AMARELO if porta.io == "SAI" else Color.WHITE
-			s.material_override = _material(VERMELHO if solta else cor_seta)
+			s.material_override = _material(AMARELO if porta.io == "SAI" else Color.WHITE)
 			s.scale = Vector3.ONE * (1.6 if maquina else 1.0)
-			if maquina:                                            # rótulo da porta (entra/sai; falta se solta)
-				var r := _rotulo(nr)
-				nr += 1
-				r.position = Grade.ponto_mundo(p2, float(porta.pos[2]) + 0.62 + alt)
-				r.text = ("falta " if solta else "") + ("entra" if porta.io == "ENT" else "sai")
-				r.modulate = VERMELHO if solta else cor
 		if maquina:                                                # frente da peça: seta grande fora da borda norte girada
 			var f := Vector2(Grade.girar_i(Vector2i(0, 1), it.rot))
 			var meio := Grade.centro_da_area(it.minimo, area, it.rot)
@@ -112,6 +129,21 @@ func mostrar(plano: Array[Dictionary], remover := false) -> void:
 			r.position = Grade.ponto_mundo(meio + f * (lado / 2.0 + 0.95), 0.25 + alt)
 			r.text = "frente"
 			r.modulate = Color(0.75, 1.0, 0.78)
+	if not remover and mapa != null:                           # o que atrapalha: realce nos tiles e o motivo curto
+		var grupos := Bloqueios.resumo(mapa, plano)
+		for k in grupos.size():
+			for t in grupos[k].tiles:
+				var pb := _pegada(np)
+				np += 1
+				pb.position = Grade.centro_mundo(t, 0.07)
+				pb.material_override = _material(REALCE, true)
+			if k < MAX_MOTIVOS:
+				var r := _rotulo(nr)
+				nr += 1
+				r.position = Grade.centro_mundo(grupos[k].tiles[0], 1.15)
+				r.text = "✕ " + str(grupos[k].texto)
+				r.modulate = Color(1.0, 0.86, 0.82)
+	_marcador.definir(marcadores(plano, mapa, remover))
 	_esconder_resto(np, ns)
 	for i in range(nr, _rotulos.size()):
 		_rotulos[i].visible = false
@@ -120,6 +152,7 @@ func mostrar(plano: Array[Dictionary], remover := false) -> void:
 func limpar() -> void:
 	_usados.clear()
 	_esconder_resto(0, 0)
+	_marcador.definir([])
 	for r in _rotulos:
 		r.visible = false
 	_linhas.mesh = null
@@ -148,7 +181,7 @@ func mostrar_fios(pares: Array, centro: Vector3, raio: float) -> void:
 func _cor(it: Dictionary, remover: bool) -> Color:
 	if remover: return VERMELHO
 	if it.get("acao", "") == "igual": return CINZA
-	return VERDE if it.motivo == "" else VERMELHO
+	return VERDE if it.motivo == "" else VERMELHO_ESCURO
 
 
 func _pegar_modelo(nome: String) -> Node3D:
@@ -175,12 +208,16 @@ func _pintar(no: Node3D, cor: Color) -> void:
 		(mi as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 
-func _material(cor: Color) -> ShaderMaterial:
-	var k := cor.to_html()
+## Holograma aditivo (acende). O que não pode construir usa o shader que tinge e escurece: aditivo não fica escuro.
+func _material(cor: Color, realce := false) -> ShaderMaterial:
+	var k := cor.to_html() + ("r" if realce else "")
 	if not _mat.has(k):
 		var m := ShaderMaterial.new()
-		m.shader = preload("res://interface/fantasma.gdshader")
+		var bloqueado: bool = realce or cor.is_equal_approx(VERMELHO_ESCURO) or (cor.r < 0.2 and cor.g < 0.01)
+		m.shader = preload("res://interface/fantasma_bloqueado.gdshader") if bloqueado else preload("res://interface/fantasma.gdshader")
 		m.set_shader_parameter("cor", cor)
+		if bloqueado:
+			m.set_shader_parameter("realce", realce)
 		m.render_priority = 1
 		_mat[k] = m
 	return _mat[k]
@@ -206,7 +243,9 @@ func _rotulo(i: int) -> Label3D:
 		l.pixel_size = 0.001
 		l.font_size = 28
 		l.outline_size = 10
-		l.outline_modulate = Color(0, 0, 0, 0.85)
+		l.outline_modulate = Color(0, 0, 0, 0.9)
+		l.render_priority = 6                             # por cima do holograma e dos realces
+		l.outline_render_priority = 5
 		add_child(l)
 		_rotulos.append(l)
 	_rotulos[i].visible = true

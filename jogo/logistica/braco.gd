@@ -8,11 +8,16 @@ extends RefCounted
 ## O animador lê `fase()` (0..1) e `segurando` para posar o braço.
 ## Braço empilhador (pilha_max 4): na origem pega, de uma vez, até pilha_max itens IGUAIS ao primeiro (os que estão lá
 ## agora e que o destino aceita); no destino solta um por vez até a garra esvaziar.
+## Modo Radial: `origens` lista os 3 lados que não são a frente (atrás, esquerda, direita); pega da que tiver item que passa no
+## filtro e que o destino aceita, em rodízio. Linear (origens vazia): só `origem`, atrás.
 
 enum Estado { ESPERANDO_ITEM, INDO_SOLTAR, ESPERANDO_DESTINO, VOLTANDO }
 
 var ciclo_s := 0.83
 var origem: Object
+var origens: Array = []       ## modo Radial: [atrás, esquerda, direita] (null onde não há nada)
+var origem_i := 0             ## de qual lado veio o último item (0 atrás, 1 esquerda, 2 direita); o animador gira até lá
+var _rodizio := 0
 var destino: Object
 var filtro := ""
 ## Itens que o braço pega (vazio = Auto: o que vier). Sempre esperto: só pega o que o destino aceita agora.
@@ -43,14 +48,20 @@ func tick(dt: float) -> void:
 	var passo := dt * energia
 	match estado:
 		Estado.ESPERANDO_ITEM:
-			if origem == null or destino == null:
+			if destino == null or (origem == null and origens.is_empty()):
 				return
 			var item := ""
-			if origem.has_method("pegar_se"):
-				# origem escolhe um item que o destino aceita (não pega o que vai ficar preso na garra)
-				item = origem.pegar_se(func(i: String) -> bool: return passa(i) and destino.aceita(i))
-			elif destino.aceita(_previsto()):
-				item = origem.pegar_para_braco(filtro)
+			if origens.is_empty():
+				item = _pegar_de(origem)
+			else:
+				for k in origens.size():            # rodízio: começa depois de quem entregou por último
+					var i := (_rodizio + k) % origens.size()
+					item = _pegar_de(origens[i])
+					if item != "":
+						origem = origens[i]
+						origem_i = i
+						_rodizio = (i + 1) % origens.size()
+						break
 			if item != "":
 				segurando = item
 				qtd = 1
@@ -82,6 +93,17 @@ func tick(dt: float) -> void:
 			if t >= ciclo_s * 0.5:
 				t = 0.0
 				estado = Estado.ESPERANDO_ITEM
+
+
+func _pegar_de(o: Object) -> String:
+	if o == null:
+		return ""
+	if o.has_method("pegar_se"):
+		# origem escolhe um item que o destino aceita (não pega o que vai ficar preso na garra)
+		return o.pegar_se(func(i: String) -> bool: return passa(i) and destino.aceita(i))
+	if destino.aceita(_previsto()):
+		return o.pegar_para_braco(filtro)
+	return ""
 
 
 func _tentar_soltar() -> void:

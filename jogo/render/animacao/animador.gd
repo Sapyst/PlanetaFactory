@@ -25,6 +25,8 @@ extends Node
 @export var ativo := true
 @export var ritmo := 1.0
 var fase_braco := 0.0
+var giro_origem := PI          ## ângulo da origem do braço: atrás = π; no modo Radial, ±π/2 nos lados (0 = destino)
+var _giro_suave := PI
 ## Braço: modelo (para ler os pivôs do braço em modelos.json) e onde pegar/soltar — distância (m) e altura do
 ## pulso em cada ponta (esteira baixa; máquina/baú mais alto). O mundo preenche.
 var modelo := ""
@@ -163,7 +165,9 @@ func _braco_mecanico() -> void:
 	var h := lerpf(de.y, alto, sobe) if x < 0.5 else lerpf(alto, para.y, desce)
 	var r := lerpf(de.x, para.x, gira)
 	# giro: origem fica atrás (π), destino na frente (0); a volta desfaz o mesmo caminho
-	var ang := PI * (1.0 - gira) if ida else PI * gira
+	# (no Radial a origem muda de lado: vira até ela a ~1 volta/s, sem salto)
+	_giro_suave = move_toward(_giro_suave, giro_origem, TAU * get_process_delta_time())
+	var ang := _giro_suave * (1.0 - gira) if ida else _giro_suave * gira
 	_gira("giro", ang)
 	h += float(_ik.dz)
 	var sol := _resolver_telescopico(r, h) if tem("estagio2") else _resolver(r, h)

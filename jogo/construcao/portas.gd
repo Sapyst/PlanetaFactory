@@ -37,6 +37,21 @@ static func costas_braco(e: Dictionary) -> Vector2i:
 	return Vector2i(e.minimo) - Grade.girar_i(Vector2i(0, 1), int(e.rot)) * _alcance(e.nome)
 
 
+## Modo Radial (pega de 3 lados): só para braço com alcance fixo; o quântico estica a lança para trás, e fica Linear.
+static func braco_radial(e: Dictionary) -> bool:
+	return e.get("modo_braco", "") == "radial" and not Registro.estruturas.get(e.nome, {}).has("alcance_max")
+
+
+## Tiles de onde o braço pega: atrás; no Radial, também os dois lados (mesmo alcance).
+static func origens_braco(e: Dictionary) -> Array[Vector2i]:
+	var out: Array[Vector2i] = [costas_braco(e)]
+	if braco_radial(e):
+		var d := Grade.girar_i(Vector2i(0, 1), int(e.rot)) * _alcance(e.nome)
+		out.append(Vector2i(e.minimo) + Vector2i(-d.y, d.x))
+		out.append(Vector2i(e.minimo) + Vector2i(d.y, -d.x))
+	return out
+
+
 static func _alcance(nome: String) -> int:
 	return 2 if nome == "braco_longo" else 1
 
@@ -72,32 +87,45 @@ static func braco_serve(mapa: MapaOcupacao, e: Dictionary, entrada: bool) -> boo
 			for k in [1, 2]:
 				for id in mapa.ids_no_tile(t + d * k):
 					var o: Dictionary = mapa.estruturas[id]
-					if eh_braco(o.nome) and dentro.has(frente_braco(o) if entrada else costas_braco(o)):
+					if not eh_braco(o.nome):
+						continue
+					if entrada and dentro.has(frente_braco(o)):
 						return true
+					if not entrada:
+						for q in origens_braco(o):
+							if dentro.has(q):
+								return true
 	return false
 
 
-## Portas soltas de uma estrutura do mapa: [{pos (grade), dir, io}] — vazio se tudo ligado.
+## Situação de cada porta de item/fluido de `e` (no mapa ou ainda fantasma): [{pos, dir, io, tipo, z, tile_fora, tile_dentro,
+## ok}]. ok = encaixada em algo certo, ou braço servindo aquele sentido por qualquer lado (braço só carrega item, não fluido).
+## É a mesma regra para o fantasma (verde/vermelho) e para o aviso da estrutura pronta.
+static func estados(mapa: MapaOcupacao, e: Dictionary) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var area: Vector2i = e.get("area", Registro.area(e.nome))
+	var serve := {}                                       # "ENT"/"SAI" → bool (só calcula se alguma porta de item precisar)
+	for porta in Registro.modelos.get(e.nome, {}).get("portas", []):
+		if porta.tipo == "TRILHO":
+			continue
+		var ok := ligada(mapa, e, porta)
+		if not ok and porta.tipo == "ITEM":
+			if not serve.has(porta.io):
+				serve[porta.io] = braco_serve(mapa, e, porta.io == "ENT")
+			ok = serve[porta.io]
+		var pm := Grade.porta_no_mundo(porta, e.minimo, area, e.rot)
+		out.append({"pos": pm.pos, "dir": pm.dir, "io": porta.io, "tipo": porta.tipo, "z": float(porta.pos[2]),
+				"tile_fora": pm.tile_fora, "tile_dentro": pm.tile_dentro, "ok": ok})
+	return out
+
+
+## Portas soltas de uma estrutura do mapa (formato de `estados`) — vazio se tudo ligado ou se ela não tem aviso.
 static func soltas(mapa: MapaOcupacao, id: int) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var e: Dictionary = mapa.estruturas[id]
 	if not mostra_aviso(e.nome):
 		return out
-	var ent := -1
-	var sai := -1
-	for porta in Registro.modelos.get(e.nome, {}).get("portas", []):
-		if porta.tipo == "TRILHO" or ligada(mapa, e, porta):
-			continue
-		if porta.io == "ENT":
-			if ent == -1:
-				ent = 1 if braco_serve(mapa, e, true) else 0
-			if ent == 1:
-				continue
-		else:
-			if sai == -1:
-				sai = 1 if braco_serve(mapa, e, false) else 0
-			if sai == 1:
-				continue
-		var pm := Grade.porta_no_mundo(porta, e.minimo, e.area, e.rot)
-		out.append({"pos": pm.pos, "dir": pm.dir, "io": porta.io, "z": float(porta.pos[2])})
+	for s in estados(mapa, e):
+		if not s.ok:
+			out.append(s)
 	return out

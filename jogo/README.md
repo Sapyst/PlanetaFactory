@@ -163,6 +163,16 @@ vista. Contador de FPS embutido (ligado por padrão na fase de testes; Configura
 - Torre de defesa básica liberada desde o começo: puxa 120 kW da rede até guardar 6 MJ, cada tiro gasta 0,05 MJ;
   munição vira reserva (pesquisa "Munição").
 
+## Perfis de interface (PC × celular)
+`Tema.pc` (`OS.has_feature("mobile"/"android")` ou `-- celular` = celular; o resto, PC). **Uma tabela só**: `Tema.MEDIDAS` (chave → [celular, PC]) e `Tema.ESTILO_*`; quem desenha pede `Tema.n/f/v/estilo`, nunca número nem `if` por painel. Coluna do celular = números de sempre: `ferramentas/testar.sh` roda `testes/conferir_celular.gd -- celular`, que monta a interface e compara cada controle com `testes/medidas_celular.json`, gravado antes da mudança.
+No PC, 100% = a medida do perfil: 1 ponto = 1 pixel até janela de 1600×900, tela lógica de 1600×900 acima disso (`Sessao.fator_escala`). `ui_pc`: quem estava em até 80% (encolheu a interface grande de antes) volta a 100% uma vez.
+
+## Portas no chão, fantasma e seleção
+`MarcadorPortas` (MultiMesh + `render/shaders/marcador_porta.gdshader`: pulso e corte do oval no shader; viés de profundidade em vez de altura grande contra z-fighting) é o mesmo no aviso (`DesenhoPortas`, no lugar das placas Label3D) e no fantasma. `Portas.estados` é a regra única (`ok`); `soltas` é o filtro dela. Braço não atende porta de fluido (antes atendia, por engano). `Bloqueios` traduz o motivo do Construtor em texto curto e tiles. Bloqueado usa `fantasma_bloqueado.gdshader` (mistura; o aditivo não escurece). `DesenhoSelecao`: caixa de arestas numa malha só, sem tocar o material da peça.
+
+## Painel, baú e braço
+`BarraConstrucao.detalhe(titulo, texto, botoes, extra)`; `extra` e as chaves `secao`, `grupo`, `receita` só mudam a forma no perfil compacto. `Maquina.Estado.DESLIGADA`, `Fabrica._marcar_desligada`, `causa_maquina`, `Maquina.contar` (tempo e ritmo, no save). `Fabrica.copiar_config/colar_config` (`CAMPOS_CONFIG`). Baú: `e.aceita`, `e.aceita_limite`, `e.ordem`; `_NoBau` e `Fabrica.quanto_cabe` valem para braço e drones. Braço: `e.modo_braco = "radial"`, `Portas.origens_braco`, `Braco.origens` em rodízio, `Animador.giro_origem`. Faixa: `BarraConstrucao.lugar_faixa` (retângulos reais; pura e testada).
+
 ## Toque (celular primeiro)
 - Toque × arrasto pelo dedo em milímetros reais (`interface/toque.gd`, 3,2 mm), não em pixels da tela de 720.
 - Câmera: o chão fica preso embaixo do dedo (`CameraJogo.arrastar_tela`), sem atraso; pinça aproxima em volta do

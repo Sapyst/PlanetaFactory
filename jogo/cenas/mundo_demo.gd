@@ -1090,6 +1090,9 @@ func _fontes_calor() -> Array:
 	return r
 
 
+const GIRO_ORIGEM := [PI, PI / 2.0, -PI / 2.0]      ## atrás, esquerda, direita do braço (modo Radial)
+
+
 ## Animação segue a simulação: máquina mexe só trabalhando; braço pela fase do ciclo.
 var _versao_bracos := -1
 var _turbinas: Array = []
@@ -1290,6 +1293,7 @@ func _animar_estruturas() -> void:
 		var a := _animador(id)
 		if a != null:
 			a.fase_braco = fposmod(_tempo * 0.45 + id * 0.137, 1.0) if animar_tudo else fabrica.bracos[id].fase()
+			a.giro_origem = GIRO_ORIGEM[fabrica.bracos[id].origem_i]
 
 
 func _animador(id: int) -> Animador:
@@ -1491,7 +1495,8 @@ func _tick_mundo(dt: float) -> void:
 const NOMES_ESTADO := {Maquina.Estado.SEM_RECEITA: "sem receita — escolha abaixo", Maquina.Estado.SEM_INSUMO: "esperando insumo",
 		Maquina.Estado.SAIDA_CHEIA: "saída cheia (tire os produtos)", Maquina.Estado.SEM_ENERGIA: "sem energia",
 		Maquina.Estado.SEM_JAZIDA: "jazida esgotada", Maquina.Estado.TRABALHANDO: "trabalhando",
-		Maquina.Estado.ESPERANDO_CLIMA: "esperando o tempo mudar", Maquina.Estado.PRONTIDAO: "de prontidão (com água, vigiando)"}
+		Maquina.Estado.ESPERANDO_CLIMA: "esperando o tempo mudar", Maquina.Estado.PRONTIDAO: "de prontidão (com água, vigiando)",
+		Maquina.Estado.DESLIGADA: "desligada"}
 
 
 ## Clique/toque de mão vazia: trem perto do ponto, senão a estrutura do tile. Vector2.INF fecha.
@@ -1510,6 +1515,92 @@ func girar_estrutura(id: int) -> void:
 	_detalhe()
 
 
+## Ações da estrutura selecionada (botões do painel e atalhos do PC). false = não fez nada.
+func alternar_ligada(id: int) -> bool:
+	if not mapa.estruturas.has(id) or not _tem_liga(id):
+		return false
+	var e: Dictionary = mapa.estruturas[id]
+	if e.get("desligada", false):
+		e.erase("desligada")
+	else:
+		e["desligada"] = true
+	Som.tocar("clique")
+	_fabrica_suja = true
+	_detalhe()
+	return true
+
+
+func _tem_liga(id: int) -> bool:
+	var e: Dictionary = mapa.estruturas[id]
+	return Fiacao.papel(e.nome) in ["consumo", "fonte"] or fabrica.maquinas.has(id) or e.nome in ["comparador", "valvula"]
+
+
+func remover_estrutura(id: int) -> bool:
+	if not mapa.estruturas.has(id) or mapa.estruturas[id].nome == "nucleo":
+		return false
+	var e: Dictionary = mapa.estruturas[id]
+	var plano: Array[Dictionary] = []
+	for it in construtor.plano_remocao(e.minimo, e.minimo):
+		if it.get("id", -1) == id and it.motivo == "":
+			plano.append(it)
+	if plano.is_empty():
+		return false
+	sincronizar(construtor.executar(plano))
+	Som.tocar("remover")
+	controle._avisar("Removido (Ctrl+Z desfaz)" if Tema.estilo("atalhos") else "Removido")
+	_sel = {}
+	_detalhe()
+	return true
+
+
+var _copia: Dictionary = {}          ## configuração copiada no painel (só na sessão, não vai no save)
+
+
+func copiar_config_de(id: int) -> bool:
+	if not mapa.estruturas.has(id) or not fabrica.tem_config(id):
+		return false
+	_copia = fabrica.copiar_config(id)
+	controle._avisar("Configuração copiada: %s" % controle.barra.rotulo(_copia.nome))
+	_detalhe()
+	return true
+
+
+func colar_config_em(id: int) -> bool:
+	if not fabrica.pode_colar(id, _copia):
+		if not _copia.is_empty():
+			controle._avisar("A cópia é de %s: só cola em outra igual" % controle.barra.rotulo(_copia.nome))
+		return false
+	var r := fabrica.colar_config(id, _copia, func(rc: String) -> bool: return pesquisa.receita_liberada(rc))
+	if r.remontar:
+		_fabrica_suja = true
+	Som.tocar("clique")
+	controle._avisar("Configuração colada" + (" (receita ainda não pesquisada ficou de fora)" if r.receita_pulada != "" else ""))
+	_detalhe()
+	return true
+
+
+## Atalho de teclado na estrutura selecionada. acao: "ligar", "girar", "remover", "copiar", "colar", "fechar". false = não havia o que fazer.
+func atalho_selecao(acao: String) -> bool:
+	if not _sel.has("estrutura") or not mapa.estruturas.has(_sel.estrutura):
+		return false
+	var id: int = _sel.estrutura
+	match acao:
+		"ligar": return alternar_ligada(id)
+		"girar":
+			if mapa.estruturas[id].nome == "pilar" or mapa.estruturas[id].get("nivel", 0) != 0:
+				return false
+			girar_estrutura(id)
+			return true
+		"remover": return remover_estrutura(id)
+		"copiar": return copiar_config_de(id)
+		"colar": return colar_config_em(id)
+		"fechar":
+			_sel = {}
+			_detalhe()
+			return true
+	return false
+
+
 func selecionar(p: Vector2) -> void:
 	_sel = {}
 	if p != Vector2.INF:
@@ -1522,6 +1613,20 @@ func selecionar(p: Vector2) -> void:
 			if id >= 0 and mapa.estruturas[id].nome != "ninho_aranha":
 				_sel = {"estrutura": id}
 	_detalhe()
+
+
+## Contorno no mundo da estrutura aberta no painel; some quando o painel fecha.
+func _atualizar_selecao() -> void:
+	if _desenho_selecao == null:
+		_desenho_selecao = DesenhoSelecao.new()
+		add_child(_desenho_selecao)
+	if _sel.has("estrutura") and mapa.estruturas.has(_sel.estrutura):
+		_desenho_selecao.mostrar(mapa.estruturas[_sel.estrutura])
+	else:
+		_desenho_selecao.esconder()
+
+
+var _desenho_selecao: DesenhoSelecao
 
 
 func _nome_item(i: String) -> String:
@@ -1652,7 +1757,8 @@ func _detalhe_lancador(id: int, linhas: Array[String], opcoes: Array, botoes: Ar
 
 
 ## Painel do posto avançado (núcleo-filho): energia própria, estoque e o raio da obra que paga com ele.
-func _detalhe_posto(id: int, e: Dictionary, regra: Dictionary, linhas: Array[String]) -> void:
+func _detalhe_posto(id: int, e: Dictionary, regra: Dictionary, linhas: Array[String], botoes_posto: Array, grade: Array) -> void:
+	_opcoes_filtro_bau(id, e, linhas, grade)
 	var b: Dictionary = fabrica.baus[id]
 	var n := 0
 	for k in b:
@@ -1664,7 +1770,7 @@ func _detalhe_posto(id: int, e: Dictionary, regra: Dictionary, linhas: Array[Str
 	linhas.append("Núcleo-filho: %d kW próprios, sem cabo, para as máquinas até %d m da borda (%d ligada%s)" % [-int(regra.get("energia_kw", 0)),
 			int(regra.get("raio_ligacao", 7)), maquinas, "" if maquinas == 1 else "s"])
 	linhas.append("Estoque próprio: %d de %d itens (entra e sai por braço; drones logísticos usam como estoque)" % [n, fabrica.capacidade_bau(id)])
-	linhas.append("Conteúdo: %s" % _lista_itens(b))
+	_inventario_bau(id, e, botoes_posto)
 	if construtor.cobrar:
 		linhas.append("Obras a até %d m pagam primeiro com este estoque; o que faltar sai do núcleo" % int(regra.posto.get("raio_obra", 32)))
 	if genese.eh_colonia(id):
@@ -1710,6 +1816,7 @@ func _detalhe_varredura(id: int, linhas: Array[String]) -> void:
 
 
 func _detalhe() -> void:
+	_atualizar_selecao()
 	var barra := controle.barra
 	if _sel.has("pesquisa"):
 		_detalhe_pesquisa()
@@ -1781,18 +1888,23 @@ func _detalhe() -> void:
 	var grade_filtro := []               ## escolha de itens do braço (grade de ícones): por último no painel
 	var regra: Dictionary = Registro.estruturas.get(e.nome, {})
 	var vida_max: float = regra.get("vida", 0)
+	var compacto := Tema.estilo("painel_compacto")   # PC: o que tem cabeçalho, barra ou casa própria não repete em texto
 	if vida_max > 0.0:
 		var v: float = colonia.vida.get(id, vida_max)
-		linhas.append("Integridade: %d de %d (%d%%)%s" % [ceilf(v), vida_max, v / vida_max * 100.0, "" if v < vida_max else " — inteira"])
+		if not compacto:
+			linhas.append("Integridade: %d de %d (%d%%)%s" % [ceilf(v), vida_max, v / vida_max * 100.0, "" if v < vida_max else " — inteira"])
 		var custo := custo_reparo(id)
 		if not custo.is_empty() and e.nome != "ninho_aranha":
-			opcoes.append({"texto": "Reparar (%s)" % _lista_itens(custo), "acao": func(): reparar(id); _detalhe()})
+			opcoes.append({"texto": "Reparar (%s)" % _lista_itens(custo), "acao": func(): reparar(id); _detalhe(), "secao": "acoes", "icone_txt": "✚ Reparar"})
 	if fabrica.maquinas.has(id):
 		var m: Maquina = fabrica.maquinas[id]
-		linhas.append("Estado: %s" % NOMES_ESTADO[m.estado])
-		if m.receita_id != "":
-			linhas.append("Receita: %s → %s" % [_lista_receita(m.receita, "entradas"), _lista_receita(m.receita, "saidas")])
-		linhas.append("Dentro: %s\nPronto: %s" % [_lista_itens(m.entradas), _lista_itens(m.saidas)])
+		if not compacto:
+			linhas.append("Estado: %s" % NOMES_ESTADO[m.estado])
+			if m.receita_id != "":
+				linhas.append("Receita: %s → %s" % [_lista_receita(m.receita, "entradas"), _lista_receita(m.receita, "saidas")])
+			linhas.append("Dentro: %s\nPronto: %s" % [_lista_itens(m.entradas), _lista_itens(m.saidas)])
+			if m.tempo_total >= 10.0:
+				linhas.append(_texto_estatistica(m))
 		if fabrica.combustivel.has(id):
 			linhas.append("Combustível: %.1f MJ" % fabrica.combustivel[id])
 		for fl in m.fluidos:
@@ -1885,6 +1997,7 @@ func _detalhe() -> void:
 					continue
 				var rec: Dictionary = Registro.receitas[r]
 				botoes.append({"texto": "%s%s  ←  %s" % ["1: " if l2 != null else "", _lista_receita(rec, "saidas"), _lista_receita(rec, "entradas")],
+						"receita": _dados_receita(rec), "grupo_receita": "Receita (linha 1)" if l2 != null else "Receita",
 						"ligado": m.receita_id == r, "acao": func(): fabrica.escolher_receita(id, r); _detalhe()})
 			if l2 != null:
 				for r in Registro.receitas_da_maquina(tipo):
@@ -1892,6 +2005,7 @@ func _detalhe() -> void:
 						continue
 					var rec: Dictionary = Registro.receitas[r]
 					botoes.append({"texto": "2: %s  ←  %s" % [_lista_receita(rec, "saidas"), _lista_receita(rec, "entradas")],
+							"receita": _dados_receita(rec), "grupo_receita": "Receita (linha 2)",
 							"ligado": l2.receita_id == r, "acao": func(): fabrica.escolher_receita(id, r, 2); _detalhe()})
 	elif regra.has("irradiador"):
 		var ci: Dictionary = regra.irradiador
@@ -1996,21 +2110,23 @@ func _detalhe() -> void:
 			linhas.append("Cada unidade gasta: %s" % ", ".join(tipos.map(func(t): return "1 " + Pesquisa.nome_tipo(t))))
 		opcoes.append({"texto": "⚗  Abrir a pesquisa", "acao": abrir_pesquisa})
 	elif Fabrica.eh_posto(e.nome) and fabrica.baus.has(id):
-		_detalhe_posto(id, e, regra, linhas)
+		_detalhe_posto(id, e, regra, linhas, botoes, grade_filtro)
 	elif fabrica.baus.has(id):
 		var n := 0
 		for k in fabrica.baus[id]:
 			n += int(fabrica.baus[id][k])
-		linhas.append("Armazenamento: %d de %d itens (máximo do baú: %d)" % [n, fabrica.capacidade_bau(id), regra.get("capacidade_itens", Fabrica.BAU_MAX)])
-		linhas.append("Conteúdo: %s" % _lista_itens(fabrica.baus[id]))
+		if not compacto:
+			linhas.append("Armazenamento: %d de %d itens (máximo do baú: %d)" % [n, fabrica.capacidade_bau(id), regra.get("capacidade_itens", Fabrica.BAU_MAX)])
+		_inventario_bau(id, e, botoes)
 		if fabrica.um_tipo(id):
 			var tg := Fabrica.tipo_guardado(fabrica.baus[id])
 			linhas.append("Guarda um tipo só: %s" % ("vazio — aceita o primeiro item que chegar" if tg == "" else "%s (esvazie para trocar)" % _nome_item(tg)))
 		for lim in [0.25, 0.5, 1.0]:
-			botoes.append({"texto": "Limite: %d%% (%d itens)" % [lim * 100, int(regra.get("capacidade_itens", Fabrica.BAU_MAX) * lim)],
+			botoes.append({"texto": "Limite: %d%% (%d itens)" % [lim * 100, int(regra.get("capacidade_itens", Fabrica.BAU_MAX) * lim)], "grupo": "Limite", "curto": "%d%%" % (lim * 100),
 					"ligado": is_equal_approx(float(e.get("limite", 1.0)), lim), "acao": func(): e["limite"] = lim; _detalhe()})
 		if drones.logistica_liberada() and not fabrica.um_tipo(id):
 			_opcoes_logistica(e, linhas, opcoes, botoes)
+		_opcoes_filtro_bau(id, e, linhas, grade_filtro)
 	elif colonia.ninhos.has(id):
 		var fu: float = colonia.ninhos[id].get("furia", 0.0)
 		linhas.append("Aranhas: %d" % colonia.aranhas_do_ninho(id).size())
@@ -2088,13 +2204,24 @@ func _detalhe() -> void:
 					if ab != null:
 						_posar_braco(ab, e)
 					_detalhe()})
+		if not regra.has("alcance_max"):              # o braço quântico estica a lança para trás e só tem Linear
+			var modo_b := String(e.get("modo_braco", "linear"))
+			for mb in [["linear", "Linear", "Linear: pega atrás, solta na frente"], ["radial", "Radial", "Radial: solta na frente; pega dos outros 3 lados, em rodízio"]]:
+				var mbn: String = mb[0]
+				opcoes.append({"texto": mb[2], "grupo": "Modo do braço", "curto": mb[1], "ligado": modo_b == mbn, "acao": func():
+					if mbn == "linear":
+						e.erase("modo_braco")
+					else:
+						e["modo_braco"] = mbn
+					_fabrica_suja = true
+					_detalhe()})
 		_opcoes_filtro_braco(e, b, linhas, grade_filtro)
 	match Fiacao.papel(e.nome):
 		"consumo":
 			var fontes := Fiacao.ligacoes(mapa, e)
 			linhas.append("Energia: %d%% · ligada a %d poste(s)" % [fabrica.rede.satisfacao(id) * 100, fontes] if fontes > 0 else "Energia: SEM FIO — ponha um poste a até 5 m")
 			for n in [1, 2, 3]:
-				botoes.append({"texto": "Aceitar %d fonte(s) de energia" % n, "ligado": int(e.get("fontes", 1)) == n,
+				botoes.append({"texto": "Aceitar %d fonte(s) de energia" % n, "grupo": "Fontes de energia", "curto": str(n), "ligado": int(e.get("fontes", 1)) == n,
 						"acao": func(): Fiacao.mudar_vagas(mapa, id, n); _fabrica_suja = true; _detalhe()})
 		"poste":
 			var r: Dictionary = Registro.estruturas[e.nome]
@@ -2130,24 +2257,166 @@ func _detalhe() -> void:
 			t += " · acumulado %.0f de %.0f MJ (%s)" % [est.acum, est.acum_cap, "carregando" if est.carga > 0.5 else ("descarregando" if est.carga < -0.5 else "parado")]
 		linhas.append(t)
 	if e.nome != "pilar" and e.get("nivel", 0) == 0:
-		opcoes.append({"texto": "⟲  Girar", "acao": func(): girar_estrutura(id)})
+		opcoes.append({"texto": "⟲  Girar", "acao": func(): girar_estrutura(id), "secao": "acoes", "icone_txt": "⟲ Girar", "tecla": "R"})
 	# opções internas: ligar/desligar (tudo que usa ou gera energia, e máquinas) e modo de trabalho (máquinas elétricas)
 	if fabrica.logica_off.has(id):
 		linhas.append("Desligada pelo comparador encostado (a condição dele não vale agora)")
-	if Fiacao.papel(e.nome) in ["consumo", "fonte"] or fabrica.maquinas.has(id) or e.nome in ["comparador", "valvula"]:
+	if _tem_liga(id):
 		var liga: bool = not e.get("desligada", false)
 		opcoes.append({"texto": "Ligada" if liga else "Desligada (toque para ligar)", "ligado": liga,
-				"acao": func(): e["desligada"] = liga; _fabrica_suja = true; _detalhe()})
+				"acao": func(): alternar_ligada(id), "secao": "acoes", "icone_txt": "⏻ Ligada" if liga else "⏻ Desligada", "tecla": "O"})
 	if fabrica.maquinas.has(id) and float(regra.get("energia_kw", 0.0)) > 0.0:
 		var kw := float(regra.energia_kw)
 		for mo in [["eco", "Econômico"], ["normal", "Normal"], ["turbo", "Turbo"]]:
 			var k: Array = Fabrica.MODOS[mo[0]]
-			opcoes.append({"texto": "%s: %d%% velocidade · %d kW · %d%% poluição" % [mo[1], k[0] * 100, kw * k[1], k[2] * 100],
+			opcoes.append({"texto": "%s: %d%% velocidade · %d kW · %d%% poluição" % [mo[1], k[0] * 100, kw * k[1], k[2] * 100], "grupo": "Modo", "curto": mo[1],
 					"ligado": e.get("modo", "normal") == mo[0], "acao": func(): e["modo"] = mo[0]; _fabrica_suja = true; _detalhe()})
+	if e.nome != "nucleo" and e.nome != "ninho_aranha":
+		opcoes.append({"texto": "✕  Remover", "acao": func(): remover_estrutura(id), "secao": "acoes", "icone_txt": "✕ Remover", "tecla": "Del", "perigo": true})
+	if fabrica.tem_config(id):
+		opcoes.append({"texto": "⧉  Copiar configuração", "acao": func(): copiar_config_de(id), "secao": "acoes", "icone_txt": "⧉ Copiar", "tecla": "Ctrl+C"})
+		if fabrica.pode_colar(id, _copia):
+			opcoes.append({"texto": "⎘  Colar configuração", "acao": func(): colar_config_em(id), "secao": "acoes", "icone_txt": "⎘ Colar", "tecla": "Ctrl+V"})
 	if linhas.is_empty():
 		linhas.append(Registro.modelos.get(Construtor.modelo_de(e), {}).get("descricao", ""))
-	barra.detalhe(titulo, "\n".join(linhas), opcoes + botoes + grade_filtro)
+	var extra := {}
+	if compacto:
+		extra = _cabecalho_estrutura(id, e, regra)
+	barra.detalhe(titulo, "\n".join(linhas), opcoes + botoes + grade_filtro, extra)
 	barra.detalhe_maquina(_painel_maquina(id))
+
+
+## Dados de uma receita para a escolha com ícones: entradas e saídas, itens com ícone e fluidos pelo nome.
+func _dados_receita(rec: Dictionary) -> Dictionary:
+	var lado := func(ch_i: String, ch_f: String) -> Array:
+		var out := []
+		for k in rec.get(ch_i, {}):
+			out.append({"tex": TelaPesquisa._tex_item(k), "n": int(rec[ch_i][k]), "dica": _nome_item(k)})
+		for k in rec.get(ch_f, {}):
+			out.append({"tex": TelaPesquisa._tex_item(k), "n": int(rec[ch_f][k]), "dica": Registro.nome_fluido(k), "fluido": Registro.nome_fluido(k)})
+		return out
+	return {"entradas": lado.call("entradas", "entradas_fluido"), "saidas": lado.call("saidas", "saidas_fluido"), "tempo": float(rec.get("tempo", 1.0))}
+
+
+func _texto_estatistica(m: Maquina) -> String:
+	var p: Array[String] = []
+	if m.receita.has("saidas") and not m.receita.saidas.is_empty():
+		p.append("%s itens/min" % String.num(m.itens_por_minuto(), 1))
+	if m.tempo_total > 0.0:
+		p.append("trabalhou %d%% do tempo" % roundi(m.tempo_ativo / m.tempo_total * 100.0))
+	p.append("%d ciclos" % m.produzidos)
+	return " · ".join(p)
+
+
+## Cabeçalho e barras do painel compacto: ícone, vida, estado com a causa em palavras e as barras do tipo.
+func _cabecalho_estrutura(id: int, e: Dictionary, regra: Dictionary) -> Dictionary:
+	var d := {"icone": TelaPesquisa._tex_peca(Construtor.modelo_de(e)), "estado": "", "cor": Tema.cor("info"), "vida": -1.0, "barras": [], "stats": ""}
+	if d.icone == null:
+		d.icone = TelaPesquisa._tex_peca(e.nome)
+	var vmax := float(regra.get("vida", 0))
+	if vmax > 0.0:
+		d.vida = float(colonia.vida.get(id, vmax)) / vmax
+		d["vida_dica"] = "Integridade: %d de %d" % [ceilf(float(colonia.vida.get(id, vmax))), vmax]
+	if fabrica.maquinas.has(id):
+		var m: Maquina = fabrica.maquinas[id]
+		d.estado = Fabrica.causa_maquina(m, fabrica.logica_off.has(id))
+		d.cor = _cor_estado(m.estado)
+		d.barras.append({"rotulo": "Progresso", "valor": m.progresso, "cor": Tema.cor("sucesso")})
+		if regra.has("energia_kw"):
+			d.barras.append({"rotulo": "Energia", "valor": m.energia, "cor": Tema.cor("energia")})
+		for fl in m.receita.get("entradas_fluido", {}):
+			d.barras.append({"rotulo": Registro.nome_fluido(fl), "valor": float(m.fluidos.get(fl, 0.0)) / maxf(float(m.receita.entradas_fluido[fl]) * Maquina.LIMITE_ENTRADA, maxf(m.tanque_fluido, 1.0)), "cor": Tema.cor("agua")})
+		for fl in m.receita.get("saidas_fluido", {}):
+			d.barras.append({"rotulo": Registro.nome_fluido(fl), "valor": float(m.fluidos.get(fl, 0.0)) / maxf(m.limite_fluido(fl), 1.0), "cor": Tema.cor("agua")})
+		if m.tempo_total >= 10.0:
+			d.stats = _texto_estatistica(m)
+	else:
+		if e.get("desligada", false):
+			d.estado = "desligada"
+			d.cor = Tema.cor("travado")
+		elif fabrica.logica_off.has(id):
+			d.estado = "desligada pelo comparador"
+			d.cor = Tema.cor("travado")
+		elif Fiacao.papel(e.nome) == "consumo":
+			var en := fabrica.rede.satisfacao(id) if Fiacao.ligacoes(mapa, e) > 0 else 0.0
+			d.estado = "ligada" if en > 0.0 else "sem energia"
+			d.cor = Tema.cor("sucesso") if en > 0.0 else Tema.cor("perigo")
+			d.barras.append({"rotulo": "Energia", "valor": en, "cor": Tema.cor("energia")})
+	if fabrica.baus.has(id) and not Fabrica.eh_posto(e.nome):
+		var n := 0
+		for k in fabrica.baus[id]:
+			n += int(fabrica.baus[id][k])
+		d.barras.append({"rotulo": "Estoque", "valor": float(n) / maxf(fabrica.capacidade_bau(id), 1.0), "cor": Tema.cor("destaque"), "dica": "%d de %d itens" % [n, fabrica.capacidade_bau(id)]})
+	if regra.has("acumula_mj"):
+		d.barras.append({"rotulo": "Carga", "valor": float(fabrica.acumulado.get(id, 0.0)) / maxf(float(regra.acumula_mj), 1.0), "cor": Tema.cor("energia")})
+	if not fabrica.rede_de(id).is_empty():
+		var rc: Dictionary = fabrica.rede_de(id)
+		d.barras.append({"rotulo": "Rede", "valor": float(rc.qtd) / maxf(float(rc.cap), 1.0), "cor": Tema.cor("agua"), "dica": "%.0f de %.0f" % [rc.qtd, rc.cap]})
+	return d
+
+
+func _cor_estado(est: int) -> Color:
+	match est:
+		Maquina.Estado.TRABALHANDO, Maquina.Estado.PRONTIDAO: return Tema.cor("sucesso")
+		Maquina.Estado.DESLIGADA: return Tema.cor("travado")
+		Maquina.Estado.SEM_ENERGIA, Maquina.Estado.SEM_JAZIDA: return Tema.cor("perigo")
+	return Tema.cor("destaque")
+
+
+## Inventário do baú: grade de ícones com a quantidade (nome na dica) e a ordem de ver. Tirar à mão não existe no jogo: sai por braço ou drone.
+func _inventario_bau(id: int, e: Dictionary, botoes: Array) -> void:
+	var ordem := String(e.get("ordem", "tipo"))
+	for o in [["tipo", "Por tipo"], ["qtd", "Por quantidade"]]:
+		var oo: String = o[0]
+		botoes.append({"texto": "Organizar: %s" % o[1].to_lower(), "grupo": "Organizar", "curto": o[1], "ligado": ordem == oo, "acao": func():
+			e["ordem"] = oo
+			_detalhe()})
+	var lista := fabrica.conteudo_ordenado(id, ordem)
+	botoes.append({"titulo": "Conteúdo" if not lista.is_empty() else "Conteúdo: vazio"})
+	for it in lista:
+		var q := int(fabrica.baus[id][it])
+		botoes.append({"texto": _nome_item(it), "icone": TelaPesquisa._tex_item(it), "chave": it, "numero": PainelRecursos.numero_curto(q), "dica_num": "%s: %d" % [_nome_item(it), q], "ligado": false, "sem_clique": true, "acao": func(): pass})
+
+
+## Filtro de tipos aceitos (nenhum = tudo) e limite por tipo: vale para braço, esteira por braço e drone. Grade no fim do painel, como a do braço.
+func _opcoes_filtro_bau(_id: int, e: Dictionary, linhas: Array[String], grade: Array) -> void:
+	var aceitos: Array = e.get("aceita", [])
+	linhas.append("Aceita: %s" % ("tudo" if aceitos.is_empty() else ", ".join(aceitos.map(_nome_item))))
+	var lim := int(e.get("aceita_limite", 0))
+	for v in [0, 100, 500, 1000]:
+		var vv: int = v
+		grade.append({"texto": "Por tipo: %s" % ("sem limite" if vv == 0 else "até %d" % vv), "grupo": "Máximo de cada tipo", "curto": "—" if vv == 0 else str(vv), "ligado": lim == vv, "acao": func():
+			if vv == 0:
+				e.erase("aceita_limite")
+			else:
+				e["aceita_limite"] = vv
+			_detalhe()})
+	grade.append({"texto": "Aceita tudo (sem filtro)", "ligado": aceitos.is_empty(), "acao": func():
+		e.erase("aceita")
+		_detalhe()})
+	var nomes_grupo := {"recurso": "Aceitar: recursos", "intermediario": "Aceitar: peças", "avancado": "Aceitar: avançados"}
+	var por_grupo := {}
+	for it in Registro.itens:
+		var g: String = Registro.itens[it].get("grupo", "avancado")
+		if not por_grupo.has(g):
+			por_grupo[g] = []
+		por_grupo[g].append(it)
+	for g in nomes_grupo:
+		var lista: Array = por_grupo.get(g, [])
+		lista.sort_custom(func(x, y): return _nome_item(x) < _nome_item(y))
+		grade.append({"titulo": nomes_grupo[g]})
+		for it in lista:
+			grade.append({"texto": _nome_item(it), "icone": TelaPesquisa._tex_item(it), "ligado": aceitos.has(it), "acao": func():
+				var atual: Array = (e.get("aceita", []) as Array).duplicate()
+				if atual.has(it):
+					atual.erase(it)
+				else:
+					atual.append(it)
+				if atual.is_empty():
+					e.erase("aceita")
+				else:
+					e["aceita"] = atual
+				_detalhe()})
 
 
 ## Escolha do que o braço pega: Auto ou um item (todo braço); o Braço com filtro escolhe até `filtro_max`. A grade de

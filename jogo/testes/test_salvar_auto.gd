@@ -77,12 +77,13 @@ func test_opcoes_na_config() -> void:
 
 
 func test_escala_da_interface() -> void:
-	perto(Sessao.TEXTO_PADRAO, 0.8, 0.001, "antigo mínimo é o padrão")
+	perto(Sessao.TEXTO_PADRAO, 1.0, 0.001, "100% = a medida do perfil")
 	perto(Sessao.TEXTO_MAX, 1.6, 0.001, "máximo igual")
 	verificar(Sessao.TEXTO_MIN < Sessao.TEXTO_PADRAO, "mínimo abaixo do padrão")
-	perto(Sessao.TEXTO_MIN / Sessao.TEXTO_PADRAO, 0.85, 0.01, "uns 15% menor")
-	perto(Sessao.texto_migrado(1.0, true, false, false), 0.8, 0.001, "nunca mexeu: padrão novo")
-	perto(Sessao.texto_migrado(1.3, true, false, false), 1.3, 0.001, "escolheu outro: fica")
-	perto(Sessao.texto_migrado(0.8, true, false, false), 0.8, 0.001, "já estava no mínimo: fica")
-	perto(Sessao.texto_migrado(1.0, true, true, false), 1.0, 0.001, "depois de migrar, 100% é escolha: fica")
-	perto(Sessao.texto_migrado(1.0, true, false, true), 1.0, 0.001, "celular não entra nisso")
+	perto(Sessao.TEXTO_MIN, 0.68, 0.001, "mínimo igual")
+	perto(Sessao.texto_migrado(0.8, true, false, false), 1.0, 0.001, "padrão antigo: não fica pequeno duas vezes")
+	perto(Sessao.texto_migrado(0.68, true, false, false), 1.0, 0.001, "mínimo antigo: idem")
+	perto(Sessao.texto_migrado(1.3, true, false, false), 1.3, 0.001, "escolheu maior: fica")
+	perto(Sessao.texto_migrado(1.0, true, false, false), 1.0, 0.001, "100%: fica")
+	perto(Sessao.texto_migrado(0.7, true, true, false), 0.7, 0.001, "depois de migrar, o que escolher é escolha")
+	perto(Sessao.texto_migrado(0.8, true, false, true), 0.8, 0.001, "celular não entra nisso")

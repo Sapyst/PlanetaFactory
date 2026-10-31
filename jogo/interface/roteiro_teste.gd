@@ -30,7 +30,7 @@ func _ready() -> void:
 		"estresse": _roteiro_estresse()
 		"fundo": em(2, func(): cena.controle.barra.visible = false)
 		"vitrine": _roteiro_vitrine()
-		"fotos_finais", "carga":                       # fase 5: fotos de todas as peças / desempenho (roteiro_fotos.gd)
+		"fotos_finais", "carga", "ui_pc":              # fase 5: fotos de todas as peças / desempenho (roteiro_fotos.gd)
 			var rf := RoteiroFotos.new()
 			rf.rt = self
 			add_child(rf)

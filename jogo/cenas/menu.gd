@@ -32,12 +32,12 @@ func _ready() -> void:
 	centro.add_child(painel)
 	var m := MarginContainer.new()
 	for lado in ["left", "right", "top", "bottom"]:
-		m.add_theme_constant_override("margin_" + lado, 22)
+		m.add_theme_constant_override("margin_" + lado, Tema.n("menu_margem"))
 	painel.add_child(m)
 	var pilha := VBoxContainer.new()
 	m.add_child(pilha)
 	_caixa = VBoxContainer.new()
-	_caixa.add_theme_constant_override("separation", 10)
+	_caixa.add_theme_constant_override("separation", Tema.n("menu_sep"))
 	pilha.add_child(_caixa)
 	_config = PainelConfig.new()
 	_config.visible = false
@@ -46,7 +46,7 @@ func _ready() -> void:
 
 	var titulo := Label.new()
 	titulo.text = "PlanetaFactory"
-	titulo.add_theme_font_size_override("font_size", 44)
+	titulo.add_theme_font_size_override("font_size", Tema.n("f_menu_titulo"))
 	titulo.add_theme_color_override("font_color", BarraConstrucao.COR_DESTAQUE)
 	titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_caixa.add_child(titulo)
@@ -69,8 +69,8 @@ func _ready() -> void:
 func _botao(texto: String, acao: Callable) -> void:
 	var b := Button.new()
 	b.text = texto
-	b.custom_minimum_size = Vector2(420, 58)
-	b.add_theme_font_size_override("font_size", 20)
+	b.custom_minimum_size = Tema.v("menu_botao")
+	b.add_theme_font_size_override("font_size", Tema.n("f_menu_botao"))
 	b.pressed.connect(acao)
 	_caixa.add_child(b)
 

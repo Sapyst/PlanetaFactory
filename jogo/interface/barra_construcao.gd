@@ -1,6 +1,6 @@
 class_name BarraConstrucao
 extends CanvasLayer
-## Interface de construção, toda montada por código (PC e toque, botões grandes):
+## Interface de construção, toda montada por código; medidas por perfil em Tema.MEDIDAS (celular: botões grandes; PC: refinado):
 ##   embaixo — abas de categoria + peças da categoria (ícone renderizado da arte + nome);
 ##   à direita — Girar, Remover, Desfazer, Cancelar;
 ##   em cima — dica: o que está na mão e por que o fantasma ficou vermelho.
@@ -10,7 +10,6 @@ signal peca_escolhida(nome: String)
 signal acao_pendente(acao: String)    ## "girar", "mover", "construir", "cancelar_peca"
 signal ferramenta(nome: String)       ## "girar", "remover", "desfazer", "cancelar", "recursos", "poluicao", "pesquisa", "menu"
 
-const TAM_PECA := Vector2(116, 112)
 const COR_FUNDO := Color(0.09, 0.10, 0.13, 0.92)
 const COR_BORDA := Color(0.28, 0.30, 0.36)
 const COR_DESTAQUE := Color(0.96, 0.74, 0.24)
@@ -54,7 +53,7 @@ var _removendo := false
 
 ## Área segura do aparelho (barra de status/câmera e barra de gestos): margens em pixels de tela.
 func _seguro() -> Dictionary:
-	var m := {"left": 12, "right": 12, "top": 10, "bottom": 10}
+	var m := {"left": Tema.n("seg_x"), "right": Tema.n("seg_x"), "top": Tema.n("seg_y"), "bottom": Tema.n("seg_y")}
 	var tela := DisplayServer.screen_get_size()
 	var seg := DisplayServer.get_display_safe_area()
 	if OS.has_feature("mobile") and seg.size.x > 0 and tela.x > 0:
@@ -87,7 +86,7 @@ func _ready() -> void:
 	raiz.add_child(margem)
 	var linha := HBoxContainer.new()
 	linha.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	linha.add_theme_constant_override("separation", 8)
+	linha.add_theme_constant_override("separation", Tema.n("sep"))
 	margem.add_child(linha)
 	# esquerda: chips de estado + painel de detalhe; dica embaixo
 	var esq := VBoxContainer.new()
@@ -103,21 +102,25 @@ func _ready() -> void:
 	canto.add_child(info_vb)
 	var chips := PanelContainer.new()
 	chips.mouse_filter = Control.MOUSE_FILTER_STOP     # tocar no status abre/fecha os detalhes
+	if Tema.estilo("atalhos"):
+		chips.tooltip_text = "Clique para abrir ou fechar os detalhes"
 	chips.gui_input.connect(func(e: InputEvent):
 		if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT and not e.pressed:
 			_status_aberto = not _status_aberto
 			_mostrar_status())
 	_paineis.append(chips)
 	# raio pequeno: o texto tem várias linhas, um canto em pílula cortaria as pontas das linhas
-	var caixa_info := Tema.caixa(Color(0.04, 0.045, 0.05, 0.78), Color(Tema.COR.filete, 0.6), 10, 8)
-	caixa_info.content_margin_left = 16
-	caixa_info.content_margin_right = 18
+	var caixa_info := Tema.caixa(Color(0.04, 0.045, 0.05, 0.78), Color(Tema.COR.filete, 0.6), Tema.n("info_raio"), Tema.n("info_cont"))
+	caixa_info.content_margin_top = Tema.n("info_cont")
+	caixa_info.content_margin_bottom = Tema.n("info_cont")
+	caixa_info.content_margin_left = Tema.n("info_esq")
+	caixa_info.content_margin_right = Tema.n("info_dir")
 	chips.add_theme_stylebox_override("panel", caixa_info)
 	chips.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	info_vb.add_child(chips)
 	_info = Label.new()
 	_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_info.add_theme_font_size_override("font_size", 15)
+	_info.add_theme_font_size_override("font_size", Tema.n("f_texto"))
 	_info.add_theme_color_override("font_color", Tema.cor("info"))
 	chips.add_child(_info)
 	_alerta = Label.new()
@@ -126,43 +129,79 @@ func _ready() -> void:
 	info_vb.add_child(_alerta)
 	_detalhe = PanelContainer.new()
 	_detalhe.visible = false
-	_detalhe.custom_minimum_size = Vector2(320, 0)
+	_detalhe.custom_minimum_size = Vector2(Tema.f("det_inicial"), 0)
 	_detalhe.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	raiz.add_child(_detalhe)                       # gaveta: posição e altura por _posicionar_detalhe (cabe na tela)
 	_paineis.append(_detalhe)
 	var dv := VBoxContainer.new()
-	dv.add_theme_constant_override("separation", 6)
+	dv.add_theme_constant_override("separation", Tema.n("det_sep"))
 	_detalhe.add_child(dv)
 	var topo_det := HBoxContainer.new()
 	dv.add_child(topo_det)
 	_det_titulo = Label.new()
 	_det_titulo.add_theme_color_override("font_color", COR_TITULO)
 	_det_titulo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	topo_det.add_child(_det_titulo)
+	if Tema.estilo("painel_compacto"):              # cabeçalho: ícone, nome, vida, estado com a causa
+		topo_det.add_theme_constant_override("separation", Tema.n("sep"))
+		_det_icone = TextureRect.new()
+		_det_icone.custom_minimum_size = Vector2(Tema.f("maq_icone"), Tema.f("maq_icone"))
+		_det_icone.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		_det_icone.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		topo_det.add_child(_det_icone)
+		var cab_v := VBoxContainer.new()
+		cab_v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		cab_v.add_theme_constant_override("separation", 1)
+		topo_det.add_child(cab_v)
+		_det_titulo.add_theme_font_size_override("font_size", Tema.n("f_titulo"))
+		_det_titulo.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		cab_v.add_child(_det_titulo)
+		_det_estado = Label.new()
+		_det_estado.add_theme_font_size_override("font_size", Tema.n("f_peq"))
+		_det_estado.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		cab_v.add_child(_det_estado)
+		_det_vida = ProgressBar.new()
+		_det_vida.max_value = 1.0
+		_det_vida.show_percentage = false
+		_det_vida.custom_minimum_size = Vector2(0, 4)
+		_det_vida.mouse_filter = Control.MOUSE_FILTER_PASS
+		cab_v.add_child(_det_vida)
+	else:
+		topo_det.add_child(_det_titulo)
 	var fechar := Button.new()
 	fechar.text = "✕"
 	fechar.focus_mode = Control.FOCUS_NONE
-	fechar.custom_minimum_size = Vector2(48, 44)
+	fechar.custom_minimum_size = Tema.v("det_fechar")
+	if Tema.estilo("atalhos"):
+		fechar.tooltip_text = "Fechar (clique direito no mapa não fecha: use aqui)"
 	fechar.pressed.connect(func(): fechar_detalhe_pedido.emit())
 	topo_det.add_child(fechar)
 	dv.add_child(Tema.faixa_titulo())
+	if Tema.estilo("painel_compacto"):              # ações comuns, sempre à vista (fora da rolagem)
+		_det_acoes = HFlowContainer.new()
+		_det_acoes.add_theme_constant_override("h_separation", 2)
+		_det_acoes.add_theme_constant_override("v_separation", 2)
+		dv.add_child(_det_acoes)
 	var rolagem := ScrollContainer.new()
 	rolagem.custom_minimum_size = Vector2(0, 0)
 	rolagem.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	rolagem.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var corpo := VBoxContainer.new()
 	corpo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if Tema.estilo("painel_compacto"):
+		_det_barras = VBoxContainer.new()
+		_det_barras.add_theme_constant_override("separation", 2)
+		corpo.add_child(_det_barras)
 	_det_maquina = VBoxContainer.new()                # máquina: ícone, receita em casas, barras (detalhe_maquina)
-	_det_maquina.add_theme_constant_override("separation", 6)
+	_det_maquina.add_theme_constant_override("separation", Tema.n("det_sep"))
 	_det_maquina.visible = false
 	corpo.add_child(_det_maquina)
 	_det_texto = Label.new()
-	_det_texto.add_theme_font_size_override("font_size", 15)
+	_det_texto.add_theme_font_size_override("font_size", Tema.n("f_texto"))
 	_det_texto.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_det_texto.custom_minimum_size = Vector2(296, 0)
+	_det_texto.custom_minimum_size = Vector2(Tema.f("det_texto"), 0)
 	corpo.add_child(_det_texto)
 	_det_botoes = VBoxContainer.new()
-	_det_botoes.add_theme_constant_override("separation", 4)
+	_det_botoes.add_theme_constant_override("separation", Tema.n("det_botoes_sep"))
 	corpo.add_child(_det_botoes)
 	rolagem.add_child(corpo)
 	rolagem.add_child(RolagemToque.new())          # arrastar em cima dos botões rola a lista (celular)
@@ -181,30 +220,31 @@ func _ready() -> void:
 	topo.add_child(_dica_painel)
 	_dica = Label.new()
 	_dica.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_dica.add_theme_font_size_override("font_size", 15)
+	_dica.add_theme_font_size_override("font_size", Tema.n("f_texto"))
 	_dica.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_dica.custom_minimum_size = Vector2(420, 0)
+	_dica.custom_minimum_size = Vector2(Tema.f("dica_max"), 0)
 	_dica_painel.add_child(_dica)
 	_dica_painel.visible = false
 	# meio-direita: ferramentas em cima + painel de peças
 	var dir := VBoxContainer.new()
 	dir.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	dir.add_theme_constant_override("separation", 8)
+	dir.add_theme_constant_override("separation", Tema.n("sep"))
 	linha.add_child(dir)
 	var ferr_painel := PanelContainer.new()
 	ferr_painel.size_flags_horizontal = Control.SIZE_SHRINK_END
 	dir.add_child(ferr_painel)
 	_paineis.append(ferr_painel)
 	_ferr = HFlowContainer.new() if false else HBoxContainer.new()
-	_ferr.add_theme_constant_override("separation", 4)
+	_ferr.add_theme_constant_override("separation", Tema.n("ferr_sep"))
 	ferr_painel.add_child(_ferr)
-	for f in [["nivel", "⇡ chão", "N"], ["remover", "✕ Remover", "X"], ["aplainar", "▭ Aplainar", "L"], ["escavar", "⌄ Escavar", "K"], ["desfazer", "↶", "Ctrl+Z"],
-			["recursos", "◈ Recursos", "V"], ["poluicao", "☁", "P"], ["pesquisa", "⚗", "T"], ["menu", "☰", "Esc"]]:
+	for f in [["nivel", "⇡ chão"], ["remover", "✕ Remover"], ["aplainar", "▭ Aplainar"], ["escavar", "⌄ Escavar"], ["desfazer", "↶"],
+			["recursos", "◈ Recursos"], ["poluicao", "☁"], ["pesquisa", "⚗"], ["menu", "☰"]]:
 		var b := Button.new()
-		b.text = f[1]
-		b.tooltip_text = "%s (%s)" % [f[0].capitalize(), f[2]]
-		b.custom_minimum_size = Vector2(48, 48)
-		b.add_theme_font_size_override("font_size", 16)
+		var dica_f: Array = FERRAMENTAS[f[0]]
+		b.text = Tema.com_atalho(f[1], dica_f[1])
+		b.tooltip_text = "%s (%s)" % dica_f if Tema.estilo("atalhos") else "%s (%s)" % [f[0].capitalize(), dica_f[1]]
+		b.custom_minimum_size = Tema.v("ferr_botao")
+		b.add_theme_font_size_override("font_size", Tema.n("f_ferr"))
 		b.focus_mode = Control.FOCUS_NONE
 		b.pressed.connect(func(): Som.tocar("clique"); ferramenta.emit(f[0]))
 		_ferr.add_child(b)
@@ -218,17 +258,17 @@ func _ready() -> void:
 		_ferr.add_child(b)
 		_botoes_ferr[f[0]] = b
 	_painel_pecas = PanelContainer.new()
-	_painel_pecas.custom_minimum_size = Vector2(400, 0)
+	_painel_pecas.custom_minimum_size = Vector2(Tema.f("pecas_max"), 0)
 	_painel_pecas.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_painel_pecas.size_flags_horizontal = Control.SIZE_SHRINK_END
 	_painel_pecas.visible = false
 	dir.add_child(_painel_pecas)
 	_paineis.append(_painel_pecas)
 	var pv := VBoxContainer.new()
-	pv.add_theme_constant_override("separation", 8)
+	pv.add_theme_constant_override("separation", Tema.n("sep"))
 	_painel_pecas.add_child(pv)
 	_titulo_cat = Label.new()
-	_titulo_cat.add_theme_font_size_override("font_size", 19)
+	_titulo_cat.add_theme_font_size_override("font_size", Tema.n("f_titulo"))
 	_titulo_cat.add_theme_color_override("font_color", COR_TITULO)
 	pv.add_child(_titulo_cat)
 	var rol := ScrollContainer.new()
@@ -236,7 +276,7 @@ func _ready() -> void:
 	rol.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	pv.add_child(rol)
 	_pecas = VBoxContainer.new()
-	_pecas.add_theme_constant_override("separation", 6)
+	_pecas.add_theme_constant_override("separation", Tema.n("peca_sep"))
 	_pecas.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	rol.add_child(_pecas)
 	rol.add_child(RolagemToque.new())
@@ -245,7 +285,7 @@ func _ready() -> void:
 	linha.add_child(col)
 	_paineis.append(col)
 	var cv := VBoxContainer.new()
-	cv.add_theme_constant_override("separation", 6)
+	cv.add_theme_constant_override("separation", Tema.n("cat_sep"))
 	cv.alignment = BoxContainer.ALIGNMENT_CENTER
 	col.add_child(cv)
 	_abas = cv
@@ -254,12 +294,12 @@ func _ready() -> void:
 	for i in cats.size():
 		var b := Button.new()
 		b.toggle_mode = true
-		b.custom_minimum_size = Vector2(72, 66)
+		b.custom_minimum_size = Vector2(Tema.f("cat_larg"), Tema.f("cat_alt_max"))
 		b.focus_mode = Control.FOCUS_NONE
 		b.icon = _icone(icc.get(cats[i].nome, cats[i].pecas[0]))
 		b.expand_icon = true
 		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		b.tooltip_text = cats[i].nome
+		b.tooltip_text = cats[i].nome + (" (Tab: próxima aba)" if Tema.estilo("atalhos") else "")
 		var cc := Tema.cor_categoria(cats[i].nome)       # cada categoria com a sua cor (ícone branco tingido)
 		b.add_theme_color_override("icon_normal_color", cc.darkened(0.08))
 		b.add_theme_color_override("icon_hover_color", cc.lightened(0.15))
@@ -273,14 +313,15 @@ func _ready() -> void:
 	raiz.add_child(_acoes)
 	_paineis.append(_acoes)
 	var ah := HBoxContainer.new()
-	ah.add_theme_constant_override("separation", 6)
+	ah.add_theme_constant_override("separation", Tema.n("acao_sep"))
 	_acoes.add_child(ah)
-	for a in [["girar", "⟲ Girar", Color(0, 0, 0, 0)], ["mover", "✥ Mover", Color(0, 0, 0, 0)],
-			["construir", "✓ Construir", Color(0.12, 0.56, 0.35)], ["cancelar_peca", "✕", Color(0.56, 0.17, 0.17)]]:
+	for a in [["girar", "⟲ Girar", Color(0, 0, 0, 0), "R"], ["mover", "✥ Mover", Color(0, 0, 0, 0), ""],
+			["construir", "✓ Construir", Color(0.12, 0.56, 0.35), "Enter"], ["cancelar_peca", "✕", Color(0.56, 0.17, 0.17), "Esc"]]:
 		var b := Button.new()
-		b.text = a[1]
+		b.text = Tema.com_atalho(a[1], a[3])
 		b.focus_mode = Control.FOCUS_NONE
-		b.custom_minimum_size = Vector2(56 if a[0] == "cancelar_peca" else 96, 52)
+		b.custom_minimum_size = Tema.v("acao_x") if a[0] == "cancelar_peca" else Tema.v("acao_botao")
+		b.add_theme_font_size_override("font_size", Tema.n("f_ferr") if Tema.estilo("fino") else Tema.n("f_base"))
 		if a[2].a > 0.0:
 			b.add_theme_stylebox_override("normal", Tema.caixa(a[2], a[2].lightened(0.4), 10, 6))
 			b.add_theme_stylebox_override("hover", Tema.caixa(a[2].lightened(0.1), a[2].lightened(0.5), 10, 6))
@@ -313,18 +354,18 @@ func _criar_faixa(raiz: Control) -> void:
 	raiz.add_child(_faixa)
 	_paineis.append(_faixa)
 	var h := HBoxContainer.new()
-	h.add_theme_constant_override("separation", 12)
+	h.add_theme_constant_override("separation", Tema.n("faixa_sep"))
 	_faixa.add_child(h)
 	_faixa_texto = Label.new()
-	_faixa_texto.add_theme_font_size_override("font_size", 17)
+	_faixa_texto.add_theme_font_size_override("font_size", Tema.n("f_faixa"))
 	_faixa_texto.add_theme_color_override("font_color", Color(1.0, 0.92, 0.7))
 	_faixa_texto.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_faixa_texto.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_faixa_texto.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	h.add_child(_faixa_texto)
 	var sair := Button.new()
-	sair.text = "✕  Sair"
-	sair.custom_minimum_size = Vector2(112, 52)
+	sair.text = Tema.com_atalho("✕  Sair", "Esc")
+	sair.custom_minimum_size = Tema.v("sair_botao")
 	sair.focus_mode = Control.FOCUS_NONE
 	sair.pressed.connect(func(): Som.tocar("clique"); ferramenta.emit("sair"))
 	for est in ["normal", "hover"]:
@@ -333,43 +374,98 @@ func _criar_faixa(raiz: Control) -> void:
 	sair.add_theme_color_override("font_color", Color.WHITE)
 	sair.add_theme_color_override("font_hover_color", Color.WHITE)
 	sair.add_theme_color_override("font_outline_color", Color.BLACK)
-	sair.add_theme_constant_override("outline_size", 8)
-	sair.add_theme_font_size_override("font_size", 19)
+	sair.add_theme_constant_override("outline_size", 8 if not Tema.estilo("fino") else 4)
+	sair.add_theme_font_size_override("font_size", Tema.n("f_sair"))
 	h.add_child(sair)
 
 
 ## Texto vazio = fora do modo construção (some).
 func modo_construcao(texto: String) -> void:
 	_faixa.visible = texto != ""
-	if _faixa.visible:
+	if not _faixa.visible:
+		_faixa_no_ar = false
+	elif _faixa_texto.text != texto:
 		_faixa_texto.text = texto
-		_posicionar_faixa()
 
 
-func _posicionar_faixa() -> void:
+## A faixa nunca cobre o que está aberto: procura, nos retângulos reais dos painéis, o vão livre mais à direita (onde ela
+## mora) e desliza até lá em animação curta quando a lista ou a gaveta abre. Sem vão na altura dela, desce até achar.
+func _posicionar_faixa(delta := -1.0) -> void:
 	var tela := get_viewport().get_visible_rect().size
-	var esq := _canto.get_global_rect().end.x + 10.0
-	var dir := (_abas.get_parent() as Control).get_global_rect().position.x - 10.0
 	var topo := (_ferr.get_parent() as Control).get_global_rect().end.y + 8.0
-	var larg := clampf(dir - esq, 260.0, 560.0)
-	_faixa_texto.custom_minimum_size.x = larg - 150.0
+	_faixa_texto.custom_minimum_size.x = 0.0
+	var fora_texto := _faixa.get_combined_minimum_size().x        # moldura + botão: medidos, não supostos
+	_faixa_texto.custom_minimum_size.x = maxf(Tema.f("faixa_min") - fora_texto, 40.0)
+	var alt := _faixa.get_combined_minimum_size().y
+	var obst: Array[Rect2] = []
+	for c in [_info.get_parent(), _alerta, _recursos, _detalhe, _painel_pecas, _abas.get_parent(), _ferr.get_parent(), _dica_painel]:
+		if c != null and (c as Control).is_visible_in_tree():
+			obst.append((c as Control).get_global_rect())
+	var lugar := BarraConstrucao.lugar_faixa(tela, alt, topo, obst, Tema.f("faixa_min"), Tema.f("faixa_max"))
+	_faixa_texto.custom_minimum_size.x = maxf(lugar.size.x - fora_texto, 40.0)
 	var tam := _faixa.get_combined_minimum_size()
-	tam.x = maxf(tam.x, larg)
+	if tam.y > alt + 0.5:                                # o texto quebrou numa largura menor: a altura mudou, confere de novo
+		lugar = BarraConstrucao.lugar_faixa(tela, tam.y, topo, obst, Tema.f("faixa_min"), Tema.f("faixa_max"))
 	_faixa.size = tam
-	_faixa.position = Vector2(clampf(dir - tam.x, 8.0, tela.x - tam.x - 8.0), topo)
+	_faixa_alvo = lugar.position
+	if delta < 0.0 or not _faixa_no_ar:
+		_faixa.position = _faixa_alvo                    # acabou de aparecer: já no lugar, sem vir voando
+		_faixa_no_ar = true
+	else:
+		_faixa.position = _faixa.position.lerp(_faixa_alvo, 1.0 - exp(-14.0 * delta))
+		if _faixa.position.distance_squared_to(_faixa_alvo) < 0.25:
+			_faixa.position = _faixa_alvo
+
+
+var _faixa_alvo := Vector2.ZERO
+var _faixa_no_ar := false
+
+
+## Onde a faixa cabe. Varre a altura a partir de `topo`: em cada altura, os vãos horizontais que nenhum obstáculo toca; fica com o
+## mais à direita que tenha pelo menos `larg_min`, encostada à direita dele. Pura para o teste.
+static func lugar_faixa(tela: Vector2, alt: float, topo: float, obstaculos: Array[Rect2], larg_min: float, larg_max: float, folga := 8.0) -> Rect2:
+	var y := topo
+	while y + alt <= tela.y:
+		var cortes: Array[Vector2] = []
+		for r in obstaculos:
+			if r.position.y < y + alt + folga and r.end.y > y - folga:
+				cortes.append(Vector2(r.position.x - folga, r.end.x + folga))
+		cortes.sort_custom(func(a, b): return a.x > b.x)
+		var dir := tela.x - folga
+		var achou := false
+		var proximo_y := INF
+		for c in cortes:
+			if c.y >= dir:                               # está à direita do que já foi visto (ou encosta): só encolhe o limite
+				dir = minf(dir, c.x)
+				continue
+			if dir - c.y >= larg_min:
+				achou = true
+				return Rect2(Vector2(dir - minf(dir - c.y, larg_max), y), Vector2(minf(dir - c.y, larg_max), alt))
+			dir = minf(dir, c.x)
+		if not achou and dir - folga >= larg_min:         # último vão: da margem esquerda até o obstáculo mais à esquerda
+			return Rect2(Vector2(dir - minf(dir - folga, larg_max), y), Vector2(minf(dir - folga, larg_max), alt))
+		for r in obstaculos:                              # nada nesta altura: desce até o obstáculo mais baixo que tocava acabar
+			if r.position.y < y + alt + folga and r.end.y > y - folga:
+				proximo_y = minf(proximo_y, r.end.y + folga)
+		if proximo_y == INF or proximo_y <= y:
+			break
+		y = proximo_y
+	return Rect2(Vector2(folga, topo), Vector2(larg_min, alt))    # tela pequena demais: canto, mas nunca fora dela
 
 
 const ENCOLHEM := ["remover", "aplainar", "escavar", "recursos"]   ## em tela estreita ficam só com o ícone
-const LARGURA_ESTREITA := 1300.0
+## nome → [o que é, atalho]: dica do mouse e atalho à vista no PC.
+const FERRAMENTAS := {"nivel": ["Nível da esteira", "N"], "remover": ["Remover", "X"], "aplainar": ["Aplainar o chão", "L"], "escavar": ["Escavar", "K"], "desfazer": ["Desfazer", "Ctrl+Z"],
+		"recursos": ["Visão de recursos", "V"], "poluicao": ["Nuvem de poluição", "P"], "pesquisa": ["Pesquisa", "T"], "menu": ["Menu", "Esc"]}
 
 
 ## Painel de detalhe como gaveta: da borda de baixo do status até a borda de baixo da tela (área segura), largura
 ## pela tela. A lista rola dentro dela — nunca passa da tela (antes crescia para baixo e o fim ficava inalcançável).
-func _process(_d: float) -> void:
+func _process(d: float) -> void:
 	if _detalhe != null and _detalhe.visible:
 		_posicionar_detalhe()
 	if _faixa != null and _faixa.visible:
-		_posicionar_faixa()
+		_posicionar_faixa(d)
 	if _recursos != null and _recursos.visible:
 		_posicionar_recursos()
 
@@ -392,7 +488,7 @@ func _posicionar_recursos() -> void:
 		baixo = minf(baixo, _dica_painel.get_global_rect().position.y - 6.0)
 	# à direita, o que estiver na altura dele: ferramentas, faixa do modo construção, peças e categorias
 	var dir := (_abas.get_parent() as Control).get_global_rect().position.x
-	for p in [_ferr.get_parent(), _faixa, _painel_pecas]:
+	for p in [_ferr.get_parent(), _painel_pecas]:       # (a faixa é quem desvia do estoque)
 		var c := p as Control
 		if c.visible and c.get_global_rect().end.y > pos.y:
 			dir = minf(dir, c.get_global_rect().position.x)
@@ -409,7 +505,7 @@ func indicador_salvando(sim: bool) -> void:
 	if _salvando == null:
 		_salvando = Label.new()
 		_salvando.text = "Salvando…"
-		_salvando.add_theme_font_size_override("font_size", 13)
+		_salvando.add_theme_font_size_override("font_size", Tema.n("f_salvando"))
 		_salvando.add_theme_color_override("font_color", Tema.cor("titulo"))
 		_salvando.add_theme_color_override("font_outline_color", Color.BLACK)
 		_salvando.add_theme_constant_override("outline_size", 4)
@@ -424,43 +520,50 @@ func _posicionar_detalhe() -> void:
 	var tela := get_viewport().get_visible_rect().size
 	var topo := _canto.get_global_rect().end.y + 8.0
 	var baixo := tela.y - float(_seg.get("bottom", 10))
-	var larg := clampf(tela.x * 0.34, 270.0, 380.0)
+	var larg := clampf(tela.x * Tema.f("det_fator"), Tema.f("det_min"), Tema.f("det_max"))
 	var pos := Vector2(float(_seg.get("left", 12)), topo)
 	var tam := Vector2(larg, maxf(160.0, baixo - topo))
 	if _detalhe.position != pos or _detalhe.size != tam:
 		_detalhe.custom_minimum_size = tam
 		_detalhe.position = pos
 		_detalhe.size = tam
-		_det_texto.custom_minimum_size.x = larg - 36.0
+		_det_texto.custom_minimum_size.x = larg - Tema.f("det_folga")
 
 
 ## Troca o texto de uma ferramenta respeitando o modo estreito (só o ícone).
 func texto_ferramenta(chave: String, texto: String) -> void:
 	var b: Button = _botoes_ferr[chave]
+	texto = Tema.com_atalho(texto, FERRAMENTAS.get(chave, ["", ""])[1])
 	b.set_meta("texto_cheio", texto)
-	b.text = texto.get_slice(" ", 0) if get_viewport().get_visible_rect().size.x < LARGURA_ESTREITA and chave in ENCOLHEM else texto
+	b.text = _encolhido(texto) if get_viewport().get_visible_rect().size.x < Tema.f("largura_estreita") and chave in ENCOLHEM else texto
+
+
+## Só o ícone (e o atalho, se o perfil mostra).
+static func _encolhido(texto: String) -> String:
+	var ic := texto.get_slice(" ", 0)
+	return ic + " " + texto.substr(texto.rfind("[")) if Tema.estilo("atalhos") and texto.contains("[") else ic
 
 
 ## Tela estreita (celular 16:9, tablet, interface ampliada): ferramentas só com ícone e painéis mais estreitos, para
 ## nada passar da borda nem empurrar o resto. Refeito quando a tela muda de tamanho.
 func _ajustar_tamanhos() -> void:
 	var tela := get_viewport().get_visible_rect().size
-	var estreita := tela.x < LARGURA_ESTREITA
+	var estreita := tela.x < Tema.f("largura_estreita")
 	for k in _botoes_ferr:
 		var b: Button = _botoes_ferr[k]
 		if not b.has_meta("texto_cheio"):
 			b.set_meta("texto_cheio", b.text)
 		var cheio: String = b.get_meta("texto_cheio")
-		b.text = cheio.get_slice(" ", 0) if estreita and k in ENCOLHEM else cheio
-	_painel_pecas.custom_minimum_size.x = clampf(tela.x * 0.36, 250.0, 400.0)
-	_dica.custom_minimum_size.x = clampf(tela.x * 0.36, 220.0, 420.0)
+		b.text = _encolhido(cheio) if estreita and k in ENCOLHEM else cheio
+	_painel_pecas.custom_minimum_size.x = clampf(tela.x * Tema.f("pecas_fator"), Tema.f("pecas_min"), Tema.f("pecas_max"))
+	_dica.custom_minimum_size.x = clampf(tela.x * Tema.f("dica_fator"), Tema.f("dica_min"), Tema.f("dica_max"))
 	# status do canto: quebra as linhas longas em vez de alargar a coluna da esquerda
-	_info.custom_minimum_size.x = clampf(tela.x * 0.3, 220.0, 420.0)
+	_info.custom_minimum_size.x = clampf(tela.x * Tema.f("info_fator"), Tema.f("info_min"), Tema.f("info_max"))
 	# categorias: a coluna inteira cabe na altura (8 botões de 66 passavam dos 533 de um celular e esticavam tudo)
 	var n := _abas.get_child_count()
-	var alt := clampf((tela.y - 44.0 - (n - 1) * 6.0) / maxf(n, 1), 40.0, 66.0)
+	var alt := clampf((tela.y - 44.0 - (n - 1) * Tema.f("cat_sep")) / maxf(n, 1), Tema.f("cat_alt_min"), Tema.f("cat_alt_max"))
 	for b in _abas.get_children():
-		(b as Control).custom_minimum_size = Vector2(72.0 if tela.x >= LARGURA_ESTREITA else 58.0, alt)
+		(b as Control).custom_minimum_size = Vector2(Tema.f("cat_larg") if not estreita else Tema.f("cat_larg_estreita"), alt)
 
 
 ## Barra de ações da peça pendente: mostra em `pos` (tela, abaixo do fantasma) ou esconde (INF).
@@ -520,7 +623,7 @@ func marcar(nome: String, removendo: bool) -> void:
 ## Texto do botão de nível (chão / 0,5 m / 1,0 m).
 func mostrar_nivel(n: int) -> void:
 	var t: String = ["chão", "0,5 m", "1,0 m"][n]
-	_botoes_ferr["nivel"].text = "⇡ " + t
+	_botoes_ferr["nivel"].text = Tema.com_atalho("⇡ " + t, "N")
 	_destacar(_botoes_ferr["nivel"], n > 0, Color(0.45, 0.75, 1.0))
 
 
@@ -557,6 +660,13 @@ func _mostrar_status() -> void:
 ## quando mudam (o texto é atualizado sempre) — refazer a cada atualização engoliria cliques.
 var _det_maquina: VBoxContainer
 var _det_maq_assin := ""
+var _det_icone: TextureRect          ## (daqui para baixo, só no painel compacto do PC)
+var _det_estado: Label
+var _det_vida: ProgressBar
+var _det_acoes: HFlowContainer
+var _det_barras: VBoxContainer
+var _det_barras_assin := ""
+var _det_numeros: Dictionary = {}    ## inventário: item → [rótulo da quantidade, botão]
 
 
 ## Parte de cima do painel numa máquina (como no painel de uma montadora): ícone grande da construção, a receita em
@@ -573,14 +683,15 @@ func detalhe_maquina(m: Dictionary) -> void:
 		for c in _det_maquina.get_children():
 			c.queue_free()
 		var h := HBoxContainer.new()
-		h.add_theme_constant_override("separation", 10)
+		h.add_theme_constant_override("separation", Tema.n("sep") + 2)
 		_det_maquina.add_child(h)
-		var ic := TextureRect.new()
-		ic.texture = m.get("icone")
-		ic.custom_minimum_size = Vector2(84, 84)
-		ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		h.add_child(ic)
+		if not Tema.estilo("painel_compacto"):     # no compacto o ícone está no cabeçalho
+			var ic := TextureRect.new()
+			ic.texture = m.get("icone")
+			ic.custom_minimum_size = Vector2(Tema.f("maq_icone"), Tema.f("maq_icone"))
+			ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			h.add_child(ic)
 		var receita := HFlowContainer.new()
 		receita.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		receita.add_theme_constant_override("h_separation", 4)
@@ -591,18 +702,18 @@ func detalhe_maquina(m: Dictionary) -> void:
 		if not m.get("saidas", []).is_empty():
 			var seta := Label.new()
 			seta.text = "→"
-			seta.add_theme_font_size_override("font_size", 28)
-			seta.custom_minimum_size = Vector2(28, Casa.LADO)
+			seta.add_theme_font_size_override("font_size", Tema.n("f_seta"))
+			seta.custom_minimum_size = Vector2(Tema.f("f_seta"), Casa.lado())
 			seta.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 			receita.add_child(seta)
 		for e in m.get("saidas", []):
 			receita.add_child(Casa.nova(e.tex, str(e.n), e.dica, Color(0.45, 0.85, 0.45)))
-		for b in [["progresso", Color(0.35, 0.85, 0.35)], ["energia", Color(0.95, 0.8, 0.2)]]:
+		for b in [] if Tema.estilo("painel_compacto") else [["progresso", Color(0.35, 0.85, 0.35)], ["energia", Color(0.95, 0.8, 0.2)]]:     # no compacto, barras com rótulo
 			var pb := ProgressBar.new()
 			pb.name = b[0]
 			pb.max_value = 1.0
 			pb.show_percentage = false
-			pb.custom_minimum_size = Vector2(0, 12)
+			pb.custom_minimum_size = Vector2(0, Tema.n("barra_alt"))
 			var cheio := Tema.caixa(b[1], b[1].lightened(0.3), 3, 0)
 			pb.add_theme_stylebox_override("fill", cheio)
 			_det_maquina.add_child(pb)
@@ -615,24 +726,50 @@ func detalhe_maquina(m: Dictionary) -> void:
 		en.value = float(m.get("energia", 0.0))
 
 
-func detalhe(titulo: String, texto: String, botoes: Array) -> void:
+## extra (painel compacto do PC): {icone, estado, cor, vida 0..1 ou -1, vida_dica, barras: [{rotulo, valor, cor, dica?}], stats}. Vazio = sem cabeçalho (trem, pesquisa).
+func detalhe(titulo: String, texto: String, botoes: Array, extra := {}) -> void:
 	_detalhe.visible = true
 	_det_titulo.text = titulo
 	_det_texto.text = texto
+	_det_texto.visible = texto != "" or not Tema.estilo("painel_compacto")
+	if Tema.estilo("painel_compacto"):
+		_cabecalho_detalhe(extra)
 	var assin := titulo + "|" + "|".join(botoes.map(func(b): return "%s%s" % [b.get("texto", b.get("titulo", "")), b.get("ligado", false)]))
 	if assin == _det_assinatura:
+		for b in botoes:                         # só a quantidade mudou: atualiza sem refazer (refazer engoliria cliques)
+			if b.has("numero") and _det_numeros.has(b.chave):
+				_det_numeros[b.chave][0].text = b.numero
+				_det_numeros[b.chave][1].tooltip_text = b.dica_num
 		return
 	_det_assinatura = assin
+	_det_numeros.clear()
 	for c in _det_botoes.get_children():
 		c.queue_free()
+	if _det_acoes != null:
+		for c in _det_acoes.get_children():
+			c.queue_free()
 	var grade: HFlowContainer = null             # botões com "icone" seguidos ficam lado a lado
+	var grupo_aberto := ""                       # (compacto) nome do grupo de botões em linha que está aberto
+	var linha_grupo: HBoxContainer = null
+	var compacto := Tema.estilo("painel_compacto")
+	var titulo_receita := ""
 	for b in botoes:
+		if compacto and b.get("secao", "") == "acoes":
+			_det_acoes.add_child(_botao_acao_detalhe(b))
+			continue
+		if compacto and b.has("grupo"):
+			if b.grupo != grupo_aberto:
+				grupo_aberto = b.grupo
+				_det_botoes.add_child(_cabecalho_secao(b.grupo))
+				linha_grupo = HBoxContainer.new()
+				linha_grupo.add_theme_constant_override("separation", 2)
+				_det_botoes.add_child(linha_grupo)
+			linha_grupo.add_child(_botao_grupo(b))
+			grade = null
+			continue
+		grupo_aberto = ""
 		if b.has("titulo"):
-			var cab := Label.new()
-			cab.text = b.titulo
-			cab.add_theme_font_size_override("font_size", 14)
-			cab.add_theme_color_override("font_color", COR_TITULO)
-			_det_botoes.add_child(cab)
+			_det_botoes.add_child(_cabecalho_secao(b.titulo))
 			grade = null
 			continue
 		if b.has("icone"):
@@ -644,14 +781,177 @@ func detalhe(titulo: String, texto: String, botoes: Array) -> void:
 			grade.add_child(_botao_icone(b))
 			continue
 		grade = null
+		if compacto and b.has("receita"):
+			if b.get("grupo_receita", "") != titulo_receita:
+				titulo_receita = b.grupo_receita
+				_det_botoes.add_child(_cabecalho_secao(titulo_receita))
+			_det_botoes.add_child(_botao_receita(b))
+			continue
 		var bt := Button.new()
 		bt.text = b.texto
 		bt.focus_mode = Control.FOCUS_NONE
-		bt.custom_minimum_size = Vector2(0, 46)
+		bt.custom_minimum_size = Vector2(0, Tema.n("det_botao"))
+		bt.add_theme_font_size_override("font_size", Tema.n("f_texto") if Tema.estilo("fino") else Tema.n("f_base"))
 		bt.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		bt.pressed.connect(RolagemToque.so_clique(b.acao))
 		_det_botoes.add_child(bt)
 		_destacar(bt, b.get("ligado", false), COR_DESTAQUE)
+
+
+func _cabecalho_secao(texto: String) -> Label:
+	var cab := Label.new()
+	cab.text = texto
+	cab.add_theme_font_size_override("font_size", Tema.n("f_peq"))
+	cab.add_theme_color_override("font_color", COR_TITULO)
+	return cab
+
+
+func _cabecalho_detalhe(extra: Dictionary) -> void:
+	_det_icone.visible = extra.get("icone") != null
+	_det_icone.texture = extra.get("icone")
+	_det_estado.visible = str(extra.get("estado", "")) != ""
+	_det_estado.text = str(extra.get("estado", ""))
+	_det_estado.add_theme_color_override("font_color", extra.get("cor", Tema.cor("info")))
+	var vida := float(extra.get("vida", -1.0))
+	_det_vida.visible = vida >= 0.0
+	_det_vida.value = maxf(vida, 0.0)
+	_det_vida.tooltip_text = str(extra.get("vida_dica", ""))
+	if vida >= 0.0:
+		var cv: Color = Tema.cor("sucesso") if vida > 0.5 else (Tema.cor("destaque") if vida > 0.25 else Tema.cor("perigo"))
+		_det_vida.add_theme_stylebox_override("fill", _caixa_barra(cv))
+	var barras: Array = extra.get("barras", [])
+	var stats := str(extra.get("stats", ""))
+	var assin := "|".join(barras.map(func(b): return str(b.rotulo))) + ("#" if stats != "" else "")
+	if assin != _det_barras_assin:
+		_det_barras_assin = assin
+		for c in _det_barras.get_children():
+			c.queue_free()
+		for b in barras:
+			var h := HBoxContainer.new()
+			h.add_theme_constant_override("separation", 4)
+			h.name = "b_" + str(b.rotulo).validate_node_name()
+			var l := Label.new()
+			l.text = str(b.rotulo)
+			l.add_theme_font_size_override("font_size", Tema.n("f_alca"))
+			l.add_theme_color_override("font_color", Tema.cor("info"))
+			l.custom_minimum_size = Vector2(62, 0)
+			l.clip_text = true
+			h.add_child(l)
+			var pb := ProgressBar.new()
+			pb.max_value = 1.0
+			pb.show_percentage = false
+			pb.custom_minimum_size = Vector2(0, Tema.n("barra_alt"))
+			pb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			pb.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			pb.add_theme_stylebox_override("fill", _caixa_barra(b.cor))
+			pb.mouse_filter = Control.MOUSE_FILTER_PASS
+			h.add_child(pb)
+			var pc := Label.new()
+			pc.add_theme_font_size_override("font_size", Tema.n("f_alca"))
+			pc.custom_minimum_size = Vector2(30, 0)
+			pc.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+			h.add_child(pc)
+			_det_barras.add_child(h)
+		if stats != "":
+			var ls := Label.new()
+			ls.name = "stats"
+			ls.add_theme_font_size_override("font_size", Tema.n("f_alca"))
+			ls.add_theme_color_override("font_color", Tema.cor("info"))
+			ls.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			_det_barras.add_child(ls)
+	var i := 0
+	for c in _det_barras.get_children():
+		if c.is_queued_for_deletion():
+			continue
+		if c is Label:
+			(c as Label).text = stats
+		elif i < barras.size():
+			var v := clampf(float(barras[i].valor), 0.0, 1.0)
+			(c.get_child(1) as ProgressBar).value = v
+			(c.get_child(1) as ProgressBar).tooltip_text = str(barras[i].get("dica", barras[i].rotulo))
+			(c.get_child(2) as Label).text = "%d%%" % roundi(v * 100.0)
+			i += 1
+
+
+func _caixa_barra(c: Color) -> StyleBoxFlat:
+	return Tema.caixa(c, c.lightened(0.3), 2, 0)
+
+
+## Botão pequeno da linha de ações: rótulo curto, explicação e atalho na dica.
+func _botao_acao_detalhe(b: Dictionary) -> Button:
+	var bt := Button.new()
+	bt.text = str(b.get("icone_txt", b.texto))
+	var tecla := str(b.get("tecla", ""))
+	bt.tooltip_text = "%s (%s)" % [str(b.texto).strip_edges(), tecla] if tecla != "" else str(b.texto)
+	bt.focus_mode = Control.FOCUS_NONE
+	bt.custom_minimum_size = Vector2(0, Tema.n("det_botao") - 2)
+	bt.add_theme_font_size_override("font_size", Tema.n("f_peq"))
+	bt.pressed.connect(RolagemToque.so_clique(b.acao))
+	if b.get("perigo", false):
+		bt.add_theme_color_override("font_color", COR_PERIGO.lightened(0.3))
+	_destacar(bt, b.get("ligado", false), Tema.cor("sucesso"))
+	return bt
+
+
+## Uma opção de grupo (modo, limite...): segmento de largura igual; o texto completo vai na dica.
+func _botao_grupo(b: Dictionary) -> Button:
+	var bt := Button.new()
+	bt.text = str(b.get("curto", b.texto))
+	bt.tooltip_text = str(b.texto)
+	bt.focus_mode = Control.FOCUS_NONE
+	bt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bt.custom_minimum_size = Vector2(0, Tema.n("det_botao") - 2)
+	bt.add_theme_font_size_override("font_size", Tema.n("f_peq"))
+	bt.pressed.connect(RolagemToque.so_clique(b.acao))
+	_destacar(bt, b.get("ligado", false), COR_DESTAQUE)
+	return bt
+
+
+## Receita como ela é: entradas → saídas em ícones com a quantidade, escolhida em âmbar; o texto inteiro fica na dica.
+func _botao_receita(b: Dictionary) -> Button:
+	var bt := Button.new()
+	bt.focus_mode = Control.FOCUS_NONE
+	bt.tooltip_text = str(b.texto)
+	bt.custom_minimum_size = Vector2(0, 30)
+	bt.pressed.connect(RolagemToque.so_clique(b.acao))
+	_destacar(bt, b.get("ligado", false), COR_DESTAQUE)
+	var h := HBoxContainer.new()
+	h.set_anchors_preset(Control.PRESET_FULL_RECT)
+	h.offset_left = 6
+	h.offset_right = -6
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	h.add_theme_constant_override("separation", 3)
+	bt.add_child(h)
+	var r: Dictionary = b.receita
+	for e in r.entradas:
+		_item_receita(h, e)
+	var seta := Label.new()
+	seta.text = "→"
+	seta.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	seta.add_theme_font_size_override("font_size", Tema.n("f_texto"))
+	seta.add_theme_color_override("font_color", Tema.cor("info"))
+	h.add_child(seta)
+	for e in r.saidas:
+		_item_receita(h, e)
+	return bt
+
+
+func _item_receita(h: HBoxContainer, e: Dictionary) -> void:
+	if e.tex != null:
+		var ic := TextureRect.new()
+		ic.texture = e.tex
+		ic.custom_minimum_size = Vector2(20, 20)
+		ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		h.add_child(ic)
+	var l := Label.new()
+	l.text = str(e.n) if e.tex != null else "%d %s" % [e.n, e.get("fluido", e.dica)]
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	l.add_theme_font_size_override("font_size", Tema.n("f_alca"))
+	l.add_theme_color_override("font_color", Tema.cor("agua") if e.has("fluido") else Tema.cor("texto"))
+	h.add_child(l)
 
 
 ## Casa de escolha em grade: só o ícone (o nome fica na dica); o escolhido ganha a moldura âmbar.
@@ -662,10 +962,24 @@ func _botao_icone(b: Dictionary) -> Button:
 	bt.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	bt.tooltip_text = b.texto
 	bt.focus_mode = Control.FOCUS_NONE
-	bt.custom_minimum_size = Vector2(46, 46)
-	bt.add_theme_constant_override("icon_max_width", 34)
+	bt.custom_minimum_size = Vector2(Tema.f("det_icone_botao"), Tema.f("det_icone_botao"))
+	bt.add_theme_constant_override("icon_max_width", Tema.n("det_icone_max"))
 	bt.pressed.connect(RolagemToque.so_clique(b.acao))
 	_destacar(bt, b.get("ligado", false), COR_DESTAQUE)
+	if b.has("numero"):                            # casa de inventário: quantidade no canto
+		bt.tooltip_text = b.dica_num
+		var n := Label.new()
+		n.text = b.numero
+		n.set_anchors_preset(Control.PRESET_FULL_RECT)
+		n.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		n.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+		n.offset_right = -2
+		n.add_theme_font_size_override("font_size", Tema.n("f_casa"))
+		n.add_theme_color_override("font_outline_color", Color.BLACK)
+		n.add_theme_constant_override("outline_size", 4)
+		n.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		bt.add_child(n)
+		_det_numeros[b.chave] = [n, bt]
 	return bt
 
 
@@ -763,11 +1077,11 @@ func botao_peca(nome: String, k: int) -> Button:
 	var icones: Dictionary = Registro.menu.get("icones", {})
 	var expl: Dictionary = Registro.menu.get("explicacoes", {})
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(0, 74)
+	b.custom_minimum_size = Vector2(0, Tema.n("peca_alt"))
 	b.focus_mode = Control.FOCUS_NONE
 	b.icon = _icone(icones.get(nome, nome))
 	b.expand_icon = false
-	b.add_theme_constant_override("icon_max_width", 58)
+	b.add_theme_constant_override("icon_max_width", Tema.n("peca_icone"))
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	var custo := Construtor.custo_de(nome)
 	var partes: Array[String] = []
@@ -777,9 +1091,13 @@ func botao_peca(nome: String, k: int) -> Button:
 	var extra := (" · " + f) if f != "" else ""
 	var bloqueada: bool = liberado.is_valid() and not liberado.call(nome)
 	var dev := peca_em_desenvolvimento(nome)
-	b.text = "%s%s\n%s\n%s%s" % [rotulo(nome), "" if toque else "  (%d)" % (k + 1), expl.get(nome, ""),
-			"" if dev else ("🔒 pesquisar" if bloqueada else ", ".join(partes)), "" if bloqueada or dev else extra]
-	b.add_theme_font_size_override("font_size", 14)
+	var custo_txt: String = "" if dev else ("🔒 pesquisar" if bloqueada else ", ".join(partes))
+	if Tema.estilo("peca_duas_linhas"):        # PC: denso; a explicação inteira fica na dica do mouse
+		b.text = "%s  [%d]\n%s" % [rotulo(nome), k + 1, custo_txt]
+		b.tooltip_text = "%s\n%s\n%s%s" % [rotulo(nome), expl.get(nome, ""), custo_txt, "" if bloqueada or dev else extra]
+	else:
+		b.text = "%s%s\n%s\n%s%s" % [rotulo(nome), "" if toque else "  (%d)" % (k + 1), expl.get(nome, ""), custo_txt, "" if bloqueada or dev else extra]
+	b.add_theme_font_size_override("font_size", Tema.n("f_peq"))
 	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	if dev:                                    # ainda não está no jogo: cinza escuro, selo, não escolhe
 		b.disabled = true

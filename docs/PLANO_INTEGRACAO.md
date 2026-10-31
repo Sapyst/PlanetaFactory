@@ -779,6 +779,19 @@ Ver docs/BRIEF_ANTIGRAVITY_2.md. Conversão: arte/estudos/conv_antigos.py (remen
 - Verificação: 74.229 verificações, 0 falhas; nenhum limite de teste subiu; 195 scripts compilam; demo sem janela sem erro de script (só o aviso de recursos que já existia).
 - **Fica para Sapyst**: sensação do vento em movimento e no tufão com chuva (só vi sequências de fotos, sem chuva) e o tamanho de 68% na tela dela.
 
+### Interface PC, portas, painel, baú, braço (2026-10-31)
+Folha: arte/estudos/fotos/ui_pc.jpg (fotos soltas em ui_pc/; roteiro `-- modo demo roteiro ui_pc [so_ui] [itens]`).
+- [x] **Portas**: marcador no chão (`MarcadorPortas`) no `tile_fora`, no aviso e no fantasma; placas Label3D removidas. Braço não atende mais porta de fluido (era engano de `soltas`).
+- [x] **Fantasma**: verde/vermelho por porta (`Portas.estados`, mesma regra do aviso), vermelho-escuro quando não pode, realce dos tiles e motivo curto (`Bloqueios`).
+- [x] **Perfil PC** (`Tema.MEDIDAS`). Celular conferido controle a controle (457) contra medidas gravadas antes: `testes/conferir_celular.gd`, no testar.sh. Só o texto da faixa muda de largura, por causa do item da faixa.
+- [x] **Painel**: cabeçalho, barras, ligar/desligar com estado próprio, girar, remover, copiar/colar, estatística, receita em ícones. Seleção com contorno (`DesenhoSelecao`).
+- [x] **Baú**: inventário, organizar, filtro de tipos, máximo por tipo (`_NoBau`, `quanto_cabe`; braço e drones). Tirar à mão não existe no jogo.
+- [x] **Engrenagem**: **causa**: serrilhado de geometria, não modelo quebrado. Malha, normais e UV estavam certos, sem LOD. Os dentes tinham 3 cm de fundo e 5 cm de altura: a 22 m são 1 a 2 pixels, o projeto não tem MSAA nem FXAA e o contorno muda a cada posição (comparado em fotos a 1/4 de pixel, com o 3D em 100% e 50%). Pálida sobre a faixa branca da lona, piora. Modelo novo em arte/blender_scripts/itens.py: 5 dentes de 4,7 cm, 7 cm de altura, cubo escuro, 96 tris (limite 100). Ícone não refeito.
+- [x] **Faixa de construção**: `lugar_faixa`, por retângulos reais, com animação curta, nos dois perfis.
+- [x] **Braço Linear/Radial** (`modo_braco`): não existia. Leitura declarada do pedido; quântico fica só Linear.
+- Testes alterados, sem subir limite: test_energia_extra (desligada = DESLIGADA), test_salvar_auto (padrão 100%, migração `ui_pc`). Novos: test_painel_estrutura, test_perfil_interface, casos em test_portas.
+- **Fica para Sapyst**: MSAA/FXAA como opção (melhora todos os itens; custo não medido); Resolução do 3D dela está em 50%, o que piora o serrilhado; "Estação 1" no mapa continua texto grande.
+
 ### Lista para a fase 3 — estruturas da árvore ainda sem estudo/modelo
 (Fonte: "Estruturas: temos × precisamos" do docs/ARVORE_TECNOLOGIA.md. Entre parênteses, o que cada uma destrava do que
 já está ligado e travado.)

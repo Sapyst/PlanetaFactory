@@ -6,6 +6,7 @@ extends Node
 ##          botão direito: cancela (clique) ou move a câmera (arrasto); meio ou esquerdo sem peça = move a câmera
 ##          roda = zoom; Q/E = gira a câmera; WASD/setas = anda; R = girar peça (Shift+R ao contrário)
 ##          X = remover; L = aplainar (Terraplenagem); V = visão de recursos; Ctrl+Z = desfazer; Esc = cancelar; 1..9 = peça da aba; Tab = próxima aba
+##          Com estrutura selecionada: O = ligar/desligar; R = girar; Del = remover; Ctrl+C/Ctrl+V = copiar/colar configuração; Esc = fechar o painel
 ##  Toque   1 dedo com peça na mão: o fantasma segue o dedo e a peça é posta ao soltar (arrastar = traçar)
 ##          1 dedo sem peça = move a câmera; 2 dedos = move + pinça (zoom) e cancelam o traço em andamento
 ##
@@ -246,12 +247,12 @@ func _texto_modo() -> String:
 		return ""
 	var sair := "segure o dedo ou toque em Sair para parar" if _por_toque else "clique direito ou Sair para parar"
 	if removendo:
-		return "Removendo — toque ou arraste sobre o que tirar · " + sair
+		return ("Removendo — clique ou arraste sobre o que tirar · " if Tema.estilo("atalhos") and not _por_toque else "Removendo — toque ou arraste sobre o que tirar · ") + sair
 	if peca == APLAINAR:
 		return "Aplainando — arraste a área no chão · " + sair
 	if peca == ESCAVAR:
 		return "Escavando — arraste a área no chão · " + sair
-	return "Construindo: %s — %s · %s" % [barra.rotulo(peca), "arraste no chão" if Construtor.arrastavel(peca) else "toque no chão", sair]
+	return "Construindo: %s — %s · %s" % [barra.rotulo(peca), "arraste no chão" if Construtor.arrastavel(peca) else ("clique no chão" if Tema.estilo("atalhos") and not _por_toque else "toque no chão"), sair]
 
 
 func _confirmar() -> void:
@@ -315,8 +316,23 @@ func _unhandled_input(e: InputEvent) -> void:
 func _tecla(e: InputEventKey) -> void:
 	if not e.pressed or e.echo:
 		return
+	var sem_mao := not _ativo() and not _gesto
+	if e.ctrl_pressed and e.keycode == KEY_C and sem_mao and mundo.atalho_selecao("copiar"):
+		return
+	if e.ctrl_pressed and e.keycode == KEY_V and sem_mao and mundo.atalho_selecao("colar"):
+		return
 	match e.keycode:
-		KEY_R: girar(1 if e.shift_pressed else -1)
+		KEY_R:
+			if peca == "" and sem_mao:
+				mundo.atalho_selecao("girar")
+			else:
+				girar(1 if e.shift_pressed else -1)
+		KEY_O:
+			if sem_mao:
+				mundo.atalho_selecao("ligar")
+		KEY_DELETE:
+			if sem_mao:
+				mundo.atalho_selecao("remover")
 		KEY_X: alternar_remover()
 		KEY_P: alternar_poluicao()
 		KEY_V: alternar_recursos()
@@ -328,7 +344,7 @@ func _tecla(e: InputEventKey) -> void:
 		KEY_ENTER, KEY_KP_ENTER: _construir_pendente()
 		KEY_ESCAPE:
 			if _ativo() or _gesto: cancelar()
-			else: mundo.abrir_pausa()
+			elif not mundo.atalho_selecao("fechar"): mundo.abrir_pausa()     # Esc fecha o painel antes de abrir o menu
 		KEY_T: mundo.abrir_pesquisa()
 		KEY_Q: camera.girar(-0.3)
 		KEY_E: camera.girar(0.3)

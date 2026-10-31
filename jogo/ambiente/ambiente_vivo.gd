@@ -355,7 +355,10 @@ func _supressores(fabrica: Fabrica) -> void:
 		var gasto := float(ap.get("agua_por_s", 10.0))
 		var c := Grade.centro_da_area(e.minimo, e.area, e.rot)
 		var agua := float(m.fluidos.get("agua", 0.0))
-		if m.energia <= 0.0 or not fabrica.ligada(id):
+		if not fabrica.ligada(id):
+			m.estado = Maquina.Estado.DESLIGADA
+			continue
+		if m.energia <= 0.0:
 			m.estado = Maquina.Estado.SEM_ENERGIA
 			continue
 		if agua < gasto:

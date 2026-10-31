@@ -12,4 +12,10 @@ if echo "$SAIDA" | grep -q "SCRIPT ERROR"; then
   echo "FALHA: houve erro de script (ver acima)"
   exit 1
 fi
+# Perfil celular: toda a interface montada, cada controle comparado às medidas gravadas antes do perfil PC.
+if [ $# -eq 0 ]; then
+  CEL=$(timeout 120 "$G" --headless --path . -s res://testes/conferir_celular.gd -- celular 2>&1)
+  echo "$CEL" | grep -E "^CELULAR|SCRIPT ERROR"
+  echo "$CEL" | grep -q "^CELULAR OK" || exit 1
+fi
 exit $COD

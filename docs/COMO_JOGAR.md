@@ -215,7 +215,23 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
 | Remover | X e clicar (ou arrastar um retângulo) | botão Remover |
 | Ver jazidas / vento | V (de novo: vento) | botão Recursos |
 | Pesquisa | T | botão ⚗ |
-| Ver uma máquina | clicar com a mão vazia | tocar |
+| Ver uma máquina | clicar com a mão vazia (Esc fecha) | tocar |
+| Na estrutura aberta | O liga/desliga · R gira · Del remove · Ctrl+C / Ctrl+V copia e cola | botões do painel |
+
+## Portas no chão e fantasma
+- Máquina pronta com entrada ou saída sem nada ligado: **marcador de listras vermelhas no chão**, no tile exato onde o item ou o fluido entra ou sai, com uma seta discreta no sentido do fluxo (clara = item, azulada = fluido). Ligou (esteira, cano, braço por qualquer lado, baú, outra máquina), some. Núcleo e torre de energia não avisam.
+- Ao posicionar uma máquina, cada porta mostra o mesmo marcador: **verde** = ali já encaixa em algo certo; **vermelho** = em falta. Dá para construir assim mesmo.
+- Fantasma **vermelho-escuro** = não pode construir. Os tiles que atrapalham acendem e o motivo aparece em cima: rocha, árvore, ocupado: Baú, água, sem pesquisa, falta material...
+
+## Painel de uma estrutura (clique nela)
+- A estrutura clicada ganha um **contorno âmbar** no mundo enquanto o painel está aberto.
+- **PC**: cabeçalho com ícone, vida e o estado com a causa (sem energia, falta Carvão, saída cheia, sem receita, desligada), barras de progresso, energia e estoque, e receita em ícones. Passe o mouse para ver os nomes.
+- **Ações**: Ligar/desligar (**O**; desligada não consome nem anda), Girar (**R**), Remover (**Del**; Ctrl+Z desfaz), Copiar e Colar configuração (**Ctrl+C**, **Ctrl+V**: só em outra peça igual; leva receita, modo, filtros e opções, não ligada/desligada nem módulos). **Esc** fecha o painel.
+- **Baú** (baú, baú grande, baú de estoque, silo, posto avançado): inventário em ícones com a quantidade, **Organizar** por tipo ou por quantidade, **filtro de tipos** (nenhum escolhido = aceita tudo; vale para braço e drone) e **máximo de cada tipo**. O que já estava dentro continua saindo. Não dá para tirar à mão: sai por braço ou drone.
+- **Modo do braço**: **Linear** (padrão: pega atrás, solta na frente) ou **Radial** (solta na frente, pega dos outros 3 lados, em rodízio, só do que passa no filtro e que o destino aceita). O braço quântico só tem Linear.
+
+## PC e celular
+No APK a interface é a grande, de dedo. No PC ela é menor e mais fina, com atalhos à vista entre colchetes e dicas ao passar o mouse. **Tamanho da interface** em Configurações vale sobre os dois; no PC, 100% é o tamanho normal.
 
 ## Braços: pegar um item só
 Toque em qualquer braço: no painel, **Auto** pega o que o destino aceitar; tocar num ícone faz ele pegar só aquele item
@@ -223,7 +239,7 @@ Toque em qualquer braço: no painel, **Auto** pega o que o destino aceitar; toca
 **Braço com filtro** é o que escolhe vários (até 5).
 
 ## Configurações (menu inicial ou pausa)
-- **Tamanho da interface:** de 68% a 160%; o padrão agora é 80%.
+- **Tamanho da interface:** de 68% a 160%; 100% é o tamanho normal de cada aparelho (no PC, quem estava em até 80% volta a 100% uma vez, porque a interface do PC já é menor).
 - **Estoque de recursos na tela:** vertical (padrão, canto esquerdo) ou horizontal. A alça "menos/tudo" no fim dele
   alterna entre só os principais e tudo o que há no núcleo.
 - **Salvar sozinho a cada:** desligado, 1, 2, 5, 10, 15 ou 30 min (padrão 2). Aparece "Salvando…" no alto, sem parar o

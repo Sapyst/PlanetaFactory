@@ -33,19 +33,19 @@ func _ready() -> void:
 	centro.add_child(painel)
 	var m := MarginContainer.new()
 	for lado in ["left", "right", "top", "bottom"]:
-		m.add_theme_constant_override("margin_" + lado, 20)
+		m.add_theme_constant_override("margin_" + lado, Tema.n("pausa_margem"))
 	painel.add_child(m)
 	var pilha := VBoxContainer.new()
 	m.add_child(pilha)
 	_caixa = VBoxContainer.new()
-	_caixa.add_theme_constant_override("separation", 10)
+	_caixa.add_theme_constant_override("separation", Tema.n("menu_sep"))
 	pilha.add_child(_caixa)
 	_config = PainelConfig.new()
 	_config.visible = false
 	_config.voltar.connect(func(): _config.visible = false; _caixa.visible = true)
 	pilha.add_child(_config)
 	_titulo = Label.new()
-	_titulo.add_theme_font_size_override("font_size", 30)
+	_titulo.add_theme_font_size_override("font_size", Tema.n("f_pausa_titulo"))
 	_titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_caixa.add_child(_titulo)
 	_aviso = Label.new()
@@ -96,7 +96,7 @@ func _trocar(modo: String) -> void:
 func _botao(texto: String, acao: Callable) -> Button:
 	var b := Button.new()
 	b.text = texto
-	b.custom_minimum_size = Vector2(360, 54)
+	b.custom_minimum_size = Tema.v("pausa_botao")
 	b.pressed.connect(acao)
 	_caixa.add_child(b)
 	return b

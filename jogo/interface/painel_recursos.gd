@@ -31,7 +31,7 @@ func _ready() -> void:
 	_alca = Button.new()
 	_alca.focus_mode = Control.FOCUS_NONE
 	_alca.custom_minimum_size = Vector2(LARGURA_CASA, ALTURA_CASA)
-	_alca.add_theme_font_size_override("font_size", 12)
+	_alca.add_theme_font_size_override("font_size", Tema.n("f_alca"))
 	_alca.add_theme_color_override("font_color", Tema.cor("titulo"))
 	for k in ["normal", "hover", "pressed"]:
 		_alca.add_theme_stylebox_override(k, Tema.caixa(Color(0.10, 0.10, 0.11, 0.95) if k != "hover" else Color(0.17, 0.16, 0.14, 0.95), Color(Tema.COR.filete, 0.8), 3, 0))
@@ -144,7 +144,7 @@ func _casa(item: String) -> Dictionary:
 	ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	fundo.add_child(ic)
 	var n := Label.new()
-	n.add_theme_font_size_override("font_size", 13)
+	n.add_theme_font_size_override("font_size", Tema.n("f_recurso"))
 	n.add_theme_color_override("font_color", Tema.cor("texto"))
 	n.add_theme_color_override("font_outline_color", Color.BLACK)
 	n.add_theme_constant_override("outline_size", 3)

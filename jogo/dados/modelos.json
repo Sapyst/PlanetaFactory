@@ -2704,11 +2704,11 @@
    }
   ],
   "portas": [],
-  "tris": 92,
+  "tris": 96,
   "dims": [
-   0.237,
+   0.248,
    0.24,
-   0.05
+   0.078
   ],
   "modelo": "res://assets/modelos/itens/intermediarios/engrenagem.glb"
  },

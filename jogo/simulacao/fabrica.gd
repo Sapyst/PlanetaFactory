@@ -411,6 +411,45 @@ func capacidade_bau(id: int) -> int:
 	return int(float(Registro.estruturas.get(e.nome, {}).get("capacidade_itens", BAU_MAX)) * float(e.get("limite", 1.0)))
 
 
+## O baú como destino e origem de braço, com o filtro do jogador. O que já estava dentro continua podendo sair.
+func _no_bau(id: int) -> _NoBau:
+	var nb := _NoBau.new(baus[id], capacidade_bau(id), um_tipo(id))
+	var e: Dictionary = mapa.estruturas[id]
+	nb.aceitos = e.get("aceita", [])
+	nb.limite_item = int(e.get("aceita_limite", 0))
+	return nb
+
+
+## Quantos deste item ainda cabem no baú (filtro, limite por item, um tipo só, capacidade). Vale para braço, esteira e drones.
+func quanto_cabe(id: int, item: String) -> int:
+	if not baus.has(id) or not mapa.estruturas.has(id):
+		return 0
+	var nb := _no_bau(id)
+	if not nb.aceita(item):
+		return 0
+	var livre := nb.cap - nb._total()
+	return mini(livre, nb.limite_item - int(nb.b.get(item, 0))) if nb.limite_item > 0 else livre
+
+
+## Conteúdo do baú na ordem pedida: "tipo" (a ordem de dados/itens.json: recursos, peças, avançados) ou "qtd" (mais primeiro; empate pelo nome).
+## Só os que há. É a ordem de ver; a estrutura guarda o total por tipo, sem casas para arrumar.
+func conteudo_ordenado(id: int, ordem := "tipo") -> Array:
+	var b: Dictionary = baus.get(id, {})
+	var lista: Array = []
+	for k in Registro.itens:
+		if int(b.get(k, 0)) > 0:
+			lista.append(k)
+	for k in b:                           # item fora do itens.json (save antigo): não some
+		if int(b[k]) > 0 and not lista.has(k):
+			lista.append(k)
+	if ordem == "qtd":
+		lista.sort_custom(func(x, y):
+			var nx := int(b[x])
+			var ny := int(b[y])
+			return nx > ny if nx != ny else String(x) < String(y))
+	return lista
+
+
 ## Posto avançado (núcleo-filho): estoque próprio em `baus` e raio da obra que paga com ele.
 static func eh_posto(nome: String) -> bool:
 	return Registro.estruturas.get(nome, {}).has("posto")
@@ -691,6 +730,12 @@ func _montar_bracos() -> void:
 		b.filtros = Fabrica.filtros_de(e)
 		b.filtro = b.filtros[0] if b.filtros.size() == 1 else ""
 		b.origem = origem_em(e.minimo - d * alcance_origem(e))
+		b.origens.clear()
+		if Portas.braco_radial(e):                    # Radial: atrás, esquerda, direita (a frente é o destino)
+			for t in Portas.origens_braco(e):
+				b.origens.append(origem_em(t))
+		else:
+			b.origem_i = 0
 		b.destino = destino_em(e.minimo + d * (1 if r.has("alcance_max") else int(r.get("alcance", 1))))
 		if b.destino == null and b.segurando == "":
 			b.estado = Braco.Estado.ESPERANDO_ITEM
@@ -766,7 +811,7 @@ func origem_em(t: Vector2i) -> Object:
 	if maquinas.has(id):
 		return _NaMaquina.new(self, id)
 	if baus.has(id):
-		return _NoBau.new(baus[id], capacidade_bau(id), um_tipo(id))
+		return _no_bau(id)
 	if estoques.has(id):
 		return _NaEstacao.new(estoques[id])
 	var r: Dictionary = Registro.estruturas.get(mapa.estruturas[id].nome, {})
@@ -795,7 +840,7 @@ func destino_em(t: Vector2i) -> Object:
 	if maquinas.has(id):
 		return _NaMaquina.new(self, id)
 	if baus.has(id):
-		return _NoBau.new(baus[id], capacidade_bau(id), um_tipo(id))
+		return _no_bau(id)
 	if estoques.has(id):
 		return _NaEstacao.new(estoques[id])
 	if Registro.estruturas.get(nome, {}).get("grupo", "") == "defesa":      # torre de energia e metralhadora
@@ -1053,8 +1098,11 @@ func tick(dt: float) -> void:
 				laboratorios[id].energia = en
 	for id in maquinas:
 		var m: Maquina = maquinas[id]
+		m.contar(dt)
+		if _marcar_desligada(m, not ligada(id)):
+			continue
 		if combustivel.has(id):
-			m.energia = 1.0 if combustivel[id] > 0.0 and ligada(id) else 0.0
+			m.energia = 1.0 if combustivel[id] > 0.0 else 0.0
 		match m.receita_id:
 			"coletar_chuva":
 				m.clima = float(chuva_maq.get(id, chuva)) if ligada(id) else 0.0
@@ -1078,6 +1126,9 @@ func tick(dt: float) -> void:
 				combustivel[id] = maxf(0.0, combustivel[id] - FOGO_KW / 1000.0 * dt)
 	for id in linha2:                           # montadora quântica: a segunda receita, na mesma energia
 		var m2: Maquina = linha2[id]
+		m2.contar(dt)
+		if _marcar_desligada(m2, not ligada(id)):
+			continue
 		m2.energia = maquinas[id].energia
 		m2.tick(dt)
 		if m2.estado == Maquina.Estado.TRABALHANDO:
@@ -1700,16 +1751,122 @@ func _tick_valvulas(dt: float) -> void:
 
 
 # ------------------------------------------------------------------ salvamento
+## Máquina desligada não anda e mostra estado próprio; ao religar, acorda (podia estar dormindo antes). true = parada agora.
+func _marcar_desligada(m: Maquina, off: bool) -> bool:
+	if m.desligada != off:
+		m.desligada = off
+		m.acordar()
+	if off:
+		m.energia = 0.0
+		m.estado = Maquina.Estado.DESLIGADA
+	return off
+
+
+## O que a máquina está fazendo, em palavras, com a causa ("falta Carvão", "saída cheia: Placa de ferro").
+static func causa_maquina(m: Maquina, comparador := false) -> String:
+	match m.estado:
+		Maquina.Estado.DESLIGADA: return "desligada pelo comparador" if comparador else "desligada"
+		Maquina.Estado.SEM_RECEITA: return "sem receita"
+		Maquina.Estado.SEM_ENERGIA: return "sem energia"
+		Maquina.Estado.SEM_JAZIDA: return "jazida esgotada"
+		Maquina.Estado.TRABALHANDO: return "trabalhando"
+		Maquina.Estado.ESPERANDO_CLIMA: return "esperando o tempo mudar"
+		Maquina.Estado.PRONTIDAO: return "de prontidão"
+		Maquina.Estado.SAIDA_CHEIA:
+			for it in m.receita.get("saidas", {}):
+				if int(m.saidas.get(it, 0)) + int(m.receita.saidas[it]) > int(m.receita.saidas[it]) * Maquina.LIMITE_SAIDA:
+					return "saída cheia: " + Registro.itens.get(it, {}).get("nome", it)
+			return "saída cheia"
+		Maquina.Estado.SEM_INSUMO:
+			var faltam: Array[String] = []
+			for it in m.receita.get("entradas", {}):
+				if int(m.entradas.get(it, 0)) < int(m.receita.entradas[it]):
+					faltam.append(Registro.itens.get(it, {}).get("nome", it))
+			for fl in m.receita.get("entradas_fluido", {}):
+				if float(m.fluidos.get(fl, 0.0)) < float(m.receita.entradas_fluido[fl]):
+					faltam.append(Registro.nome_fluido(fl))
+			return "falta " + ", ".join(faltam) if not faltam.is_empty() else "esperando insumo"
+	return ""
+
+
+# ------------------------------------------------------------------ copiar e colar configuração
+## Só o que é escolha do jogador e fica na própria estrutura. Não entram: ligada/desligada (estado, não ajuste), fios, módulos
+## (custam itens) e o que mora em outro sistema (tipo de drone, canal do transportador, mira do lançador).
+const CAMPOS_CONFIG := ["modo", "filtros", "limite", "prioridade", "filtro_item", "saida_filtro", "modo_clima", "canal", "op", "numero", "modo_valvula",
+		"nivel_valvula", "logistica", "pede_item", "pede_qtd", "alcance", "aceita", "aceita_limite", "ordem", "modo_braco"]
+
+
+func copiar_config(id: int) -> Dictionary:
+	if not mapa.estruturas.has(id):
+		return {}
+	var e: Dictionary = mapa.estruturas[id]
+	var cfg := {"nome": e.nome, "campos": {}}
+	for k in CAMPOS_CONFIG:
+		if e.has(k):
+			var v = e[k]
+			cfg.campos[k] = v.duplicate(true) if v is Array or v is Dictionary else v
+	if maquinas.has(id) and maquinas[id].receita_id != "":
+		cfg["receita"] = maquinas[id].receita_id
+	if linha2.has(id) and linha2[id].receita_id != "":
+		cfg["receita2"] = linha2[id].receita_id
+	return cfg
+
+
+## Tem o que copiar? (ajuste escolhido, ou o tipo de estrutura tem ajuste a escolher)
+func tem_config(id: int) -> bool:
+	return maquinas.has(id) or bracos.has(id) or baus.has(id) or distribuidores.has(id) or not copiar_config(id).campos.is_empty()
+
+
+## "Outra igual": a mesma peça.
+func pode_colar(id: int, cfg: Dictionary) -> bool:
+	return not cfg.is_empty() and mapa.estruturas.has(id) and mapa.estruturas[id].nome == cfg.nome
+
+
+## Aplica em outra igual. `receita_ok(receita, nome)` diz se a receita está liberada aqui; a que não está fica de fora (o resto
+## vale). Receita igual não mexe no que está dentro da máquina; trocar devolve ao núcleo, como no painel.
+## Devolve {ok, receita_pulada, remontar: precisa remontar a fábrica}.
+func colar_config(id: int, cfg: Dictionary, receita_ok := Callable()) -> Dictionary:
+	var r := {"ok": false, "receita_pulada": "", "remontar": false}
+	if not pode_colar(id, cfg):
+		return r
+	var e: Dictionary = mapa.estruturas[id]
+	for k in CAMPOS_CONFIG:
+		var antes = e.get(k)
+		if cfg.campos.has(k):
+			var v = cfg.campos[k]
+			e[k] = v.duplicate(true) if v is Array or v is Dictionary else v
+		else:
+			e.erase(k)
+		if e.get(k) != antes and k in ["modo", "alcance", "modo_braco"]:
+			r.remontar = true
+	if bracos.has(id):
+		var lista: Array = e.get("filtros", [])
+		bracos[id].filtros = lista
+		bracos[id].filtro = lista[0] if lista.size() == 1 else ""
+	for par in [["receita", 1], ["receita2", 2]]:
+		var rid: String = cfg.get(par[0], "")
+		if rid == "" or (par[1] == 2 and not linha2.has(id)) or not maquinas.has(id):
+			continue
+		if not Registro.receita_cabe(rid, e.nome) or (receita_ok.is_valid() and not receita_ok.call(rid)):
+			r.receita_pulada = rid
+			continue
+		var m: Maquina = maquinas[id] if par[1] == 1 else linha2[id]
+		if m.receita_id != rid:
+			escolher_receita(id, rid, par[1])
+	r.ok = true
+	return r
+
+
 func estado() -> Dictionary:
 	var maq := {}
 	for id in maquinas:
 		var m: Maquina = maquinas[id]
 		maq[id] = {"receita": m.receita_id, "entradas": m.entradas, "saidas": m.saidas, "progresso": m.progresso,
-				"produzidos": m.produzidos, "fluidos": m.fluidos, "extra": m.extra}
+				"produzidos": m.produzidos, "fluidos": m.fluidos, "extra": m.extra, "tempo": [m.tempo_total, m.tempo_ativo]}
 		if linha2.has(id):
 			var l2: Maquina = linha2[id]
 			maq[id]["linha2"] = {"receita": l2.receita_id, "entradas": l2.entradas, "saidas": l2.saidas, "progresso": l2.progresso,
-					"produzidos": l2.produzidos, "fluidos": l2.fluidos, "extra": l2.extra}
+					"produzidos": l2.produzidos, "fluidos": l2.fluidos, "extra": l2.extra, "tempo": [l2.tempo_total, l2.tempo_ativo]}
 	var br := {}
 	for id in bracos:
 		var b: Braco = bracos[id]
@@ -1782,6 +1939,10 @@ func _restaurar_maquina(m: Maquina, s: Dictionary) -> void:
 	m.produzidos = s.produzidos
 	m.fluidos = s.get("fluidos", {})
 	m.extra = float(s.get("extra", 0.0))
+	var tempo: Array = s.get("tempo", [0.0, 0.0])         # save antigo: a estatística começa do zero
+	m.tempo_total = float(tempo[0])
+	m.tempo_ativo = float(tempo[1])
+	m._ritmo_n = m.produzidos
 	m.acordar()
 
 
@@ -1894,6 +2055,8 @@ class _NoBau:
 	var b: Dictionary
 	var cap: int
 	var unico := false            ## silo de granel: só um tipo de item
+	var aceitos: Array = []       ## filtro do jogador; vazio = tudo
+	var limite_item := 0          ## máximo de cada tipo; 0 = sem limite
 	func _init(p_b: Dictionary, p_cap: int, p_unico := false) -> void:
 		b = p_b
 		cap = p_cap
@@ -1907,6 +2070,10 @@ class _NoBau:
 			var t := Fabrica.tipo_guardado(b)
 			if t != "" and t != i:
 				return false
+		if not aceitos.is_empty() and not aceitos.has(i):
+			return false
+		if limite_item > 0 and int(b.get(i, 0)) >= limite_item:
+			return false
 		return _total() < cap
 	func receber(i: String) -> bool:
 		if not aceita(i): return false

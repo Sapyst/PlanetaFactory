@@ -5,10 +5,12 @@ extends RefCounted
 
 ## ESPERANDO_CLIMA: coletor de chuva / condensador parados porque não chove / não há neblina (`clima` = 0).
 ## PRONTIDAO: supressor com água, vigiando (só trabalha quando há fogo no raio).
-enum Estado { SEM_RECEITA, SEM_INSUMO, SAIDA_CHEIA, SEM_ENERGIA, SEM_JAZIDA, TRABALHANDO, ESPERANDO_CLIMA, PRONTIDAO }
+## DESLIGADA: desligada pelo jogador ou pelo comparador; quem marca é a Fabrica (nada anda nem consome).
+enum Estado { SEM_RECEITA, SEM_INSUMO, SAIDA_CHEIA, SEM_ENERGIA, SEM_JAZIDA, TRABALHANDO, ESPERANDO_CLIMA, PRONTIDAO, DESLIGADA }
 
 const LIMITE_SAIDA := 2      ## em "receitas": acumula até 2× a saída antes de travar
 const LIMITE_ENTRADA := 2    ## aceita até 2× cada insumo
+const RITMO_JANELA := 30.0   ## segundos
 
 var nome := ""
 var receita_id := ""
@@ -29,6 +31,12 @@ var transborda := false      ## fluido que não sai pelo cano não trava a máqu
 var clima := 1.0             ## fator do clima de agora (coletor: chuva, condensador: neblina); 0 = espera
 var retem: Array = []        ## produtos que não saem por braço (estação de drones: o drone vai para a frota)
 var rende_esgotada := 0.0    ## broca de núcleo: fração do ritmo com a jazida esgotada (0,1 = 10% para sempre)
+var desligada := false       ## quem muda é a Fabrica (ligada/desligada pelo jogador ou pelo comparador)
+var tempo_total := 0.0       ## segundos desde que foi posta (vai no save)
+var tempo_ativo := 0.0       ## segundos trabalhando
+var ciclos_min := 0.0        ## ciclos por minuto, medidos na última janela de RITMO_JANELA
+var _ritmo_t := 0.0
+var _ritmo_n := 0
 var _dormindo := false
 
 
@@ -176,6 +184,29 @@ func tick(dt: float) -> void:
 				saidas[item] = int(saidas.get(item, 0)) + int(vai[item])
 			for f in vai_f:
 				fluidos[f] = minf(float(fluidos.get(f, 0.0)) + float(vai_f[f]), limite_fluido(f) if transborda else INF)
+
+
+## Estatística do painel: tempo trabalhando e ritmo. Fica fora do tick porque o tick sai cedo quando dorme.
+func contar(dt: float) -> void:
+	tempo_total += dt
+	if estado == Estado.TRABALHANDO:
+		tempo_ativo += dt
+	_ritmo_t += dt
+	if _ritmo_t >= RITMO_JANELA:
+		ciclos_min = (produzidos - _ritmo_n) * 60.0 / _ritmo_t
+		_ritmo_n = produzidos
+		_ritmo_t = 0.0
+
+
+## Itens que sai por minuto, no ritmo medido (antes da 1ª janela fechar, o que já fez até agora).
+func itens_por_minuto() -> float:
+	var ciclos := ciclos_min
+	if tempo_total < RITMO_JANELA and tempo_total > 0.0:
+		ciclos = (produzidos - _ritmo_n) * 60.0 / tempo_total
+	var por_ciclo := 0
+	for it in receita.get("saidas", {}):
+		por_ciclo += int(receita.saidas[it])
+	return ciclos * por_ciclo
 
 
 ## Tem insumo para um ciclo e lugar na saída (captador esperando raio).

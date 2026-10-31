@@ -533,6 +533,7 @@ func tarefa_logistica(est: int) -> Dictionary:
 		if item == "":
 			continue
 		var falta := int(e.get("pede_qtd", 100)) - int(fabrica.baus[req].get(item, 0)) - _a_caminho("para", req, item)
+		falta = mini(falta, fabrica.quanto_cabe(req, item))     # filtro do baú: não busca o que ele não aceita
 		if falta <= 0:
 			continue
 		var cr := Grade.centro_da_area(e.minimo, e.area, e.rot)
@@ -564,14 +565,14 @@ func _mais_perto_com(lista: Array[int], req: int, item: String, cr: Vector2) -> 
 
 
 ## Baú de estoque no alcance da estação, mais perto de `de`, com lugar para `n` itens; -1 se nenhum.
-func estoque_livre(est: int, de: Vector2, n: int) -> int:
+func estoque_livre(est: int, de: Vector2, n: int, item := "") -> int:
 	var melhor := -1
 	var md := INF
 	for id in _baus_no_alcance(est, "estoque"):
 		var tem := 0
 		for k in fabrica.baus[id]:
 			tem += int(fabrica.baus[id][k])
-		if fabrica.capacidade_bau(id) - tem < n:
+		if fabrica.capacidade_bau(id) - tem < n or (item != "" and fabrica.quanto_cabe(id, item) < n):
 			continue
 		var e: Dictionary = mapa.estruturas[id]
 		var dd := Grade.centro_da_area(e.minimo, e.area, e.rot).distance_to(de)
@@ -612,17 +613,13 @@ func _logistico(d: Dictionary, dt: float) -> void:
 		d.e = E.INDO
 		eventos.append({"tipo": "drone_pegou", "id": d.id, "item": d.item, "n": n})
 	else:
-		var cabe := fabrica.capacidade_bau(alvo)
-		var tem := 0
-		for k in b:
-			tem += int(b[k])
-		var poe := mini(int(d.n), maxi(0, cabe - tem))
+		var poe := mini(int(d.n), maxi(0, fabrica.quanto_cabe(alvo, d.item)))   # capacidade + filtro do baú
 		if poe > 0:
 			b[d.item] = int(b.get(d.item, 0)) + poe
 		d.n = int(d.n) - poe
 		eventos.append({"tipo": "drone_entregou", "id": d.id, "item": d.item, "n": poe})
 		if int(d.n) > 0:
-			var sobra := estoque_livre(d.est, c, int(d.n)) if papel(alvo) != "estoque" else -1
+			var sobra := estoque_livre(d.est, c, int(d.n), d.item) if papel(alvo) != "estoque" else -1
 			if sobra >= 0:                              # não coube: a sobra vai para o baú de estoque
 				d.para = sobra
 				d.e = E.INDO

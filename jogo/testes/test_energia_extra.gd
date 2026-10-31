@@ -106,7 +106,7 @@ func test_desligar_e_modos() -> void:
 	for i in 5:
 		f.tick(1.0)
 	perto(f.kw_de(mq), 0.0, 1e-6, "desligada não consome")
-	igual(f.maquinas[mq].estado, Maquina.Estado.SEM_ENERGIA, "desligada não trabalha")
+	igual(f.maquinas[mq].estado, Maquina.Estado.DESLIGADA, "desligada não trabalha e tem estado próprio")
 	m.estruturas[mq].erase("desligada")
 	f.reconstruir()
 	for i in 3:

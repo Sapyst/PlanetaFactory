@@ -80,7 +80,9 @@ def fio_cobre():
 
 def engrenagem():
     m = Modelo('engrenagem', I, tipo='item', descricao='Engrenagem de ferro.'); p = m.parte()
-    p.engrenagem((0, 0, 0.025), 0.12, 0.09, 6, 0.05, 'P_Metal')
+    # dentes fundos e peça alta: a 20 m um dente rasinho tem menos de 2 pixels e o contorno "ferve" (serrilhado) andando na esteira
+    p.engrenagem((0, 0, 0.035), 0.125, 0.078, 5, 0.07, 'P_Metal')
+    p.cil((0, 0, 0.074), 0.042, 0.008, 'P_Escuro', lados=6)   # cubo escuro: lê como engrenagem de longe e separa do branco da lona
     return m
 
 def barra_aco():

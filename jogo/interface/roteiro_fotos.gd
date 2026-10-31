@@ -6,6 +6,7 @@ extends Node
 ## Medição de desempenho, numa fábrica grande:
 ##   xvfb-run godot --path jogo --resolution 1280x720 -- modo demo roteiro carga mostruario|patio
 ## Quem junta tudo: arte/estudos/painel_final.py.
+## Interface e marcadores (`-- modo demo roteiro ui_pc`): arte/estudos/fotos/ui_pc/, folha montada à parte.
 
 const ELEVACAO := 50.0                  ## graus acima do horizonte (a mesma em todas as fotos)
 const ANGULO := 0.6
@@ -38,6 +39,12 @@ func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(saida)
 	for i in 3:
 		await get_tree().process_frame
+	if rt.roteiro == "ui_pc":
+		saida = ProjectSettings.globalize_path("res://").path_join("../arte/estudos/fotos/ui_pc")
+		DirAccess.make_dir_recursive_absolute(saida)
+		await _ui_pc()
+		get_tree().quit()
+		return
 	_sem_hud()
 	if rt.roteiro == "carga":
 		await _carga(args[args.find("carga") + 1])
@@ -47,7 +54,7 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	if rt.roteiro == "fotos_finais" and _fixa:
+	if rt.roteiro in ["fotos_finais", "ui_pc"] and _fixa:
 		_camera_fixa()
 
 
@@ -55,7 +62,7 @@ func _sem_hud() -> void:
 	for n in cena.find_children("*", "CanvasLayer", true, false):
 		n.visible = false
 	for c in cena.get_children():
-		if c is DesenhoPortas:                    # placas "falta entrada/saída": aqui as peças estão soltas de propósito
+		if c is DesenhoPortas:                    # marcadores de porta solta: aqui as peças estão soltas de propósito
 			c.process_mode = Node.PROCESS_MODE_DISABLED
 			for f in c.get_children():
 				if f is Node3D:
@@ -672,3 +679,324 @@ func _montar_patio(c: Vector2i) -> void:
 	print("PÁTIO %d máquinas, %d linhas de esteira, fundo em y=%d" % [n, linhas, y])
 	await _quadros(14)
 	rt._encher_esteiras()
+
+
+# ------------------------------------------------------------------ interface PC, marcadores e fantasma
+func _so_3d(sim: bool) -> void:
+	cena.controle.barra.visible = not sim
+	for n in cena.find_children("*", "VisaoRecursos", true, false):
+		n.visible = false
+
+
+func _olhar(c: Vector2, d: float) -> void:
+	_fixa = true
+	_alvo = Grade.ponto_mundo(c)
+	_d = d
+	cena.camera.alvo = _alvo
+	cena.camera.distancia = d
+
+
+func _ui_pc() -> void:
+	Sessao.config.grama = true
+	_sem_perigo()
+	_o = _plano(Vector2i(-30, 0), 30, 30)
+	_limpar(_o, 50, 50)
+	await _quadros(30)
+	var so_ui := OS.get_cmdline_user_args().has("so_ui")
+	if not so_ui:
+		await _ui_marcadores()
+		await _ui_fantasma()
+	if OS.get_cmdline_user_args().has("itens"):
+		await _ui_itens()
+		return
+	await _ui_telas(str(get_viewport().get_window().size.y))
+	print("FOTO ui_pc pronto ", saida)
+
+
+## Estrutura pronta: portas soltas × atendidas, item e fluido.
+func _ui_marcadores() -> void:
+	var a := _o + Vector2i(-9, 0)
+	_p(con.plano_peca("fornalha", a, 0))                        # solta: duas portas vermelhas
+	var b := _o + Vector2i(-3, 0)
+	_p(con.plano_peca("fornalha", b, 0))                        # uma atendida: a saída tem esteira
+	var e: Dictionary = cena.mapa.estruturas[cena.mapa.tiles[b]]
+	for s in Portas.estados(cena.mapa, e):
+		if s.io == "SAI":
+			_p(con.plano_linha("esteira", s.tile_fora, s.tile_fora + Vector2i(s.dir) * 2, 0))
+	var r := _o + Vector2i(3, -1)
+	_p(con.plano_peca("refinador", r, 0))                       # fluido + item
+	_so_3d(true)
+	_olhar(Vector2(_o) + Vector2(0.5, 1.0), 16.0)
+	await _quadros(50)
+	print("FOTO ", await _foto("marcadores"))
+	_olhar(Vector2(a) + Vector2(1.0, 1.0), 6.5)
+	await _quadros(20)
+	print("FOTO ", await _foto("marcador_perto"))
+
+
+## Fantasma: verde onde encaixa, vermelho onde falta; vermelho-escuro com o motivo onde não pode.
+func _ui_fantasma() -> void:
+	var f: Fantasma = cena.controle.fantasma
+	var base := _o + Vector2i(-3, 8)
+	var pl := con.plano_peca("fornalha", base, 0)
+	var e0 := {"nome": "fornalha", "minimo": pl[0].minimo, "rot": pl[0].rot, "area": Registro.area("fornalha")}
+	for s in Portas.estados(cena.mapa, e0):                     # uma esteira já no lugar da saída
+		if s.io == "SAI":
+			_p(con.plano_linha("esteira", s.tile_fora, s.tile_fora + Vector2i(s.dir) * 2, 0))
+	f.mostrar(con.plano_peca("fornalha", base, 0))
+	_olhar(Vector2(base) + Vector2(1.0, 1.0), 7.5)
+	await _quadros(20)
+	print("FOTO ", await _foto("fantasma_encaixe"))
+	# ocupado: em cima de um baú
+	var o2 := _o + Vector2i(6, 9)
+	_p(con.plano_peca("bau", o2 + Vector2i(1, 1), 0))
+	f.mostrar(con.plano_peca("fornalha", o2, 0))
+	_olhar(Vector2(o2) + Vector2(1.0, 1.0), 7.5)
+	await _quadros(20)
+	print("FOTO ", await _foto("fantasma_ocupado"))
+	# obstáculos de verdade: procura árvore e rocha perto
+	for tipo in ["árvore", "rocha"]:
+		var t := _achar_obstaculo(tipo)
+		if t != Vector2i(999999, 0):
+			f.mostrar(con.plano_peca("fornalha", t - Vector2i(1, 1), 0))
+			_olhar(Vector2(t), 8.0)
+			await _quadros(40)
+			print("FOTO ", await _foto("fantasma_" + tipo.replace("á", "a")))
+	var at := _achar_agua()
+	if at != Vector2i(999999, 0):
+		f.mostrar(con.plano_peca("fornalha", at, 0))
+		_olhar(Vector2(at), 8.0)
+		await _quadros(40)
+		print("FOTO ", await _foto("fantasma_agua"))
+	# sem material / sem pesquisa: mesma peça, regras ligadas
+	var o3 := _o + Vector2i(-10, 9)
+	var cob: bool = con.cobrar
+	con.cobrar = true
+	var inv: Dictionary = con.inventario
+	con.inventario = {}
+	f.mostrar(con.plano_peca("fornalha", o3, 0))
+	_olhar(Vector2(o3) + Vector2(1.0, 1.0), 7.5)
+	await _quadros(20)
+	print("FOTO ", await _foto("fantasma_material"))
+	con.inventario = inv
+	con.cobrar = cob
+	f.limpar()
+
+
+## A interface em cada estado, com a fábrica de demonstração atrás.
+func _ui_telas(sufixo: String) -> void:
+	var barra: BarraConstrucao = cena.controle.barra
+	var ctl: ControleConstrucao = cena.controle
+	_so_3d(false)
+	_olhar(Vector2(4, 6), 34.0)
+	barra.estoque({"placa_ferro": 412, "placa_cobre": 96, "engrenagem": 38, "pedra": 1250, "minerio_ferro": 77, "carvao": 15})
+	await _quadros(40)
+	print("FOTO ", await _foto("hud_" + sufixo))
+	barra._tocar_categoria(3)
+	await _quadros(5)
+	print("FOTO ", await _foto("pecas_" + sufixo))
+	ctl.escolher("fornalha")
+	barra.fechar_pecas()
+	var perto := _plano(Vector2i(-6, 6), 6, 6)
+	ctl._pendente = true
+	ctl._tile_pend = perto
+	ctl._cursor = perto
+	ctl._cursor_valido = true
+	await _quadros(5)
+	ctl._chave_plano = ""
+	ctl._atualizar()
+	await _quadros(5)
+	print("FOTO ", await _foto("construindo_" + sufixo))
+	ctl.sair_do_modo()
+	cena.abrir_pesquisa()
+	await _quadros(8)
+	print("FOTO ", await _foto("pesquisa_" + sufixo))
+	cena._tela_pesquisa.fechar()
+	await _ui_paineis(sufixo)
+	cena.abrir_pausa()
+	await RenderingServer.frame_post_draw
+	await RenderingServer.frame_post_draw
+	print("FOTO ", await _foto("pausa_" + sufixo))
+	var mp: MenuPausa = cena.find_children("*", "MenuPausa", true, false)[0]
+	mp._caixa.visible = false
+	mp._config.visible = true
+	await RenderingServer.frame_post_draw
+	await RenderingServer.frame_post_draw
+	print("FOTO ", await _foto("config_" + sufixo))
+	get_tree().paused = false
+
+
+## Painel de estrutura construída e inventário, com a seleção à vista no mundo.
+func _ui_paineis(sufixo: String) -> void:
+	var c := Vector2i(int(cena.camera.alvo.x), int(-cena.camera.alvo.z))
+	var o := _plano(c + Vector2i(-6, 3), 18, 12)
+	_limpar(o, 22, 14)
+	var mo := o + Vector2i(-4, 0)
+	_p(con.plano_peca("montadora", mo, 0))
+	var bau := o + Vector2i(4, 0)
+	_p(con.plano_peca("bau", bau, 0))
+	cena._fabrica_suja = true
+	await _quadros(4)
+	_olhar(Vector2(o) + Vector2(1, 1), 13.0)
+	await _quadros(30)
+	var id: int = cena.mapa.tiles[mo]
+	cena.fabrica.escolher_receita(id, "engrenagem" if Registro.receitas.has("engrenagem") else Registro.receitas_da_maquina("montadora")[0])
+	cena.fabrica.maquinas[id].tempo_total = 120.0
+	cena.fabrica.maquinas[id].tempo_ativo = 96.0
+	cena.selecionar(Vector2(mo) + Vector2(0.5, 0.5))
+	await _quadros(6)
+	print("FOTO ", await _foto("painel_maquina_" + sufixo))
+	var ref: int = -1
+	for mid in cena.fabrica.maquinas:
+		if Registro.estruturas[cena.mapa.estruturas[mid].nome].get("maquina", "") == "refinador":
+			ref = mid
+	var bid: int = cena.mapa.tiles[bau]
+	cena.fabrica.baus[bid].merge({"placa_ferro": 240, "engrenagem": 77, "pedra": 512, "carvao": 8, "circuito": 31, "tijolo": 120, "motor": 4, "minerio_ferro": 1200})
+	cena.mapa.estruturas[bid]["aceita"] = ["placa_ferro", "engrenagem", "circuito"]
+	cena.selecionar(Vector2(bau) + Vector2(0.5, 0.5))
+	await _quadros(6)
+	print("FOTO ", await _foto("painel_bau_" + sufixo))
+	cena.mapa.estruturas[bid]["ordem"] = "qtd"
+	cena._detalhe()
+	await _quadros(4)
+	print("FOTO ", await _foto("painel_bau_qtd_" + sufixo))
+	cena.mapa.estruturas[id]["desligada"] = true
+	cena._fabrica_suja = true
+	await _quadros(4)
+	cena.selecionar(Vector2(mo) + Vector2(0.5, 0.5))
+	await _quadros(6)
+	print("FOTO ", await _foto("painel_desligada_" + sufixo))
+	if ref >= 0:
+		_olhar(Vector2(cena.mapa.estruturas[ref].minimo) + Vector2(2, 2), 18.0)
+		await _quadros(10)
+		cena._sel = {"estrutura": ref}
+		cena._detalhe()
+		await _quadros(6)
+		print("FOTO ", await _foto("painel_refinador_" + sufixo))
+	# braço Radial: a origem à esquerda dele, painel com o modo; a garra vai até o lado (animar_tudo faz o ciclo)
+	var tb := o + Vector2i(0, 5)
+	_limpar(tb, 8, 8)
+	_p(con.plano_peca("braco", tb, 0))
+	var ibr: int = cena.mapa.tiles[tb]
+	var eb: Dictionary = cena.mapa.estruturas[ibr]
+	eb["modo_braco"] = "radial"
+	var lados := Portas.origens_braco(eb)
+	_p(con.plano_peca("bau", lados[1], 0))
+	_p(con.plano_peca("bau", Portas.frente_braco(eb), 0))
+	cena._fabrica_suja = true
+	await _quadros(4)
+	cena.fabrica.bracos[ibr].origem_i = 1
+	_olhar(Vector2(tb) + Vector2(0.5, 0.5), 7.0)
+	cena.selecionar(Vector2(tb) + Vector2(0.5, 0.5))
+	var ani = cena._animador(ibr)
+	for k in 240:
+		await get_tree().process_frame
+		if ani != null and ani.fase_braco < 0.08:
+			break
+	print("FOTO ", await _foto("braco_radial_" + sufixo), " giro ", ani.giro_origem if ani != null else "?")
+	cena.selecionar(Vector2.INF)
+	await _quadros(4)
+	print("FOTO ", await _foto("selecao_fechada_" + sufixo))
+	# faixa: lista fechada e aberta (ela desliza para o vão livre)
+	var ctl: ControleConstrucao = cena.controle
+	var barra: BarraConstrucao = ctl.barra
+	_olhar(Vector2(4, 6), 34.0)
+	ctl.escolher("braco")
+	await _quadros(20)
+	print("FOTO ", await _foto("faixa_fechada_" + sufixo))
+	barra._tocar_categoria(1)
+	await _quadros(4)
+	print("FOTO ", await _foto("faixa_no_meio_" + sufixo))
+	await _quadros(30)
+	print("FOTO ", await _foto("faixa_aberta_" + sufixo))
+	var abertos: Array[Rect2] = []
+	for pn in [barra._canto, barra._recursos, barra._painel_pecas, barra._abas.get_parent(), barra._ferr.get_parent()]:
+		if pn.is_visible_in_tree():
+			abertos.append(pn.get_global_rect())
+	var cobre := false
+	for r in abertos:
+		cobre = cobre or barra._faixa.get_global_rect().intersects(r)
+	print("FAIXA retangulo ", barra._faixa.get_global_rect(), " cobre painel: ", cobre)
+	ctl.sair_do_modo()
+	barra.fechar_pecas()
+
+
+## Esteira de amostra: todo item, parado, de perto e de longe. Câmera fixa, sem interface.
+func _ui_itens() -> void:
+	_so_3d(true)
+	var lista: Array = Registro.itens.keys()
+	var o := _plano(Vector2i(40, 0), maxi(lista.size() * 2, 30), 14)
+	_limpar(o, lista.size() * 2 + 24, 14)
+	var ini := o + Vector2i(-lista.size() / 2, 0)
+	_p(con.plano_linha("esteira", ini, ini + Vector2i(lista.size() + 1, 0), Construtor.rot_do_fluxo(1)))
+	cena._fabrica_suja = true
+	await _quadros(4)
+	var f: Fabrica = cena.fabrica
+	var est: EsteiraCaminho = null
+	for c2 in f.caminhos:
+		if (c2.tiles as Array).has(ini):
+			est = c2.esteira
+	var ids: Array = []
+	if est != null:
+		for it in lista:
+			if Registro.modelos.has(Registro.itens[it].get("modelo_de", it)):
+				ids.append(it)
+		est.itens.clear()
+		est.espacos.clear()
+		var folga := est.comprimento - ids.size() * 1.0
+		for i in ids.size():
+			est.itens.append(ids[i])
+			est.espacos.append(maxf(folga * 0.5, 0.0) + 0.25 if i == 0 else 1.0)
+		est.velocidade = 0.0
+	print("FOTO itens na esteira: ", ids)
+	f.set("ativo", false)
+	var meio := Vector2(ini) + Vector2(float(ids.size()) * 0.5, 0.5)
+	var n := 0
+	for pars in [[meio, 26.0, "itens_longe"], [Vector2(ini) + Vector2(5, 0.5), 7.0, "itens_a"], [Vector2(ini) + Vector2(13, 0.5), 7.0, "itens_b"], [Vector2(ini) + Vector2(21, 0.5), 7.0, "itens_c"], [Vector2(ini) + Vector2(29, 0.5), 7.0, "itens_d"]]:
+		_olhar(pars[0], pars[1])
+		await _quadros(25)
+		print("FOTO ", await _foto(pars[2]))
+		n += 1
+	# de perto, a engrenagem
+	var i_e := ids.find("engrenagem")
+	if i_e >= 0:
+		var ponto := Vector2(ini) + Vector2(est.comprimento - 0.5 - (maxf(est.comprimento - ids.size(), 0.0) * 0.5 + 0.25 + float(i_e)), 0.5)
+		for pars in [[1.6, "engrenagem_perto"], [4.0, "engrenagem_media"], [12.0, "engrenagem_longe"], [24.0, "engrenagem_mais_longe"]]:
+			_olhar(ponto, pars[0])
+			await _quadros(15)
+			print("FOTO ", await _foto(pars[1]))
+		# a mesma distância de jogo, com o 3D em 100% e em 50% (como no menu Resolução), andando 1/4 de pixel por foto
+		for res in [1.0, 0.5]:
+			Sessao.config.resolucao = res
+			Sessao.aplicar()
+			await _quadros(5)
+			for k in 3:
+				_olhar(ponto + Vector2(k * 0.012, -k * 0.009), 22.0)
+				await _quadros(4)
+				print("FOTO ", await _foto("engrenagem_res%d_%d" % [roundi(res * 100), k]))
+		Sessao.config.resolucao = 1.0
+		Sessao.aplicar()
+	print("FOTO ui_pc pronto ", saida)
+
+
+func _achar_obstaculo(tipo: String) -> Vector2i:
+	var g: GeradorMundo = cena.gerador
+	for r in range(10, 300, 3):
+		for dx in range(-r, r + 1, 3):
+			for dy in [-r, r]:
+				var t: Vector2i = _o + Vector2i(dx, dy)
+				var ob := g.distribuicao.obstaculo(t)
+				if not ob.is_empty() and Bloqueios.nome_obstaculo(String(ob.nome)) == tipo and not cena.mapa.limpos.has(t) and not cena.mapa.tiles.has(t) and not _tem_construcao_perto(t, 14):
+					return t
+	return Vector2i(999999, 0)
+
+
+func _achar_agua() -> Vector2i:
+	var g: GeradorMundo = cena.gerador
+	for r in range(10, 600, 4):
+		for dx in range(-r, r + 1, 4):
+			for dy in [-r, r]:
+				var t: Vector2i = _o + Vector2i(dx, dy)
+				if cena.mapa.motivo_bloqueio("fornalha", t, 0) == "agua":
+					return t
+	return Vector2i(999999, 0)

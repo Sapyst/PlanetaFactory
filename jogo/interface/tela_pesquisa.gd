@@ -12,11 +12,8 @@ extends CanvasLayer
 
 signal fechou
 
-const NO := Vector2(250, 92)           ## tamanho de um nó
-const ESP := Vector2(72, 18)           ## espaço entre colunas / entre nós
 const COR_FEITA := Tema.COR.sucesso
 const COR_TRAVADA := Tema.COR.travado
-const CABECALHO := 46.0                ## altura do título da faixa da era
 const ERA_COR := {"base": Color(0.36, 0.62, 0.29), "meio": Color(0.29, 0.5, 0.77), "avancada": Color(0.6, 0.37, 0.79)}
 const COR_OBJETIVO := Color(0.85, 0.31, 0.25)
 const TIPOS := {                       ## o que a tecnologia faz no jogo: símbolo e explicação
@@ -25,6 +22,9 @@ const TIPOS := {                       ## o que a tecnologia faz no jogo: símbo
 const ZOOM_MIN := 0.3
 const ZOOM_MAX := 1.6
 
+var _no_tam := Tema.v("no")               ## tamanho de um nó
+var _esp := Tema.v("no_esp")              ## espaço entre colunas / entre nós
+var _cabecalho := Tema.f("cabecalho")     ## altura do título da faixa da era
 var pesquisa: Pesquisa
 var rotulo: Callable                     ## nome da peça → texto (BarraConstrucao.rotulo)
 var nome_item: Callable                  ## item → nome
@@ -67,45 +67,46 @@ func _ready() -> void:
 	_painel = PanelContainer.new()
 	raiz.add_child(_painel)
 	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 8)
+	v.add_theme_constant_override("separation", Tema.n("tela_sep"))
 	_painel.add_child(v)
 	var topo := HBoxContainer.new()
-	topo.add_theme_constant_override("separation", 12)
+	topo.add_theme_constant_override("separation", Tema.n("faixa_sep"))
 	v.add_child(topo)
 	var titulo := Label.new()
 	titulo.text = "Pesquisa"
-	titulo.add_theme_font_size_override("font_size", 24)
+	titulo.add_theme_font_size_override("font_size", Tema.n("f_tela"))
 	titulo.add_theme_color_override("font_color", Tema.cor("titulo"))
 	topo.add_child(titulo)
 	_status = Label.new()
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_status.add_theme_font_size_override("font_size", 15)
+	_status.add_theme_font_size_override("font_size", Tema.n("f_texto"))
 	_status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_status.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	topo.add_child(_status)
 	var fechar_b := Button.new()
-	fechar_b.text = "✕  Fechar"
-	fechar_b.custom_minimum_size = Vector2(120, 52)
+	fechar_b.text = Tema.com_atalho("✕  Fechar", "T")
+	fechar_b.custom_minimum_size = Tema.v("tela_fechar")
 	fechar_b.focus_mode = Control.FOCUS_NONE
 	fechar_b.pressed.connect(fechar)
 	for z in [["−", 1.0 / 1.25], ["+", 1.25]]:                     # zoom por botão (mesmo efeito da pinça)
 		var zb := Button.new()
 		zb.text = z[0]
-		zb.custom_minimum_size = Vector2(52, 52)
+		zb.custom_minimum_size = Tema.v("tela_zoom")
+		zb.tooltip_text = "Zoom (Ctrl + roda)"
 		zb.focus_mode = Control.FOCUS_NONE
-		zb.add_theme_font_size_override("font_size", 26)
+		zb.add_theme_font_size_override("font_size", Tema.n("f_zoom"))
 		var fator: float = z[1]
 		zb.pressed.connect(func(): _zoom_em(_zoom * fator, _rolagem.size / 2.0))
 		topo.add_child(zb)
 	topo.add_child(fechar_b)
 	v.add_child(Tema.faixa_titulo())
 	_barra = ProgressBar.new()
-	_barra.custom_minimum_size = Vector2(0, 12)
+	_barra.custom_minimum_size = Vector2(0, Tema.n("barra_alt"))
 	_barra.show_percentage = false
 	v.add_child(_barra)
 	var corpo := HBoxContainer.new()
 	corpo.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	corpo.add_theme_constant_override("separation", 10)
+	corpo.add_theme_constant_override("separation", Tema.n("tela_corpo_sep"))
 	v.add_child(corpo)
 	_rolagem = ScrollContainer.new()
 	_rolagem.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -125,7 +126,7 @@ func _ready() -> void:
 	rl.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_lado.add_child(rl)
 	_det = VBoxContainer.new()
-	_det.add_theme_constant_override("separation", 8)
+	_det.add_theme_constant_override("separation", Tema.n("det_tela_sep"))
 	_det.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	rl.add_child(_det)
 	rl.add_child(RolagemToque.new())
@@ -147,7 +148,7 @@ func abrir() -> void:
 		_sel = pesquisa.ativa
 	_posicionar()
 	if _zoom == 0.0:                                              # 1ª vez: cabe mais na tela pequena
-		_zoom = clampf(_painel.get_viewport().get_visible_rect().size.x / 1700.0, 0.5, 1.0)
+		_zoom = clampf(_painel.get_viewport().get_visible_rect().size.x / Tema.f("zoom_ref"), 0.5, 1.0)
 	_atualizar()
 
 
@@ -160,11 +161,11 @@ func fechar() -> void:
 
 func _posicionar() -> void:
 	var tela := _painel.get_viewport().get_visible_rect().size
-	var m := 12.0
+	var m := Tema.f("tela_margem")
 	_painel.position = Vector2(m, m)
 	_painel.custom_minimum_size = tela - Vector2(2.0 * m, 2.0 * m)   # mínimo antes: senão o antigo (maior) segura o tamanho
 	_painel.size = _painel.custom_minimum_size
-	_lado.custom_minimum_size.x = clampf(tela.x * 0.3, 250.0, 360.0)
+	_lado.custom_minimum_size.x = clampf(tela.x * Tema.f("lado_fator"), Tema.f("lado_min"), Tema.f("lado_max"))
 
 
 func _process(delta: float) -> void:
@@ -336,17 +337,17 @@ func _layout() -> void:
 			lista.sort_custom(func(a, b): return _media(a, linha) < _media(b, linha))
 			for i in lista.size():
 				linha[lista[i]] = i
-				_pos[lista[i]] = Rect2(Vector2(x + 14.0, 16 + CABECALHO + i * (NO.y + ESP.y)), NO)
+				_pos[lista[i]] = Rect2(Vector2(x + 14.0, 16 + _cabecalho + i * (_no_tam.y + _esp.y)), _no_tam)
 			mais = maxi(mais, lista.size())
-			x += NO.x + ESP.x
+			x += _no_tam.x + _esp.x
 		maior = maxi(maior, mais)
 		var nome_era: String = era
 		for e in pesquisa.eras():
 			if e.id == era:
 				nome_era = e.nome
-		_faixas.append({"x0": x0, "x1": x + 28.0 - ESP.x, "cor": ERA_COR.get(era, COR_TRAVADA), "nome": nome_era, "era": era})
+		_faixas.append({"x0": x0, "x1": x + 28.0 - _esp.x, "cor": ERA_COR.get(era, COR_TRAVADA), "nome": nome_era, "era": era})
 		x += 28.0 + 24.0
-	var alto := 32 + CABECALHO + maior * (NO.y + ESP.y) - ESP.y
+	var alto := 32 + _cabecalho + maior * (_no_tam.y + _esp.y) - _esp.y
 	for f in _faixas:
 		f.rect = Rect2(Vector2(f.x0, 8), Vector2(f.x1 - f.x0, alto - 8))
 	_arvore.custom_minimum_size = Vector2(x, alto)
@@ -376,9 +377,9 @@ func _montar_arvore() -> void:
 			if _no(id).get("era", "") == f.era:
 				n += 1
 		t.text = "%s  ·  %d tecnologias" % [f.nome, n]
-		t.add_theme_font_size_override("font_size", 20)
+		t.add_theme_font_size_override("font_size", Tema.n("f_era"))
 		t.add_theme_color_override("font_color", (f.cor as Color).lightened(0.35))
-		t.position = Vector2(f.rect.position.x + 26.0, f.rect.position.y + 10.0)
+		t.position = f.rect.position + Tema.v("era_texto")
 		_arvore.add_child(t)
 	for id in _pos:
 		var b := _botao_no(id)
@@ -394,19 +395,19 @@ func _botao_no(id: String) -> Button:
 	var pq: Dictionary = _no(id)
 	var b := Button.new()
 	b.focus_mode = Control.FOCUS_NONE
-	b.size = NO
-	b.custom_minimum_size = NO
+	b.size = _no_tam
+	b.custom_minimum_size = _no_tam
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.icon = _icone_da(id)
 	b.expand_icon = false
-	b.add_theme_constant_override("icon_max_width", 56)
+	b.add_theme_constant_override("icon_max_width", Tema.n("no_icone"))
 	b.text = "%s\n%s" % [pq.get("nome", id), _situacao(id)]
-	b.add_theme_font_size_override("font_size", 16)
+	b.add_theme_font_size_override("font_size", Tema.n("f_no"))
 	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	# placa em relevo com moldura na cor da situação (a mesma da barra de construção); escolhida = âmbar
 	var cor := Tema.cor("destaque") if _sel == id else _cor(id)
 	if _em_dev(id):                                # cinza escuro + selo; escolhida = moldura âmbar apagada
-		Tema.botao_desenvolvimento(b, 12)
+		Tema.botao_desenvolvimento(b)
 		if _sel == id:
 			b.add_theme_stylebox_override("normal", Tema.botao_cor_estilo(Tema.cor("destaque").darkened(0.45)))
 			b.add_theme_stylebox_override("hover", Tema.botao_cor_estilo(Tema.cor("destaque").darkened(0.45)))
@@ -429,10 +430,11 @@ func _desenhar_linhas() -> void:
 		var r: Rect2 = f.rect
 		Tema.chapa_estilo().draw(ci, r)
 		_arvore.draw_rect(r.grow(-6.0), Color(c, 0.07))
-		var cab := Rect2(r.position + Vector2(10, 8), Vector2(r.size.x - 20, CABECALHO - 12))
+		var fino := Tema.estilo("fino")
+		var cab := Rect2(r.position + (Vector2(5, 4) if fino else Vector2(10, 8)), Vector2(r.size.x - (10.0 if fino else 20.0), _cabecalho - (6.0 if fino else 12.0)))
 		_arvore.draw_rect(cab, Color(c.darkened(0.55), 0.85))
-		_arvore.draw_texture_rect(Tema.listra(), Rect2(cab.position.x, cab.end.y, cab.size.x, 7), true)   # listras sob o título
-		_arvore.draw_rect(Rect2(cab.position, Vector2(6, cab.size.y)), c)
+		_arvore.draw_texture_rect(Tema.listra(), Rect2(cab.position.x, cab.end.y, cab.size.x, Tema.n("faixa_titulo_alt")), true)   # listras sob o título
+		_arvore.draw_rect(Rect2(cab.position, Vector2(3 if fino else 6, cab.size.y)), c)
 	for id in _pos:
 		var r: Rect2 = _pos[id]
 		for req in _no(id).get("requer", []):
@@ -442,13 +444,13 @@ func _desenhar_linhas() -> void:
 			var a := Vector2(rr.end.x, rr.get_center().y)
 			var b := Vector2(r.position.x, r.get_center().y)
 			# cada ligação dobra numa altura própria do corredor (pelo nó de destino): troncos não se sobrepõem
-			var lado := float(int(r.position.y / (NO.y + ESP.y)) % 4) / 3.0
-			var mx := a.x + ESP.x * (0.25 + 0.5 * lado)
+			var lado := float(int(r.position.y / (_no_tam.y + _esp.y)) % 4) / 3.0
+			var mx := a.x + _esp.x * (0.25 + 0.5 * lado)
 			var cor := COR_FEITA if pesquisa.concluidas.has(req) else COR_TRAVADA
 			if _em_dev(id):
 				cor = Color(0.34, 0.34, 0.36, 0.5)
-			_arvore.draw_polyline(PackedVector2Array([a, Vector2(mx, a.y), Vector2(mx, b.y), b]), cor, 3.0, true)
-			_arvore.draw_circle(b, 5.0, cor)
+			_arvore.draw_polyline(PackedVector2Array([a, Vector2(mx, a.y), Vector2(mx, b.y), b]), cor, Tema.f("linha"), true)
+			_arvore.draw_circle(b, Tema.f("linha_ponta"), cor)
 
 
 func _cor(id: String) -> Color:
@@ -533,13 +535,13 @@ func _mostrar_detalhe() -> void:
 		var l := Label.new()
 		l.text = "Toque numa pesquisa da árvore.\n\nO laboratório (com energia) gasta pacotes de pesquisa: cada unidade gasta 1 pacote de cada tipo pedido. A montadora faz o pacote básico com 1 cristal lapidado + 1 engrenagem; um braço leva os pacotes ao laboratório."
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		l.add_theme_font_size_override("font_size", 15)
+		l.add_theme_font_size_override("font_size", Tema.n("f_texto"))
 		_det.add_child(l)
 		return
 	var pq: Dictionary = _no(_sel)
 	var nome := Label.new()
 	nome.text = pq.get("nome", _sel)
-	nome.add_theme_font_size_override("font_size", 22)
+	nome.add_theme_font_size_override("font_size", Tema.n("f_det_nome"))
 	nome.add_theme_color_override("font_color", _cor(_sel).lightened(0.2))
 	nome.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_det.add_child(nome)
@@ -547,27 +549,27 @@ func _mostrar_detalhe() -> void:
 	for e in pesquisa.eras():
 		if e.id == pq.get("era", ""):
 			era.text = e.nome
-	era.add_theme_font_size_override("font_size", 14)
+	era.add_theme_font_size_override("font_size", Tema.n("f_peq"))
 	era.add_theme_color_override("font_color", (ERA_COR.get(pq.get("era", ""), COR_TRAVADA) as Color).lightened(0.3))
 	_det.add_child(era)
 	var tp := Label.new()
 	var tipo_rot: Array = TIPOS.get(pq.get("tipo", ""), ["", ""])
 	tp.text = "%s  %s" % [tipo_rot[0], tipo_rot[1]]
-	tp.add_theme_font_size_override("font_size", 14)
+	tp.add_theme_font_size_override("font_size", Tema.n("f_peq"))
 	tp.add_theme_color_override("font_color", Tema.cor("info"))
 	_det.add_child(tp)
 	if _em_breve(_sel):
 		_detalhe_em_breve(pq)
 		return
 	var custo := HBoxContainer.new()
-	custo.add_theme_constant_override("separation", 8)
+	custo.add_theme_constant_override("separation", Tema.n("sep"))
 	for tp_pac in pesquisa.tipos(_sel):                            # uma casa por tipo de pacote
 		custo.add_child(Casa.nova(_tex_item(tp_pac), str(pesquisa.unidades(_sel)), "pacote " + Pesquisa.nome_tipo(tp_pac)))
 	var cl := Label.new()
 	cl.text = "%s\n%s s por unidade no laboratório" % [pesquisa.custo_texto(_sel), String.num(float(pq.get("tempo", 5)), 1).trim_suffix(".0")]
 	cl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	cl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	cl.add_theme_font_size_override("font_size", 14)
+	cl.add_theme_font_size_override("font_size", Tema.n("f_peq"))
 	custo.add_child(cl)
 	_det.add_child(custo)
 	var faltam_pacotes: Array[String] = []
@@ -578,13 +580,13 @@ func _mostrar_detalhe() -> void:
 		var fl := Label.new()
 		fl.text = "Pacote %s: em desenvolvimento (a receita vem numa pesquisa que ainda não está no jogo)." % ", ".join(faltam_pacotes)
 		fl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		fl.add_theme_font_size_override("font_size", 14)
+		fl.add_theme_font_size_override("font_size", Tema.n("f_peq"))
 		fl.add_theme_color_override("font_color", Tema.cor("info"))
 		_det.add_child(fl)
 	if pesquisa.infinita(_sel):                                   # infinita: nível feito e o próximo custo
 		var nl := Label.new()
 		nl.text = "Nível feito: %d · o próximo custa ×%s" % [pesquisa.nivel(_sel), String.num(Pesquisa.CUSTO_NIVEL, 1)]
-		nl.add_theme_font_size_override("font_size", 14)
+		nl.add_theme_font_size_override("font_size", Tema.n("f_peq"))
 		nl.add_theme_color_override("font_color", Tema.cor("info"))
 		_det.add_child(nl)
 	if not pq.get("bonus", {}).is_empty():                        # melhoria: diz o efeito, não há casas
@@ -595,15 +597,15 @@ func _mostrar_detalhe() -> void:
 		var mt := Label.new()
 		mt.text = str(pq.get("texto", ""))
 		mt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		mt.add_theme_font_size_override("font_size", 14)
+		mt.add_theme_font_size_override("font_size", Tema.n("f_peq"))
 		_det.add_child(mt)
 	var tl := Label.new()
 	tl.text = "Libera"
 	tl.add_theme_color_override("font_color", Tema.cor("titulo"))
 	_det.add_child(tl)
 	var casas := HFlowContainer.new()
-	casas.add_theme_constant_override("h_separation", 6)
-	casas.add_theme_constant_override("v_separation", 6)
+	casas.add_theme_constant_override("h_separation", Tema.n("casas_sep"))
+	casas.add_theme_constant_override("v_separation", Tema.n("casas_sep"))
 	_det.add_child(casas)
 	var nomes: Array[String] = []
 	for n in pq.get("libera", []):
@@ -621,7 +623,7 @@ func _mostrar_detalhe() -> void:
 		casas.visible = false
 		ln.visible = false
 	ln.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	ln.add_theme_font_size_override("font_size", 14)
+	ln.add_theme_font_size_override("font_size", Tema.n("f_peq"))
 	_det.add_child(ln)
 	var req: Array = pq.get("requer", [])
 	if not req.is_empty():
@@ -631,10 +633,10 @@ func _mostrar_detalhe() -> void:
 			partes.append(("✓ " if pesquisa.concluidas.has(r) else "✗ ") + _nome(r))
 		rl.text = "Precisa de: " + ", ".join(partes)
 		rl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		rl.add_theme_font_size_override("font_size", 14)
+		rl.add_theme_font_size_override("font_size", Tema.n("f_peq"))
 		_det.add_child(rl)
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(0, 56)
+	b.custom_minimum_size = Vector2(0, Tema.n("pesquisar_alt"))
 	b.focus_mode = Control.FOCUS_NONE
 	if pesquisa.concluidas.has(_sel):
 		b.text = "✓ Concluída"
@@ -647,11 +649,11 @@ func _mostrar_detalhe() -> void:
 	elif _em_dev(_sel):                                           # travada por algo que ainda não está no jogo
 		b.text = Tema.TEXTO_DESENVOLVIMENTO
 		b.disabled = true
-		Tema.botao_desenvolvimento(b, 12)
+		Tema.botao_desenvolvimento(b)
 		var dl := Label.new()
 		dl.text = "%s: %s." % [Tema.TEXTO_DESENVOLVIMENTO, pesquisa.motivo_desenvolvimento(_sel)]
 		dl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		dl.add_theme_font_size_override("font_size", 14)
+		dl.add_theme_font_size_override("font_size", Tema.n("f_peq"))
 		dl.add_theme_color_override("font_color", Tema.AMARELO.lightened(0.25))
 		_det.add_child(dl)
 	elif pesquisa.disponivel(_sel):
@@ -676,7 +678,7 @@ func _detalhe_em_breve(pq: Dictionary) -> void:
 	var l := Label.new()
 	l.text = "\n".join(linhas)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	l.add_theme_font_size_override("font_size", 14)
+	l.add_theme_font_size_override("font_size", Tema.n("f_peq"))
 	_det.add_child(l)
 	var tl := Label.new()
 	tl.text = "Vai liberar"
@@ -685,7 +687,7 @@ func _detalhe_em_breve(pq: Dictionary) -> void:
 	var lib := Label.new()
 	lib.text = str(pq.get("libera", "—"))
 	lib.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lib.add_theme_font_size_override("font_size", 14)
+	lib.add_theme_font_size_override("font_size", Tema.n("f_peq"))
 	_det.add_child(lib)
 	var req: Array = pq.get("requer", [])
 	if not req.is_empty():
@@ -695,12 +697,12 @@ func _detalhe_em_breve(pq: Dictionary) -> void:
 			partes.append(("✓ " if pesquisa.concluidas.has(r) else "✗ ") + _nome(r))
 		rl.text = "Precisa de: " + ", ".join(partes)
 		rl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		rl.add_theme_font_size_override("font_size", 14)
+		rl.add_theme_font_size_override("font_size", Tema.n("f_peq"))
 		_det.add_child(rl)
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(0, 56)
+	b.custom_minimum_size = Vector2(0, Tema.n("pesquisar_alt"))
 	b.focus_mode = Control.FOCUS_NONE
 	b.text = "★ Objetivo final — em desenvolvimento" if pq.get("objetivo", false) else Tema.TEXTO_DESENVOLVIMENTO + ": ainda não está no jogo"
 	b.disabled = true
-	Tema.botao_desenvolvimento(b, 12)
+	Tema.botao_desenvolvimento(b)
 	_det.add_child(b)

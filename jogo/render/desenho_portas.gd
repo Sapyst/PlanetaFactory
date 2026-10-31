@@ -1,17 +1,19 @@
 class_name DesenhoPortas
 extends Node3D
-## Aviso de porta solta nas estruturas já construídas: onde uma entrada ou saída de item/fluido não tem nada ligado
-## (esteira, cano, braço, baú ou outra máquina), uma placa pulsa sobre a porta — "falta entrada" (vermelho) ou
-## "falta saída" (âmbar). Refaz quando o mapa muda (mapa.versao) e mostra só o que está no oval de visão.
-
-const COR_ENT := Color(1.0, 0.32, 0.26)
-const COR_SAI := Color(1.0, 0.72, 0.2)
+## Aviso de porta solta nas estruturas já construídas: onde uma entrada ou saída de item/fluido não tem nada ligado,
+## um marcador de listras vermelhas pintado no chão, no tile exato da porta, com a seta do sentido do fluxo (MarcadorPortas).
+## Atendida (esteira, cano, braço por qualquer lado, baú ou outra máquina), some. Quem decide é Portas.soltas. Refaz quando o mapa
+## muda (mapa.versao) e a cada 1,5 s; o corte do oval de visão e o pulso são do shader, sem custo por quadro aqui.
 
 var mapa: MapaOcupacao
 var _versao := -1
 var _t := 0.0
-var _avisos: Array[Dictionary] = []      ## {pos: Vector3, io}
-var _placas: Array[Label3D] = []
+var _marcador: MarcadorPortas
+
+
+func _ready() -> void:
+	_marcador = MarcadorPortas.new()
+	add_child(_marcador)
 
 
 func _process(delta: float) -> void:
@@ -21,45 +23,12 @@ func _process(delta: float) -> void:
 	if mapa.versao != _versao or _t <= 0.0:
 		_versao = mapa.versao
 		_t = 1.5
-		_refazer()
-	var brilho := 0.65 + 0.35 * sin(Time.get_ticks_msec() / 1000.0 * 4.0)
-	var n := 0
-	for a in _avisos:
-		if not Visao.dentro(Vector2(a.pos.x, -a.pos.z), 1.0):
-			continue
-		var p := _placa(n)
-		n += 1
-		p.position = a.pos
-		p.text = "▼ falta entrada" if a.io == "ENT" else "▲ falta saída"
-		var c: Color = COR_ENT if a.io == "ENT" else COR_SAI
-		p.modulate = Color(c, brilho)
-		p.visible = true
-	for i in range(n, _placas.size()):
-		_placas[i].visible = false
+		_marcador.definir(avisos(mapa))
 
 
-func _refazer() -> void:
-	_avisos.clear()
-	for id in mapa.estruturas:
-		var e: Dictionary = mapa.estruturas[id]
-		if not Portas.mostra_aviso(e.nome) or Registro.modelos.get(e.nome, {}).get("portas", []).is_empty():
-			continue
-		for s in Portas.soltas(mapa, id):
-			var p2: Vector2 = s.pos - Vector2(s.dir) * 0.15
-			_avisos.append({"pos": Grade.ponto_mundo(p2, s.z + 0.55), "io": s.io})
-
-
-func _placa(i: int) -> Label3D:
-	while _placas.size() <= i:
-		var l := Label3D.new()
-		l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		l.no_depth_test = true
-		l.fixed_size = true
-		l.pixel_size = 0.0011
-		l.font_size = 30
-		l.outline_size = 10
-		l.outline_modulate = Color(0, 0, 0, 0.85)
-		l.render_priority = 5
-		add_child(l)
-		_placas.append(l)
-	return _placas[i]
+## Portas soltas de todas as estruturas, prontas para o marcador.
+static func avisos(m: MapaOcupacao) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for id in m.estruturas:
+		out.append_array(Portas.soltas(m, id))
+	return out

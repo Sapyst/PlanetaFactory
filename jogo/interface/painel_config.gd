@@ -12,17 +12,17 @@ const AUTOSALVAR := [0, 60, 120, 300, 600, 900, 1800]      ## segundos; 0 = desl
 
 
 func _ready() -> void:
-	add_theme_constant_override("separation", 10)
+	add_theme_constant_override("separation", Tema.n("menu_sep"))
 	var t := Label.new()
 	t.text = "Configurações"
-	t.add_theme_font_size_override("font_size", 26)
+	t.add_theme_font_size_override("font_size", Tema.n("f_config_titulo"))
 	add_child(t)
 	# as opções rolam quando a interface está grande e não cabem na tela; Voltar fica sempre à vista
 	_rolagem = ScrollContainer.new()
 	_rolagem.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(_rolagem)
 	_corpo = VBoxContainer.new()
-	_corpo.add_theme_constant_override("separation", 10)
+	_corpo.add_theme_constant_override("separation", Tema.n("menu_sep"))
 	_corpo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_rolagem.add_child(_corpo)
 	_rolagem.add_child(RolagemToque.new())
@@ -75,7 +75,7 @@ func _ready() -> void:
 	_corpo.add_child(auto)
 	var v := Button.new()
 	v.text = "Voltar"
-	v.custom_minimum_size = Vector2(0, 52)
+	v.custom_minimum_size = Vector2(0, Tema.n("config_voltar"))
 	v.pressed.connect(func(): voltar.emit())
 	add_child(v)
 	get_viewport().size_changed.connect(_ajustar_rolagem)
@@ -86,7 +86,7 @@ func _ready() -> void:
 ## Altura da lista: o que ela precisa, até o que sobra na tela (título, Voltar e a moldura do painel ficam de fora).
 func _ajustar_rolagem() -> void:
 	var tam := _corpo.get_combined_minimum_size()
-	_rolagem.custom_minimum_size = Vector2(tam.x + 12.0, minf(tam.y, get_viewport().get_visible_rect().size.y - 190.0))
+	_rolagem.custom_minimum_size = Vector2(tam.x + 12.0, minf(tam.y, get_viewport().get_visible_rect().size.y - Tema.f("config_folga")))
 
 
 ## Opção da lista para o valor salvo (um valor fora dela mostra a mais próxima, sem mudar nada até a pessoa escolher).
@@ -107,7 +107,7 @@ func _deslizante(rotulo: String, chave: String, mn: float, mx: float, passo: flo
 	s.max_value = mx
 	s.step = passo
 	s.value = float(Sessao.config[chave])
-	s.custom_minimum_size = Vector2(320, 32)
+	s.custom_minimum_size = Tema.v("config_slider")
 	var texto := func(x: float) -> void: l.text = "%s: %d%%" % [rotulo, roundi(x * 100)]
 	texto.call(s.value)
 	s.value_changed.connect(func(x: float):
