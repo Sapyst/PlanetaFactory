@@ -21,10 +21,10 @@ menu = json.load(open(os.path.join(JOGO, "menu_construcao.json"), encoding="utf8
 dados = json.load(open(os.path.join(FINAL, "dados.json"), encoding="utf8"))
 mods = dados["modelos"]
 rot = menu["rotulos"]
-modelo_de = {"cano_deslocado": "cano_reto", "esteira": "esteira_reta", "cano": "cano_reto", "trem": "locomotiva", "trem_tanque": "vagao_tanque", "trem_eletrico": "locomotiva_eletrica",
+modelo_de = {"esteira": "esteira_reta", "cano": "cano_reto", "trem": "locomotiva", "trem_tanque": "vagao_tanque", "trem_eletrico": "locomotiva_eletrica",
              "rampa_desce": "esteira_rampa", "muro_centro": "muro_centro"}
-EXTRA = ["cano_deslocado", "nucleo", "ninho_aranha", "plataforma_agua", "ponte_agua", "nucleo_queda", "aranha_montada", "drone_reparo", "drone_defesa", "drone_logistico"]
-NOMES_EXTRA = {"cano_deslocado": "PROBLEMA: cano reto, 19,8 m ao lado do lugar", "nucleo": "Núcleo", "ninho_aranha": "Ninho de aranha", "plataforma_agua": "Plataforma na água", "ponte_agua": "Ponte na água",
+EXTRA = ["nucleo", "ninho_aranha", "plataforma_agua", "ponte_agua", "nucleo_queda", "aranha_montada", "drone_reparo", "drone_defesa", "drone_logistico"]
+NOMES_EXTRA = {"nucleo": "Núcleo", "ninho_aranha": "Ninho de aranha", "plataforma_agua": "Plataforma na água", "ponte_agua": "Ponte na água",
                "nucleo_queda": "Cápsula do núcleo (abertura)", "aranha_montada": "Aranha", "drone_reparo": "Drone de reparo", "drone_defesa": "Drone de combate",
                "drone_logistico": "Drone logístico"}
 cats = [(c["nome"], c["pecas"]) for c in menu["categorias"]] + [("Fora do menu (conferência)", EXTRA)]
@@ -65,7 +65,7 @@ for nome_cat, ps in cats:
         else:
             faltou.append(p)
             d.rectangle((x, yy, x + CEL_W, yy + CEL_H), fill=(90, 20, 20))
-        nome = "Cano (o trecho reto não aparece: bug)" if p == "cano" else rot.get(p, NOMES_EXTRA.get(p, p))
+        nome = rot.get(p, NOMES_EXTRA.get(p, p))
         d.text((x + 2, yy + CEL_H + 3), cortar(nome, f_nome, CEL_W - 4, d), font=f_nome, fill=TXT)
         m = mods.get(modelo_de.get(p, p), {})
         inf = p

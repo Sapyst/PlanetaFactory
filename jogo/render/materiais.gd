@@ -4,6 +4,9 @@ class_name Materiais
 ## Materiais iguais são compartilhados (cache) — essencial para o desenho em lote no celular.
 
 const SHADER := preload("res://render/shaders/material_pf.gdshader")
+## Só o cristal das construções usa `instance uniform trabalho` (brilho por objeto): quem tem esse uniform reserva
+## espaço no buffer global, então o resto do jogo fica no shader sem ele (ver material_pf.gdshader).
+const SHADER_CRISTAL := preload("res://render/shaders/material_pf_cristal.gdshader")
 const VELOCIDADE_ESTEIRA := 1.875
 ## Lona que rola pelo shader (m/s = tiles/s, igual à velocidade da esteira da classe): básica, rápida (logistica_3),
 ## expressa (logistica_4) e quântica (logistica_5).
@@ -32,7 +35,7 @@ static func material(origem: Material, vento := 0.0, boiar := 0.0, uv2 := false,
 	if _cache.has(chave):
 		return _cache[chave]
 	var m := ShaderMaterial.new()
-	m.shader = SHADER
+	m.shader = SHADER_CRISTAL if nome == "P_Cristal" else SHADER
 	m.resource_name = cor_nome
 	m.set_shader_parameter("cor", b.albedo_color)
 	m.set_shader_parameter("aspereza", b.roughness)
@@ -75,17 +78,65 @@ static func converter(raiz: Node, vento := 0.0, boiar := 0.0) -> void:
 			mi.set_surface_override_material(s, material(mi.mesh.surface_get_material(s), vento, boiar, uv2))
 
 
-## Malha única de um .glb de uma parte só (para MultiMesh), já com materiais convertidos.
+## O objeto usa o brilho por trabalho (tem superfície com a variante do cristal)? O Animador só manda para esses.
+static func usa_trabalho(g: GeometryInstance3D) -> bool:
+	var mi := g as MeshInstance3D
+	if mi == null or mi.mesh == null:
+		return false
+	for s in mi.mesh.get_surface_count():
+		var m := mi.get_active_material(s) as ShaderMaterial
+		if m != null and m.shader == SHADER_CRISTAL:
+			return true
+	return false
+
+
+## Malha única de um .glb de uma parte só (para MultiMesh), já com materiais convertidos e no lugar que a cena dá a
+## ela: o nó da parte pode ter translação compensando a malha (cano_reto: nó em x −20, vértices em x +19,84).
 static func malha_de(cena: PackedScene, vento := 0.0, boiar := 0.0, carbonizada := false) -> Mesh:
 	var inst := cena.instantiate()
 	var mis := inst.find_children("*", "MeshInstance3D", true, false)
 	if mis.is_empty():
 		inst.free()
 		return null
-	var orig: Mesh = (mis[0] as MeshInstance3D).mesh
-	var copia := orig.duplicate() as Mesh
+	var mi := mis[0] as MeshInstance3D
+	var orig: Mesh = mi.mesh
+	var t := Transform3D.IDENTITY
+	var n: Node = mi
+	while n != inst:                         # a raiz fica de fora: quem instancia a cena põe a posição nela
+		t = (n as Node3D).transform * t
+		n = n.get_parent()
+	var copia := (orig.duplicate() as Mesh) if t.is_equal_approx(Transform3D.IDENTITY) else _malha_assada(orig, t)
 	for s in copia.get_surface_count():
 		var uv2: bool = (copia.surface_get_format(s) & Mesh.ARRAY_FORMAT_TEX_UV2) != 0
 		copia.surface_set_material(s, material(orig.surface_get_material(s), vento, boiar, uv2, carbonizada))
 	inst.free()
 	return copia
+
+
+## Cópia da malha com a transformação aplicada aos vértices. Os níveis de detalhe da importação não dão para ler daqui
+## (nem transformar): gera de novo, para o lote de canos não pesar mais de longe que o resto.
+static func _malha_assada(orig: Mesh, t: Transform3D) -> Mesh:
+	var normal := t.basis.inverse().transposed()
+	var im := ImporterMesh.new()
+	for s in orig.get_surface_count():
+		var arr := orig.surface_get_arrays(s)
+		var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+		for i in vs.size():
+			vs[i] = t * vs[i]
+		arr[Mesh.ARRAY_VERTEX] = vs
+		if arr[Mesh.ARRAY_NORMAL] != null:
+			var ns: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+			for i in ns.size():
+				ns[i] = (normal * ns[i]).normalized()
+			arr[Mesh.ARRAY_NORMAL] = ns
+		if arr[Mesh.ARRAY_TANGENT] != null:
+			var tg: PackedFloat32Array = arr[Mesh.ARRAY_TANGENT]
+			for i in range(0, tg.size(), 4):
+				var v := (t.basis * Vector3(tg[i], tg[i + 1], tg[i + 2])).normalized()
+				tg[i] = v.x
+				tg[i + 1] = v.y
+				tg[i + 2] = v.z
+			arr[Mesh.ARRAY_TANGENT] = tg
+		im.add_surface(orig.surface_get_primitive_type(s), arr, [], {}, orig.surface_get_material(s), (orig as ArrayMesh).surface_get_name(s) if orig is ArrayMesh else "")
+	im.generate_lods(25.0, 60.0, [])
+	return im.get_mesh()

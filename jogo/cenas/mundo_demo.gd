@@ -663,7 +663,8 @@ func sincronizar(rel: Dictionary) -> void:
 		if e.nome == "pilar":
 			continue
 		for t in Grade.tiles_da_area(e.minimo, Registro.area(e.nome), e.rot):
-			for d in [Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(1, 1)]:
+			var m := DesenhoChunk.ESPALHA                 # o piso se espalha até aqui, inclusive no chunk vizinho
+			for d in [Vector2i(-m, -m), Vector2i(m, -m), Vector2i(-m, m), Vector2i(m, m)]:
 				tocados[Grade.chunk_de(t + d)] = true
 	for ap in rel.get("aplainados", []):
 		for d in [Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(1, 1)]:

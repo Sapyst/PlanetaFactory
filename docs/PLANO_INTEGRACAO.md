@@ -59,16 +59,23 @@ com a grade inteira + resultado dos testes), para ela não precisar abrir uma po
     pela CPU. O chão soma 2,2 mi tris, mais que qualquer grupo de peças. Mais pesadas: núcleo 13.721, núcleo de singularidade
     12.620, semeador de bioma 11.852, laboratório 11.756, refinador 2 11.577, regulador climático 11.446, estação de tratamento
     11.393, viveiro 2 11.375, biodigestor 11.194, terraplenagem 11.165 (fora da conta: cápsula da abertura, 17.426).
-  - **Problemas objetivos** (nada corrigido; ver seção seguinte).
+  - **Problemas objetivos**: ver seção seguinte (os 4 bugs medidos corrigidos em 2026-10-30; a conferência visual segue aberta).
 
 ### Problemas encontrados na fase 5
-Bugs medidos:
-- **cano_reto, cano_curva, cano_t**: `Materiais.malha_de` ignora a translação do nó `_corpo` do .glb, e o lote desenha a malha fora do
-  lugar: reto +19,84 m em X (foto `cano_deslocado`), curva 3 m e T 2 m em Z. Afeta toda rede de canos.
-- **cano_cruz, cano_subterraneo_entrada/saida**: mesma causa, nó com y 0,36–0,37 e x/z ~0,2: desenhados ~0,36 m baixos e fora do eixo.
-- **Fábrica grande**: no pátio (1.175 estruturas) o log dá 3.685× "Too many instances using shader instance variables"
-  (`instance uniform` em material_pf.gdshader; project.godot sem buffer_size próprio). Mostruário (467) não dá.
-- **rampa_desce (todas as classes)**: sem piso no tile da rampa; a grama atravessa o trecho que chega ao chão.
+Bugs medidos (corrigidos em 2026-10-30; teste: jogo/testes/test_malha_no_lugar.gd):
+- [x] **cano_reto, cano_curva, cano_t, cano_cruz, cano_subterraneo_entrada/saida**: `Materiais.malha_de` ignorava a translação do nó `_corpo`
+  do .glb (reto +19,84 m, curva 3 m, T 2 m; os outros ~0,36 m baixos e fora do eixo). Agora assa o transform do nó nos vértices quando não é
+  identidade (só esses 6; regera LOD). Bocas conferidas nas portas a 0,35 m (até 1,5 cm de folga). Os outros 140 modelos de uma malha têm nó na
+  origem, exceto muro_lado, que não passa por malha_de.
+- [x] **Fábrica grande, "Too many instances using shader instance variables"**: cada objeto cujo shader tem `instance uniform` reserva 16 vec4 do
+  buffer global (65.536 vec4 = ~4.090 objetos), mesmo sem usar. O `trabalho` foi para a variante material_pf_cristal.gdshader (só P_Cristal; corpo
+  comum em material_pf.gdshaderinc, inclusive o encardido) e o buffer subiu para 262.144 vec4 (4 MB; ~16.380 objetos), porque o extrator de cristal
+  tem 29 objetos de cristal. Pátio: 3.693 avisos → 0. **Fps não mudou**: A/B antigo×novo intercalado, 2 rodadas, com a máquina carregada (outro
+  jogo aberto, carga ~13): pátio 44 m 14–15 × 14–25 fps (o 25 foi uma rodada só e não repetiu), 25 m 19–23 × 19–21, 90 m 15–17 × 15–16;
+  mostruário 44 m 30–31 × 28–29, 25 m 49–50 × 47–55, 90 m 42–45 × 39–42. O gargalo do pátio continua sendo a CPU.
+- [x] **rampa_desce (todas as classes)**: o modelo não tinha culpa. `DesenhoChunk.atualizar` sem `crescer_de` durante o crescimento do piso (1,6 s, disparado
+  pelo pilar do trecho alto) era sobrescrita pela mistura com a imagem final antiga; e o que ficava além do raio de 7 m nunca chegava à final.
+  Afetava qualquer peça posta logo depois de outra construção no chunk. Também: a margem de chunks tocados era 1 tile, com piso espalhando 2.
 Conferência visual, por peça:
 - **painel_solar**: só a estrutura; não se vê placa (buraco de vidro). painel_solar_2 está bom.
 - **estacao_drones**: laje com manchas pretas irregulares. **estacao** (telhado) e **acumulador** (topo dos tanques): pintas pretas

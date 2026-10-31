@@ -320,6 +320,9 @@ func atualizar(mapa: MapaOcupacao, crescer_de: Array = []) -> void:
 	if not crescer_de.is_empty() and _img_fabrica != null:
 		antiga = _img_fabrica.duplicate() as Image
 	atualizar_fabrica()
+	if antiga == null and _t_crescer >= 0.0:
+		_img_final = _img_fabrica.duplicate() as Image   # crescendo: o que veio agora entra no fim, senão a mistura apaga
+		_compor_crescer()
 	if antiga != null:
 		_img_final = _img_fabrica.duplicate() as Image
 		_img_antiga = antiga
@@ -346,6 +349,8 @@ func _process(delta: float) -> void:
 	if _t_crescer >= T_CRESCER:
 		_t_crescer = -1.0
 		_img_antiga = null
+		_img_fabrica.copy_from(_img_final)              # o que ficou fora do raio do crescimento também vale
+		_tex_fabrica.update(_img_fabrica)
 
 
 ## Mistura antiga → final por distância ao centro mais perto; o raio cresce suave (o chão "se prolifera").

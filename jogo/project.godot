@@ -25,6 +25,7 @@ common/physics_ticks_per_second=30
 
 [rendering]
 renderer/rendering_method="mobile"
+limits/global_shader_variables/buffer_size=262144
 textures/vram_compression/import_etc2_astc=true
 
 [input_devices]

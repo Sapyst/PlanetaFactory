@@ -342,12 +342,6 @@ func _foto_peca(nome: String, dados: Dictionary) -> void:
 	await _quadros(ESPERA)
 	_camera_fixa()
 	await _foto(nome)
-	if nome == "cano":                           # a malha do lote do cano reto está fora do lugar (ver dados.lotes): foto de onde ela foi parar
-		var ma: AABB = DesenhoChunk.malha("cano_reto").get_aabb()
-		var p0: Vector3 = Grade.ponto_mundo(Vector2(o) + Vector2(0.5, 0.5))
-		_enquadrar(AABB(p0 + ma.position + Vector3(-1, 0, -2), ma.size + Vector3(2, 0.5, 4)))
-		await _quadros(20)
-		await _foto("cano_deslocado")
 	dados.pecas[nome] = {"motivo": r.motivo, "n": ids.size(), "tile": [o.x, o.y], "caixa": [cx.size.x, cx.size.y, cx.size.z]}
 	print("FOTO %-34s %s peças=%d tile=%s caixa=%s centro=%s d=%.1f cam=%s" % [nome, ("RECUSADA:" + r.motivo) if r.motivo != "" else "ok", ids.size(), o, cx.size, cx.get_center(), _d, cena.camera.position])
 	for id in ids:

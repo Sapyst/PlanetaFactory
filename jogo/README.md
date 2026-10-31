@@ -60,7 +60,7 @@ tiles (`Construtor.PASSO_POSTE`). O anel do topo anima com `Fabrica.transmitindo
   e a rede. Tabela completa: `docs/RECURSOS.md` (gerado de `dados/`).
 - Acumulador: o cristal do meio acende com a carga e as bobinas soltam faíscas (`render/arcos_eletricos.gd`: fitas em
   cruz, sem virar para a câmera), mais ainda carregando ou descarregando. Cristais das máquinas brilham fraco só
-  trabalhando (`instance uniform trabalho` no `material_pf.gdshader`, comandado pelo `Animador`).
+  trabalhando (`instance uniform trabalho`, só na variante `material_pf_cristal.gdshader` para não gastar o buffer global com a fábrica inteira; comandado pelo `Animador`).
 
 ## Dia, noite e estações
 - `Clima.hora` (0 = meia-noite) anda num ciclo de `dia_s` (720 s). `luz_dia()` rende o painel solar; `DesenhoClima`

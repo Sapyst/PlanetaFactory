@@ -60,7 +60,8 @@ func _ready() -> void:
 			_partes[parte] = n
 			_base[parte] = (n as Node3D).transform
 	for g in dono.find_children("*", "GeometryInstance3D", true, false):
-		_malhas.append(g)
+		if Materiais.usa_trabalho(g):                # só o cristal tem o brilho por objeto
+			_malhas.append(g)
 	for p in dono.find_children("*", "AnimationPlayer", true, false):
 		var ap := p as AnimationPlayer
 		if ap.has_animation("trabalho"):
