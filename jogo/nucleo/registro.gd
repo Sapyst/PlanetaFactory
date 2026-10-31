@@ -15,6 +15,7 @@ var arvore: Dictionary = {}       ## árvore de tecnologia completa (eras, 166 n
 var clima: Dictionary = {}        ## estados do clima dinâmico
 var recursos: Dictionary = {}     ## nomes e cores da visão de recursos
 var ambiente: Dictionary = {}     ## sujeira, óleo, despejo, fogo, tufão
+var luzes: Dictionary = {}        ## luz de cada estrutura à noite, cor da energia por rede, faíscas dos cabos
 var fluidos: Dictionary = {}      ## fluidos dos canos (nome, serve_como)
 
 
@@ -33,6 +34,7 @@ func carregar(pasta := "res://dados") -> void:
 	clima = _ler(pasta + "/clima.json")
 	recursos = _ler(pasta + "/recursos.json")
 	ambiente = _ler(pasta + "/ambiente.json")
+	luzes = _ler(pasta + "/luzes.json")
 	fluidos = _sem_notas(_ler(pasta + "/fluidos.json"))
 	var regras := _sem_notas(_ler(pasta + "/estruturas.json"))
 	estruturas.clear()

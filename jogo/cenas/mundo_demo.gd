@@ -74,6 +74,7 @@ var _silo_total: Dictionary = {}          ## id do silo → itens guardados no �
 var _silo_mexeu: Dictionary = {}          ## id do silo → _tempo da última mudança
 var _efeitos: Efeitos
 var _fios: DesenhoFios
+var luzes: DesenhoLuzes
 
 @onready var camera: CameraJogo = $Camera3D
 
@@ -430,6 +431,7 @@ func _criar_desenhos() -> void:
 	add_child(_desenho_itens)
 	_fios = DesenhoFios.new()
 	_fios.mapa = mapa
+	_fios.fabrica = fabrica
 	add_child(_fios)
 	_efeitos = Efeitos.new()
 	_efeitos.fabrica = fabrica
@@ -491,6 +493,15 @@ func _criar_desenhos() -> void:
 	var dfa := DesenhoFarol.new()                  # luz dos faróis de cristal à noite
 	dfa.farol = farol
 	add_child(dfa)
+	luzes = DesenhoLuzes.new()                     # luz das estruturas e dos postes à noite, labaredas e arcos
+	luzes.mapa = mapa
+	luzes.fabrica = fabrica
+	luzes.clima = clima
+	luzes.farol = farol
+	luzes.nos = _nos
+	luzes.arcos = _arcos
+	luzes.animar_tudo = func() -> bool: return animar_tudo
+	add_child(luzes)
 	var dla := DesenhoLancador.new()               # cápsula-semente em voo e o alvo de cada lançador
 	dla.lancador = lancador
 	dla.genese = genese

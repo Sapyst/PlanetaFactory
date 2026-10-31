@@ -3,11 +3,30 @@ extends Node3D
 ## Desenha as ligações elétricas do mapa: cabo escuro que verga (catenária simples) entre poste ↔ poste e
 ## poste ↔ máquina; ligação de torre sem fio = feixe ciano tracejado que corre na direção da energia.
 ## Fita deitada (larga vista de cima, a câmera é quase top-down). Refaz só quando o mapa ou os fios mudam.
+## Faísca: rara e curta, corre um trecho do cabo que passa energia de verdade (RedeEnergia.fluxo_em nas duas pontas), na
+## cor da rede. Limite por perfil em dados/luzes.json, contando o que está em cena; só nasce dentro do oval de visão.
 
 const SEGMENTOS := 10
 const LARGURA := 0.05
 
+const FAISCA_PERIODO := 0.2            ## s entre sorteios
+const FAISCA_FORCA := 2.2              ## força do shader de raio: bem abaixo do raio de verdade (6)
+const FAISCA_LARGURA := 0.022
+const FAISCA_HALO := 0.075
+
 var mapa: MapaOcupacao
+var fabrica: Fabrica
+var faiscas_ligadas := true            ## medição sem as faíscas
+var forcar_faiscas := false            ## medição (roteiro carga): todo cabo conta como energizado
+var _lista: Array = []                 ## cabos de verdade: [a, b, flecha, id, o]
+var _faiscas: Array = []               ## em cena: {a, b, flecha, ini, fim, t, vida, cor}
+var _espera := 0.0
+var _malha_faisca := ImmediateMesh.new()
+var _mi_faisca: MeshInstance3D
+var _rng := RandomNumberGenerator.new()
+var _lim: Dictionary
+var _cor_base := Color(0.72, 0.52, 1.0)
+var _cor_geradores := Color(1.0, 0.8, 0.22)
 var _cabos: MeshInstance3D
 var _feixes: MeshInstance3D
 var _assinatura := ""
@@ -28,11 +47,26 @@ func _ready() -> void:
 	_feixes.material_override = sm
 	_feixes.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_feixes)
+	_mi_faisca = MeshInstance3D.new()
+	_mi_faisca.mesh = _malha_faisca
+	var fm := ShaderMaterial.new()
+	fm.shader = preload("res://render/shaders/raio.gdshader")
+	fm.set_shader_parameter("forca", FAISCA_FORCA)
+	_mi_faisca.material_override = fm
+	_mi_faisca.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_mi_faisca.extra_cull_margin = 1.0e4
+	add_child(_mi_faisca)
+	_lim = Registro.luzes.get("celular" if Sessao.eh_celular() else "pc", {})
+	var cs: Dictionary = Registro.luzes.get("cores", {})
+	if cs.has("base"):
+		_cor_base = Color(cs.base[0], cs.base[1], cs.base[2])
+		_cor_geradores = Color(cs.geradores[0], cs.geradores[1], cs.geradores[2])
 
 
-func _process(_d: float) -> void:
+func _process(delta: float) -> void:
 	if mapa == null:
 		return
+	_atualizar_faiscas(delta)
 	var n := 0
 	for id in mapa.estruturas:
 		n += mapa.estruturas[id].get("fios", []).size()
@@ -48,6 +82,7 @@ func refazer() -> void:
 	cabos.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var feixes := SurfaceTool.new()
 	feixes.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_lista.clear()
 	var tem_cabo := false
 	var tem_feixe := false
 	for id in mapa.estruturas:
@@ -63,6 +98,7 @@ func refazer() -> void:
 				tem_feixe = true
 			else:
 				_fita(cabos, a, b, minf(0.06 * a.distance_to(b), 0.7), LARGURA, false)
+				_lista.append([a, b, minf(0.06 * a.distance_to(b), 0.7), id, o])
 				tem_cabo = true
 	_cabos.mesh = cabos.commit() if tem_cabo else null
 	_feixes.mesh = feixes.commit() if tem_feixe else null
@@ -90,3 +126,97 @@ func _fita(st: SurfaceTool, a: Vector3, b: Vector3, flecha: float, largura: floa
 			if uv:
 				st.set_uv(v[k][1])
 			st.add_vertex(v[k][0])
+
+
+## Está passando energia por este cabo? Devolve a cor da rede ou null.
+func _cor_do_cabo(c: Array):
+	if forcar_faiscas:
+		return _cor_base if int(c[3]) % 2 == 0 else _cor_geradores
+	if fabrica == null or not fabrica.rede.fluxo_em(c[3]) or not fabrica.rede.fluxo_em(c[4]):
+		return null
+	match fabrica.rede.origem_de(c[3]):
+		RedeEnergia.BASE: return _cor_base
+		RedeEnergia.GERADORES: return _cor_geradores
+	return null
+
+
+func faiscas_em_cena() -> int:
+	return _faiscas.size()
+
+
+func _atualizar_faiscas(delta: float) -> void:
+	var maximo := int(_lim.get("faiscas", 0))
+	if faiscas_ligadas and maximo > 0 and not _lista.is_empty():
+		_espera -= delta
+		if _espera <= 0.0:
+			_espera = FAISCA_PERIODO
+			# sorteios proporcionais ao número de cabos: cada cabo acende, em média, a cada 30–50 s
+			var q := float(_lista.size()) * float(_lim.get("faisca_por_cabo_s", 0.03)) * FAISCA_PERIODO
+			var tentativas := int(q) + (1 if _rng.randf() < fmod(q, 1.0) else 0)
+			for k in tentativas:
+				if _faiscas.size() >= maximo:
+					break
+				_nascer(_lista[_rng.randi() % _lista.size()])
+	for i in range(_faiscas.size() - 1, -1, -1):
+		_faiscas[i].t += delta / float(_faiscas[i].vida)
+		if _faiscas[i].t >= 1.0:
+			_faiscas.remove_at(i)
+	_malha_faisca.clear_surfaces()
+	if _faiscas.is_empty():
+		return
+	_malha_faisca.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+	for f in _faiscas:
+		_desenhar_faisca(f)
+	_malha_faisca.surface_end()
+
+
+func _nascer(c: Array) -> void:
+	var a: Vector3 = c[0]
+	var b: Vector3 = c[1]
+	var meio := (a + b) * 0.5
+	if not Visao.dentro(Vector2(meio.x, -meio.z), 1.0):
+		return
+	var cor = _cor_do_cabo(c)
+	if cor == null:
+		return
+	var trecho := _rng.randf_range(0.25, 0.45)
+	var ini := _rng.randf_range(0.0, 1.0 - trecho)
+	var ida := _rng.randf() < 0.5
+	_faiscas.append({"a": a, "b": b, "flecha": c[2], "ini": ini if ida else ini + trecho, "fim": ini + trecho if ida else ini,
+			"t": 0.0, "vida": _rng.randf_range(0.28, 0.5), "cor": cor})
+
+
+## Ponto do cabo em s (0..1), com a mesma catenária do desenho.
+static func ponto_cabo(a: Vector3, b: Vector3, flecha: float, s: float) -> Vector3:
+	return a.lerp(b, s) - Vector3.UP * flecha * 4.0 * s * (1.0 - s)
+
+
+func _desenhar_faisca(f: Dictionary) -> void:
+	var a: Vector3 = f.a
+	var b: Vector3 = f.b
+	var t: float = f.t
+	var s1: float = lerpf(f.ini, f.fim, t)
+	var s0: float = lerpf(f.ini, f.fim, maxf(t - 0.28, 0.0))         # o rabo vem atrás da cabeça
+	var lado := Vector3(-(b - a).z, 0, (b - a).x).normalized()
+	var cor: Color = f.cor
+	var brilho := sin(t * PI)                                         # nasce e morre sem estalo
+	var n := 4
+	var pts: Array[Vector3] = []
+	for i in n + 1:
+		var u := float(i) / n
+		var p := ponto_cabo(a, b, f.flecha, lerpf(s0, s1, u))
+		if i > 0 and i < n:
+			p += lado * _rng.randf_range(-0.03, 0.03) + Vector3.UP * _rng.randf_range(-0.03, 0.03)
+		pts.append(p)
+	var nucleo := cor.lerp(Color.WHITE, 0.3)
+	nucleo.a = brilho
+	var halo := cor
+	halo.a = brilho * 0.16
+	for camada in [[FAISCA_HALO, halo], [FAISCA_LARGURA, nucleo]]:
+		_malha_faisca.surface_set_color(camada[1])
+		for i in n:
+			var w: Vector3 = lado * float(camada[0])
+			var c := Vector3.UP * float(camada[0])
+			for eixo in [w, c]:
+				for v in [pts[i] - eixo, pts[i] + eixo, pts[i + 1] + eixo, pts[i] - eixo, pts[i + 1] + eixo, pts[i + 1] - eixo]:
+					_malha_faisca.surface_add_vertex(v)

@@ -4,7 +4,9 @@ extends Node
 ## dia, com as animações ligadas) + dados por modelo (triângulos, tamanho, textura) para o painel único.
 ##   xvfb-run godot --path jogo --resolution 960x720 --fixed-fps 30 -- modo demo roteiro fotos_finais [so <peça>]
 ## Medição de desempenho, numa fábrica grande:
-##   xvfb-run godot --path jogo --resolution 1280x720 -- modo demo roteiro carga mostruario|patio
+##   xvfb-run godot --path jogo --resolution 1280x720 -- modo demo roteiro carga mostruario|patio [noite] [sem_luzes] [saida_fotos <pasta>]
+## Noite (luz das estruturas, cor da rede, postes, cabos; foto de noite, entardecer e dia):
+##   -- modo demo roteiro noite [saida_fotos <pasta>]
 ## Quem junta tudo: arte/estudos/painel_final.py.
 ## Interface e marcadores (`-- modo demo roteiro ui_pc`): arte/estudos/fotos/ui_pc/, folha montada à parte.
 
@@ -46,15 +48,20 @@ func _ready() -> void:
 		get_tree().quit()
 		return
 	_sem_hud()
+	if args.has("saida_fotos"):
+		saida = args[args.find("saida_fotos") + 1]
+		DirAccess.make_dir_recursive_absolute(saida)
 	if rt.roteiro == "carga":
 		await _carga(args[args.find("carga") + 1])
+	elif rt.roteiro == "noite":
+		await _noite_fotos()
 	else:
 		await _fotos_finais(args)
 	get_tree().quit()
 
 
 func _process(_delta: float) -> void:
-	if rt.roteiro in ["fotos_finais", "ui_pc"] and _fixa:
+	if rt.roteiro in ["fotos_finais", "ui_pc", "noite"] and _fixa:
 		_camera_fixa()
 
 
@@ -567,6 +574,7 @@ func _carga(tipo: String) -> void:
 	var cam: CameraJogo = cena.camera
 	var centro := Vector3.ZERO
 	var d_padrao := 44.0
+	var de_noite := OS.get_cmdline_user_args().has("noite")
 	if tipo == "mostruario":
 		rt._montar_mostruario()
 		await _quadros(14)
@@ -600,6 +608,13 @@ func _carga(tipo: String) -> void:
 	var txt := var_to_str(copia)
 	print("SALVAR %s: montar %.1f ms + copiar %.1f ms no quadro; texto em outra thread %.1f ms, %d KB" % [tipo, (ts1 - ts0) / 1000.0, (ts2 - ts1) / 1000.0, (Time.get_ticks_usec() - ts2) / 1000.0, txt.length() / 1024])
 	RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
+	if de_noite:
+		_hora(0.0)
+	var sem_luzes := OS.get_cmdline_user_args().has("sem_luzes")
+	cena.luzes.desligado = sem_luzes
+	cena.luzes.forcar_tudo = not sem_luzes
+	cena._fios.faiscas_ligadas = not sem_luzes
+	cena._fios.forcar_faiscas = not sem_luzes
 	for d in [d_padrao, 25.0, 90.0]:
 		cam.alvo = centro
 		cam.distancia = d
@@ -631,6 +646,18 @@ func _carga(tipo: String) -> void:
 			media += v
 		media /= tempos.size()
 		print("CARGA %s d=%.0f: %.0f fps · quadro média %.1f ms · p95 %.1f ms · pior %.1f ms · gpu %.2f ms · cpu render %.2f ms · %d mil tris desenhados · %d chamadas · %d objetos" % [tipo, d, 1000.0 / media, media, ord[int(ord.size() * 0.95)], ord[-1], gpu / 240.0, cpu / 240.0, int(prim / 240.0 / 1000.0), int(draw / 240.0), int(objs / 240.0)])
+		var tl0 := Time.get_ticks_usec()
+		if not sem_luzes:
+			for i in 20:
+				cena.luzes._avaliar()
+		var tl1 := Time.get_ticks_usec()
+		if not sem_luzes:
+			for i in 20:
+				cena.luzes._atualizar_luzes(0.016)
+				cena._fios._atualizar_faiscas(0.016)
+		print("LUZES d=%.0f: %d de verdade, %d brilhos no chão, %d chamas, %d faíscas; reavaliar %.2f ms (4×/s), quadro %.3f ms" % [d, cena.luzes.luzes_acesas(), cena.luzes.halos_visiveis(), cena.luzes.chamas_visiveis(), cena._fios.faiscas_em_cena(), (tl1 - tl0) / 20000.0, (Time.get_ticks_usec() - tl1) / 20000.0])
+		if de_noite:
+			print("FOTO ", await _foto("carga_%s_%d" % [tipo, int(d)]))
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_jpg(saida.path_join("carga_%s.jpg" % tipo), 0.9)
 	rt._inventario()
@@ -645,6 +672,71 @@ func _tris_modelo(nome: String) -> int:
 		t += rt._tris((g as MeshInstance3D).mesh)
 	n.free()
 	return t
+
+
+func _hora(h: float) -> void:
+	cena.clima.ciclo = false
+	cena.clima.hora = h
+
+
+## Duas redes de verdade: uma no núcleo, outra em geradores com carvão. Mesma cena e câmera antes e depois.
+func _noite_fotos() -> void:
+	_sem_perigo()
+	var c := _plano(Vector2i(-60, 0), 60, 40)
+	_limpar(c, 70, 50)
+	cena.animar_tudo = true                   # máquinas animando e acesas sem precisar de insumo
+	await _quadros(10)
+	# rede da base
+	var nu := c + Vector2i(-18, 0)
+	cena.fabrica.reconstruir()
+	var motivo := _p(con.plano_peca("posto_avancado", nu, 0))
+	print("FOTO posto_avancado: ", motivo)
+	for k in [[-12, 3, "poste_energia"], [-6, 3, "poste_energia"], [-6, -1, "fornalha_eletrica"], [-8, 6, "montadora"]]:
+		print("FOTO ", k[2], ": ", _p(con.plano_peca(k[2], c + Vector2i(k[0], k[1]), 0)))
+	# rede de geradores
+	var ids_ger: Array[int] = []
+	for k in [[8, -7, "gerador"], [12, -7, "gerador"], [10, -3, "poste_energia"], [16, -1, "poste_alto"], [16, 5, "poste_energia"],
+			[7, 2, "refinador"], [20, -4, "fundicao_cristal"], [21, 3, "biodigestor"], [12, 7, "fornalha"], [8, 8, "fornalha_aco"], [17, 9, "acumulador"], [22, 9, "laboratorio"]]:
+		print("FOTO ", k[2], ": ", _p(con.plano_peca(k[2], c + Vector2i(k[0], k[1]), 0)))
+	for id in cena.mapa.estruturas:
+		if cena.mapa.estruturas[id].nome == "gerador":
+			ids_ger.append(id)
+	_terminar_montagem()
+	await _quadros(4)
+	for id in ids_ger:
+		cena.fabrica.combustivel[id] = 5000.0
+	var centro_ger := Vector2(c + Vector2i(15, 1))
+	var centro_base := Vector2(c + Vector2i(-11, 1))
+	var tomadas := [["noite_geral", Vector2(c + Vector2i(2, 1)), 44.0], ["noite_geradores", centro_ger, 22.0], ["noite_base", centro_base, 18.0]]
+	_olhar(tomadas[0][1], tomadas[0][2])
+	await _quadros(150)                       # chão em volta desenhado antes da primeira foto
+	for h in [[0.0, ""], [0.79, "_entardecer"], [0.5, "_dia"]]:
+		_hora(float(h[0]))
+		await _quadros(40)
+		for t in tomadas:
+			if h[1] != "" and t[0] != "noite_geral":
+				continue
+			_olhar(t[1], t[2])
+			_camera_fixa()
+			await _quadros(50)
+			print("FOTO ", await _foto("%s%s" % [t[0], h[1]]))
+	# faísca e choque de verdade (raros: espera aparecer), de perto
+	_hora(0.0)
+	await _quadros(30)
+	for t in [["faisca_geradores", centro_ger + Vector2(-2, -1), 12.0], ["faisca_base", centro_base, 18.0]]:
+		_olhar(t[1], t[2])
+		_camera_fixa()
+		await _quadros(45)                    # luzes e brilhos alcançam a câmera nova
+		cena._fios._faiscas.clear()
+		for i in 3600:
+			await get_tree().process_frame
+			if "_fios" in cena and cena._fios.get("_faiscas") != null and cena._fios.faiscas_em_cena() > 0:
+				var f: Dictionary = cena._fios._faiscas[0]
+				if f.t > 0.35:
+					break
+		print("FOTO ", await _foto(t[0]))
+	for id in cena.fabrica.rede.estat:
+		print("FOTO rede ", id, " ", cena.fabrica.rede.estat[id])
 
 
 ## Pátio: 4 de cada peça que não tem regra de lugar, em grade; 30 linhas de esteira cheias passando no meio.

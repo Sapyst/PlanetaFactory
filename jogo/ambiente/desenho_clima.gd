@@ -32,7 +32,11 @@ const COR_NEBLINA := Color(0.72, 0.74, 0.76)
 const COR_TEMPESTADE := Color(0.36, 0.39, 0.43)
 const COR_POENTE := Color(1.0, 0.56, 0.32)
 const COR_LUA := Color(0.58, 0.68, 1.0)
-const LUA := 0.24                       ## força da lua em relação ao sol
+const LUA := 0.44                       ## força da lua em relação ao sol
+const AMBIENTE_NOITE := 0.62            ## céu à noite (fração do de dia)
+const PREENCHE_NOITE := 0.85            ## luz de preenchimento à noite (fração da de dia): é ela que dá forma ao lado oposto da lua
+const AZUL_NOITE := Color(0.20, 0.25, 0.40)  ## luar difuso: o céu de noite é escuro demais para clarear as sombras sozinho
+const MISTURA_AZUL := 0.35              ## parte do ambiente que vem dele à noite
 const CEU_NOITE := [Color(0.025, 0.04, 0.10), Color(0.08, 0.10, 0.18)]   ## topo, horizonte
 const CEU_POENTE := Color(0.85, 0.52, 0.36)
 
@@ -83,6 +87,7 @@ func _ready() -> void:
 		_base.ceu_topo = _ceu.sky_top_color
 		_base.ceu_horizonte = _ceu.sky_horizon_color
 		_base.chao_horizonte = _ceu.ground_horizon_color
+		_base.chao_fundo = _ceu.ground_bottom_color
 	_preenche = sol.get_parent().get_node_or_null("Preenchimento") as DirectionalLight3D
 	if _preenche != null:
 		_base.preenche = _preenche.light_energy
@@ -118,7 +123,9 @@ func _process(delta: float) -> void:
 	var env := ambiente.environment
 	sol.light_energy = sol.light_energy * v.luz + _flash * 2.6
 	sol.shadow_opacity = 1.0 - 0.55 * v.nuvens      # céu fechado: luz difusa, sombra fraca
-	env.ambient_light_energy = _base.ceu * (0.7 + 0.3 * v.luz) * lerpf(0.4, 1.0, dia) + _flash * 1.2
+	env.ambient_light_energy = _base.ceu * (0.7 + 0.3 * v.luz) * lerpf(AMBIENTE_NOITE, 1.0, dia) + _flash * 1.2
+	env.ambient_light_color = AZUL_NOITE
+	env.ambient_light_sky_contribution = lerpf(1.0 - MISTURA_AZUL, 1.0, dia)
 	var cor: Color = (_base.neblina as Color).lerp(COR_NEBLINA, v.neblina * 0.7).lerp(COR_TEMPESTADE, v.chuva * 0.65)
 	env.fog_light_color = cor.lerp(Color(0.10, 0.13, 0.22), 0.85 * (1.0 - dia))
 	# névoa mais rala quanto mais longe a câmera (de longe o mapa não desbota); neblina engrossa em qualquer zoom
@@ -135,7 +142,7 @@ func _dia_e_noite() -> float:
 	var alt := clima.altura_sol()
 	var dia := clima.luz_dia()
 	var f_sol := smoothstep(-0.05, 0.3, alt)
-	var f_lua := smoothstep(0.0, -0.3, alt)
+	var f_lua := smoothstep(-0.02, -0.08, alt)   # a lua entra logo: antes, o entardecer ficava mais escuro que a meia-noite
 	var d0: Vector3 = _base.dir
 	var el0 := asin(clampf(d0.y, -1.0, 1.0))
 	var az0 := atan2(d0.x, d0.z)
@@ -154,7 +161,7 @@ func _dia_e_noite() -> float:
 	var dir := Vector3(cos(el) * sin(az), sin(el), cos(el) * cos(az))
 	sol.global_basis = Basis.looking_at(-dir, Vector3.UP if absf(dir.y) < 0.99 else Vector3.FORWARD)
 	if _preenche != null:
-		_preenche.light_energy = _base.preenche * lerpf(0.55, 1.0, dia)
+		_preenche.light_energy = _base.preenche * lerpf(PREENCHE_NOITE, 1.0, dia)
 	if _ceu != null and mexer_ceu:
 		var poente := clampf(1.0 - absf(alt - 0.1) / 0.35, 0.0, 1.0)        # céu alaranjado perto do horizonte
 		var hz: Color = (_base.ceu_horizonte as Color).lerp(CEU_POENTE, poente * 0.6)
@@ -165,6 +172,7 @@ func _dia_e_noite() -> float:
 			_ceu.sky_top_color = topo
 			_ceu.sky_horizon_color = horiz
 			_ceu.ground_horizon_color = (CEU_NOITE[1] as Color).lerp(_base.chao_horizonte, dia)
+			_ceu.ground_bottom_color = (CEU_NOITE[0] as Color).lerp(_base.chao_fundo, dia)   # fundo dos chunks ainda não desenhados
 	return dia
 
 

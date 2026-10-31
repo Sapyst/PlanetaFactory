@@ -792,6 +792,19 @@ Folha: arte/estudos/fotos/ui_pc.jpg (fotos soltas em ui_pc/; roteiro `-- modo de
 - Testes alterados, sem subir limite: test_energia_extra (desligada = DESLIGADA), test_salvar_auto (padrão 100%, migração `ui_pc`). Novos: test_painel_estrutura, test_perfil_interface, casos em test_portas.
 - **Fica para Sapyst**: MSAA/FXAA como opção (melhora todos os itens; custo não medido); Resolução do 3D dela está em 50%, o que piora o serrilhado; "Estação 1" no mapa continua texto grande.
 
+### Luz à noite, cor da energia, postes e cabos (2026-10-31)
+Folha antes/depois: arte/estudos/fotos/noite.jpg (roteiro `-- modo demo roteiro noite`). Técnica em jogo/README.md, "Luz à noite".
+- **O que já existia**: `P_Fogo` e `P_Cristal` só brilhavam na própria peça, sem iluminar nada (muito `P_Fogo` é LED). Luz real só em: farol (8), um arco do acumulador, fogo do mundo, solda do drone, explosão de ninho, lançador e silo no lançamento. `chama.gdshader` só no incêndio do mundo. Labaredas, jatos e faíscas dos estudos não chegavam ao jogo: `EFEITO` em para_jogo.py os tira na conversão.
+- [x] **Fontes** (`render/desenho_luzes.gd`, `dados/luzes.json`): uma por estrutura; só com a máquina ativa; conjunto de 6 luzes (celular 3) + brilho falso em lote.
+- [x] **Labaredas e arcos que faltavam**: chama em fornalha, fornalha de aço, gerador, refinadores e biodigestor; arcos em fornalha elétrica, para-raios, captador, cúpula, semeador de nuvens, gerador de escudo. Só uma chama ou arco leve por ponto, não as animações inteiras dos estudos.
+- [x] **Noite**: lua, ambiente e preenchimento mais fortes, céu igual. O entardecer era mais escuro que a meia-noite (nem sol nem lua): a lua entra logo depois da troca. O fundo do céu ficava marrom claro à noite onde o chão ainda não desenhou.
+- [x] **Cor por rede** (`RedeEnergia.origem_de`, histerese 10%), **postes** e **faíscas nos cabos** (limite 6, celular 3).
+- [x] **De passagem**: fumaça preta chapada à noite ganhou luz própria fraca; fumaça de quem tem chaminé ou flare sai dela, não do meio da peça; luz do arco do acumulador reduzida (1,2–3,0 → 0,7–1,8).
+- **Desempenho** (`roteiro carga <tipo> noite`, com e sem `sem_luzes`, tudo aceso = pior caso; Radeon 890M, 1280×720, sem vsync, carga 1–4, sem Blender rodando, NVIDIA parada, com Steam, Discord e ComfyUI abertos; celular NÃO medido). Sem → com:
+  mostruário (4 rodadas) 44 m 56–59 → 57–59 fps; 25 m 107–119 → 104–115; 90 m 102–112 → 102–103, com uma rodada de 74 que não repetiu. Pátio (2 rodadas) 44 m 49–53 → 47–56; 25 m 68–69 → 63; 90 m 38–44 → 37–45. GPU: pátio 44 m 9,0 → 8,7–9,4 ms; mostruário 25 m 7,1–7,7 → 6,6–7,8 ms. CPU do código novo: reavaliar 0,17–0,57 ms 4×/s, quadro abaixo de 0,07 ms. Queda sustentada de no máximo ~8% (pátio 25 m): nada cortado. O pátio teve só 2 luzes reais, porque os faróis acesos tomam o lugar; o mostruário teve 6. `sem_luzes` desliga luzes, chamas e faíscas, mas mantém a noite nova (que não custa desenho).
+- Verificação: 74.814 verificações, 0 falhas; nenhum limite de teste subiu; 204 scripts compilam; demo e roteiros clima e fios sem janela sem erro de script; `conferir_celular` 457 controles, 0 diferentes. Novo: test_luzes_noite.gd.
+- **Fica para Sapyst**: ver em movimento (só vi fotos): tremor, troca de luzes, faísca e flash; celular; se quer o feixe da torre sem fio na cor da rede; o cristal do poste segue violeta por baixo do brilho da rede amarela.
+
 ### Lista para a fase 3 — estruturas da árvore ainda sem estudo/modelo
 (Fonte: "Estruturas: temos × precisamos" do docs/ARVORE_TECNOLOGIA.md. Entre parênteses, o que cada uma destrava do que
 já está ligado e travado.)

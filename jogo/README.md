@@ -64,11 +64,22 @@ tiles (`Construtor.PASSO_POSTE`). O anel do topo anima com `Fabrica.transmitindo
 
 ## Dia, noite e estações
 - `Clima.hora` (0 = meia-noite) anda num ciclo de `dia_s` (720 s). `luz_dia()` rende o painel solar; `DesenhoClima`
-  anda o sol de leste a oeste, deixa a luz alaranjada no fim da tarde e à noite troca para lua azulada fraca (a troca
+  anda o sol de leste a oeste, deixa a luz alaranjada no fim da tarde e à noite troca para lua azulada (a troca
   acontece com as duas apagadas no horizonte); céu, ambiente e névoa escurecem para azul-noite. HUD mostra período e hora.
 - **Estações pelo calendário real** (`tempo_real`): 7 dias reais cada (`estacao_s`), passam com o jogo fechado.
   Cada uma muda a duração do dia (`dia_extra`), a secura (fogo) e os pesos do clima.
 - Fotos: roteiros param o relógio ao meio da manhã; `-- hora 0.0` fotografa à meia-noite; `-- ciclo` deixa andar.
+
+## Luz à noite (render/desenho_luzes.gd, dados/luzes.json)
+- `DesenhoLuzes` só lê a simulação. Uma fonte por estrutura (`maquinas` em luzes.json, no espaço do modelo): `fogo` âmbar tremendo, `cristal` violeta pulsando, `choque` em flash curto, `lampada` constante. Força por `forca_alvo`: máquina trabalhando 1; cristal parado com energia `ocioso_cristal`; sem energia ou desligada, 0. Gerador: queimando para a rede. Acumulador: pela carga. Para-raios e captador: só com chuva acima de 0,4.
+- Hora: `fator_escuro(luz_dia, valores.luz)`. De dia não há luz nem brilho falso (as labaredas continuam).
+- Luz real: conjunto de OmniLight3D sem sombra (`pc.luzes` 6, `celular.luzes` 3; cede lugar aos faróis acesos, mínimo 2), nas fontes mais perto de `Visao.centro`, troca em 0,6 s com folga para não trocar à toa. O resto vira halo no chão num MultiMesh aditivo (`luz_halo.gdshader`, `halos` por perfil), refeito 4×/s; o pulso roda no shader.
+- Labaredas (`chamas` em luzes.json, `chama_lote.gdshader`, em lote, só no oval): a conversão (`EFEITO` em para_jogo.py) tirava fogo e faíscas dos modelos. Arcos: `ArcosEletricos.disparar`, até 5 por segundo no total. A fumaça de quem tem chaminé ou flare sai da ponta certa e ganha luz própria fraca à noite (`Fumaca.noite`).
+- Cor da energia: `RedeEnergia.origem_de(id)`: em cada rede, quem entregou mais kW domina, sem mistura. `BASE` = núcleo e posto avançado (`Fiacao.eh_nucleo`); `GERADORES` = todo o resto, inclusive turbina, painel, reator, núcleo de singularidade e acumulador descarregando. Fontes livres entregam na proporção de cada uma. Histerese de 10% (`HISTERESE`), presa aos nós: sobrevive a `calcular` e, por `herdar_origem`, à rede refeita em obra. Sem energia passando: "".
+- `RedeEnergia.fluxo_em(id)` (1×/s): tira as pontas que não puxam nem dão energia; ramal morto não acende. Só desenho, não muda nenhuma conta.
+- Postes (`postes` em luzes.json): na cor da rede, força `0,3 + 0,7 × gera / gera_max`, só com fluxo. Cabos (`DesenhoFios`): faísca de 0,3–0,5 s num trecho de 25–45%, cabo com fluxo nas duas pontas, `faisca_por_cabo_s` e limite `faiscas` por perfil. Feixe da torre sem fio segue ciano.
+- Noite (`DesenhoClima`): `LUA` 0,44, `AMBIENTE_NOITE` 0,62, `PREENCHE_NOITE` 0,85, 35% do ambiente em azul (`AZUL_NOITE`), céu igual. A lua entra logo depois da troca no horizonte (o entardecer era mais escuro que a meia-noite), e o fundo do céu escurece também.
+- Roteiros: `-- modo demo roteiro noite [saida_fotos <pasta>]` (duas redes de verdade; noite, entardecer, dia, faísca) e `carga mostruario|patio noite [sem_luzes]` (tudo aceso, pior caso). Testes: test_luzes_noite.gd.
 
 ## Vento
 - `Clima`: cada estação tem um rumo predominante (`vento_de` em `clima.json`); a direção do momento oscila ±40° em

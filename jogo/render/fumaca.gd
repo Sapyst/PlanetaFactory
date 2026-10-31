@@ -20,8 +20,18 @@ static func material() -> StandardMaterial3D:
 		m.roughness = 1.0
 		m.disable_receive_shadows = true
 		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		m.emission_enabled = true                  # sempre ligada: ligar à noite recompilaria o shader no meio do jogo
+		m.emission = Color(0.20, 0.23, 0.32)
+		m.emission_energy_multiplier = 0.0
 		_material = m
 	return _material
+
+
+## De noite a fumaça só teria o luar e virava bola preta chapada: ganha um pouco de luz própria, azulada, conforme o escuro.
+static func noite(escuro: float) -> void:
+	var m := material()
+	if absf(m.emission_energy_multiplier - escuro) > 0.01:
+		m.emission_energy_multiplier = escuro
 
 
 ## `cores`: [início, meio, fim] (o alfa de cada um é a opacidade naquele momento da vida da partícula).

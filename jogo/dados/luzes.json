@@ -1,0 +1,796 @@
+{
+ "_nota": "Luz das estruturas à noite (render/desenho_luzes.gd). maquinas: uma fonte por estrutura, no espaço do modelo (x, y para cima, z), tipo fogo/cristal/choque/lampada. chamas: [x, y, z, tamanho, alivio] (alivio 1 = labareda que cresce de tempos em tempos, como no estudo). arcos: pares de pontas do choque. postes: altura da luz; a cor vem da rede. O resto dos estudos (LEDs, luz de item) não ilumina o chão.",
+ "cores": {
+  "fogo": [
+   1.0,
+   0.56,
+   0.18
+  ],
+  "cristal": [
+   0.66,
+   0.42,
+   1.0
+  ],
+  "choque": [
+   0.62,
+   0.85,
+   1.0
+  ],
+  "lampada": [
+   1.0,
+   0.78,
+   0.48
+  ],
+  "base": [
+   0.72,
+   0.52,
+   1.0
+  ],
+  "geradores": [
+   1.0,
+   0.8,
+   0.22
+  ]
+ },
+ "forca_real": {
+  "fogo": 2.4,
+  "cristal": 2.6,
+  "choque": 0.5,
+  "lampada": 1.5,
+  "poste": 1.2
+ },
+ "forca_halo": {
+  "fogo": 0.34,
+  "cristal": 0.32,
+  "choque": 0.1,
+  "lampada": 0.2,
+  "poste": 0.22
+ },
+ "flash_choque": 3.0,
+ "ocioso_cristal": 0.35,
+ "postes": {
+  "poste_energia": {
+   "pos": [
+    0.0,
+    2.2,
+    0.0
+   ],
+   "raio": 4.0,
+   "forca": 0.75
+  },
+  "poste_alto": {
+   "pos": [
+    0.0,
+    5.4,
+    0.0
+   ],
+   "raio": 7.0,
+   "forca": 1.2
+  },
+  "torre_sem_fio": {
+   "pos": [
+    0.0,
+    2.76,
+    0.0
+   ],
+   "raio": 3.5,
+   "forca": 0.55
+  }
+ },
+ "pc": {
+  "luzes": 6,
+  "halos": 420,
+  "chamas": 40,
+  "faiscas": 6,
+  "faisca_por_cabo_s": 0.035
+ },
+ "celular": {
+  "luzes": 3,
+  "halos": 120,
+  "chamas": 12,
+  "faiscas": 3,
+  "faisca_por_cabo_s": 0.02
+ },
+ "maquinas": {
+  "fornalha": {
+   "tipo": "fogo",
+   "pos": [
+    0.75,
+    0.45,
+    -0.15
+   ],
+   "raio": 4.5,
+   "forca": 1.0,
+   "chamas": [
+    [
+     0.15,
+     3.08,
+     -0.05,
+     0.55,
+     1
+    ],
+    [
+     0.82,
+     0.16,
+     -0.15,
+     0.26,
+     0
+    ]
+   ]
+  },
+  "fornalha_aco": {
+   "tipo": "fogo",
+   "pos": [
+    -0.33,
+    0.45,
+    -0.44
+   ],
+   "raio": 4.5,
+   "forca": 1.0,
+   "chamas": [
+    [
+     -0.33,
+     0.3,
+     -0.44,
+     0.24,
+     0
+    ]
+   ]
+  },
+  "fornalha_eletrica": {
+   "tipo": "choque",
+   "pos": [
+    0.02,
+    1.5,
+    -0.08
+   ],
+   "raio": 4.5,
+   "forca": 1.0,
+   "arcos": [
+    [
+     [
+      -0.18,
+      1.42,
+      -0.08
+     ],
+     [
+      0.2,
+      1.45,
+      -0.12
+     ]
+    ],
+    [
+     [
+      0.02,
+      1.45,
+      -0.28
+     ],
+     [
+      0.02,
+      1.42,
+      0.12
+     ]
+    ]
+   ]
+  },
+  "gerador": {
+   "tipo": "fogo",
+   "pos": [
+    0.86,
+    0.5,
+    0.15
+   ],
+   "raio": 5.0,
+   "forca": 1.1,
+   "chamas": [
+    [
+     0.44,
+     2.98,
+     -0.42,
+     0.6,
+     1
+    ],
+    [
+     0.88,
+     0.2,
+     0.15,
+     0.3,
+     0
+    ]
+   ]
+  },
+  "refinador": {
+   "tipo": "fogo",
+   "pos": [
+    1.2,
+    3.3,
+    -1.2
+   ],
+   "raio": 6.0,
+   "forca": 1.0,
+   "chamas": [
+    [
+     1.2,
+     3.3,
+     -1.2,
+     0.5,
+     0
+    ]
+   ]
+  },
+  "refinador_2": {
+   "tipo": "fogo",
+   "pos": [
+    1.22,
+    3.65,
+    -1.22
+   ],
+   "raio": 6.0,
+   "forca": 1.0,
+   "chamas": [
+    [
+     1.22,
+     3.65,
+     -1.22,
+     0.45,
+     0
+    ]
+   ]
+  },
+  "biodigestor": {
+   "tipo": "fogo",
+   "pos": [
+    1.22,
+    2.15,
+    -1.18
+   ],
+   "raio": 5.0,
+   "forca": 0.9,
+   "chamas": [
+    [
+     1.22,
+     2.16,
+     -1.18,
+     0.36,
+     0
+    ]
+   ]
+  },
+  "fundicao_cristal": {
+   "tipo": "fogo",
+   "pos": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "raio": 5.5,
+   "forca": 1.1
+  },
+  "estacao_drones": {
+   "tipo": "lampada",
+   "pos": [
+    0.0,
+    1.2,
+    0.0
+   ],
+   "raio": 4.0,
+   "forca": 0.5
+  },
+  "para_raios": {
+   "tipo": "choque",
+   "pos": [
+    0.04,
+    0.9,
+    0.32
+   ],
+   "raio": 3.5,
+   "forca": 0.8,
+   "arcos": [
+    [
+     [
+      0.04,
+      0.62,
+      0.33
+     ],
+     [
+      0.04,
+      1.02,
+      0.33
+     ]
+    ]
+   ]
+  },
+  "para_raios_2": {
+   "tipo": "choque",
+   "pos": [
+    0.0,
+    4.15,
+    0.0
+   ],
+   "raio": 4.5,
+   "forca": 0.9,
+   "arcos": [
+    [
+     [
+      0.0,
+      3.85,
+      0.0
+     ],
+     [
+      0.02,
+      4.42,
+      0.02
+     ]
+    ]
+   ]
+  },
+  "captador_carga": {
+   "tipo": "choque",
+   "pos": [
+    0.74,
+    3.3,
+    -0.76
+   ],
+   "raio": 5.0,
+   "forca": 1.0,
+   "arcos": [
+    [
+     [
+      0.74,
+      3.15,
+      -0.76
+     ],
+     [
+      0.74,
+      3.62,
+      -0.76
+     ]
+    ]
+   ]
+  },
+  "cupula_raios": {
+   "tipo": "choque",
+   "pos": [
+    0.0,
+    8.1,
+    0.0
+   ],
+   "raio": 6.0,
+   "forca": 1.1,
+   "arcos": [
+    [
+     [
+      0.0,
+      7.6,
+      0.0
+     ],
+     [
+      0.03,
+      8.38,
+      0.03
+     ]
+    ]
+   ]
+  },
+  "gerador_escudo": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    1.6,
+    0.0
+   ],
+   "raio": 4.0,
+   "forca": 0.8,
+   "arcos": [
+    [
+     [
+      0.42,
+      1.04,
+      -0.42
+     ],
+     [
+      0.0,
+      1.5,
+      0.0
+     ]
+    ],
+    [
+     [
+      -0.42,
+      1.04,
+      0.42
+     ],
+     [
+      0.0,
+      1.5,
+      0.0
+     ]
+    ]
+   ]
+  },
+  "torre_defesa": {
+   "tipo": "cristal",
+   "pos": [
+    -0.14,
+    0.7,
+    -0.44
+   ],
+   "raio": 3.0,
+   "forca": 0.5
+  },
+  "nucleo": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    1.9,
+    0.0
+   ],
+   "raio": 8.0,
+   "forca": 1.5
+  },
+  "posto_avancado": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    1.76,
+    0.0
+   ],
+   "raio": 7.0,
+   "forca": 1.2
+  },
+  "nucleo_singularidade": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    1.5,
+    0.0
+   ],
+   "raio": 8.0,
+   "forca": 1.5
+  },
+  "reator_cristal": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    1.9,
+    0.0
+   ],
+   "raio": 7.0,
+   "forca": 1.3
+  },
+  "reator_fusao": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    1.2,
+    0.0
+   ],
+   "raio": 7.0,
+   "forca": 1.3
+  },
+  "gerador_fluido": {
+   "tipo": "cristal",
+   "pos": [
+    0.62,
+    1.5,
+    0.0
+   ],
+   "raio": 4.5,
+   "forca": 0.8
+  },
+  "acumulador": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    1.62,
+    -0.04
+   ],
+   "raio": 4.0,
+   "forca": 0.8
+  },
+  "acumulador_2": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    1.15,
+    0.0
+   ],
+   "raio": 4.5,
+   "forca": 0.9
+  },
+  "acumulador_cristal": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    1.62,
+    0.0
+   ],
+   "raio": 5.0,
+   "forca": 1.0
+  },
+  "extrator_cristal": {
+   "tipo": "cristal",
+   "pos": [
+    -0.08,
+    0.8,
+    -0.25
+   ],
+   "raio": 5.0,
+   "forca": 1.0
+  },
+  "extrator_ressonante": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "raio": 5.0,
+   "forca": 1.0
+  },
+  "laboratorio": {
+   "tipo": "cristal",
+   "pos": [
+    -0.37,
+    1.0,
+    -0.32
+   ],
+   "raio": 5.0,
+   "forca": 0.8
+  },
+  "laboratorio_2": {
+   "tipo": "cristal",
+   "pos": [
+    0.28,
+    1.0,
+    0.1
+   ],
+   "raio": 5.0,
+   "forca": 0.8
+  },
+  "laboratorio_quantico": {
+   "tipo": "cristal",
+   "pos": [
+    0.08,
+    1.55,
+    0.08
+   ],
+   "raio": 5.0,
+   "forca": 1.0
+  },
+  "montadora": {
+   "tipo": "lampada",
+   "pos": [
+    0.0,
+    1.6,
+    0.0
+   ],
+   "raio": 4.5,
+   "forca": 0.6
+  },
+  "montadora_2": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    1.95,
+    0.0
+   ],
+   "raio": 4.5,
+   "forca": 0.6
+  },
+  "montadora_3": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    1.98,
+    0.0
+   ],
+   "raio": 4.5,
+   "forca": 0.6
+  },
+  "montadora_quantica": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    1.1,
+    0.0
+   ],
+   "raio": 5.0,
+   "forca": 1.0
+  },
+  "forja_quantica": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    1.89,
+    0.0
+   ],
+   "raio": 5.0,
+   "forca": 1.0
+  },
+  "transportador_quantico": {
+   "tipo": "cristal",
+   "pos": [
+    0.06,
+    1.45,
+    0.0
+   ],
+   "raio": 5.5,
+   "forca": 1.1
+  },
+  "irradiador_modulos": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    2.49,
+    0.0
+   ],
+   "raio": 5.0,
+   "forca": 0.9
+  },
+  "terraplenagem": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    1.5,
+    0.0
+   ],
+   "raio": 4.5,
+   "forca": 0.7
+  },
+  "viveiro": {
+   "tipo": "cristal",
+   "pos": [
+    0.05,
+    1.0,
+    -0.05
+   ],
+   "raio": 4.0,
+   "forca": 0.6
+  },
+  "viveiro_2": {
+   "tipo": "cristal",
+   "pos": [
+    0.05,
+    1.1,
+    0.05
+   ],
+   "raio": 4.0,
+   "forca": 0.6
+  },
+  "semeador_bioma": {
+   "tipo": "cristal",
+   "pos": [
+    0.08,
+    1.5,
+    0.0
+   ],
+   "raio": 4.5,
+   "forca": 0.7
+  },
+  "purificador_ar_2": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    1.45,
+    0.0
+   ],
+   "raio": 4.5,
+   "forca": 0.7
+  },
+  "estacao_tratamento": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    0.9,
+    -0.55
+   ],
+   "raio": 4.5,
+   "forca": 0.6
+  },
+  "filtro_agua": {
+   "tipo": "cristal",
+   "pos": [
+    -0.51,
+    1.1,
+    -0.03
+   ],
+   "raio": 3.5,
+   "forca": 0.5
+  },
+  "condensador_neblina": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    1.55,
+    0.36
+   ],
+   "raio": 4.0,
+   "forca": 0.6
+  },
+  "coletor_chuva": {
+   "tipo": "cristal",
+   "pos": [
+    0.29,
+    2.57,
+    -0.29
+   ],
+   "raio": 4.0,
+   "forca": 0.5
+  },
+  "coletor_lixo": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    0.75,
+    0.11
+   ],
+   "raio": 3.5,
+   "forca": 0.5
+  },
+  "semeador_nuvens": {
+   "tipo": "choque",
+   "pos": [
+    0.25,
+    2.75,
+    0.0
+   ],
+   "raio": 4.5,
+   "forca": 0.8,
+   "arcos": [
+    [
+     [
+      0.25,
+      2.5,
+      0.0
+     ],
+     [
+      0.27,
+      3.02,
+      0.02
+     ]
+    ]
+   ]
+  },
+  "regulador_clima": {
+   "tipo": "cristal",
+   "pos": [
+    0.02,
+    2.4,
+    0.0
+   ],
+   "raio": 6.0,
+   "forca": 1.1
+  },
+  "defletor_vento": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    3.44,
+    0.0
+   ],
+   "raio": 4.5,
+   "forca": 0.7
+  },
+  "lancador_sementes": {
+   "tipo": "cristal",
+   "pos": [
+    0.0,
+    2.5,
+    -0.68
+   ],
+   "raio": 5.0,
+   "forca": 0.8
+  },
+  "supressor_fogo": {
+   "tipo": "cristal",
+   "pos": [
+    0.31,
+    0.8,
+    0.1
+   ],
+   "raio": 2.5,
+   "forca": 0.4
+  }
+ }
+}

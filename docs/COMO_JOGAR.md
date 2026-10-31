@@ -55,6 +55,8 @@ pétalas no chão e ergue o monólito — vira o núcleo (um toque pula).
 - **Farol de cristal** (pesquisa Farol de cristal, depois da Eletrônica; aba Proliferação): torre 1×1 com energia
   (30 kW). Quando escurece, acende uma **luz de 10 m**: ilumina a fábrica, tira a névoa em volta e, quando uma
   **aranha entra na luz**, avisa de que lado ela vem (no máximo um aviso a cada 30 s por farol). De dia fica apagado.
+- **Luz à noite:** máquinas ativas iluminam em volta: fogo âmbar (fornalha, gerador, refinador, biodigestor, fundição), cristal violeta (núcleo, reatores, laboratórios), choque em flash curto (fornalha elétrica, para-raios em tempestade). Sem energia ou desligada, apaga. Fornalha, gerador, refinador e biodigestor têm labareda na chaminé ou no flare.
+- **Cor da energia:** poste aceso e faísca rara no cabo só onde passa energia, e mais forte com mais carga. **Roxo** se o que mais entrega energia naquela rede é o núcleo (ou posto avançado); **amarelo** se são os geradores (gerador, turbina, painel, reator, acumulador descarregando). Vale uma cor só por rede, a de quem entrega mais.
 - **Poste alto** (pesquisa Transmissão longa: aço + automação; aba Energia): torre 1×1 de 5 m. O fio vai **até 30 m**
   até outro poste alto (com poste comum vale o menor, 9 m) e liga máquinas só **a 3 m** — é a linha longa para levar
   energia a outra base. Arrastando, põe um a cada 20 tiles. O anel do topo gira enquanto passa energia.

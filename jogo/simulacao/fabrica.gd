@@ -113,6 +113,7 @@ func reconstruir() -> void:
 	_saidas_portas.clear()
 	_membros.clear()
 	juncoes.clear()
+	var rede_antiga := rede
 	rede = RedeEnergia.new()
 	var vivos := {}
 	for id in mapa.estruturas:
@@ -124,6 +125,7 @@ func reconstruir() -> void:
 	_montar_esteiras()
 	_montar_maquinas()
 	_montar_energia()
+	rede.herdar_origem(rede_antiga)
 	_montar_trilhos_energizados()
 	_ligar_pontas()
 	_montar_portas()
@@ -550,6 +552,7 @@ func _montar_energia() -> void:
 		# núcleo (fonte própria, pouca potência) e renováveis não gastam nada
 		var livre: bool = regra.get("inesgotavel", false) or regra.has("renovavel")
 		_membros[id] = rede.adicionar(id, kw_de(id), 1.0e12 if livre else mj, livre)
+		_membros[id].base = Fiacao.eh_nucleo(e.nome)
 		if regra.has("acumula_mj"):
 			var a: Dictionary = _membros[id]
 			a.acum_cap = float(regra.acumula_mj)

@@ -142,6 +142,12 @@ func _criar_fumaca(id: int) -> CPUParticles3D:
 	p.damping_max = 0.15
 	Fumaca.configurar(p, [Color(0.36, 0.34, 0.33, 0.0), Color(0.40, 0.38, 0.37, 0.62), Color(0.62, 0.60, 0.59, 0.0)], 0.7, 1.2, 3.0)
 	p.position = Grade.ponto_mundo(Grade.centro_da_area(e.minimo, e.area, e.rot), float(dims[2]) + 0.1)
+	# quem tem chaminé ou flare de verdade (dados/luzes.json): a fumaça sai de lá, na mesma ponta da labareda
+	for ch in Registro.luzes.get("maquinas", {}).get(e.nome, {}).get("chamas", []):
+		if float(ch[1]) > 1.0:
+			var q := Grade.centro_da_area(e.minimo, e.area, e.rot) + Grade.girar(Vector2(float(ch[0]), -float(ch[2])), e.rot)
+			p.position = Grade.ponto_mundo(q, float(ch[1]) + 0.15)
+			break
 	add_child(p)
 	return p
 

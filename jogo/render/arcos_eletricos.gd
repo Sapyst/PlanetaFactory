@@ -1,6 +1,7 @@
 class_name ArcosEletricos
 extends MeshInstance3D
 ## Faíscas do acumulador: arcos curtos e quebrados entre o topo das quatro bobinas e o cristal do meio.
+## As outras máquinas de choque (dados/luzes.json) pedem arco pronto por `disparar`, em silêncio.
 ## Quanto mais carga guardada (e mais ainda carregando/descarregando), mais arcos por segundo.
 ## Cada arco é uma fita em cruz (duas faixas perpendiculares: tem corpo de qualquer ângulo, sem virar para a câmera),
 ## vive ~0,1 s. Tudo numa ImmediateMesh só, com o shader aditivo de raio (render/shaders/raio.gdshader): núcleo
@@ -12,6 +13,7 @@ const BOBINAS: Array[Vector3] = [Vector3(-0.40, 1.19, -0.40), Vector3(0.40, 1.19
 const CRISTAL := Vector3(0.0, 1.62, -0.04)
 const LARGURA := 0.014
 const HALO := 0.07
+const MAX_ARCOS := 14
 const COR_NUCLEO := Color(0.92, 1.0, 1.0, 1.0)
 const COR_HALO := Color(0.25, 0.95, 0.85, 0.12)
 
@@ -38,6 +40,12 @@ func _ready() -> void:
 	add_child(_luz)
 
 
+## Um arco solto entre dois pontos do modelo de `no` (limite total: não vira chuva de raios).
+func disparar(no: Node3D, a: Vector3, b: Vector3) -> void:
+	if _arcos.size() < MAX_ARCOS:
+		_arcos.append({"a": a, "b": b, "vida": _rng.randf_range(0.06, 0.14), "no": no})
+
+
 func _process(delta: float) -> void:
 	for id in fontes:
 		var f: Dictionary = fontes[id]
@@ -60,7 +68,7 @@ func _process(delta: float) -> void:
 	var ultimo: Dictionary = _arcos[-1]
 	var tu: Transform3D = (ultimo.no as Node3D).global_transform
 	_luz.global_position = tu * (((ultimo.a as Vector3) + (ultimo.b as Vector3)) * 0.5)
-	_luz.light_energy = _rng.randf_range(1.2, 3.0)               # tremula como arco de verdade
+	_luz.light_energy = _rng.randf_range(0.7, 1.8)               # tremula como arco de verdade
 	_malha.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
 	for arco in _arcos:
 		var t: Transform3D = (arco.no as Node3D).global_transform
