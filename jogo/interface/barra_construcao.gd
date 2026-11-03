@@ -22,6 +22,9 @@ var em_desenvolvimento: Callable       ## nome da peça → bool (Pesquisa.peca_
 var _tema: Theme
 var _abas: VBoxContainer
 var _pecas: VBoxContainer
+var _rol_pecas: ScrollContainer
+var _paineis_cat: Array[VBoxContainer] = []
+static var _cache_icones: Dictionary = {}
 var _ferr: HBoxContainer
 var _painel_pecas: PanelContainer
 var _titulo_cat: Label
@@ -275,10 +278,13 @@ func _ready() -> void:
 	rol.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	rol.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	pv.add_child(rol)
-	_pecas = VBoxContainer.new()
-	_pecas.add_theme_constant_override("separation", Tema.n("peca_sep"))
-	_pecas.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	rol.add_child(_pecas)
+	_rol_pecas = rol
+	_montar_categorias()
+	if _paineis_cat.is_empty():
+		_pecas = VBoxContainer.new()
+		_pecas.add_theme_constant_override("separation", Tema.n("peca_sep"))
+		_pecas.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		rol.add_child(_pecas)
 	rol.add_child(RolagemToque.new())
 	# coluna de categorias (polegar direito)
 	var col := PanelContainer.new()
@@ -1004,9 +1010,14 @@ func dica(texto: String, ruim := false) -> void:
 
 
 ## Peças da categoria aberta (para os atalhos 1..9).
-## Depois de uma pesquisa: refaz os botões (tira o cinza das peças liberadas).
+## Depois de uma pesquisa: atualiza os botões nos painéis existentes (tira o cinza das peças liberadas).
 func atualizar_bloqueios() -> void:
-	_mostrar_categoria(_cat)
+	if _paineis_cat.is_empty():
+		_montar_categorias()
+	for i in _paineis_cat.size():
+		_atualizar_painel_categoria(i)
+	if _botoes_ferr.has("remover"):
+		marcar(_selecionada, _removendo)
 
 
 func pecas_da_categoria() -> Array:
@@ -1050,20 +1061,56 @@ func centro_de(chave: String) -> Vector2:
 
 
 # ------------------------------------------------------------------ montagem
+func _montar_categorias() -> void:
+	if not _paineis_cat.is_empty():
+		return
+	var cats: Array = Registro.menu.get("categorias", [])
+	var pai: Node = _rol_pecas if _rol_pecas != null else self
+	for i in cats.size():
+		var vb := VBoxContainer.new()
+		vb.name = "Cat0" if i == 0 else ("_cat_%d" % i)
+		vb.add_theme_constant_override("separation", Tema.n("peca_sep"))
+		vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		vb.visible = (i == 0)
+		pai.add_child(vb)
+		_paineis_cat.append(vb)
+		var pecas_cat: Array = cats[i].pecas
+		for k in pecas_cat.size():
+			var nome_p: String = pecas_cat[k]
+			var bp := botao_peca(nome_p, k)
+			vb.add_child(bp)
+			_botoes_peca[nome_p] = bp
+	if not _paineis_cat.is_empty():
+		_pecas = _paineis_cat[0]
+
+
 func _mostrar_categoria(i: int) -> void:
 	_cat = i
-	for c in _pecas.get_children():
-		c.queue_free()
-	_botoes_peca.clear()
+	if _paineis_cat.is_empty():
+		_montar_categorias()
 	var cats: Array = Registro.menu.get("categorias", [])
-	_titulo_cat.text = cats[i].nome if i < cats.size() else ""
-	var pecas := pecas_da_categoria()
-	for k in pecas.size():
-		var b := botao_peca(pecas[k], k)
-		_pecas.add_child(b)
-		_botoes_peca[pecas[k]] = b
+	if _titulo_cat != null:
+		_titulo_cat.text = cats[i].nome if i < cats.size() else ""
+	if i >= 0 and i < _paineis_cat.size():
+		_atualizar_painel_categoria(i)
+		for k in _paineis_cat.size():
+			_paineis_cat[k].visible = (k == i)
+			_paineis_cat[k].name = "Cat%d" % k if k == i else ("_cat_%d" % k)
+		_pecas = _paineis_cat[i]
+		if _rol_pecas != null and _pecas.get_parent() == _rol_pecas:
+			_rol_pecas.move_child(_pecas, 0)
+			_rol_pecas.scroll_vertical = 0
 	if _botoes_ferr.has("remover"):
 		marcar(_selecionada, _removendo)
+
+
+func _atualizar_painel_categoria(i: int) -> void:
+	if i < 0 or i >= _paineis_cat.size():
+		return
+	var vb: VBoxContainer = _paineis_cat[i]
+	for c in vb.get_children():
+		if c is Button and c.has_meta("peca_nome"):
+			_atualizar_botao_peca(c as Button, str(c.get_meta("peca_nome")), int(c.get_meta("peca_k")))
 
 
 ## A peça ainda não está no jogo (sem modelo, ou só uma pesquisa em desenvolvimento a libera)?
@@ -1075,7 +1122,6 @@ func peca_em_desenvolvimento(nome: String) -> bool:
 ## escuro com o selo, desligado (não escolhe).
 func botao_peca(nome: String, k: int) -> Button:
 	var icones: Dictionary = Registro.menu.get("icones", {})
-	var expl: Dictionary = Registro.menu.get("explicacoes", {})
 	var b := Button.new()
 	b.custom_minimum_size = Vector2(0, Tema.n("peca_alt"))
 	b.focus_mode = Control.FOCUS_NONE
@@ -1083,31 +1129,57 @@ func botao_peca(nome: String, k: int) -> Button:
 	b.expand_icon = false
 	b.add_theme_constant_override("icon_max_width", Tema.n("peca_icone"))
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.add_theme_font_size_override("font_size", Tema.n("f_peq"))
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	b.set_meta("peca_nome", nome)
+	b.set_meta("peca_k", k)
+	b.pressed.connect(RolagemToque.so_clique(func():
+		if not b.has_meta("em_desenvolvimento"):
+			Som.tocar("clique")
+			peca_escolhida.emit(nome)
+			fechar_pecas()))
+	_atualizar_botao_peca(b, nome, k)
+	return b
+
+
+func _atualizar_botao_peca(b: Button, nome: String, k: int) -> void:
 	var custo := Construtor.custo_de(nome)
+	var bloqueada: bool = liberado.is_valid() and not liberado.call(nome)
+	var dev := peca_em_desenvolvimento(nome)
+	var estado_chave := "%s|%s|%s|%s|%s" % [bloqueada, dev, custo, Tema.pc, toque]
+	if str(b.get_meta("estado_peca", "")) == estado_chave:
+		return
+	b.set_meta("estado_peca", estado_chave)
+	var expl: Dictionary = Registro.menu.get("explicacoes", {})
 	var partes: Array[String] = []
 	for it in custo:
 		partes.append("%d %s" % [custo[it], Registro.itens.get(it, {}).get("nome", it).to_lower()])
 	var f := ficha(nome)
 	var extra := (" · " + f) if f != "" else ""
-	var bloqueada: bool = liberado.is_valid() and not liberado.call(nome)
-	var dev := peca_em_desenvolvimento(nome)
 	var custo_txt: String = "" if dev else ("🔒 pesquisar" if bloqueada else ", ".join(partes))
 	if Tema.estilo("peca_duas_linhas"):        # PC: denso; a explicação inteira fica na dica do mouse
 		b.text = "%s  [%d]\n%s" % [rotulo(nome), k + 1, custo_txt]
 		b.tooltip_text = "%s\n%s\n%s%s" % [rotulo(nome), expl.get(nome, ""), custo_txt, "" if bloqueada or dev else extra]
 	else:
 		b.text = "%s%s\n%s\n%s%s" % [rotulo(nome), "" if toque else "  (%d)" % (k + 1), expl.get(nome, ""), custo_txt, "" if bloqueada or dev else extra]
-	b.add_theme_font_size_override("font_size", Tema.n("f_peq"))
-	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	if dev:                                    # ainda não está no jogo: cinza escuro, selo, não escolhe
 		b.disabled = true
 		b.set_meta("em_desenvolvimento", true)
+		b.modulate = Color.WHITE
 		Tema.botao_desenvolvimento(b)
 	else:
-		b.pressed.connect(RolagemToque.so_clique(func(): Som.tocar("clique"); peca_escolhida.emit(nome); fechar_pecas()))
-	if bloqueada and not dev:
-		b.modulate = Color(0.6, 0.6, 0.65)
-	return b
+		if b.has_meta("em_desenvolvimento"):
+			b.remove_meta("em_desenvolvimento")
+			for est in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
+				b.remove_theme_stylebox_override(est)
+			for cor_k in ["font_color", "font_hover_color", "font_pressed_color", "font_disabled_color"]:
+				b.remove_theme_color_override(cor_k)
+			var selo := b.get_node_or_null("SeloDesenvolvimento")
+			if selo != null:
+				b.remove_child(selo)
+				selo.free()
+		b.disabled = false
+		b.modulate = Color(0.6, 0.6, 0.65) if bloqueada else Color.WHITE
 
 
 ## Dados técnicos curtos da peça: consumo/geração de energia, armazenamento e integridade.
@@ -1132,8 +1204,12 @@ static func ficha(nome: String) -> String:
 
 ## Ícone de peça (render do modelo, .png) ou de categoria (símbolo em vetor, "categorias/<nome>" → .svg).
 func _icone(modelo: String) -> Texture2D:
+	if _cache_icones.has(modelo):
+		return _cache_icones[modelo]
 	var c := "res://assets/icones/%s.%s" % [modelo, "svg" if modelo.begins_with("categorias/") else "png"]
-	return load(c) if ResourceLoader.exists(c) else null
+	var tex: Texture2D = load(c) if ResourceLoader.exists(c) else null
+	_cache_icones[modelo] = tex
+	return tex
 
 
 func _destacar(b: Button, sim: bool, cor: Color) -> void:
@@ -1141,6 +1217,7 @@ func _destacar(b: Button, sim: bool, cor: Color) -> void:
 		var s := Tema.botao_cor_estilo(cor)            # placa em relevo com moldura na cor da situação
 		b.add_theme_stylebox_override("normal", s)
 		b.add_theme_stylebox_override("hover", s)
-	else:
+	elif b.has_theme_stylebox_override("normal"):
 		b.remove_theme_stylebox_override("normal")
 		b.remove_theme_stylebox_override("hover")
+

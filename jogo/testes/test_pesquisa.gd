@@ -433,3 +433,48 @@ func test_em_desenvolvimento() -> void:
 	Registro.itens["pacote_quantico"] = pacote
 	var real := Pesquisa.new()
 	verificar(not real.em_desenvolvimento("braco_quantico") and not real.peca_em_desenvolvimento("braco_quantico"), "de volta: nada em desenvolvimento")
+
+
+func test_trocar_categoria_reaproveita_botoes_e_reflete_pesquisa() -> void:
+	var p := Pesquisa.new(false)
+	var barra := BarraConstrucao.new()
+	barra.liberado = func(n: String) -> bool: return p.peca_liberada(n)
+	barra.em_desenvolvimento = func(n: String) -> bool: return p.peca_em_desenvolvimento(n)
+	barra._montar_categorias()
+	var cats: Array = Registro.menu.get("categorias", [])
+	igual(barra._paineis_cat.size(), cats.size(), "um painel por categoria")
+	var ids_antes := {}
+	for nome in barra._botoes_peca:
+		ids_antes[nome] = (barra._botoes_peca[nome] as Object).get_instance_id()
+	verificar(ids_antes.size() > 100, "todos os botões criados uma vez")
+	var b_braco: Button = barra._botoes_peca["braco_longo"]
+	var b_rapido: Button = barra._botoes_peca["braco_rapido"]
+	verificar(b_braco.text.contains("🔒 pesquisar"), "braço longo começa bloqueado")
+	verificar(b_braco.modulate.r < 0.8, "braço longo com tom apagado de bloqueado")
+	verificar(b_rapido.text.contains("🔒 pesquisar"), "braço rápido começa bloqueado")
+	for volta in 2:
+		for i in cats.size():
+			barra._mostrar_categoria(i)
+			igual(barra._pecas, barra._paineis_cat[i], "painel ativo é o da categoria %d" % i)
+			for k in barra._paineis_cat.size():
+				igual(barra._paineis_cat[k].visible, k == i, "visibilidade exclusiva da categoria %d (painel %d)" % [i, k])
+	igual(barra._botoes_peca.size(), ids_antes.size(), "mesma quantidade de botões após trocar abas")
+	var recriados := 0
+	for nome in ids_antes:
+		var b: Button = barra._botoes_peca.get(nome)
+		if b == null or b.is_queued_for_deletion() or b.get_instance_id() != ids_antes[nome]:
+			recriados += 1
+	igual(recriados, 0, "nenhum botão criado ou destruído ao trocar categorias")
+	p.concluidas["logistica"] = true
+	barra.atualizar_bloqueios()
+	igual(barra._botoes_peca["braco_longo"].get_instance_id(), ids_antes["braco_longo"], "mesmo botão do braço longo após pesquisa")
+	verificar(not b_braco.text.contains("🔒 pesquisar"), "braço longo liberado após concluir logística")
+	verificar(b_braco.modulate.is_equal_approx(Color.WHITE), "braço longo volta à cor normal")
+	verificar(b_rapido.text.contains("🔒 pesquisar"), "braço rápido continua bloqueado antes de eletrônica")
+	p.concluidas["eletronica"] = true
+	barra._mostrar_categoria(1)
+	igual(barra._botoes_peca["braco_rapido"].get_instance_id(), ids_antes["braco_rapido"], "mesmo botão do braço rápido ao trocar para Braços")
+	verificar(not b_rapido.text.contains("🔒 pesquisar"), "trocar de categoria também reflete pesquisa concluída")
+	barra.free()
+
+

@@ -105,6 +105,16 @@ static func com_atalho(texto: String, tecla: String) -> String:
 
 
 static func criar() -> Theme:
+	var fnt := ThemeDB.get_fallback_font()
+	if fnt != null and fnt.fallbacks.is_empty():
+		var sf1 := SystemFont.new()
+		sf1.font_names = PackedStringArray(["DejaVu Sans", "Noto Sans Symbols", "Segoe UI Symbol", "Roboto"])
+		sf1.allow_system_fallback = false
+		var sf2 := SystemFont.new()
+		sf2.font_names = PackedStringArray(["Noto Color Emoji", "Noto Emoji", "Symbola", "Segoe UI Emoji", "Apple Color Emoji", "Android Emoji"])
+		sf2.allow_system_fallback = false
+		fnt.fallbacks = [sf1, sf2]
+		fnt.allow_system_fallback = false
 	var t := Theme.new()
 	t.default_font_size = n("f_base")
 	t.set_stylebox("panel", "PanelContainer", chapa_estilo())

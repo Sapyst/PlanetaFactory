@@ -238,9 +238,18 @@ func peca_em_desenvolvimento(nome: String) -> bool:
 		return true
 	if livre or nome in _d.get("liberado_inicio", []):
 		return false
+	var h := hash([concluidas.hash(), pesquisas().size(), Registro.itens.size()])
+	if h != _dev_assin:
+		_dev_assin = h
+		_dev_cache.clear()
+	var chave := "peca#" + nome
+	if _dev_cache.has(chave):
+		return _dev_cache[chave]
 	for id in pesquisas():
-		if nome in pesquisas()[id].get("libera", []) and (concluidas.has(id) or not em_desenvolvimento(id)):
+		if nome in pesquisas()[id].get("libera", []) and (concluidas.has(id) or not _em_dev(id)):
+			_dev_cache[chave] = false
 			return false
+	_dev_cache[chave] = true
 	return true
 
 

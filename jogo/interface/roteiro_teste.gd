@@ -241,6 +241,7 @@ func _ready() -> void:
 			em(4, func(): cena.controle.alternar_recursos())
 			em(6, func(): mover(tela(Vector2i(-15, -9))))
 		"vagao_tex": _roteiro_vagao_tex()
+		"abas": _roteiro_abas()
 		"conferir": print("DIGITAL ", digital(cena))
 	print("ROTEIRO ", roteiro, " com ", _passos.size(), " passos; tela ", get_viewport().get_visible_rect().size, " janela ", DisplayServer.window_get_size())
 
@@ -2965,3 +2966,98 @@ func _roteiro_estudos() -> void:
 			cam.distancia = 4.2 if area.x >= 3 else 3.4
 			cam.posicionar())
 	em(30 + 30 * ESTUDOS.size() + 4, func(): get_tree().quit())
+
+
+## Medição detalhada da troca de categoria na BarraConstrucao (ícone, pesquisa, texto/autowrap, add_child/layout e _tocar_categoria).
+func _roteiro_abas() -> void:
+	em(5, func():
+		var barra: BarraConstrucao = cena.controle.barra
+		var cats: Array = Registro.menu.get("categorias", [])
+		var icones: Dictionary = Registro.menu.get("icones", {})
+		var expl: Dictionary = Registro.menu.get("explicacoes", {})
+		var t_ic := 0
+		var t_custo := 0
+		var t_lib := 0
+		var t_dev := 0
+		var t_btn := 0
+		var t_add := 0
+		var t_marcar := 0
+		var t_layout := 0
+		var cx_med := VBoxContainer.new()
+		cx_med.custom_minimum_size.x = 280.0
+		barra._raiz.add_child(cx_med)
+		for i in cats.size():
+			var pecas: Array = cats[i].pecas
+			for k in pecas.size():
+				var nome: String = pecas[k]
+				var u0 := Time.get_ticks_usec()
+				var ic := barra._icone(icones.get(nome, nome))
+				var u1 := Time.get_ticks_usec()
+				var custo := Construtor.custo_de(nome)
+				var partes: Array[String] = []
+				for it in custo:
+					partes.append("%d %s" % [custo[it], Registro.itens.get(it, {}).get("nome", it).to_lower()])
+				var f := BarraConstrucao.ficha(nome)
+				var extra := (" · " + f) if f != "" else ""
+				var u2 := Time.get_ticks_usec()
+				var bloqueada: bool = barra.liberado.is_valid() and not barra.liberado.call(nome)
+				var u3 := Time.get_ticks_usec()
+				var dev := barra.peca_em_desenvolvimento(nome)
+				var u4 := Time.get_ticks_usec()
+				var b := Button.new()
+				b.custom_minimum_size = Vector2(0, Tema.n("peca_alt"))
+				b.focus_mode = Control.FOCUS_NONE
+				b.icon = ic
+				b.expand_icon = false
+				b.add_theme_constant_override("icon_max_width", Tema.n("peca_icone"))
+				b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+				var custo_txt: String = "" if dev else ("🔒 pesquisar" if bloqueada else ", ".join(partes))
+				b.text = "%s\n%s\n%s%s" % [barra.rotulo(nome), expl.get(nome, ""), custo_txt, "" if bloqueada or dev else extra]
+				b.add_theme_font_size_override("font_size", Tema.n("f_peq"))
+				b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				var u5 := Time.get_ticks_usec()
+				cx_med.add_child(b)
+				var u6 := Time.get_ticks_usec()
+				t_ic += u1 - u0
+				t_custo += u2 - u1
+				t_lib += u3 - u2
+				t_dev += u4 - u3
+				t_btn += u5 - u4
+				t_add += u6 - u5
+		var um0 := Time.get_ticks_usec()
+		barra.marcar(barra._selecionada, barra._removendo)
+		var um1 := Time.get_ticks_usec()
+		var _s := cx_med.get_combined_minimum_size()
+		var um2 := Time.get_ticks_usec()
+		t_marcar = um1 - um0
+		t_layout = um2 - um1
+		cx_med.free()
+		print("ABAS_PARTES icone=%.2fms custo_ficha=%.2fms liberado=%.2fms em_dev=%.2fms botao_txt=%.2fms add_child=%.2fms marcar=%.2fms layout=%.2fms" % [
+			t_ic / 1000.0, t_custo / 1000.0, t_lib / 1000.0, t_dev / 1000.0, t_btn / 1000.0, t_add / 1000.0, t_marcar / 1000.0, t_layout / 1000.0])
+		barra.atualizar_bloqueios()
+		var tempos_troca: Array[float] = []
+		for volta in 3:
+			for i in cats.size():
+				var ti := Time.get_ticks_usec()
+				barra._tocar_categoria(i)
+				var tf := Time.get_ticks_usec()
+				tempos_troca.append((tf - ti) / 1000.0)
+		var soma := 0.0
+		var pior := 0.0
+		for v in tempos_troca:
+			soma += v
+			pior = maxf(pior, v)
+		print("ABAS_TROCA trocas=%d total=%.2fms media=%.3fms pior=%.3fms" % [
+			tempos_troca.size(), soma, soma / maxf(1, tempos_troca.size()), pior])
+		get_tree().quit())
+
+
+
+
+
+
+
+
+
+
+
