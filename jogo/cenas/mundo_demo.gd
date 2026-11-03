@@ -2043,6 +2043,11 @@ func _detalhe() -> void:
 			_opcoes_modulos(id, e, m.velocidade, linhas, botoes)
 		var tipo: String = Registro.estruturas[e.nome].get("maquina", "")
 		match tipo:
+			"broca", "extrator":
+				var est_j := fabrica.estado_jazida_de(id)
+				var ext_j := fabrica.extraido_jazida_de(id)
+				var ritmo_txt := "100%" if est_j == "rica" else ("50%" if est_j == "cansada" else "25%")
+				linhas.append("Jazida: %s (%s extraídos · %s ritmo)" % [est_j, PainelRecursos.numero_curto(ext_j), ritmo_txt])
 			"bomba":
 				var c: float = ambiente.contaminacao.get(id, 0.0)
 				linhas.append("Poça limpa" if c <= 0.0 else "Poça contaminada: %d%% — rende %d%% menos e desgasta a bomba (um Filtro de água ou Coletor perto limpa)"

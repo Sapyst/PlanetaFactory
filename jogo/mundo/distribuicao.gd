@@ -110,7 +110,7 @@ func jazida(tile: Vector2i, cx := {}) -> Dictionary:
 	return _jazida(tile, cx)
 
 
-func _jazida(tile: Vector2i, cx: Dictionary) -> Dictionary:
+func mancha_em(tile: Vector2i, cx: Dictionary = {}) -> Dictionary:
 	var t := _ter(tile, cx)
 	if t != GeradorMundo.Terreno.TERRA:
 		return {}
@@ -127,9 +127,27 @@ func _jazida(tile: Vector2i, cx: Dictionary) -> Dictionary:
 		var d: float = p.distance_to(m.centro)
 		var borda: float = m.raio - h(tile.x, tile.y, 21) * 1.3
 		if d < borda:
-			var rq: float = m.get("riqueza", 1.0)
-			return {"tipo": m.tipo, "quantidade": int((300.0 + 1500.0 * (1.0 - d / m.raio)) * rq)}
+			return m
 	return {}
+
+
+func chave_jazida(tile: Vector2i, cx: Dictionary = {}) -> String:
+	var m := mancha_em(tile, cx)
+	if m.is_empty():
+		return ""
+	var c: Vector2 = m.centro
+	return "%s_%.1f_%.1f" % [m.tipo, c.x, c.y]
+
+
+func _jazida(tile: Vector2i, cx: Dictionary) -> Dictionary:
+	var m := mancha_em(tile, cx)
+	if m.is_empty():
+		return {}
+	var p := Vector2(tile) + Vector2(0.5, 0.5)
+	var d: float = p.distance_to(m.centro)
+	var rq: float = m.get("riqueza", 1.0)
+	return {"tipo": m.tipo, "quantidade": int((300.0 + 1500.0 * (1.0 - d / m.raio)) * rq)}
+
 
 
 # ------------------------------------------------------------------ obstáculos

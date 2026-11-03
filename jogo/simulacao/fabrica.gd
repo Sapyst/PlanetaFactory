@@ -60,6 +60,10 @@ var _trechos: Array = []               ## índice do trecho → Array de ids
 var demanda_trilho: Dictionary = {}    ## índice do trecho → kW que os trens elétricos pediram (o mundo põe; gasto no tick)
 # rede lógica (pesquisa rede_logica): sensores mandam um valor por canal; o comparador liga/desliga os vizinhos
 const CANAIS := ["A", "B", "C", "D"]
+const JAZIDA_LIMIAR_CANSADA := 12000     ## itens extraídos da jazida: frequência cai pela metade (50%)
+const JAZIDA_LIMIAR_EXAUSTA := 36000     ## muito mais tempo: produção cai 75% (fica em 25%)
+var jazidas_extraido: Dictionary = {}    ## chave_jazida (String) → int total de itens extraídos (vai no save)
+var _jazida_estrutura: Dictionary = {}   ## id_estrutura (int) → chave_jazida (String)
 var canais: Dictionary = {}            ## canal → soma dos valores dos sensores dele (último tick)
 var logica_off: Dictionary = {}        ## id → true: desligado por um comparador encostado
 var sensores: Dictionary = {}          ## id do sensor de esteira → {total, janela: Array (itens por segundo), seg, t} (salvo)
@@ -330,6 +334,19 @@ func _montar_maquinas() -> void:
 			acumulado[id] = 0.0
 		if Registro.estruturas.get(e.nome, {}).has("carga_mj") and not carga_torre.has(id):
 			carga_torre[id] = 0.0
+	_jazida_estrutura.clear()
+	for id in maquinas:
+		if not mapa.estruturas.has(id):
+			continue
+		var e: Dictionary = mapa.estruturas[id]
+		var r: Dictionary = Registro.estruturas.get(e.nome, {})
+		var tipo_m: String = r.get("maquina", "")
+		if tipo_m in ["broca", "extrator"] or r.has("requer_jazida"):
+			var ch := chave_jazida_da_estrutura(id)
+			if ch != "":
+				_jazida_estrutura[id] = ch
+				_atualizar_fator_jazida(id)
+
 
 
 ## Carga máxima (MJ) da torre de energia / gerador de escudo, com as melhorias (escudo 2: "escudo_carga").
@@ -539,6 +556,68 @@ func _receita_da_jazida(e: Dictionary) -> String:
 		if Registro.receitas[k].get("maquina", "") == "broca" and Registro.receitas[k].get("jazida", "") == melhor:
 			return k
 	return ""
+
+
+## Identifica a jazida predominante debaixo da estrutura.
+func chave_jazida_da_estrutura(id: int) -> String:
+	if not mapa.estruturas.has(id):
+		return ""
+	var e: Dictionary = mapa.estruturas[id]
+	var contagem := {}
+	for t in Grade.tiles_da_area(e.minimo, e.area, e.rot):
+		var ch := mapa.gerador.distribuicao.chave_jazida(t)
+		if ch != "":
+			contagem[ch] = int(contagem.get(ch, 0)) + 1
+	var melhor := ""
+	for ch in contagem:
+		if melhor == "" or contagem[ch] > contagem[melhor]:
+			melhor = ch
+	return melhor
+
+
+## Estado da jazida ("rica", "cansada", "exausta") pela quantidade já extraída.
+func estado_jazida(chave: String) -> String:
+	var ext := int(jazidas_extraido.get(chave, 0))
+	if ext < JAZIDA_LIMIAR_CANSADA:
+		return "rica"
+	elif ext < JAZIDA_LIMIAR_EXAUSTA:
+		return "cansada"
+	return "exausta"
+
+
+## Fator de produção (1.0 rica, 0.5 cansada, 0.25 exausta).
+func fator_producao_jazida(chave: String) -> float:
+	var est := estado_jazida(chave)
+	match est:
+		"cansada":
+			return 0.5
+		"exausta":
+			return 0.25
+		"rica", _:
+			return 1.0
+
+
+func estado_jazida_de(id: int) -> String:
+	var ch: String = str(_jazida_estrutura.get(id, ""))
+	if ch == "":
+		ch = chave_jazida_da_estrutura(id)
+	return estado_jazida(ch)
+
+
+func extraido_jazida_de(id: int) -> int:
+	var ch: String = str(_jazida_estrutura.get(id, ""))
+	if ch == "":
+		ch = chave_jazida_da_estrutura(id)
+	return int(jazidas_extraido.get(ch, 0))
+
+
+func _atualizar_fator_jazida(id: int) -> void:
+	if not maquinas.has(id):
+		return
+	var m: Maquina = maquinas[id]
+	var ch: String = str(_jazida_estrutura.get(id, ""))
+	if ch != "":
+		m.fator_jazida = fator_producao_jazida(ch)
 
 
 ## Rede elétrica pelos fios do mapa (Fiacao): postes, torres, geradores e quem consome.
@@ -1124,7 +1203,13 @@ func tick(dt: float) -> void:
 					raio_em.erase(id)
 					m.estado = Maquina.Estado.PRONTIDAO if m.pronta() else (Maquina.Estado.SAIDA_CHEIA if m.saida_cheia() else Maquina.Estado.SEM_INSUMO)
 				continue
+		var prod_ant := m.produzidos
 		m.tick(dt)
+		if m.produzidos > prod_ant and _jazida_estrutura.has(id):
+			var delta_p: int = m.produzidos - prod_ant
+			var ch: String = _jazida_estrutura[id]
+			jazidas_extraido[ch] = int(jazidas_extraido.get(ch, 0)) + delta_p
+			_atualizar_fator_jazida(id)
 		if m.estado == Maquina.Estado.TRABALHANDO:
 			_emitir(id, dt * m.energia)
 			if combustivel.has(id):
@@ -1878,13 +1963,16 @@ func estado() -> Dictionary:
 		br[id] = {"segurando": b.segurando, "estado": b.estado, "t": b.t, "qtd": b.qtd}
 	return {"maquinas": maq, "bracos": br, "baus": baus, "combustivel": combustivel, "fator_fogo": fator_fogo, "laboratorios": laboratorios, "acumulado": acumulado,
 			"distribuidores": distribuidores, "fluidos": _guardar_fluidos(), "itens": _guardar_itens(), "carga_torre": carga_torre,
-			"sensores": sensores, "agua_reator": agua_reator}
+			"sensores": sensores, "agua_reator": agua_reator, "jazidas_extraido": jazidas_extraido}
 
 
 ## Depois de mapa restaurado: remonta e devolve o conteúdo de cada um (os dicionários de baú são preenchidos
 ## no lugar, porque os braços já guardam a referência).
 func restaurar(d: Dictionary) -> void:
 	reconstruir()
+	jazidas_extraido = d.get("jazidas_extraido", {}).duplicate()
+	for id in _jazida_estrutura:
+		_atualizar_fator_jazida(id)
 	for id in d.get("maquinas", {}):
 		if not maquinas.has(id):
 			continue

@@ -23,6 +23,7 @@ var fluidos: Dictionary = {}     ## fluido → unidades no tanque interno (refin
 var progresso := 0.0         ## 0..1
 var estado := Estado.SEM_RECEITA
 var jazida_restante := -1    ## -1 = não usa jazida
+var fator_jazida := 1.0       ## ritmo pela condição da jazida (rica 1.0, cansada 0.5, exausta 0.25)
 var produzidos := 0
 var produtividade := 0.0     ## fração extra de produto por ciclo (melhoria de mineração: 0,1 = +10%)
 var extra := 0.0             ## barra de produtividade: ao passar de 1, sai um ciclo de graça
@@ -162,7 +163,7 @@ func tick(dt: float) -> void:
 		for f in precisa_f:
 			fluidos[f] = float(fluidos[f]) - float(precisa_f[f])
 	estado = Estado.TRABALHANDO
-	var ritmo := rende_esgotada if jazida_restante == 0 else 1.0
+	var ritmo := rende_esgotada if jazida_restante == 0 else maxf(rende_esgotada, 1.0 * fator_jazida)
 	progresso += dt * velocidade * energia * clima * ritmo / float(receita.get("tempo", 1.0))
 	if progresso >= 1.0:
 		progresso = 0.0
