@@ -173,6 +173,10 @@ func _sincronizar_aranhas() -> void:
 		if no == null:
 			no = Aranha.new()
 			no.position = Grade.ponto_mundo(ar.pos)
+			if ar.has("destino"):
+				var d_ini: Vector2 = (ar.destino as Vector2) - (ar.pos as Vector2)
+				if d_ini.length() > 0.1:
+					no.rotation.y = atan2(-d_ini.x, d_ini.y)
 			add_child(no)
 			_aranhas[id] = no
 		var p := Grade.ponto_mundo(ar.pos)

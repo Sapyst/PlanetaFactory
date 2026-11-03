@@ -71,7 +71,7 @@ func tick(dt: float, nova_pos: Vector3, novo_rumo: float) -> void:
 		d = d.normalized() * vmax
 	velocidade = d / dt if dt > 0 else Vector3.ZERO
 	posicao += d
-	rumo = rotate_toward(rumo, novo_rumo, 2.5 * dt)
+	rumo = rotate_toward(rumo, novo_rumo, 8.0 * dt)
 	if _no_ar >= 0:
 		_t_passo += dt / DURACAO_PASSO
 		var f := minf(_t_passo, 1.0)

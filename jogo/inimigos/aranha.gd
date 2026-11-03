@@ -19,9 +19,23 @@ var _tibias: Array[Node3D] = []
 var _furia := 0.0
 
 
+func _init(pos := Vector3.ZERO, p_rumo := 0.0) -> void:
+	position = pos
+	rotation.y = p_rumo
+	marcha = MarchaAranha.new(pos, p_rumo)
+	destino = pos
+	rumo_desejado = p_rumo
+
+
 func _ready() -> void:
-	marcha = MarchaAranha.new(global_position, rotation.y)
-	destino = global_position
+	var p := global_position if is_inside_tree() and global_position != Vector3.ZERO else position
+	if marcha == null:
+		marcha = MarchaAranha.new(p, rotation.y)
+	elif global_position != Vector3.ZERO:
+		marcha.posicao = global_position
+		marcha.rumo = rotation.y
+		destino = global_position
+		rumo_desejado = rotation.y
 	_corpo = CORPO.instantiate()
 	add_child(_corpo)
 	Materiais.converter(_corpo)
@@ -59,14 +73,14 @@ func definir_furia(f: float) -> void:
 func ir_para(p: Vector3) -> void:
 	destino = p
 	var d := p - marcha.posicao
-	if Vector2(d.x, d.z).length() > 0.1:
+	if Vector2(d.x, d.z).length() > 0.005:
 		rumo_desejado = atan2(-d.x, -d.z)
 
 
 ## Encara um ponto (para atacar) sem sair do lugar.
 func encarar(p: Vector3) -> void:
 	var d := p - marcha.posicao
-	if Vector2(d.x, d.z).length() > 0.1:
+	if Vector2(d.x, d.z).length() > 0.005:
 		rumo_desejado = atan2(-d.x, -d.z)
 
 
@@ -86,12 +100,15 @@ func morrer() -> void:
 
 func _process(delta: float) -> void:
 	marcha.tick(delta, destino, rumo_desejado)
-	global_position = marcha.posicao
+	if is_inside_tree():
+		global_position = marcha.posicao
+	else:
+		position = marcha.posicao
 	rotation.y = marcha.rumo
-	# leve sobe-e-desce do corpo enquanto anda
-	_corpo.position.y = sin(Time.get_ticks_msec() * 0.012) * 0.02 * minf(marcha.velocidade.length(), 1.0)
+	if _corpo != null:
+		_corpo.position.y = sin(Time.get_ticks_msec() * 0.012) * 0.02 * minf(marcha.velocidade.length(), 1.0)
 	var t := Time.get_ticks_msec() / 1000.0
-	for i in 6:
+	for i in _femures.size():
 		var q := marcha.quadril(i)
 		var pe := marcha.pes[i]
 		if atacando and i < 2:
@@ -101,8 +118,9 @@ func _process(delta: float) -> void:
 			var f := 0.5 + 0.5 * sin(t * 13.0 + i * PI)
 			pe = Vector3(q.x, 0, q.z) + frente * (0.95 + 0.25 * f) + lado * 0.25 + Vector3.UP * (0.15 + 0.55 * (1.0 - f))
 		var ik := MarchaAranha.resolver_ik(q, pe)
-		_femures[i].global_transform = _segmento(q, ik.joelho)
-		_tibias[i].global_transform = _segmento(ik.joelho, pe)
+		if is_inside_tree():
+			_femures[i].global_transform = _segmento(q, ik.joelho)
+			_tibias[i].global_transform = _segmento(ik.joelho, pe)
 
 
 ## Transform de um segmento modelado ao longo de +X com origem na articulação.

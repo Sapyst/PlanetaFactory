@@ -73,3 +73,44 @@ func test_ik_geometria() -> void:
 	perto(q.distance_to(r.joelho), MarchaAranha.FEMUR, 1e-4, "fêmur com o comprimento certo")
 	perto((r.joelho as Vector3).distance_to(pe), MarchaAranha.TIBIA, 1e-4, "tíbia com o comprimento certo")
 	verificar(r.joelho.y > q.y, "joelho para cima")
+
+
+func _raiz() -> Node:
+	return (Engine.get_main_loop() as SceneTree).root
+
+
+func test_aranha_orientacao_frente() -> void:
+	# A aranha anda em 4 direções cardeais e na diagonal com micro-passos de 0.023 m (simulando 60 fps da colônia);
+	# o rumo do corpo e da marcha deve virar e se alinhar de frente com a velocidade do movimento, nunca de lado.
+	var direcoes: Array[Vector3] = [
+		Vector3(0, 0, -1),  # Norte (-Z)
+		Vector3(1, 0, 0),   # Leste (+X)
+		Vector3(0, 0, 1),   # Sul (+Z)
+		Vector3(-1, 0, 0),  # Oeste (-X)
+		Vector3(1, 0, -1).normalized(), # Nordeste
+	]
+	for dir in direcoes:
+		var ar := Aranha.new(Vector3(10, 0, 10))
+		_raiz().add_child(ar)
+		var pos := ar.position
+		for _f in 40:
+			pos += dir * 0.023
+			ar.ir_para(pos)
+			ar._process(1.0 / 60.0)
+		# A frente do corpo no Godot é -Z local, rotacionado por rotation.y:
+		var frente := Vector3(-sin(ar.rotation.y), 0, -cos(ar.rotation.y))
+		var diff := frente.angle_to(dir)
+		perto(diff, 0.0, 0.08, "aranha virada de frente para a direção %s (diff %.2f rad)" % [dir, diff])
+		perto(ar.rotation.y, ar.marcha.rumo, 1e-4, "rotação do nó bate com a marcha")
+		ar.queue_free()
+
+
+func test_aranha_encarar() -> void:
+	var ar := Aranha.new()
+	_raiz().add_child(ar)
+	ar.encarar(Vector3(5.0, 0, 0))
+	perto(ar.rumo_desejado, -PI / 2.0, 0.01, "encarar leste (+X) aponta para -PI/2")
+	ar.encarar(Vector3(-5.0, 0, 0))
+	perto(ar.rumo_desejado, PI / 2.0, 0.01, "encarar oeste (-X) aponta para +PI/2")
+	ar.queue_free()
+
