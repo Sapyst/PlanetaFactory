@@ -20,15 +20,17 @@
   }
  ],
  "portas": [],
- "tris": 1254,
+ "tris": 546,
  "dims": [
-  0.92,
-  0.911,
-  1.602
+  0.91,
+  0.866,
+  1.6
  ],
  "materiais": [
   "P_Biomassa",
   "P_Chapeu",
   "P_FungoCaule"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_amb_cogumelos.py"
 }

@@ -20,13 +20,15 @@
   }
  ],
  "portas": [],
- "tris": 56,
+ "tris": 207,
  "dims": [
-  0.585,
-  0.473,
-  1.318
+  0.58,
+  0.513,
+  1.32
  ],
  "materiais": [
   "P_Cinza"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_amb_arvores_soltas.py"
 }

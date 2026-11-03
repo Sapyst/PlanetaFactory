@@ -20,13 +20,15 @@
   }
  ],
  "portas": [],
- "tris": 20,
+ "tris": 90,
  "dims": [
-  0.196,
-  0.191,
-  0.157
+  0.22,
+  0.161,
+  0.16
  ],
  "materiais": [
   "P_Pedra"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_amb_itens.py"
 }

@@ -20,14 +20,16 @@
   }
  ],
  "portas": [],
- "tris": 80,
+ "tris": 204,
  "dims": [
-  1.426,
-  1.679,
-  1.171
+  1.55,
+  1.484,
+  1.17
  ],
  "materiais": [
   "P_Rocha",
   "P_RochaEscura"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_amb_rochas.py"
 }

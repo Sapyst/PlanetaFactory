@@ -20,14 +20,16 @@
   }
  ],
  "portas": [],
- "tris": 120,
+ "tris": 124,
  "dims": [
-  0.741,
-  0.655,
-  0.117
+  0.8,
+  0.792,
+  0.18
  ],
  "materiais": [
   "P_Carvao",
   "P_Rocha"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_amb_jazidas.py"
 }

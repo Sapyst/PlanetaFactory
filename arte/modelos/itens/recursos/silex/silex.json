@@ -20,13 +20,15 @@
   }
  ],
  "portas": [],
- "tris": 28,
+ "tris": 70,
  "dims": [
-  0.22,
-  0.17,
-  0.11
+  0.21,
+  0.146,
+  0.17
  ],
  "materiais": [
   "P_Silex"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_amb_itens.py"
 }

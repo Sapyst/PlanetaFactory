@@ -20,14 +20,16 @@
   }
  ],
  "portas": [],
- "tris": 84,
+ "tris": 180,
  "dims": [
-  0.236,
-  0.141,
+  0.22,
+  0.202,
   0.36
  ],
  "materiais": [
   "P_Cristal",
   "P_Folha"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_amb_plantas.py"
 }

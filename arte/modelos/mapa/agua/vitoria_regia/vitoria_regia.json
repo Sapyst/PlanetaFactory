@@ -20,14 +20,16 @@
   }
  ],
  "portas": [],
- "tris": 92,
+ "tris": 180,
  "dims": [
+  0.515,
   0.52,
-  0.4,
   0.06
  ],
  "materiais": [
   "P_Biomassa",
   "P_Folha"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_amb_plantas.py"
 }

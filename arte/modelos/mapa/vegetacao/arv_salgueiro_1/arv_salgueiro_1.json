@@ -20,14 +20,16 @@
   }
  ],
  "portas": [],
- "tris": 212,
+ "tris": 434,
  "dims": [
-  0.867,
-  0.865,
-  1.543
+  0.862,
+  0.782,
+  1.477
  ],
  "materiais": [
   "P_FolhaSalgueiro",
   "P_Tronco"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_amb_arvores.py"
 }

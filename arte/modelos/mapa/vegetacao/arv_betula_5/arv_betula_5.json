@@ -20,14 +20,16 @@
   }
  ],
  "portas": [],
- "tris": 196,
+ "tris": 310,
  "dims": [
-  0.479,
-  0.483,
-  2.564
+  0.716,
+  0.598,
+  2.597
  ],
  "materiais": [
   "P_FolhaBetula",
   "P_TroncoClaro"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_amb_arvores.py"
 }

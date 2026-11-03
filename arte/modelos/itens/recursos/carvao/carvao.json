@@ -20,13 +20,15 @@
   }
  ],
  "portas": [],
- "tris": 40,
+ "tris": 36,
  "dims": [
-  0.218,
-  0.167,
-  0.134
+  0.22,
+  0.183,
+  0.16
  ],
  "materiais": [
   "P_Carvao"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_amb_itens.py"
 }

@@ -20,13 +20,15 @@
   }
  ],
  "portas": [],
- "tris": 144,
+ "tris": 262,
  "dims": [
-  0.365,
-  0.519,
-  0.08
+  0.82,
+  0.721,
+  0.14
  ],
  "materiais": [
   "P_Areia"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_amb_jazidas.py"
 }

@@ -20,14 +20,16 @@
   }
  ],
  "portas": [],
- "tris": 132,
+ "tris": 285,
  "dims": [
-  0.833,
-  0.803,
-  1.92
+  0.923,
+  0.771,
+  2.007
  ],
  "materiais": [
   "P_FolhaSeca",
   "P_Tronco"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_amb_arvores.py"
 }

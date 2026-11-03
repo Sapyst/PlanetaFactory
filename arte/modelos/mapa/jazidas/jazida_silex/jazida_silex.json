@@ -20,14 +20,16 @@
   }
  ],
  "portas": [],
- "tris": 120,
+ "tris": 152,
  "dims": [
-  0.54,
-  0.589,
-  0.117
+  0.78,
+  0.716,
+  0.18
  ],
  "materiais": [
   "P_Rocha",
   "P_Silex"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_amb_jazidas.py"
 }

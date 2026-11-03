@@ -20,15 +20,17 @@
   }
  ],
  "portas": [],
- "tris": 264,
+ "tris": 650,
  "dims": [
-  2.667,
-  2.539,
+  2.66,
+  2.496,
   2.6
  ],
  "materiais": [
   "P_Cinza",
   "P_Rocha",
   "P_RochaEscura"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_amb_montanhas.py"
 }

@@ -20,15 +20,17 @@
   }
  ],
  "portas": [],
- "tris": 92,
+ "tris": 424,
  "dims": [
-  0.77,
+  0.822,
   0.75,
-  1.656
+  1.684
  ],
  "materiais": [
   "P_ChapeuCristal",
   "P_Cristal",
   "P_FungoCaule"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_amb_arvores.py"
 }

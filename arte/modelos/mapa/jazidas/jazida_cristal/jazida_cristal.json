@@ -20,13 +20,15 @@
   }
  ],
  "portas": [],
- "tris": 60,
+ "tris": 246,
  "dims": [
-  0.528,
-  0.432,
-  0.3
+  0.72,
+  0.686,
+  0.32
  ],
  "materiais": [
   "P_Cristal"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_amb_jazidas.py"
 }

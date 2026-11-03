@@ -20,14 +20,16 @@
   }
  ],
  "portas": [],
- "tris": 48,
+ "tris": 106,
  "dims": [
-  0.22,
-  0.22,
-  0.16
+  0.23,
+  0.175,
+  0.13
  ],
  "materiais": [
   "P_Areia",
   "P_Escuro"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_amb_itens.py"
 }

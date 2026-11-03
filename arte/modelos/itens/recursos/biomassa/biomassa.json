@@ -20,14 +20,16 @@
   }
  ],
  "portas": [],
- "tris": 88,
+ "tris": 80,
  "dims": [
-  0.223,
+  0.208,
   0.22,
-  0.165
+  0.16
  ],
  "materiais": [
   "P_Biomassa",
   "P_Pedra"
- ]
+ ],
+ "anima": false,
+ "estudo": "estudo_amb_itens.py"
 }
