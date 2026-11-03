@@ -1,11 +1,12 @@
 class_name DesenhoItens
 extends Node3D
-## Itens nas esteiras (e o que cada braço segura): um MultiMesh por tipo de item, refeito a cada quadro a partir
-## da Fabrica. Para caber no celular:
+## Itens nas esteiras (e o que cada braço segura): um MultiMesh por tipo de item, refeito a partir da Fabrica.
+## Para caber no celular:
 ##  - só os caminhos cuja caixa encosta na área vista pela câmera;
 ##  - com a câmera longe (> DIST_ESCONDE) os itens nem são desenhados (seriam pontinhos);
-##  - só refaz quando a simulação andou (30 Hz) ou a câmera mexeu — a tela pode rodar a 60+;
-##  - posição calculada direto num buffer de floats (uma chamada por tipo de item).
+##  - os itens das esteiras só são refeitos quando a simulação andou (30 Hz) ou a câmera mexeu — a tela pode rodar
+##    a 60+; só o item na garra de cada braço é reposto a cada quadro (a garra anda com a animação);
+##  - posição calculada direto num buffer de floats (uma chamada por tipo de item), numa passada só.
 
 const DIST_ESCONDE := 50.0
 
@@ -13,27 +14,30 @@ var fabrica: Fabrica
 var mapa: MapaOcupacao
 var garra: Callable              ## id do braço → ponto da garra no mundo (o item segue o modelo animado)
 var _mm: Dictionary = {}          ## item → MultiMeshInstance3D
+var _base: Dictionary = {}        ## item → quantas instâncias são itens de esteira (as das garras vêm depois delas)
 var custo_us := 0                 ## tempo do último quadro (medição)
-var _ultimo := ""                 ## passo da simulação + câmera do último desenho
+var _ultimo := ""                 ## passo da simulação + câmera do último desenho das esteiras
 
 
 func _process(_d: float) -> void:
-	var cam := get_viewport().get_camera_3d() as CameraJogo
-	var chave := "%d|%s|%s|%d" % [fabrica.passos if fabrica != null else 0, cam.alvo if cam else "", cam.distancia if cam else "",
-			Engine.get_process_frames() if fabrica != null and not fabrica.bracos.is_empty() else 0]   # garra anda a cada quadro
-	if chave == _ultimo:
+	if fabrica == null:
 		return
-	_ultimo = chave
+	var cam := get_viewport().get_camera_3d() as CameraJogo
+	var chave := "%d|%s|%s" % [fabrica.passos, cam.alvo if cam else "", cam.distancia if cam else ""]
 	var t0 := Time.get_ticks_usec()
-	_desenhar()
+	if chave != _ultimo:
+		_ultimo = chave
+		_desenhar()
+	if not fabrica.bracos.is_empty():
+		_desenhar_garras(cam)                    # a garra anda a cada quadro
 	custo_us = Time.get_ticks_usec() - t0
 
 
+## Itens das esteiras: posição (x, y, z) e tipo de cada item visível em vetores locais, depois um buffer por tipo.
 func _desenhar() -> void:
 	if fabrica == null:
 		return
 	var cam := get_viewport().get_camera_3d() as CameraJogo
-	# 1ª passada: posição (x, y, z) e tipo de cada item visível, em vetores locais (sem cópia)
 	var pos := PackedFloat32Array()
 	var tipo := PackedInt32Array()
 	var tipos: Array[String] = []
@@ -88,44 +92,35 @@ func _desenhar() -> void:
 				pos.append(p.x)
 				pos.append(0.16 + sobe + lerpf(nv.x, nv.y, f) * 0.5 + Grade.altura_chao(t))
 				pos.append(-p.y)
-		for id in fabrica.bracos:
-			var b: Braco = fabrica.bracos[id]
-			if b.segurando == "" or not mapa.estruturas.has(id):
-				continue
-			var e: Dictionary = mapa.estruturas[id]
-			# o item vai preso na garra (posição real do modelo animado)
-			var g: Vector3 = garra.call(id) if garra.is_valid() else Vector3.INF
-			if g == Vector3.INF:
-				var fr := Vector2(Grade.DIRECOES[Construtor.fluxo_da_rot(e.rot)])
-				var cc := Vector2(e.minimo) + Vector2(0.5, 0.5)
-				var a := clampf(b.fase() * 2.0, 0.0, 1.0)
-				var p := (cc - fr * 0.75).lerp(cc + fr * 0.75, a)
-				g = Grade.ponto_mundo(p, 0.55 + 0.25 * sin(a * PI))
-			if not indice.has(b.segurando):
-				indice[b.segurando] = tipos.size()
-				tipos.append(b.segurando)
-			tipo.append(indice[b.segurando])
-			pos.append(g.x)
-			pos.append(g.y - 0.11)
-			pos.append(g.z)
-	# 2ª passada: um buffer por tipo
-	for item in _mm:
-		if not indice.has(item):
-			(_mm[item] as MultiMeshInstance3D).multimesh.visible_instance_count = 0
-	for ti in tipos.size():
+	# 2ª passada: um buffer por tipo. Os índices entram agrupados por tipo numa passada só (ordem de cada tipo mantida).
+	var nt := tipos.size()
+	var inicio := PackedInt32Array()
+	inicio.resize(nt + 1)
+	for ti in tipo:
+		inicio[ti + 1] += 1
+	for ti in nt:
+		inicio[ti + 1] += inicio[ti]
+	var ordem := PackedInt32Array()
+	ordem.resize(tipo.size())
+	var prox := inicio.duplicate()
+	for i in tipo.size():
+		ordem[prox[tipo[i]]] = i
+		prox[tipo[i]] += 1
+	_base.clear()
+	var reserva := fabrica.bracos.size()                 # lugar para o item de cada garra depois dos da esteira
+	for ti in nt:
 		var mmi := _instancia(tipos[ti])
 		if mmi == null:
 			continue
-		var n := tipo.count(ti)
+		var n := inicio[ti + 1] - inicio[ti]
 		var mm := mmi.multimesh
-		if mm.instance_count < n:
-			mm.instance_count = n * 2
+		if mm.instance_count < n + reserva:
+			mm.instance_count = (n + reserva) * 2
 		var buf := PackedFloat32Array()
 		buf.resize(mm.instance_count * 12)
 		var w := 0
-		for i in tipo.size():
-			if tipo[i] != ti:
-				continue
+		for j in range(inicio[ti], inicio[ti + 1]):
+			var i := ordem[j]
 			buf[w] = 1.0
 			buf[w + 3] = pos[i * 3]
 			buf[w + 5] = 1.0
@@ -135,6 +130,41 @@ func _desenhar() -> void:
 			w += 12
 		mm.buffer = buf
 		mm.visible_instance_count = n
+		_base[tipos[ti]] = n
+	for item in _mm:
+		if not indice.has(item):
+			(_mm[item] as MultiMeshInstance3D).multimesh.visible_instance_count = 0
+
+
+## O item que cada braço segura vai preso na garra (posição real do modelo animado): entra depois dos itens de
+## esteira do mesmo tipo, a cada quadro.
+func _desenhar_garras(cam: CameraJogo) -> void:
+	var extra := {}
+	if cam == null or cam.distancia <= DIST_ESCONDE:
+		for id in fabrica.bracos:
+			var b: Braco = fabrica.bracos[id]
+			if b.segurando == "" or not mapa.estruturas.has(id):
+				continue
+			var e: Dictionary = mapa.estruturas[id]
+			var g: Vector3 = garra.call(id) if garra.is_valid() else Vector3.INF
+			if g == Vector3.INF:
+				var fr := Vector2(Grade.DIRECOES[Construtor.fluxo_da_rot(e.rot)])
+				var cc := Vector2(e.minimo) + Vector2(0.5, 0.5)
+				var a := clampf(b.fase() * 2.0, 0.0, 1.0)
+				var p := (cc - fr * 0.75).lerp(cc + fr * 0.75, a)
+				g = Grade.ponto_mundo(p, 0.55 + 0.25 * sin(a * PI))
+			var mmi := _instancia(b.segurando)
+			if mmi == null:
+				continue
+			var i: int = int(_base.get(b.segurando, 0)) + int(extra.get(b.segurando, 0))
+			var mm := mmi.multimesh
+			if i >= mm.instance_count:
+				mm.instance_count = (i + 1) * 2
+				_ultimo = ""                         # crescer apaga o buffer: as esteiras deste tipo voltam no próximo quadro
+			mm.set_instance_transform(i, Transform3D(Basis.IDENTITY, Vector3(g.x, g.y - 0.11, g.z)))
+			extra[b.segurando] = i + 1 - int(_base.get(b.segurando, 0))
+	for item in _mm:
+		(_mm[item] as MultiMeshInstance3D).multimesh.visible_instance_count = int(_base.get(item, 0)) + int(extra.get(item, 0))
 
 
 ## Itens que entraram pela lateral deste caminho há pouco: (posição esperada agora, recuo lateral restante) + direção.
