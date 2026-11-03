@@ -658,8 +658,9 @@ func _carga(tipo: String) -> void:
 		print("LUZES d=%.0f: %d de verdade, %d brilhos no chão, %d chamas, %d faíscas; reavaliar %.2f ms (4×/s), quadro %.3f ms" % [d, cena.luzes.luzes_acesas(), cena.luzes.halos_visiveis(), cena.luzes.chamas_visiveis(), cena._fios.faiscas_em_cena(), (tl1 - tl0) / 20000.0, (Time.get_ticks_usec() - tl1) / 20000.0])
 		if de_noite:
 			print("FOTO ", await _foto("carga_%s_%d" % [tipo, int(d)]))
-	await RenderingServer.frame_post_draw
-	get_viewport().get_texture().get_image().save_jpg(saida.path_join("carga_%s.jpg" % tipo), 0.9)
+	if DisplayServer.get_name() != "headless":          # sem janela frame_post_draw nunca chega (medição só de CPU)
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_jpg(saida.path_join("carga_%s.jpg" % tipo), 0.9)
 	rt._inventario()
 
 

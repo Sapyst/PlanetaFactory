@@ -214,6 +214,10 @@ No PC, 100% = a medida do perfil: 1 ponto = 1 pixel até janela de 1600×900, te
 - Sem música (só efeitos).
 
 ## Desempenho (medido: `testes/test_zdesempenho.gd` e `-- modo demo roteiro estresse`)
+Sem janela (só CPU): `ferramentas/medir.sh [pasta]` roda `medir.gd` (abertura pelo menu, ms de script por quadro,
+memória, nós; `-- novo` com a abertura) e o roteiro `carga patio`; `godot --headless --audio-driver Dummy --path jogo -s
+res://ferramentas/perfil.gd` mede cada pedaço do quadro (reconstruir, chunk, itens, ticks…) na demo e numa fábrica de
+1 700 peças, antes e depois de uma construção e de um pulo da câmera. Checkup de 2026-11: `docs/CHECKUP_2026-11.md`.
 2 140 peças, 4 400 itens, 60 aranhas, 20 torres: passo de simulação ≈ 0,1 ms (fábrica) + 0,7 ms (aranhas/torres);
 remontar a fábrica inteira ≈ 20 ms por construção. Desenho: esteiras/canos/trilhos em lote (MultiMesh por chunk:
 ~500 chamadas de desenho com 2 000 peças). O que mais pesa é posicionar os itens das esteiras (GDScript): até
