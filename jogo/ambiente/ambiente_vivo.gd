@@ -145,7 +145,7 @@ func _passo(fabrica: Fabrica, clima: Clima) -> void:
 	_agua()
 	_fogo(chuva, vento, secura, tufao)
 	if tufao:
-		_tufao(vento)
+		_tufao(vento, clima)
 	_decair(chuva)
 	_encardir(fabrica, chuva)
 
@@ -748,15 +748,24 @@ func _fogo(chuva: float, vento: Vector2, secura: float, tufao: bool) -> void:
 		_acender(t)
 
 
-## Tufão: estruturas frágeis apanham; a sujeira das áreas sujas é arrastada vento abaixo.
-func _tufao(vento: Vector2) -> void:
+## Tufão: estruturas frágeis apanham — só enquanto uma rajada passa por cima delas (com `clima`; sem ele, em todas),
+## e o mundo avisa (evento "tufao_dano"). A sujeira das áreas sujas é arrastada vento abaixo.
+func _tufao(vento: Vector2, clima: Clima = null) -> void:
 	var frageis: Array = _d.tufao.frageis
+	var minimo := float(_d.tufao.get("rajada_minima", 1.2))
+	var n := 0
 	for id in mapa.estruturas.keys():
 		if mapa.estruturas.has(id) and mapa.estruturas[id].nome in frageis and dano.is_valid():
 			var e: Dictionary = mapa.estruturas[id]
-			if clima_local != null and clima_local.sem_tufao(Grade.centro_da_area(e.minimo, e.area, e.rot)):
+			var c := Grade.centro_da_area(e.minimo, e.area, e.rot)
+			if clima_local != null and clima_local.sem_tufao(c):
 				continue                                      # defletor / regulador: sem ventania aqui
+			if clima != null and clima.vento_em(c) < minimo:
+				continue                                      # a rajada não está aqui agora
 			dano.call(id, float(_d.tufao.dano))
+			n += 1
+	if n > 0:
+		eventos.append({"tipo": "tufao_dano", "n": n})
 	var leva: float = _d.tufao.espalha_sujeira
 	var passo := Vector2i(Vector2(vento.normalized() * 2.0).round())
 	for k in dados.keys():

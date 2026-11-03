@@ -189,6 +189,17 @@ func test_defletor_fixa_o_vento() -> void:
 	verificar(not danos.has(dentro), "poste no raio do defletor: sem dano de tufão")
 	verificar(danos.has(fora), "poste fora: apanha")
 	verificar(not danos.has(d), "o defletor não é frágil")
+	# com o clima: só apanha enquanto a rajada passa por cima
+	var c := Clima.new(3)
+	c.forcar("tufao", true)
+	c.rajada = {}
+	danos.clear()
+	a._tufao(Vector2(1.6, 0), c)
+	verificar(danos.is_empty(), "tufão sem rajada em cima: ninguém apanha")
+	c.rajada = {"frente": Vector2(50.5, 4.5).dot(c.direcao_vento), "amp": 0.5, "largura": 12.0, "vel": 10.0}
+	a._tufao(Vector2(1.6, 0), c)
+	verificar(danos.has(fora) and not danos.has(dentro), "rajada em cima do poste de fora: só ele apanha")
+	verificar(a.eventos.any(func(ev): return ev.tipo == "tufao_dano"), "evento para o aviso")
 	# poluição: o chunk coberto vaza para o oeste
 	var vc := cl.vento_chunks()
 	verificar(vc.has(Vector2i(0, 0)), "chunk do defletor na lista")

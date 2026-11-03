@@ -26,6 +26,7 @@ func _ready() -> void:
 		"salvar": _roteiro_salvar()
 		"roda_ui": _roteiro_roda_ui()
 		"pausa": _roteiro_pausa()
+		"raio_foto": _roteiro_raio_foto()
 		"fotos_ui": _roteiro_fotos_ui()
 		"vento_cmp": _roteiro_vento_cmp()
 		"estresse": _roteiro_estresse()
@@ -2687,6 +2688,45 @@ func _roteiro_roda_ui() -> void:
 		conf.call("mapa de novo", get_viewport().get_visible_rect().size * Vector2(0.4, 0.5), true)
 		print("RODA_UI ", "OK" if falhas.is_empty() else "FALHA %s" % str(falhas))
 		get_tree().quit())
+
+
+## Fotos de um raio caindo na peça mais alta da demo, quadro a quadro (-- modo demo roteiro raio_foto saida_fotos <pasta>,
+## com --fixed-fps 30 sob xvfb-run): para conferir o desenho do relâmpago sem abrir janela na tela de ninguém.
+func _roteiro_raio_foto() -> void:
+	var args := OS.get_cmdline_user_args()
+	var pasta: String = args[args.find("saida_fotos") + 1] if args.has("saida_fotos") else "/tmp"
+	DirAccess.make_dir_recursive_absolute(pasta)
+	var alvo := [Vector2.ZERO]
+	em(2, func():
+		Sessao.config.fps = false
+		cena.controle.barra.visible = false
+		var melhor := -1
+		var alt := 0.0
+		for id in cena.mapa.estruturas:
+			var h := Raios.altura(cena.mapa.estruturas[id].nome)
+			if h > alt:
+				alt = h
+				melhor = id
+		var e: Dictionary = cena.mapa.estruturas[melhor]
+		alvo[0] = Grade.centro_da_area(e.minimo, e.area, e.rot)
+		print("RAIO_FOTO alvo %s (%.1f m) em %s" % [e.nome, alt, alvo[0]])
+		cena.clima.forcar("tempestade", true)
+		cena.camera.alvo = Grade.centro_mundo(Vector2i(alvo[0].floor()))
+		cena.camera.distancia = 30.0
+		cena.camera.posicionar())
+	var foto := func(nome: String) -> void:
+		get_viewport().get_texture().get_image().save_png(pasta.path_join(nome + ".png"))
+	em(40, func(): cena.raios.cair(alvo[0]))
+	em(41, func(): foto.call("raio_q1"))
+	em(43, func(): foto.call("raio_q3"))
+	em(46, func(): foto.call("raio_q6"))
+	em(70, func():
+		cena.camera.distancia = 60.0
+		cena.camera.posicionar()
+		cena.raios.cair(alvo[0] + Vector2(6, -4)))
+	em(71, func(): foto.call("raio_longe_q1"))
+	em(74, func(): foto.call("raio_longe_q4"))
+	em(80, func(): get_tree().quit())
 
 
 ## Pausa de verdade (teclas injetadas): Esc abre o menu, a árvore para e o relógio dos shaders (Engine.time_scale) zera;

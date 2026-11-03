@@ -80,7 +80,7 @@
     "tufao": 0.3
    },
    "raios": true,
-   "raios_por_s": 0.1
+   "raios_por_s": 0.035
   },
   "tufao": {
    "nuvens": 1.0,
@@ -97,7 +97,7 @@
     "chuva": 3
    },
    "raios": true,
-   "raios_por_s": 0.15,
+   "raios_por_s": 0.06,
    "tufao": true
   }
  },
@@ -110,7 +110,7 @@
   "tufao": "Tufão"
  },
  "chuva_absorcao": 0.8,
- "_raios": "tempestade e tufão soltam raios (raios_por_s do estado: 1 a cada 10 s / 7 s). Cada um cai a até raio_sorteio m de uma construção sorteada, as altas com mais chance (peso = altura²; Raios): para-raios/captador/cúpula pegam; sem proteção, a construção mais alta a até busca m leva dano (e a vegetação em volta pode pegar fogo, fogo_tentativas tiles); no chão, árvore/mato pega fogo ou fica a marca queimada",
+ "_raios": "tempestade e tufão soltam raios (raios_por_s do estado: ~1 a cada 30 s na tempestade / 17 s no tufão — cada um dá clarão e trovão, mais que isso vira spam). Cada um cai a até raio_sorteio m de uma construção sorteada, as altas com mais chance (peso = altura²; Raios): para-raios/captador/cúpula pegam; sem proteção, a construção mais alta a até busca m leva dano (e a vegetação em volta pode pegar fogo, fogo_tentativas tiles); no chão, árvore/mato pega fogo ou fica a marca queimada",
  "raios": {"raio_sorteio": 20, "busca": 3.0, "dano": 150, "fogo_tentativas": 3, "altura_arvore": 4.0},
  "_nota_estacoes": "Estações: ciclo de duracao_s cada; 'pesos' multiplica o peso de ir para cada estado; 'secura' 0..1 (incêndio); 'vazao_rio' 0..1 (correnteza do rio: turbina de correnteza; + chuva_vazao × chuva de agora, até 1); 'grama' tom da grama.",
  "chuva_vazao": 0.25,

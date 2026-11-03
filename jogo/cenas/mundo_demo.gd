@@ -55,6 +55,8 @@ var _sel := {}                       ## selecionado: {trem: id} ou {estrutura: i
 var _relatorio := false              ## -- relatorio: imprime o estado a cada 30 s de jogo (para calibrar números)
 var _t_rel := 0.0
 var _tempo := 0.0
+var _raios_vistos := 0                  ## Raios.total já avisado
+var _aviso_tufao_em := -1.0e9           ## _tempo do último aviso de tufão
 var modo := "demo"
 var semente := SEMENTE
 var inventario: Dictionary = {}     ## estoque do núcleo (o mesmo dicionário no Construtor e na Fabrica)
@@ -1400,6 +1402,11 @@ func _tick_mundo(dt: float) -> void:
 	clima.poluicao_total = poluicao.total()
 	clima.tick(dt)
 	raios.tick(clima)                                   # o raio cai num ponto do mapa (para-raios, dano, fogo)
+	if raios.total != _raios_vistos and is_instance_valid(controle):     # a vida caiu por causa do raio: diga
+		_raios_vistos = raios.total
+		for q in raios.quedas:                          # (o desenho limpa a lista depois, no quadro)
+			if q.tipo == "estrutura" and mapa.estruturas.has(q.id):
+				controle._avisar("Raio atingiu %s (−%d de vida): para-raios e cúpula protegem" % [controle.barra.rotulo(mapa.estruturas[q.id].nome), int(q.dano)])
 	poluicao.chuva = clima.valores.chuva
 	ambiente.tick(dt, fabrica, clima)
 	agua.tick(dt)
@@ -1407,6 +1414,9 @@ func _tick_mundo(dt: float) -> void:
 	for ev in ambiente.eventos:
 		if ev.tipo == "fogo_inicio" and is_instance_valid(controle):
 			controle._avisar("Incêndio! A vegetação seca pegou fogo perto de uma máquina quente")
+		elif ev.tipo == "tufao_dano" and is_instance_valid(controle) and _tempo - _aviso_tufao_em > 20.0:
+			_aviso_tufao_em = _tempo
+			controle._avisar("Tufão: a rajada castiga %d peça(s) frágil(eis) — postes, rampas, sinais; o defletor de vento protege" % int(ev.n))
 		elif ev.tipo == "arvores_mudaram":
 			_refazer_arvores(ev.tiles)
 		elif ev.tipo == "arvore_caiu":

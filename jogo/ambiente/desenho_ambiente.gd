@@ -25,9 +25,14 @@ var _plumas: Array[CPUParticles3D] = []
 
 var _mat_chama: ShaderMaterial
 var _rampa_chama: Gradient
+var pool_efeitos: PoolEfeitos
+var _t_amb: float = 0.0
+
 
 
 func _ready() -> void:
+	pool_efeitos = PoolEfeitos.new()
+	add_child(pool_efeitos)
 	_mat_chama = ShaderMaterial.new()
 	_mat_chama.shader = load("res://render/shaders/chama.gdshader")
 	_mat_chama.set_shader_parameter("ruido", load("res://assets/texturas/ruido_detalhe.png"))
@@ -152,6 +157,10 @@ func _process(delta: float) -> void:
 	if _t_fogo <= 0.0:
 		_t_fogo = 0.25
 		_atualizar_fogo()
+	_t_amb -= delta
+	if _t_amb <= 0.0:
+		_t_amb = 0.5
+		_atualizar_brilhos_ambiente()
 	if not ambiente.fogo.is_empty():
 		_som_t -= delta
 		if _som_t <= 0.0:
@@ -251,3 +260,114 @@ func _atualizar_fogo() -> void:
 	for i in range(usados, MAX_LUZES):
 		_luzes[i].visible = false
 		_plumas[i].emitting = false
+
+
+## Posiciona os efeitos procedurais de ambiente onde a coisa existe perto da visão da câmera.
+func _atualizar_brilhos_ambiente() -> void:
+	if pool_efeitos == null:
+		return
+	pool_efeitos.desativar_ambientes()
+	if camera == null or chunks == null or chunks.is_empty():
+		return
+	var olho := Vector2(camera.alvo.x, -camera.alvo.z)
+	var raio_busca: float = camera.distancia * 1.35 + 16.0
+	var noite: bool = (clima != null and clima.luz_dia() < 0.35)
+	var crepusculo: bool = (clima != null and clima.luz_dia() < 0.55)
+	var vento_forte: bool = (clima != null and clima.valores.vento > 0.6)
+
+	for k in chunks:
+		var chk = chunks[k]
+		if not is_instance_valid(chk) or not (chk is DesenhoChunk):
+			continue
+		var dados: Dictionary = chk._dados
+		if dados.is_empty() or not dados.has("transf"):
+			continue
+		var base_chunk := Vector2(k * Grade.TAM_CHUNK) + Vector2.ONE * (Grade.TAM_CHUNK * 0.5)
+		if base_chunk.distance_to(olho) > raio_busca + Grade.TAM_CHUNK:
+			continue
+		var transf: Dictionary = dados.transf
+
+		# 1. Jazida de cristal (refrata luz e desprende micro-prismas)
+		if transf.has("jazida_cristal"):
+			for t: Transform3D in transf["jazida_cristal"]:
+				if Vector2(t.origin.x, -t.origin.z).distance_to(olho) < raio_busca:
+					var inst := pool_efeitos.alocar_ambiente("brilho_jazida_cristal")
+					if inst != null:
+						inst.global_position = t.origin + Vector3(0, 0.12, 0)
+						inst.visible = true
+						inst._ativo = true
+
+		# 2. Esporos de cogumelos gigantes (a e b)
+		for cog in ["cogumelo_gigante_a", "cogumelo_gigante_b"]:
+			if transf.has(cog):
+				for t: Transform3D in transf[cog]:
+					if Vector2(t.origin.x, -t.origin.z).distance_to(olho) < raio_busca:
+						var inst := pool_efeitos.alocar_ambiente("esporos_cogumelo")
+						if inst != null:
+							inst.global_position = t.origin + Vector3(0, 1.4, 0)
+							inst.visible = true
+							inst._ativo = true
+
+		# 3. Faíscas no fungo à noite
+		if noite:
+			for i in range(1, 7):
+				var f_nome := "arv_fungo_cristal_%d" % i
+				if transf.has(f_nome):
+					for t: Transform3D in transf[f_nome]:
+						if Vector2(t.origin.x, -t.origin.z).distance_to(olho) < raio_busca:
+							var inst := pool_efeitos.alocar_ambiente("faisca_fungo_noite")
+							if inst != null:
+								inst.global_position = t.origin + Vector3(0, 1.35, 0)
+								inst.visible = true
+								inst._ativo = true
+
+		# 4. Vaga-lumes na flor luminosa (ao entardecer / noite)
+		if crepusculo and transf.has("flor_luminosa"):
+			for t: Transform3D in transf["flor_luminosa"]:
+				if Vector2(t.origin.x, -t.origin.z).distance_to(olho) < raio_busca:
+					var inst := pool_efeitos.alocar_ambiente("vagalumes_flor")
+					if inst != null:
+						inst.global_position = t.origin + Vector3(0, 0.45, 0)
+						inst.visible = true
+						inst._ativo = true
+
+		# 5. Reflexo de água na rocha de água / margem
+		if transf.has("rocha_agua"):
+			for t: Transform3D in transf["rocha_agua"]:
+				if Vector2(t.origin.x, -t.origin.z).distance_to(olho) < raio_busca:
+					var inst := pool_efeitos.alocar_ambiente("reflexo_agua")
+					if inst != null:
+						inst.global_position = t.origin + Vector3(0, 0.05, 0)
+						inst.visible = true
+						inst._ativo = true
+
+		# 6. Vapor de seiva sobre poça de seiva
+		if transf.has("poca_seiva"):
+			for t: Transform3D in transf["poca_seiva"]:
+				if Vector2(t.origin.x, -t.origin.z).distance_to(olho) < raio_busca:
+					var inst := pool_efeitos.alocar_ambiente("vapor_seiva")
+					if inst != null:
+						inst.global_position = t.origin + Vector3(0, 0.08, 0)
+						inst.visible = true
+						inst._ativo = true
+
+	# 7. Poeira com vento forte no chão
+	if vento_forte:
+		var inst_p := pool_efeitos.alocar_ambiente("poeira_vento")
+		if inst_p != null:
+			inst_p.global_position = Grade.ponto_mundo(olho, 0.08)
+			inst_p.visible = true
+			inst_p._ativo = true
+
+	# 8. Brasa em chão recém-queimado
+	if ambiente != null and not ambiente.fogo.is_empty():
+		var focos: Array = ambiente.fogo.keys()
+		for i in mini(focos.size(), 4):
+			var tile: Vector2i = focos[i]
+			if Vector2(tile).distance_to(olho) < raio_busca:
+				var inst_b := pool_efeitos.alocar_ambiente("brasa_queimado")
+				if inst_b != null:
+					inst_b.global_position = Grade.centro_mundo(tile, 0.04)
+					inst_b.visible = true
+					inst_b._ativo = true
+

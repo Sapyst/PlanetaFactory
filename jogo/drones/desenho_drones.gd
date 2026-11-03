@@ -439,6 +439,9 @@ func _tiro(e: Dictionary) -> void:
 		if desenho_colonia != null:
 			desenho_colonia.ejetar_capsula(ej, fora * 1.6 + Vector3(0, 1.2, 0) + (n.vel as Vector3) * 0.8,
 					Grade.ponto_mundo(e.de).y, 0.75)
+			if desenho_colonia.pool_efeitos != null:
+				desenho_colonia.pool_efeitos.disparar_rastro("drone_combate", de, para)
+				desenho_colonia.pool_efeitos.disparar_impacto("drone_combate", para, "aranha")
 		_baforada(ej)
 	_tracos.append({"de": de, "para": para, "vida": 0.08})
 	Som.tocar("tiro", de, -10.0)

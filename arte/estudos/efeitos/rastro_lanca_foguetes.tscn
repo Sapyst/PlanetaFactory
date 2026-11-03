@@ -1,0 +1,39 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://rastro_lanca_foguetes.gd" id="1_s"]
+
+[sub_resource type="Environment" id="Env_1"]
+background_mode = 1
+background_color = Color(0.18, 0.2, 0.23, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.45, 0.48, 0.52, 1)
+ambient_light_energy = 0.85
+
+[sub_resource type="StandardMaterial3D" id="Mat_Chao"]
+albedo_color = Color(0.22, 0.24, 0.22, 1)
+roughness = 0.92
+
+[sub_resource type="PlaneMesh" id="Mesh_Chao"]
+material = SubResource("Mat_Chao")
+size = Vector2(18, 12)
+
+[node name="rastro_lanca_foguetes" type="Node3D"]
+script = ExtResource("1_s")
+
+[node name="PalcoNeutro" type="Node3D" parent="."]
+
+[node name="Ambiente" type="WorldEnvironment" parent="PalcoNeutro"]
+environment = SubResource("Env_1")
+
+[node name="Sol" type="DirectionalLight3D" parent="PalcoNeutro"]
+transform = Transform3D(0.819152, -0.40558, 0.40558, 0, 0.707107, 0.707107, -0.573576, -0.579228, 0.579228, 0, 6, 0)
+light_energy = 1.25
+shadow_enabled = false
+
+[node name="Chao" type="MeshInstance3D" parent="PalcoNeutro"]
+mesh = SubResource("Mesh_Chao")
+
+[node name="Camera3D" type="Camera3D" parent="PalcoNeutro"]
+transform = Transform3D(1, 0, 0, 0, 0.87462, 0.48481, 0, -0.48481, 0.87462, 0, 2.55, 4.15)
+current = true
+fov = 45.0

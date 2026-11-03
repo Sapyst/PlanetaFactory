@@ -64,8 +64,10 @@
   },
   "_madeira": "multiplica o tempo de queima do tile com essa vegetação; no fim ela vira cinza e some (0 = não queima)"
  },
+ "_tufao": "estruturas frágeis só apanham quando uma rajada passa por cima (vento_em >= rajada_minima; o vento de fundo do tufão é 1,0 e a rajada soma 0,25–0,6): dano por segundo de rajada, umas 2–3 s cada, a cada 12–35 s",
  "tufao": {
-  "dano": 4.0,
+  "dano": 2.0,
+  "rajada_minima": 1.2,
   "frageis": [
    "poste_energia",
    "torre_sem_fio",

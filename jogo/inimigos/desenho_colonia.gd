@@ -34,10 +34,13 @@ var _aneis: Array[Dictionary] = []      ## pulsos da mina e impactos no escudo: 
 var carga: Callable                     ## (opcional) func(id) -> MJ guardados (gerador de escudo: a bolha some sem carga)
 var carga_max: Callable                 ## (opcional) func(id) -> MJ de carga cheia (com a melhoria do escudo 2)
 var _bolhas: Dictionary = {}            ## id do gerador de escudo → {no: MeshInstance3D, mat, impacto}
+var pool_efeitos: PoolEfeitos
 const CAMPO := preload("res://render/shaders/campo_escudo.gdshader")
 
 
 func _ready() -> void:
+	pool_efeitos = PoolEfeitos.new()
+	add_child(pool_efeitos)
 	_malha_tracos = ImmediateMesh.new()
 	var mi := MeshInstance3D.new()
 	mi.mesh = _malha_tracos
@@ -78,19 +81,45 @@ func atualizar(eventos: Array[Dictionary], delta: float) -> void:
 	for e in eventos:
 		match e.tipo:
 			"tiro":
-				if e.get("projetil", false):
+				var de := Grade.ponto_mundo(e.de, 1.25)
+				var para := Grade.ponto_mundo(e.para, 0.6)
+				var tipo_alvo: String = "aranha" if int(e.get("aranha", -1)) >= 0 else ("estrutura" if int(e.get("ninho", -1)) >= 0 else "chao")
+				var nome_torre: String = String(e.get("nome", ""))
+				var eh_proj: bool = bool(e.get("projetil", false))
+				if eh_proj:
 					_lancar(e)
+					var eh_art: bool = (nome_torre == "torre_artilharia" or Registro.estruturas.get(nome_torre, {}).get("alvo", "") == "ninhos")
+					var arma_pj: String = "artilharia" if eh_art else "lanca_foguetes"
+					pool_efeitos.disparar_rastro(arma_pj, de, para)
 				else:
-					var de := Grade.ponto_mundo(e.de, 1.25)
-					var para := Grade.ponto_mundo(e.para, 0.6)
+					var eh_energia: bool = (nome_torre == "torre_energia")
+					var arma_dir: String = "torre_energia" if eh_energia else "metralhadora"
+					pool_efeitos.disparar_rastro(arma_dir, de, para)
+					pool_efeitos.disparar_impacto(arma_dir, para, tipo_alvo)
 					_tracos.append({"de": de + (para - de).normalized() * 0.9, "para": para, "vida": 0.10})
 				_cartucho(e)
 			"salto":                                 # bala perfurante atravessando / carregada saltando
-				_tracos.append({"de": Grade.ponto_mundo(e.de, 0.6), "para": Grade.ponto_mundo(e.para, 0.6), "vida": 0.14 if e.get("eletrico", false) else 0.08})
+				var de := Grade.ponto_mundo(e.de, 0.6)
+				var para := Grade.ponto_mundo(e.para, 0.6)
+				var eletrico: bool = bool(e.get("eletrico", false))
+				var arma_salto: String = "municao_carregada" if eletrico else "municao_perfurante"
+				pool_efeitos.disparar_rastro(arma_salto, de, para)
+				pool_efeitos.disparar_impacto(arma_salto, para, "aranha")
+				_tracos.append({"de": de, "para": para, "vida": 0.14 if eletrico else 0.08})
 			"explosao":
-				_explosao(Grade.ponto_mundo(e.pos, 0.3), float(e.raio))
+				var p_exp := Grade.ponto_mundo(e.pos, 0.3)
+				var r_exp: float = float(e.raio)
+				var nome_exp: String = String(e.get("nome", ""))
+				var eh_art_exp: bool = (nome_exp == "torre_artilharia" or r_exp >= 3.0)
+				pool_efeitos.disparar_explosao(p_exp, r_exp, eh_art_exp)
+				pool_efeitos.disparar_impacto("artilharia" if eh_art_exp else "lanca_foguetes", p_exp, "chao")
+				_explosao(p_exp, r_exp)
 			"pulso":
-				_anel(Grade.ponto_mundo(e.pos, 0.12), float(e.raio), Color(0.75, 0.55, 1.0), 0.6)
+				var p_pulso := Grade.ponto_mundo(e.pos, 0.12)
+				var r_pulso: float = float(e.raio)
+				pool_efeitos.disparar_pulso_mina(p_pulso, r_pulso)
+				_anel(p_pulso, r_pulso, Color(0.75, 0.55, 1.0), 0.6)
+
 			"escudo":
 				_anel(Grade.ponto_mundo(e.pos, 1.0), 1.2, Color(1.0, 0.7, 0.25), 0.35)
 				if _bolhas.has(e.id):
@@ -206,7 +235,7 @@ func _desenhar_tracos(delta: float) -> void:
 	if _tracos.is_empty():
 		return
 	_malha_tracos.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
-	var cam := get_viewport().get_camera_3d()
+	var cam := get_viewport().get_camera_3d() if get_viewport() != null else null
 	for tr in _tracos:
 		# fita virada para a câmera (linha grossa visível de longe)
 		var d: Vector3 = (tr.para - tr.de).normalized()
