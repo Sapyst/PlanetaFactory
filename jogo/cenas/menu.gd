@@ -16,6 +16,7 @@ func _ready() -> void:
 		Sessao.modo = args[m + 1] if m >= 0 and args.size() > m + 1 else "demo"
 		get_tree().change_scene_to_file.call_deferred(JOGO)
 		return
+	ResourceLoader.load_threaded_request(JOGO)     # a cena do jogo (e todos os scripts dela) compila enquanto o menu está na tela
 	theme = Tema.criar()
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	var fundo := TextureRect.new()
@@ -57,7 +58,7 @@ func _ready() -> void:
 	_caixa.add_child(sub)
 	_caixa.add_child(HSeparator.new())
 	if Salvamento.existe():
-		var d := Salvamento.ler()
+		var d := Salvamento.ler_partida()
 		_botao("Continuar" + ("  (%s)" % String(d.get("salvo_em", "")).replace("T", " ") if not d.is_empty() else ""), func(): _ir("continuar"))
 	_botao("Novo jogo", func(): _ir("novo"))
 	_botao("Demonstração (fábrica pronta, construção livre)", func(): _ir("demo"))
@@ -77,4 +78,8 @@ func _botao(texto: String, acao: Callable) -> void:
 
 func _ir(modo: String) -> void:
 	Sessao.modo = modo
-	get_tree().change_scene_to_file(JOGO)
+	var cena := ResourceLoader.load_threaded_get(JOGO)      # pronta desde o menu; se ainda não acabou, espera aqui
+	if cena is PackedScene:
+		get_tree().change_scene_to_packed(cena)
+	else:
+		get_tree().change_scene_to_file(JOGO)
