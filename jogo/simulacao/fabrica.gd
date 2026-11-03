@@ -1965,13 +1965,27 @@ func _guardar_itens() -> Array[Dictionary]:
 	return out
 
 
+## Devolve os itens aos caminhos novos: agrupados por caminho e em ordem crescente de posição, a esteira (vazia, como
+## fica depois de reconstruir) só anexa no fim — inserir um a um varria a fila inteira a cada item (5 000 itens: 35 ms).
 func _restaurar_itens(guardados: Array[Dictionary]) -> void:
+	var por_caminho := {}                       # índice do caminho → [[posição, item], …]
 	for g in guardados:
 		if not _no_nivel.has(g.tile):
 			continue
 		var a: Array = _no_nivel[g.tile]
 		var c: Dictionary = caminhos[a[0]]
-		c.esteira.inserir_em(g.item, c.esteira.comprimento - (a[1] + g.f))
+		if not por_caminho.has(a[0]):
+			por_caminho[a[0]] = []
+		por_caminho[a[0]].append([c.esteira.comprimento - (a[1] + g.f), g.item])
+	for ci in por_caminho:
+		var est: EsteiraCaminho = caminhos[ci].esteira
+		var pares: Array = por_caminho[ci]
+		if est.itens.is_empty():
+			pares.sort_custom(func(x, y): return x[0] < y[0])
+			est.inserir_ordenados(pares)
+		else:
+			for par in pares:                   # esteira já com itens: do jeito geral
+				est.inserir_em(par[1], par[0])
 
 
 # ------------------------------------------------------------------ interfaces

@@ -86,6 +86,23 @@ func inserir_em(item: String, pos: float) -> bool:
 
 
 ## Posição (distância da saída) de cada item — para desenhar e para braços acharem item.
+## Enche uma esteira VAZIA com `pares` [[posição, item], …] já em ordem crescente de posição (restauração depois de
+## remontar a fábrica): o mesmo resultado de chamar inserir_em um a um nessa ordem (cada um cai depois do último),
+## sem varrer a fila a cada item. A mesma regra: colado demais no anterior (< ESPACO), o item não entra.
+func inserir_ordenados(pares: Array) -> void:
+	var acum := 0.0
+	for par in pares:
+		var pos: float = clampf(par[0], 0.0, util())
+		var resto := pos - acum
+		if not itens.is_empty() and resto < ESPACO:
+			continue
+		itens.append(par[1])
+		espacos.append(resto)
+		acum += espacos[-1]                      # soma do que ficou guardado (float32), como a varredura faz
+		livre_fim = util() - pos
+	_primeiro_movel = 0
+
+
 func posicoes() -> PackedFloat32Array:
 	var out := PackedFloat32Array()
 	var acum := 0.0
