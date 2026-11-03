@@ -1124,28 +1124,54 @@ var _geradores_fl: Array = []               ## geradores a fluido (ventiladores,
 var _paineis_2: Array = []                  ## painéis solares 2 (o rastreador segue o sol de dia)
 var _singularidades: Array = []             ## núcleos de singularidade (anéis e disco enquanto ligados)
 var _arcos := ArcosEletricos.new()
+var _grupos_anim: Dictionary = {}           ## nome da estrutura → índices (em _listas_anim) das listas em que entra
+
+
+## As listas acima, numa passada só pelo mapa (17 filtros separados custavam 25 ms numa fábrica de 1 700 peças).
+## A que listas um nome pertence é decidido uma vez por nome.
+func _refazer_listas_animacao() -> void:
+	var listas: Array = []
+	for i in 17:
+		listas.append([])
+	for id in mapa.estruturas:
+		var nome: String = mapa.estruturas[id].nome
+		var grupos: Array = _grupos_anim.get(nome, [])
+		if not _grupos_anim.has(nome):
+			var regra: Dictionary = Registro.estruturas.get(nome, {})
+			var testes := [regra.get("renovavel", "") == "vento", regra.has("clima_local"), nome == "bomba_estacao",
+					regra.get("grupo", "") == "logica", Varredura.eh_sensor(nome), Farol.eh_farol(nome), Lancador.eh_lancador(nome),
+					Genese.eh_receptor(nome), Transportador.eh_transportador(nome), SiloLancamento.eh_silo(nome), nome == "poste_alto",
+					nome in ["laboratorio_2", "laboratorio_quantico"], regra.has("irradiador"), regra.has("perda_nuvem"),
+					nome == "nucleo_singularidade", Fabrica.eh_gerador_fluido(nome) or Fabrica.eh_reator(nome), regra.get("renovavel", "") == "rio"]
+			for i in testes.size():
+				if testes[i]:
+					grupos.append(i)
+			_grupos_anim[nome] = grupos
+		for g in grupos:
+			listas[g].append(id)
+	_turbinas = listas[0]
+	_maq_clima = listas[1]
+	_bombas_est = listas[2]
+	_logica = listas[3]
+	_sensores_v = listas[4]
+	_farois = listas[5]
+	_lancadores = listas[6]
+	_receptores = listas[7]
+	_transportadores = listas[8]
+	_silos = listas[9]
+	_postes_altos = listas[10]
+	_labs_2 = listas[11]
+	_irradiadores = listas[12]
+	_paineis_2 = listas[13]
+	_singularidades = listas[14]
+	_geradores_fl = listas[15]
+	_turbinas_rio = listas[16]
 
 
 func _animar_estruturas() -> void:
 	if _versao_bracos != mapa.versao:              # vizinho mudou: refaz onde cada braço pega/solta
 		_versao_bracos = mapa.versao
-		_turbinas = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).get("renovavel", "") == "vento")
-		_maq_clima = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).has("clima_local"))
-		_bombas_est = mapa.estruturas.keys().filter(func(i): return mapa.estruturas[i].nome == "bomba_estacao")
-		_logica = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).get("grupo", "") == "logica")
-		_sensores_v = mapa.estruturas.keys().filter(func(i): return Varredura.eh_sensor(mapa.estruturas[i].nome))
-		_farois = mapa.estruturas.keys().filter(func(i): return Farol.eh_farol(mapa.estruturas[i].nome))
-		_lancadores = mapa.estruturas.keys().filter(func(i): return Lancador.eh_lancador(mapa.estruturas[i].nome))
-		_receptores = mapa.estruturas.keys().filter(func(i): return Genese.eh_receptor(mapa.estruturas[i].nome))
-		_transportadores = mapa.estruturas.keys().filter(func(i): return Transportador.eh_transportador(mapa.estruturas[i].nome))
-		_silos = mapa.estruturas.keys().filter(func(i): return SiloLancamento.eh_silo(mapa.estruturas[i].nome))
-		_postes_altos = mapa.estruturas.keys().filter(func(i): return mapa.estruturas[i].nome == "poste_alto")
-		_labs_2 = mapa.estruturas.keys().filter(func(i): return mapa.estruturas[i].nome in ["laboratorio_2", "laboratorio_quantico"])
-		_irradiadores = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).has("irradiador"))
-		_paineis_2 = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).has("perda_nuvem"))
-		_singularidades = mapa.estruturas.keys().filter(func(i): return mapa.estruturas[i].nome == "nucleo_singularidade")
-		_geradores_fl = mapa.estruturas.keys().filter(func(i): return Fabrica.eh_gerador_fluido(mapa.estruturas[i].nome) or Fabrica.eh_reator(mapa.estruturas[i].nome))
-		_turbinas_rio = mapa.estruturas.keys().filter(func(i): return Registro.estruturas.get(mapa.estruturas[i].nome, {}).get("renovavel", "") == "rio")
+		_refazer_listas_animacao()
 		for id in fabrica.bracos:
 			var ab := _animador(id)
 			if ab != null and mapa.estruturas.has(id):
