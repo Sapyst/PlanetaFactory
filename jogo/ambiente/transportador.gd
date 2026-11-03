@@ -58,13 +58,19 @@ func energia_de(id: int) -> float:
 	return clampf(float(energia.call(id)), 0.0, 1.0) if energia.is_valid() else 1.0
 
 
+var _versao := -1                              ## lista por versão do mapa (varrer tudo a cada tick custava ~1 ms)
+var _todos: Array[int] = []
+
+
 func todos() -> Array[int]:
-	var out: Array[int] = []
-	for id in mapa.estruturas:
-		if eh_transportador(mapa.estruturas[id].nome):
-			out.append(id)
-	out.sort()
-	return out
+	if mapa.versao != _versao:
+		_versao = mapa.versao
+		_todos.clear()
+		for id in mapa.estruturas:
+			if eh_transportador(mapa.estruturas[id].nome):
+				_todos.append(id)
+		_todos.sort()
+	return _todos
 
 
 ## Os outros transportadores do mesmo canal (destinos possíveis).

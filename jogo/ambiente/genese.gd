@@ -38,20 +38,33 @@ func eh_colonia(id: int) -> bool:
 	return mapa.estruturas.has(id) and bool(mapa.estruturas[id].get("colonia", false)) and not cfg(mapa.estruturas[id].nome).is_empty()
 
 
-func colonias() -> Array[int]:
-	var out: Array[int] = []
+## Listas por versão do mapa (varrer todas as estruturas a cada tick custava ~0,5 ms numa fábrica grande).
+var _versao := -1
+var _colonias: Array[int] = []
+var _receptores: Array[int] = []
+
+
+func _listas() -> void:
+	if mapa.versao == _versao:
+		return
+	_versao = mapa.versao
+	_colonias.clear()
+	_receptores.clear()
 	for id in mapa.estruturas:
 		if eh_colonia(id):
-			out.append(id)
-	return out
+			_colonias.append(id)
+		if eh_receptor(mapa.estruturas[id].nome):
+			_receptores.append(id)
+
+
+func colonias() -> Array[int]:
+	_listas()
+	return _colonias
 
 
 func receptores() -> Array[int]:
-	var out: Array[int] = []
-	for id in mapa.estruturas:
-		if eh_receptor(mapa.estruturas[id].nome):
-			out.append(id)
-	return out
+	_listas()
+	return _receptores
 
 
 func centro(id: int) -> Vector2:

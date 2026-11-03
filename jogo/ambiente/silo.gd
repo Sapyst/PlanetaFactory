@@ -127,12 +127,18 @@ func montando(id: int) -> bool:
 	return lancando.has(id) or (_montando.has(id) and float(_montando[id]) < 0.5)
 
 
+var _versao := -1                              ## lista por versão do mapa (varrer tudo a cada tick custava ~1 ms)
+var _todos: Array[int] = []
+
+
 func todos() -> Array[int]:
-	var out: Array[int] = []
-	for id in mapa.estruturas:
-		if eh_silo(mapa.estruturas[id].nome):
-			out.append(id)
-	return out
+	if mapa.versao != _versao:
+		_versao = mapa.versao
+		_todos.clear()
+		for id in mapa.estruturas:
+			if eh_silo(mapa.estruturas[id].nome):
+				_todos.append(id)
+	return _todos
 
 
 func tick(dt: float) -> void:
