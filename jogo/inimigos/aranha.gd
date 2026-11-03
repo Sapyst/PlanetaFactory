@@ -100,6 +100,10 @@ func morrer() -> void:
 
 func _process(delta: float) -> void:
 	marcha.tick(delta, destino, rumo_desejado)
+	if marcha.passo_pousou:
+		marcha.passo_pousou = false
+		if is_inside_tree():
+			Som.tocar("aranha_passo", marcha.posicao, -12.0)
 	if is_inside_tree():
 		global_position = marcha.posicao
 	else:

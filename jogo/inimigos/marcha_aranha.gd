@@ -32,6 +32,7 @@ var _ini: Array[Vector3] = []
 var _alvo: Array[Vector3] = []
 var _t_passo := 0.0
 var _no_ar := -1                 ## índice do trípode no ar (−1 = todos no chão)
+var passo_pousou := false        ## sinaliza ao nó aranha que o trípode tocou o chão
 
 
 func _init(pos := Vector3.ZERO, p_rumo := 0.0) -> void:
@@ -85,6 +86,7 @@ func tick(dt: float, nova_pos: Vector3, novo_rumo: float) -> void:
 				pes[i] = _alvo[i]
 				plantado[i] = true
 			_no_ar = -1
+			passo_pousou = true
 	if _no_ar < 0:
 		# levanta o trípode mais afastado da casa (não alterna às cegas)
 		var a := _afastamento(0)

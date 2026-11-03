@@ -102,7 +102,7 @@ func _ready() -> void:
 	_criar_raios_sol()
 	_criar_raio()
 	_som_chuva = AudioStreamPlayer.new()
-	_som_chuva.bus = "Efeitos"
+	_som_chuva.bus = "Ambiente"
 	add_child(_som_chuva)
 
 
@@ -336,6 +336,10 @@ func _atualizar_chuva(chuva: float, vento: float) -> void:
 		_som_chuva.volume_db = vol
 	elif _som_chuva.playing:
 		_som_chuva.stop()
+	if vento > 0.45 and DisplayServer.get_name() != "headless":
+		Som.tocar_loop_ambiente("vento_forte", (vento - 0.45) / 0.55 * 0.7)
+	else:
+		Som.tocar_loop_ambiente("vento_forte", 0.0)
 	_respingo.emitting = ligar
 	if not ligar:
 		return

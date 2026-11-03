@@ -12,7 +12,7 @@ const LARGURA_REF_PC := 1600.0
 
 static var arq_config := "user://configuracoes.cfg"     ## os testes trocam (nunca gravam na configuração real)
 var modo := "demo"
-var config := {"volume": 0.8, "sombras": true, "texto": TEXTO_PADRAO, "autosalvar_s": 120, "resolucao": 1.0, "fps": true, "clima": true, "grama": true, "recursos_orientacao": "vertical", "recursos_resumo": false, "antialiasing": "leve"}   ## fps ligado por padrão na fase de testes
+var config := {"volume_geral": 1.0, "volume": 0.8, "volume_ambiente": 0.8, "sombras": true, "texto": TEXTO_PADRAO, "autosalvar_s": 120, "resolucao": 1.0, "fps": true, "clima": true, "grama": true, "recursos_orientacao": "vertical", "recursos_resumo": false, "antialiasing": "leve"}   ## fps ligado por padrão na fase de testes
 
 
 func _init() -> void:
@@ -68,16 +68,20 @@ func salvar_config() -> void:
 
 ## Aplica as configurações: tamanho da interface, volume (barramento Efeitos) e sombras do sol.
 func aplicar() -> void:
-	var tree := get_tree()
-	if tree == null:
-		return
-	_aplicar_escala()
-	for b in ["Efeitos"]:
+	for b in ["Efeitos", "Ambiente"]:
 		if AudioServer.get_bus_index(b) < 0:
 			AudioServer.add_bus()
 			AudioServer.set_bus_name(AudioServer.bus_count - 1, b)
 			AudioServer.set_bus_send(AudioServer.bus_count - 1, "Master")
-	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Efeitos"), linear_to_db(maxf(float(config.volume), 0.0001)))
+	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), linear_to_db(maxf(float(config.get("volume_geral", 1.0)), 0.0001)))
+	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Efeitos"), linear_to_db(maxf(float(config.get("volume", 0.8)), 0.0001)))
+	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Ambiente"), linear_to_db(maxf(float(config.get("volume_ambiente", 0.8)), 0.0001)))
+	if not is_inside_tree():
+		return
+	var tree := get_tree()
+	if tree == null:
+		return
+	_aplicar_escala()
 	tree.root.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR if float(config.resolucao) < 0.99 else Viewport.SCALING_3D_MODE_BILINEAR
 	tree.root.scaling_3d_scale = float(config.resolucao)
 	aplicar_antialiasing(tree.root, str(config.get("antialiasing", "leve")))

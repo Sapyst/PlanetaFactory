@@ -1,68 +1,262 @@
 extends Node
-## Autoload: toca os sons (assets/sons, gerados por ferramentas/gerar_sons.py). Sem música (Sapyst pediu tirar).
-## Sons do mundo saem posicionados (mais baixo longe da câmera); cada som tem um intervalo mínimo para uma
-## rajada de tiros não virar ruído. Barramento "Efeitos" (volume nas configurações).
+## Autoload: gerencia e toca todos os efeitos sonoros sintetizados (assets/sons).
+## Suporta áudio 2D e áudio 3D posicionado com atenuação por distância, limite de vozes simultâneas,
+## controle de intervalos mínimos contra repetição de rajada e roteamento automático para os barramentos
+## "Efeitos" e "Ambiente" (controlados no menu de Configurações).
 
-const INTERVALO := {"tiro": 0.07, "construir": 0.05, "clique": 0.03, "aranha_morre": 0.08, "alerta": 4.0, "apito_trem": 3.0, "trovao": 1.5, "fogo": 2.0, "faisca": 0.15}
+const INTERVALO := {
+	"clique": 0.03,
+	"construir": 0.05,
+	"remover": 0.05,
+	"alerta": 3.0,
+	"pesquisa": 1.0,
+	"derrota": 2.0,
+	"tiro": 0.06,
+	"tiro_metralhadora": 0.06,
+	"tiro_energia": 0.08,
+	"tiro_foguete": 0.12,
+	"tiro_enxame": 0.07,
+	"tiro_artilharia": 0.30,
+	"tiro_perfurante": 0.07,
+	"tiro_carregada": 0.09,
+	"tiro_drone": 0.05,
+	"impacto": 0.20,
+	"impacto_aranha": 0.04,
+	"impacto_chao": 0.05,
+	"impacto_estrutura": 0.05,
+	"explosao": 0.10,
+	"explosao_grande": 0.25,
+	"mina_pulso": 0.18,
+	"maq_fornalha": 0.35,
+	"maq_montadora": 0.30,
+	"maq_broca": 0.25,
+	"maq_esteira": 0.35,
+	"apito_trem": 3.0,
+	"trem_trilho": 0.40,
+	"aranha_passo": 0.04,
+	"aranha_morre": 0.08,
+	"trovao": 1.5,
+	"fogo": 2.0,
+	"faisca": 0.15,
+}
+
+const MAX_VOZES := {
+	"maq_fornalha": 2,
+	"maq_montadora": 2,
+	"maq_broca": 2,
+	"maq_esteira": 2,
+	"trem_trilho": 2,
+	"apito_trem": 2,
+	"aranha_passo": 2,
+	"aranha_morre": 3,
+	"tiro": 4,
+	"tiro_metralhadora": 4,
+	"tiro_energia": 3,
+	"tiro_foguete": 3,
+	"tiro_enxame": 3,
+	"tiro_artilharia": 2,
+	"tiro_perfurante": 3,
+	"tiro_carregada": 3,
+	"tiro_drone": 3,
+	"impacto_aranha": 4,
+	"impacto_chao": 3,
+	"impacto_estrutura": 3,
+	"explosao": 4,
+	"explosao_grande": 2,
+	"mina_pulso": 2,
+}
+
+const SONS_AMBIENTE := {
+	"chuva": true,
+	"trovao": true,
+	"vento_forte": true,
+}
 
 var _sons: Dictionary = {}
 var _ultimo: Dictionary = {}
 var _pool2d: Array[AudioStreamPlayer] = []
 var _pool3d: Array[AudioStreamPlayer3D] = []
+var _loops_ambiente: Dictionary = {}
+
+
+func _init() -> void:
+	_carregar_sons()
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	for f in DirAccess.get_files_at("res://assets/sons"):
+	if _sons.is_empty():
+		_carregar_sons()
+	_criar_pools()
+
+
+func _carregar_sons() -> void:
+	var dir := "res://assets/sons"
+	for f in DirAccess.get_files_at(dir):
 		var nome := f.get_basename()
 		if f.ends_with(".wav") and not _sons.has(nome):
-			_sons[nome] = load("res://assets/sons/" + f)
+			_sons[nome] = load(dir + "/" + f)
 		elif f.ends_with(".wav.import") and not _sons.has(nome.get_basename()):
-			_sons[nome.get_basename()] = load("res://assets/sons/" + nome)
-	for i in 6:
+			_sons[nome.get_basename()] = load(dir + "/" + nome)
+
+
+func _criar_pools() -> void:
+	for i in 8:
 		var p := AudioStreamPlayer.new()
 		p.bus = "Efeitos"
+		p.set_meta("som", "")
+		p.set_meta("inicio", 0.0)
 		add_child(p)
 		_pool2d.append(p)
-	for i in 10:
+	for i in 16:
 		var p := AudioStreamPlayer3D.new()
 		p.bus = "Efeitos"
 		p.unit_size = 18.0
-		p.max_distance = 160.0
+		p.max_distance = 140.0
+		p.set_meta("som", "")
+		p.set_meta("inicio", 0.0)
 		add_child(p)
 		_pool3d.append(p)
 
 
-func tocar(nome: String, onde := Vector3.INF, volume_db := 0.0) -> void:
+func tem_som(nome: String) -> bool:
+	return _sons.has(nome)
+
+
+func barramento_do_som(nome: String) -> String:
+	return "Ambiente" if SONS_AMBIENTE.has(nome) else "Efeitos"
+
+
+## Toca som pontual em 2D (onde = INF) ou posicionado em 3D.
+func tocar(nome: String, onde := Vector3.INF, volume_db := 0.0, bus_custom := "") -> Variant:
 	if not _sons.has(nome) or DisplayServer.get_name() == "headless":
-		return
+		return null
 	var agora := Time.get_ticks_msec() / 1000.0
-	if agora - float(_ultimo.get(nome, -99.0)) < float(INTERVALO.get(nome, 0.0)):
-		return
-	_ultimo[nome] = agora
+	var min_int: float = float(INTERVALO.get(nome, 0.0))
+	if agora - float(_ultimo.get(nome, -99.0)) < min_int:
+		return null
+	var barramento: String = bus_custom if bus_custom != "" else barramento_do_som(nome)
 	if onde == Vector3.INF:
-		var p := _livre2d()
+		var p := _obter_player_2d(nome, agora)
+		if p == null:
+			return null
+		_ultimo[nome] = agora
 		p.stream = _sons[nome]
+		p.bus = barramento
 		p.volume_db = volume_db
 		p.pitch_scale = randf_range(0.97, 1.03)
+		p.set_meta("som", nome)
+		p.set_meta("inicio", agora)
 		p.play()
+		return p
 	else:
-		var p := _livre3d()
+		var p := _obter_player_3d(nome, agora)
+		if p == null:
+			return null
+		_ultimo[nome] = agora
 		p.stream = _sons[nome]
+		p.bus = barramento
 		p.global_position = onde
+		p.unit_size = 18.0
+		p.max_distance = 140.0
 		p.volume_db = volume_db
 		p.pitch_scale = randf_range(0.94, 1.06)
+		p.set_meta("som", nome)
+		p.set_meta("inicio", agora)
 		p.play()
+		return p
 
 
-func _livre2d() -> AudioStreamPlayer:
+## Toca som de máquina ativa (fornalha, montadora, broca, esteira, trem) com atenuação
+## acentuada por distância e teto estrito de vozes simultâneas.
+func tocar_maquina(nome: String, onde: Vector3, volume_db := 0.0, distancia_max := 55.0) -> Variant:
+	if not _sons.has(nome) or DisplayServer.get_name() == "headless":
+		return null
+	var cam := get_viewport().get_camera_3d()
+	if cam != null:
+		if cam.global_position.distance_to(onde) > distancia_max:
+			return null
+	var agora := Time.get_ticks_msec() / 1000.0
+	var min_int: float = float(INTERVALO.get(nome, 0.25))
+	if agora - float(_ultimo.get(nome, -99.0)) < min_int:
+		return null
+	var p := _obter_player_3d(nome, agora)
+	if p == null:
+		return null
+	_ultimo[nome] = agora
+	p.stream = _sons[nome]
+	p.bus = "Efeitos"
+	p.global_position = onde
+	p.unit_size = 10.0
+	p.max_distance = distancia_max
+	p.volume_db = volume_db
+	p.pitch_scale = randf_range(0.96, 1.04)
+	p.set_meta("som", nome)
+	p.set_meta("inicio", agora)
+	p.play()
+	return p
+
+
+## Atualiza ou inicia som contínuo em loop de ambiente (chuva, vento forte).
+func tocar_loop_ambiente(nome: String, volume_linear: float) -> void:
+	if DisplayServer.get_name() == "headless" or not _sons.has(nome):
+		return
+	var player: AudioStreamPlayer = _loops_ambiente.get(nome)
+	if player == null:
+		player = AudioStreamPlayer.new()
+		player.bus = "Ambiente"
+		var s = _sons[nome]
+		if s is AudioStreamWAV:
+			var wav: AudioStreamWAV = s
+			wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+			wav.loop_end = wav.data.size() / 2
+			player.stream = wav
+		else:
+			player.stream = s
+		add_child(player)
+		_loops_ambiente[nome] = player
+	if volume_linear > 0.02:
+		player.volume_db = linear_to_db(clampf(volume_linear, 0.0001, 1.0))
+		if not player.playing:
+			player.play()
+	elif player.playing:
+		player.stop()
+
+
+func _obter_player_2d(nome: String, agora: float) -> AudioStreamPlayer:
+	var ativas := 0
+	var player_mais_antigo: AudioStreamPlayer = null
+	var tempo_mais_antigo := 1e9
+	for p in _pool2d:
+		if p.playing and p.get_meta("som", "") == nome:
+			ativas += 1
+			var ini: float = float(p.get_meta("inicio", 0.0))
+			if ini < tempo_mais_antigo:
+				tempo_mais_antigo = ini
+				player_mais_antigo = p
+	var max_v: int = int(MAX_VOZES.get(nome, 6))
+	if ativas >= max_v:
+		return player_mais_antigo
 	for p in _pool2d:
 		if not p.playing:
 			return p
 	return _pool2d[0]
 
 
-func _livre3d() -> AudioStreamPlayer3D:
+func _obter_player_3d(nome: String, agora: float) -> AudioStreamPlayer3D:
+	var ativas := 0
+	var player_mais_antigo: AudioStreamPlayer3D = null
+	var tempo_mais_antigo := 1e9
+	for p in _pool3d:
+		if p.playing and p.get_meta("som", "") == nome:
+			ativas += 1
+			var ini: float = float(p.get_meta("inicio", 0.0))
+			if ini < tempo_mais_antigo:
+				tempo_mais_antigo = ini
+				player_mais_antigo = p
+	var max_v: int = int(MAX_VOZES.get(nome, 6))
+	if ativas >= max_v:
+		return player_mais_antigo
 	for p in _pool3d:
 		if not p.playing:
 			return p

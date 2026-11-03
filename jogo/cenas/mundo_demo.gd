@@ -51,6 +51,7 @@ var animar_tudo := false             ## mostruário (vídeos): toda máquina e b
 var _no_nucleo: Node3D
 var _rotulos: Dictionary = {}       ## id da estação → Label3D
 var _t_hud := 0.0
+var _t_som_maquinas := 0.0
 var _sel := {}                       ## selecionado: {trem: id} ou {estrutura: id}
 var _relatorio := false              ## -- relatorio: imprime o estado a cada 30 s de jogo (para calibrar números)
 var _t_rel := 0.0
@@ -1046,8 +1047,6 @@ func _process(delta: float) -> void:
 			"destruida":
 				_efeitos.marcar_destruicao(ev.centro, Registro.area(ev.nome).x)
 				Som.tocar("aranha_morre", Grade.ponto_mundo(ev.centro), -4.0)
-			"tiro":
-				Som.tocar("tiro", Grade.ponto_mundo(ev.de, 1.2), -6.0)
 			"aranha_morta":
 				Som.tocar("aranha_morre", Grade.ponto_mundo(ev.pos))
 			"ataque":
@@ -1064,7 +1063,45 @@ func _process(delta: float) -> void:
 		_t_hud = 0.25
 		_atualizar_rotulos()
 		_hud()
+	_t_som_maquinas -= delta
+	if _t_som_maquinas <= 0.0:
+		_t_som_maquinas = 0.35
+		_atualizar_sons_mundo()
 	_atualizar_chunks()
+
+
+## Emite sons de máquinas trabalhando, esteiras e trens próximos à câmera, respeitando limites de vozes.
+func _atualizar_sons_mundo() -> void:
+	if DisplayServer.get_name() == "headless" or camera == null:
+		return
+	var p_cam: Vector3 = camera.alvo
+	for id in fabrica.maquinas:
+		if not fabrica.trabalhando(id):
+			continue
+		var e: Dictionary = mapa.estruturas.get(id, {})
+		if e.is_empty():
+			continue
+		var p := Grade.ponto_mundo(Grade.centro_da_area(e.minimo, e.area, e.rot))
+		if p.distance_to(p_cam) > 55.0:
+			continue
+		var nome: String = e.nome
+		if nome in ["broca", "broca_nucleo"]:
+			Som.tocar_maquina("maq_broca", p, -5.0)
+		elif nome in ["fornalha", "fornalha_eletrica"]:
+			Som.tocar_maquina("maq_fornalha", p, -6.0)
+		elif nome in ["montadora", "montadora_2", "montadora_quantica"]:
+			Som.tocar_maquina("maq_montadora", p, -5.0)
+	for c in fabrica.caminhos:
+		if c.itens.size() > 0 and c.nos.size() > 0:
+			var p_est := Grade.ponto_mundo(c.nos[0])
+			if p_est.distance_to(p_cam) <= 45.0:
+				Som.tocar_maquina("maq_esteira", p_est, -9.0)
+				break
+	for t in trens:
+		if absf(t.vel) > 0.15:
+			var pt := Grade.ponto_mundo(t.ponto_em(t.s).pos)
+			if pt.distance_to(p_cam) <= 55.0:
+				Som.tocar_maquina("trem_trilho", pt, -5.0)
 
 
 ## Distância e altura do pulso nas duas pontas do braço: esteira/chão baixo; baú/máquina mais alto e um pouco antes

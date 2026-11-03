@@ -444,7 +444,7 @@ func _tiro(e: Dictionary) -> void:
 				desenho_colonia.pool_efeitos.disparar_impacto("drone_combate", para, "aranha")
 		_baforada(ej)
 	_tracos.append({"de": de, "para": para, "vida": 0.08})
-	Som.tocar("tiro", de, -10.0)
+	Som.tocar("tiro_drone", de, -8.0)
 
 
 func _desenhar_tracos(delta: float) -> void:
@@ -508,7 +508,7 @@ func _sucata(e: Dictionary) -> void:
 	var p := Grade.ponto_mundo(e.pos, 0.18)
 	_faiscas(p, 30, Color(1.0, 0.6, 0.25), 3.0)
 	_poeira(p)
-	Som.tocar("impacto", p, -8.0)
+	Som.tocar("impacto_estrutura", p, -6.0)
 	if n.is_empty():
 		return
 	var no: Node3D = n.no

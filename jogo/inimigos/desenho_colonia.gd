@@ -91,11 +91,18 @@ func atualizar(eventos: Array[Dictionary], delta: float) -> void:
 					var eh_art: bool = (nome_torre == "torre_artilharia" or Registro.estruturas.get(nome_torre, {}).get("alvo", "") == "ninhos")
 					var arma_pj: String = "artilharia" if eh_art else "lanca_foguetes"
 					pool_efeitos.disparar_rastro(arma_pj, de, para)
+					var som_proj: String = "tiro_artilharia" if eh_art else ("tiro_enxame" if int(e.get("ogivas", 0)) > 0 else "tiro_foguete")
+					Som.tocar(som_proj, de, -4.0)
 				else:
 					var eh_energia: bool = (nome_torre == "torre_energia")
 					var arma_dir: String = "torre_energia" if eh_energia else "metralhadora"
+					var bala_tipo: String = String(e.get("bala", ""))
+					var som_dir: String = "tiro_energia" if eh_energia else ("tiro_perfurante" if bala_tipo == "municao_perfurante" else ("tiro_carregada" if bala_tipo == "municao_carregada" else "tiro_metralhadora"))
+					Som.tocar(som_dir, de, -5.0)
 					pool_efeitos.disparar_rastro(arma_dir, de, para)
 					pool_efeitos.disparar_impacto(arma_dir, para, tipo_alvo)
+					var som_imp: String = "impacto_aranha" if tipo_alvo == "aranha" else ("impacto_estrutura" if tipo_alvo == "estrutura" else "impacto_chao")
+					Som.tocar(som_imp, para, -7.0)
 					_tracos.append({"de": de + (para - de).normalized() * 0.9, "para": para, "vida": 0.10})
 				_cartucho(e)
 			"salto":                                 # bala perfurante atravessando / carregada saltando
@@ -105,6 +112,7 @@ func atualizar(eventos: Array[Dictionary], delta: float) -> void:
 				var arma_salto: String = "municao_carregada" if eletrico else "municao_perfurante"
 				pool_efeitos.disparar_rastro(arma_salto, de, para)
 				pool_efeitos.disparar_impacto(arma_salto, para, "aranha")
+				Som.tocar("impacto_aranha", para, -7.0)
 				_tracos.append({"de": de, "para": para, "vida": 0.14 if eletrico else 0.08})
 			"explosao":
 				var p_exp := Grade.ponto_mundo(e.pos, 0.3)
@@ -113,11 +121,13 @@ func atualizar(eventos: Array[Dictionary], delta: float) -> void:
 				var eh_art_exp: bool = (nome_exp == "torre_artilharia" or r_exp >= 3.0)
 				pool_efeitos.disparar_explosao(p_exp, r_exp, eh_art_exp)
 				pool_efeitos.disparar_impacto("artilharia" if eh_art_exp else "lanca_foguetes", p_exp, "chao")
+				Som.tocar("explosao_grande" if eh_art_exp else "explosao", p_exp, -3.0)
 				_explosao(p_exp, r_exp)
 			"pulso":
 				var p_pulso := Grade.ponto_mundo(e.pos, 0.12)
 				var r_pulso: float = float(e.raio)
 				pool_efeitos.disparar_pulso_mina(p_pulso, r_pulso)
+				Som.tocar("mina_pulso", p_pulso, -3.0)
 				_anel(p_pulso, r_pulso, Color(0.75, 0.55, 1.0), 0.6)
 
 			"escudo":

@@ -26,7 +26,9 @@ func _ready() -> void:
 	_corpo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_rolagem.add_child(_corpo)
 	_rolagem.add_child(RolagemToque.new())
+	_deslizante("Volume geral", "volume_geral", 0.0, 1.0, 0.05)
 	_deslizante("Volume dos efeitos", "volume", 0.0, 1.0, 0.05)
+	_deslizante("Volume do ambiente", "volume_ambiente", 0.0, 1.0, 0.05)
 	_deslizante("Tamanho da interface", "texto", Sessao.TEXTO_MIN, Sessao.TEXTO_MAX, 0.04)
 	_deslizante("Resolução do 3D (menos = mais leve)", "resolucao", 0.5, 1.0, 0.05)
 	var sombra := CheckButton.new()
@@ -139,7 +141,7 @@ func _deslizante(rotulo: String, chave: String, mn: float, mx: float, passo: flo
 	s.min_value = mn
 	s.max_value = mx
 	s.step = passo
-	s.value = float(Sessao.config[chave])
+	s.value = float(Sessao.config.get(chave, 1.0 if chave == "volume_geral" else 0.8))
 	s.custom_minimum_size = Tema.v("config_slider")
 	var texto := func(x: float) -> void: l.text = "%s: %d%%" % [rotulo, roundi(x * 100)]
 	texto.call(s.value)
