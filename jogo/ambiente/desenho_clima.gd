@@ -65,6 +65,12 @@ var _fatias_raios := 0
 var _claros: Dictionary = {}         ## Vector2i(ponto arredondado) → [Vector3 fonte, força 0..1] (abre e fecha devagar)
 var _raio: MeshInstance3D
 var _malha_raio: ImmediateMesh
+var _mat_raio: ShaderMaterial
+var _luz_raio: OmniLight3D           ## clarão no ponto do impacto (curto, sem sombra)
+var _raio_linhas: Array = []         ## o golpe de agora ([de, até, largura, força] por traço), para o re-golpe
+var _raio_t := 0.0                   ## segundos desde o golpe
+var _raio_regolpe := false           ## o segundo pisco (outro traçado) já aconteceu
+var _raio_perto := 1.0               ## 0,25..1: quão perto da câmera (clarão e luz)
 var _som_chuva: AudioStreamPlayer
 var _base := {}
 var _flash := 0.0
@@ -460,47 +466,93 @@ func _criar_raio() -> void:
 	_raio = MeshInstance3D.new()
 	_raio.mesh = _malha_raio
 	_raio.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	var m := ShaderMaterial.new()                 # aditivo acima de 1: o bloom pega; halo em malha para o celular
-	m.shader = preload("res://render/shaders/raio.gdshader")
-	m.set_shader_parameter("forca", 8.0)
-	_raio.material_override = m
+	_raio.extra_cull_margin = 60.0
+	_mat_raio = ShaderMaterial.new()              # aditivo acima de 1: o bloom pega; halo em malha para o celular
+	_mat_raio.shader = preload("res://render/shaders/relampago.gdshader")
+	_raio.material_override = _mat_raio
 	add_child(_raio)
+	_luz_raio = OmniLight3D.new()
+	_luz_raio.light_color = Color(0.78, 0.84, 1.0)
+	_luz_raio.omni_range = 18.0
+	_luz_raio.omni_attenuation = 1.4
+	_luz_raio.shadow_enabled = false
+	_luz_raio.visible = false
+	add_child(_luz_raio)
+
+
+## Canal principal do raio até `topo` (mundo): vem do céu inclinado para longe da câmera, para que a vista de cima
+## o veja inteiro (reto para cima ele vira um ponto: o alto fica atrás/acima da câmera). Com ramos.
+## Cada traço: [de, até, largura (m), força 0..1].
+func _canal(topo: Vector3) -> Array:
+	var olho := camera.global_position if camera.is_inside_tree() else camera.position
+	var longe_h := Vector3(topo.x - olho.x, 0.0, topo.z - olho.z)
+	longe_h = longe_h.normalized() if longe_h.length() > 0.01 else Vector3(0, 0, -1)
+	var lado := longe_h.cross(Vector3.UP)
+	var de := topo + longe_h * randf_range(16.0, 28.0) + Vector3(0.0, 44.0, 0.0) + lado * randf_range(-12.0, 12.0)
+	var tracos: Array = [[de, topo, 2.4, 1.0]]
+	for i in randi_range(2, 3):                   # ramos: saem do meio do canal e morrem no ar, mais finos
+		var t := randf_range(0.25, 0.7)
+		var p := de.lerp(topo, t)
+		var dir := (topo - de).normalized().rotated(Vector3.UP, randf_range(-1.1, 1.1)) + Vector3(0.0, randf_range(-0.5, 0.1), 0.0) + lado * randf_range(-0.8, 0.8)
+		var fim := p + dir.normalized() * de.distance_to(topo) * randf_range(0.18, 0.38)
+		fim.y = maxf(fim.y, topo.y + 2.0)              # ramo morre no ar, nunca abaixo do ponto do impacto
+		tracos.append([p, fim, 1.2, 0.6])
+	return tracos
+
+
+## Um golpe: desenha, acende o clarão (mais fraco longe da câmera) e agenda o trovão (343 m/s).
+func _golpe(tracos: Array, chao: Vector3) -> void:
+	var longe := Vector2(camera.alvo.x - chao.x, camera.alvo.z - chao.z).length()
+	_raio_perto = clampf(1.0 - longe / maxf(30.0, camera.distancia * 3.0), 0.25, 1.0)
+	_flash = maxf(_flash, 0.7 * _raio_perto)        # mais que isso a névoa vira uma parede branca
+	_raio_linhas = tracos
+	_raio_t = 0.0
+	_raio_regolpe = false
+	_vida_raio = 0.34
+	_desenhar_raio(tracos)
+	_mat_raio.set_shader_parameter("brilho", 1.0)
+	_luz_raio.position = chao + Vector3(0.0, 2.0, 0.0)
+	_luz_raio.light_energy = 9.0 * _raio_perto
+	_luz_raio.visible = true
+	_trovoes.append(randf_range(0.3, 0.8) + longe / 340.0)
 
 
 func _relampagos(delta: float) -> void:
 	if raios != null:
 		for q in raios.quedas:
-			var chao := Grade.ponto_mundo(q.pos, 0.0)
 			var topo := Grade.ponto_mundo(q.pos, float(q.alt))
-			var linhas: Array = [[topo + Vector3(randf_range(-6, 6), 45.0, randf_range(-6, 6)), topo]]
+			var tracos := _canal(topo)
 			if q.tipo == "cupula":                       # bate no campo, desce do alto da cúpula até o cristal
 				var c: Vector2 = q.centro
 				var pt: Vector3 = q.ponta
-				linhas.append([Grade.ponto_mundo(c, float(q.raio_cupula)), Grade.ponto_mundo(Vector2(pt.x, pt.y), pt.z)])
-			var longe := Vector2(camera.alvo.x - chao.x, camera.alvo.z - chao.z).length()
-			var perto := clampf(1.0 - longe / maxf(30.0, camera.distancia * 3.0), 0.25, 1.0)
-			_flash = maxf(_flash, perto)
-			_vida_raio = 0.22
-			_desenhar_raio(linhas)
-			_trovoes.append(randf_range(0.3, 0.8) + longe / 340.0)      # o som vem depois (343 m/s)
+				tracos.append([Grade.ponto_mundo(c, float(q.raio_cupula)), Grade.ponto_mundo(Vector2(pt.x, pt.y), pt.z), 1.4, 0.8])
+			_golpe(tracos, Grade.ponto_mundo(q.pos, 0.0))
 		raios.quedas.clear()
-	for ev in clima.eventos:
+	for ev in clima.eventos:                        # sem a lógica dos raios (cena só de desenho): cai num ponto da vista
 		if ev == "raio":
-			_flash = 1.0
-			_vida_raio = 0.22
 			var r := camera.distancia * 0.5
 			var p := camera.alvo + Vector3(randf_range(-r, r), 0, randf_range(-r * 0.7, r * 0.7))
-			_desenhar_raio([[p + Vector3(0, 45.0, 0), p]])
-			_trovoes.append(randf_range(0.6, 2.6))
+			_golpe(_canal(p), p)
 	clima.eventos.clear()
-	# dois piscos: acende, cai, volta um pouco e apaga
 	_flash = maxf(0.0, _flash - delta * 5.0)
 	if _vida_raio > 0.0:
 		_vida_raio -= delta
+		_raio_t += delta
 		if _vida_raio <= 0.0:
 			_malha_raio.clear_surfaces()
-		elif _vida_raio < 0.12 and _vida_raio + delta >= 0.12:
-			_flash = 0.7
+			_luz_raio.visible = false
+			_raio_linhas = []
+		else:
+			# golpe: cheio por 40 ms e apaga em exponencial; re-golpe aos 110 ms com outro traçado e mais fraco
+			var b := 1.0 if _raio_t < 0.04 else exp(-(_raio_t - 0.04) * 11.0)
+			if _raio_t >= 0.11:
+				if not _raio_regolpe:
+					_raio_regolpe = true
+					_flash = maxf(_flash, 0.45 * _raio_perto)
+					_desenhar_raio(_raio_linhas)
+				b = maxf(b, 0.75 * (1.0 if _raio_t < 0.14 else exp(-(_raio_t - 0.14) * 9.0)))
+			_mat_raio.set_shader_parameter("brilho", b)
+			_luz_raio.light_energy = 9.0 * b * _raio_perto
 	for i in range(_trovoes.size() - 1, -1, -1):
 		_trovoes[i] -= delta
 		if _trovoes[i] <= 0.0:
@@ -508,30 +560,48 @@ func _relampagos(delta: float) -> void:
 			_trovoes.remove_at(i)
 
 
-## Linhas quebradas (cada uma [de, até], mundo) em fita virada para a câmera: núcleo branco e halo largo.
-func _desenhar_raio(linhas: Array) -> void:
+## Traços ([de, até, largura, força], mundo) em fita virada para a câmera, UV.x atravessando a fita (o shader faz o
+## núcleo e o halo). O caminho serpenteia (passeio aleatório puxado de volta ao eixo), com as pontas no lugar; os lados
+## de cada vértice seguem a direção média dos dois segmentos, para a fita não abrir nas dobras. Chamar de novo com os
+## mesmos traços sorteia outro traçado (re-golpe).
+func _desenhar_raio(tracos: Array) -> void:
 	_malha_raio.clear_surfaces()
 	_malha_raio.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
 	var olho_em := camera.global_position if camera.is_inside_tree() else camera.position
-	for ln in linhas:
-		var de: Vector3 = ln[0]
-		var ate: Vector3 = ln[1]
-		var n := clampi(int(de.distance_to(ate) / 5.0), 3, 10)
-		var desvio := minf(2.2, de.distance_to(ate) * 0.06)
+	for tr in tracos:
+		var de: Vector3 = tr[0]
+		var ate: Vector3 = tr[1]
+		var largura: float = tr[2]
+		var comp := de.distance_to(ate)
+		var n := clampi(int(comp / 3.0), 4, 18)
+		var eixo := (ate - de).normalized()
+		var u := eixo.cross(Vector3.UP if absf(eixo.y) < 0.9 else Vector3.RIGHT).normalized()
+		var w := eixo.cross(u)
+		var passo := minf(2.0, comp * 0.05)
 		var pts: Array[Vector3] = []
+		var d1 := 0.0
+		var d2 := 0.0
 		for i in n + 1:
 			var p := de.lerp(ate, float(i) / n)
 			if i > 0 and i < n:
-				p += Vector3(randf_range(-desvio, desvio), 0, randf_range(-desvio, desvio))
+				d1 = d1 * 0.6 + randf_range(-passo, passo)
+				d2 = d2 * 0.6 + randf_range(-passo, passo)
+				var fim := minf(1.0, float(n - i) / 2.0)          # chega reta na ponta
+				p += (u * d1 + w * d2) * fim
 			pts.append(p)
-		for camada in [[1.4, Color(0.55, 0.65, 1.0, 0.10)], [0.18, Color(0.95, 0.97, 1.0, 1.0)]]:
-			_malha_raio.surface_set_color(camada[1])
-			for i in n:
-				var a := pts[i]
-				var b := pts[i + 1]
-				var olho := (olho_em - a).normalized()
-				var lado := (b - a).normalized().cross(olho).normalized() * float(camada[0]) * (0.5 if ln != linhas[0] else 1.0)
-				var q := [a - lado, a + lado, b + lado, b - lado]
-				for k in [0, 1, 2, 0, 2, 3]:
-					_malha_raio.surface_add_vertex(q[k])
+		_malha_raio.surface_set_color(Color(1, 1, 1, float(tr[3])))
+		var lados: Array[Vector3] = []
+		for i in n + 1:
+			var dir := (pts[mini(i + 1, n)] - pts[maxi(i - 1, 0)]).normalized()
+			var olho := (olho_em - pts[i]).normalized()
+			var l := dir.cross(olho)
+			if l.length() < 1e-3:
+				l = u
+			lados.append(l.normalized() * largura * 0.5)
+		for i in n:
+			var q := [pts[i] - lados[i], pts[i] + lados[i], pts[i + 1] + lados[i + 1], pts[i + 1] - lados[i + 1]]
+			var uv := [Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(0, 1)]
+			for k in [0, 1, 2, 0, 2, 3]:
+				_malha_raio.surface_set_uv(uv[k])
+				_malha_raio.surface_add_vertex(q[k])
 	_malha_raio.surface_end()

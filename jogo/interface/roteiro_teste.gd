@@ -2717,15 +2717,15 @@ func _roteiro_raio_foto() -> void:
 	var foto := func(nome: String) -> void:
 		get_viewport().get_texture().get_image().save_png(pasta.path_join(nome + ".png"))
 	em(40, func(): cena.raios.cair(alvo[0]))
-	em(41, func(): foto.call("raio_q1"))
-	em(43, func(): foto.call("raio_q3"))
-	em(46, func(): foto.call("raio_q6"))
+	em(42, func(): foto.call("raio_q2"))
+	em(44, func(): foto.call("raio_q4"))
+	em(47, func(): foto.call("raio_q7"))
 	em(70, func():
 		cena.camera.distancia = 60.0
 		cena.camera.posicionar()
 		cena.raios.cair(alvo[0] + Vector2(6, -4)))
-	em(71, func(): foto.call("raio_longe_q1"))
-	em(74, func(): foto.call("raio_longe_q4"))
+	em(72, func(): foto.call("raio_longe_q2"))
+	em(75, func(): foto.call("raio_longe_q5"))
 	em(80, func(): get_tree().quit())
 
 
