@@ -97,7 +97,7 @@ func _ready() -> void:
 		modo = "novo"                         # testes/fotos: jogo novo direto (com abertura)
 	var dados := {}
 	if modo == "continuar":
-		dados = Salvamento.ler()
+		dados = Salvamento.ler_partida()        # o salvo, ou a cópia de segurança se ele estiver quebrado
 		modo = dados.get("modo", "novo") if not dados.is_empty() else "novo"
 	_autosalvar = modo != "demo" and not args.has("roteiro") and not _relatorio
 	if not dados.is_empty():

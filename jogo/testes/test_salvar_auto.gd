@@ -87,3 +87,25 @@ func test_escala_da_interface() -> void:
 	perto(Sessao.texto_migrado(1.0, true, false, false), 1.0, 0.001, "100%: fica")
 	perto(Sessao.texto_migrado(0.7, true, true, false), 0.7, 0.001, "depois de migrar, o que escolher é escolha")
 	perto(Sessao.texto_migrado(0.8, true, false, true), 0.8, 0.001, "celular não entra nisso")
+
+
+## Cópia de segurança: cada gravação guarda a anterior; salvo quebrado ou incompleto → a partida volta pela cópia.
+func test_copia_de_seguranca_e_partida_valida() -> void:
+	Salvamento.apagar()
+	var partida := {}
+	for k in Salvamento.CAMPOS_PARTIDA:
+		partida[k] = 1
+	verificar(Salvamento.gravar(partida), "grava a 1ª")
+	verificar(not FileAccess.file_exists(Salvamento.copia()), "a 1ª não tem cópia")
+	partida.tempo = 2
+	verificar(Salvamento.gravar(partida), "grava a 2ª")
+	verificar(FileAccess.file_exists(Salvamento.copia()), "a 2ª guardou a 1ª como cópia")
+	igual(Salvamento.ler_partida().get("tempo"), 2, "lê a 2ª")
+	var f := FileAccess.open(Salvamento.arquivo(), FileAccess.WRITE)
+	f.store_string("{isto não é um salvo")
+	f.close()
+	igual(Salvamento.ler_partida().get("tempo"), 1, "salvo ilegível: volta pela cópia")
+	verificar(not Salvamento.partida_valida({"modo": "novo"}), "faltando campos não é partida")
+	verificar(not Salvamento.partida_valida({}), "vazio não é partida")
+	Salvamento.apagar()
+	verificar(not FileAccess.file_exists(Salvamento.copia()) and not Salvamento.existe(), "apagar leva a cópia junto")
