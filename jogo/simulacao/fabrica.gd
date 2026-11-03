@@ -177,8 +177,10 @@ func _montar_esteiras() -> void:
 			return n
 		return Vector3i(0, 0, -1)
 	var tem_antes := {}
+	var prox := {}        # chave → próximo (calculado uma vez; a volta pelos caminhos reaproveita)
 	for k in cinta:
 		var n: Vector3i = proximo.call(k)
+		prox[k] = n
 		if n.z >= 0:
 			tem_antes[n] = true
 	var visto := {}
@@ -207,7 +209,7 @@ func _montar_esteiras() -> void:
 				chao.append(no.chao)
 				oculto.append(false)
 				papel.append(no.get("tunel", ""))
-				var n: Vector3i = proximo.call(k)
+				var n: Vector3i = prox[k]
 				if n.z < 0:
 					break
 				if no.get("tunel", "") == "entrada":
@@ -1981,7 +1983,13 @@ func _restaurar_itens(guardados: Array[Dictionary]) -> void:
 		var est: EsteiraCaminho = caminhos[ci].esteira
 		var pares: Array = por_caminho[ci]
 		if est.itens.is_empty():
-			pares.sort_custom(func(x, y): return x[0] < y[0])
+			var ordenado := true                # quase sempre já vêm em ordem (um caminho velho → um novo)
+			for i in range(1, pares.size()):
+				if pares[i][0] < pares[i - 1][0]:
+					ordenado = false
+					break
+			if not ordenado:
+				pares.sort_custom(func(x, y): return x[0] < y[0])
 			est.inserir_ordenados(pares)
 		else:
 			for par in pares:                   # esteira já com itens: do jeito geral
