@@ -4,6 +4,7 @@ extends Control
 ## vai direto para o jogo — os testes automáticos não passam por aqui.
 
 const JOGO := "res://cenas/mundo_demo.tscn"
+const FundoAbstrato = preload("res://cenas/fundo_abstrato.gd")
 
 var _caixa: VBoxContainer
 var _config: PainelConfig
@@ -16,15 +17,11 @@ func _ready() -> void:
 		Sessao.modo = args[m + 1] if m >= 0 and args.size() > m + 1 else "demo"
 		get_tree().change_scene_to_file.call_deferred(JOGO)
 		return
-	ResourceLoader.load_threaded_request(JOGO)     # a cena do jogo (e todos os scripts dela) compila enquanto o menu está na tela
+	if DisplayServer.get_name() != "headless":
+		ResourceLoader.load_threaded_request(JOGO)     # a cena do jogo (e todos os scripts dela) compila enquanto o menu está na tela
 	theme = Tema.criar()
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	var fundo := TextureRect.new()
-	fundo.texture = load("res://assets/ui/fundo_menu.png")
-	fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
-	fundo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	fundo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	fundo.modulate = Color(0.55, 0.55, 0.62)
+	var fundo := FundoAbstrato.new()
 	add_child(fundo)
 	var centro := CenterContainer.new()
 	centro.set_anchors_preset(Control.PRESET_FULL_RECT)
