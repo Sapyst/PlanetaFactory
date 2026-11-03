@@ -85,10 +85,11 @@ func _ready() -> void:
 	# câmera por argumento (fotos automáticas): -- camera <x> <z> <distância>
 	var args := OS.get_cmdline_user_args()
 	var i := args.find("camera")
-	if i >= 0 and args.size() > i + 3:
-		camera.alvo = Vector3(float(args[i + 1]), 0, float(args[i + 2]))
-		camera.distancia = float(args[i + 3])
-	camera.posicionar()
+	if camera != null:
+		if i >= 0 and args.size() > i + 3:
+			camera.alvo = Vector3(float(args[i + 1]), 0, float(args[i + 2]))
+			camera.distancia = float(args[i + 3])
+		camera.posicionar()
 	_relatorio = args.has("relatorio")
 	var ac := args.find("acelerar")
 	if ac >= 0 and args.size() > ac + 1:
@@ -684,7 +685,7 @@ func _redesenhar_agua() -> void:
 
 
 func sincronizar(rel: Dictionary) -> void:
-	if not rel.get("aplainados", []).is_empty() or not rel.removidos.is_empty() or not rel.colocados.is_empty():
+	if (not rel.get("aplainados", []).is_empty() or not rel.removidos.is_empty() or not rel.colocados.is_empty()) and agua != null:
 		agua.recalcular()                    # escavou, aterrou, fez ou desfez dique: a água refaz o caminho
 		_redesenhar_agua()
 	var muros := {}
@@ -692,7 +693,8 @@ func sincronizar(rel: Dictionary) -> void:
 		if _nos.has(e.id):
 			_nos[e.id].queue_free()
 			_nos.erase(e.id)
-		_lotes.remover(e.id)
+		if _lotes != null:
+			_lotes.remover(e.id)
 		if MUROS.has(e.nome):
 			muros[e.minimo] = true
 	for id in rel.colocados:
@@ -1582,9 +1584,84 @@ func _tem_liga(id: int) -> bool:
 	return Fiacao.papel(e.nome) in ["consumo", "fonte"] or fabrica.maquinas.has(id) or e.nome in ["comparador", "valvula"]
 
 
-func remover_estrutura(id: int) -> bool:
+var _confirmando_remocao_bau: int = -1
+
+
+func total_itens_bau(id: int) -> int:
+	if not fabrica.baus.has(id):
+		return 0
+	var total := 0
+	for k in fabrica.baus[id]:
+		total += int(fabrica.baus[id][k])
+	return total
+
+
+func eh_armazem_com_itens(id: int) -> bool:
+	if not mapa.estruturas.has(id):
+		return false
+	var nome: String = mapa.estruturas[id].nome
+	if nome in ["bau", "bau_grande", "silo_granel", "bau_estoque"] or Registro.estruturas.get(nome, {}).get("grupo", "") == "armazem":
+		return total_itens_bau(id) > 0
+	return false
+
+
+func pedir_confirmacao_remocao_bau(id: int) -> void:
+	if not mapa.estruturas.has(id):
+		return
+	_sel = {"estrutura": id}
+	_confirmando_remocao_bau = id
+	_detalhe()
+	if is_instance_valid(controle):
+		controle._avisar("Este baú tem %d itens. Remover e perder?" % total_itens_bau(id))
+
+
+func confirmar_remocao_bau(id: int, enviar_central: bool = false) -> bool:
+	if not mapa.estruturas.has(id):
+		_confirmando_remocao_bau = -1
+		return false
+	if enviar_central:
+		enviar_bau_para_central(id)
+	_confirmando_remocao_bau = -1
+	return remover_estrutura(id, true)
+
+
+func enviar_bau_para_central(id: int, item_especifico: String = "") -> int:
+	if not fabrica.baus.has(id):
+		return 0
+	var b: Dictionary = fabrica.baus[id]
+	var transferidos := 0
+	if item_especifico != "":
+		var q := int(b.get(item_especifico, 0))
+		if q > 0:
+			inventario[item_especifico] = int(inventario.get(item_especifico, 0)) + q
+			b.erase(item_especifico)
+			transferidos = q
+	else:
+		for it in b.keys():
+			var q := int(b[it])
+			if q > 0:
+				inventario[it] = int(inventario.get(it, 0)) + q
+				transferidos += q
+		b.clear()
+	if transferidos > 0:
+		Som.tocar("clique")
+		if is_instance_valid(controle):
+			if is_instance_valid(controle.barra):
+				controle.barra.estoque(inventario)
+			if item_especifico != "":
+				controle._avisar("Enviado para a central: %d %s" % [transferidos, _nome_item(item_especifico)])
+			else:
+				controle._avisar("Enviado para a central: %d item(ns)" % transferidos)
+	return transferidos
+
+
+func remover_estrutura(id: int, forcar: bool = false) -> bool:
 	if not mapa.estruturas.has(id) or mapa.estruturas[id].nome == "nucleo":
 		return false
+	if not forcar and eh_armazem_com_itens(id):
+		pedir_confirmacao_remocao_bau(id)
+		return false
+	_confirmando_remocao_bau = -1
 	var e: Dictionary = mapa.estruturas[id]
 	var plano: Array[Dictionary] = []
 	for it in construtor.plano_remocao(e.minimo, e.minimo):
@@ -1594,7 +1671,8 @@ func remover_estrutura(id: int) -> bool:
 		return false
 	sincronizar(construtor.executar(plano))
 	Som.tocar("remover")
-	controle._avisar("Removido (Ctrl+Z desfaz)" if Tema.estilo("atalhos") else "Removido")
+	if is_instance_valid(controle):
+		controle._avisar("Removido (Ctrl+Z desfaz)" if Tema.estilo("atalhos") else "Removido")
 	_sel = {}
 	_detalhe()
 	return true
@@ -1649,6 +1727,7 @@ func atalho_selecao(acao: String) -> bool:
 
 
 func selecionar(p: Vector2) -> void:
+	_confirmando_remocao_bau = -1
 	_sel = {}
 	if p != Vector2.INF:
 		for t in trens:
@@ -1664,6 +1743,8 @@ func selecionar(p: Vector2) -> void:
 
 ## Contorno no mundo da estrutura aberta no painel; some quando o painel fecha.
 func _atualizar_selecao() -> void:
+	if not is_inside_tree() or get_tree() == null:
+		return
 	if _desenho_selecao == null:
 		_desenho_selecao = DesenhoSelecao.new()
 		add_child(_desenho_selecao)
@@ -1864,6 +1945,8 @@ func _detalhe_varredura(id: int, linhas: Array[String]) -> void:
 
 func _detalhe() -> void:
 	_atualizar_selecao()
+	if not is_instance_valid(controle) or not is_instance_valid(controle.barra):
+		return
 	var barra := controle.barra
 	if _sel.has("pesquisa"):
 		_detalhe_pesquisa()
@@ -2318,7 +2401,13 @@ func _detalhe() -> void:
 			var k: Array = Fabrica.MODOS[mo[0]]
 			opcoes.append({"texto": "%s: %d%% velocidade · %d kW · %d%% poluição" % [mo[1], k[0] * 100, kw * k[1], k[2] * 100], "grupo": "Modo", "curto": mo[1],
 					"ligado": e.get("modo", "normal") == mo[0], "acao": func(): e["modo"] = mo[0]; _fabrica_suja = true; _detalhe()})
-	if e.nome != "nucleo" and e.nome != "ninho_aranha":
+	if _confirmando_remocao_bau == id and eh_armazem_com_itens(id):
+		var n_itens := total_itens_bau(id)
+		linhas.insert(0, "⚠ Este baú tem %d itens. Remover e perder?" % n_itens)
+		opcoes.append({"texto": "📦  Enviar à central antes e remover", "acao": func(): confirmar_remocao_bau(id, true), "secao": "acoes", "icone_txt": "📦 Enviar e remover"})
+		opcoes.append({"texto": "✕  Remover e perder (%d itens)" % n_itens, "acao": func(): confirmar_remocao_bau(id, false), "secao": "acoes", "icone_txt": "✕ Remover e perder", "perigo": true})
+		opcoes.append({"texto": "Cancelar remoção", "acao": func(): _confirmando_remocao_bau = -1; _detalhe(), "secao": "acoes", "icone_txt": "Cancelar"})
+	elif e.nome != "nucleo" and e.nome != "ninho_aranha":
 		opcoes.append({"texto": "✕  Remover", "acao": func(): remover_estrutura(id), "secao": "acoes", "icone_txt": "✕ Remover", "tecla": "Del", "perigo": true})
 	if fabrica.tem_config(id):
 		opcoes.append({"texto": "⧉  Copiar configuração", "acao": func(): copiar_config_de(id), "secao": "acoes", "icone_txt": "⧉ Copiar", "tecla": "Ctrl+C"})
@@ -2410,7 +2499,7 @@ func _cor_estado(est: int) -> Color:
 	return Tema.cor("destaque")
 
 
-## Inventário do baú: grade de ícones com a quantidade (nome na dica) e a ordem de ver. Tirar à mão não existe no jogo: sai por braço ou drone.
+## Inventário do baú: grade de ícones com a quantidade (nome na dica) e a ordem de ver. Saída à mão: botão "Enviar para a central" (tudo ou por item), que manda os itens ao estoque do núcleo.
 func _inventario_bau(id: int, e: Dictionary, botoes: Array) -> void:
 	var ordem := String(e.get("ordem", "tipo"))
 	for o in [["tipo", "Por tipo"], ["qtd", "Por quantidade"]]:
@@ -2419,10 +2508,32 @@ func _inventario_bau(id: int, e: Dictionary, botoes: Array) -> void:
 			e["ordem"] = oo
 			_detalhe()})
 	var lista := fabrica.conteudo_ordenado(id, ordem)
-	botoes.append({"titulo": "Conteúdo" if not lista.is_empty() else "Conteúdo: vazio"})
+	var tem_itens: bool = not lista.is_empty()
+	if tem_itens:
+		botoes.append({
+			"texto": "📦  Enviar tudo para a central",
+			"grupo": "Central",
+			"curto": "📦 Tudo",
+			"acao": func():
+				enviar_bau_para_central(id)
+				_detalhe()
+		})
+	botoes.append({"titulo": "Conteúdo" if tem_itens else "Conteúdo: vazio"})
 	for it in lista:
 		var q := int(fabrica.baus[id][it])
-		botoes.append({"texto": _nome_item(it), "icone": TelaPesquisa._tex_item(it), "chave": it, "numero": PainelRecursos.numero_curto(q), "dica_num": "%s: %d" % [_nome_item(it), q], "ligado": false, "sem_clique": true, "acao": func(): pass})
+		var it_chave: String = it
+		botoes.append({
+			"texto": _nome_item(it_chave),
+			"icone": TelaPesquisa._tex_item(it_chave),
+			"chave": it_chave,
+			"numero": PainelRecursos.numero_curto(q),
+			"dica_num": "%s: %d (toque para enviar à central)" % [_nome_item(it_chave), q],
+			"ligado": false,
+			"sem_clique": false,
+			"acao": func():
+				enviar_bau_para_central(id, it_chave)
+				_detalhe()
+		})
 
 
 ## Filtro de tipos aceitos (nenhum = tudo) e limite por tipo: vale para braço, esteira por braço e drone. Grade no fim do painel, como a do braço.

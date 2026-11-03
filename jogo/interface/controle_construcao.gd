@@ -258,6 +258,17 @@ func _texto_modo() -> String:
 func _confirmar() -> void:
 	if _plano.is_empty():
 		return
+	if removendo and mundo != null and mundo.has_method("eh_armazem_com_itens"):
+		var bau_itens := -1
+		for it in _plano:
+			if it.get("acao") == "remover" and it.motivo == "" and mundo.eh_armazem_com_itens(it.get("id", -1)):
+				bau_itens = it.get("id")
+				break
+		if bau_itens >= 0:
+			mundo.pedir_confirmacao_remocao_bau(bau_itens)
+			_plano.clear()
+			_chave_plano = ""
+			return
 	var n := Construtor.contar(_plano)
 	var rel := construtor.executar(_plano)
 	mundo.sincronizar(rel)
