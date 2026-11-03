@@ -916,7 +916,7 @@ func _ui_telas(sufixo: String) -> void:
 	await RenderingServer.frame_post_draw
 	await RenderingServer.frame_post_draw
 	print("FOTO ", await _foto("config_" + sufixo))
-	get_tree().paused = false
+	mp.fechar()
 
 
 ## Painel de estrutura construída e inventário, com a seleção à vista no mundo.

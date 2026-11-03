@@ -3,10 +3,14 @@ extends CanvasLayer
 ## Pausa (Esc sem nada para cancelar, ou botão Menu): o jogo para; Continuar, Salvar agora, Configurações,
 ## Sair para o menu. Também mostra a tela de derrota quando o núcleo cai e a de vitória quando o foguete de
 ## proliferação parte (fim da campanha; dá para continuar jogando).
+## Pausar para a árvore (lógica, animações, partículas) e zera Engine.time_scale: só isso congela o TIME dos shaders
+## (lona da esteira, chama, grama), que a árvore parada não segura. Esc com o menu aberto volta ao jogo.
 
 signal pediu_salvar
 
 var pode_salvar := true
+var _escala_antes := 1.0                 # Engine.time_scale de antes da pausa (os roteiros aceleram com "acelerar")
+var _derrota := false
 var _fundo: ColorRect
 var _caixa: VBoxContainer
 var _config: PainelConfig
@@ -55,6 +59,7 @@ func _ready() -> void:
 
 
 func abrir(derrota := false, vitoria := false) -> void:
+	_derrota = derrota
 	for c in _caixa.get_children():
 		if c is Button:
 			c.queue_free()
@@ -74,22 +79,46 @@ func abrir(derrota := false, vitoria := false) -> void:
 	_botao("Configurações", func(): _caixa.visible = false; _config.visible = true)
 	_botao("Sair para o menu", func():
 		if pode_salvar and not derrota: pediu_salvar.emit()
-		get_tree().paused = false
+		_soltar()
 		get_tree().change_scene_to_file("res://cenas/menu.tscn"))
 	_caixa.visible = true
 	_config.visible = false
 	visible = true
-	get_tree().paused = true
+	_parar()
 
 
 func fechar() -> void:
 	visible = false
+	_soltar()
+
+
+## Esc com o menu aberto: fecha as configurações se estiverem abertas, senão volta ao jogo (na derrota não há volta).
+func _input(e: InputEvent) -> void:
+	if not visible or not (e is InputEventKey and e.pressed and not e.echo and (e as InputEventKey).keycode == KEY_ESCAPE):
+		return
+	get_viewport().set_input_as_handled()
+	if _config.visible:
+		_config.visible = false
+		_caixa.visible = true
+	elif not _derrota:
+		fechar()
+
+
+func _parar() -> void:
+	if not get_tree().paused:
+		_escala_antes = Engine.time_scale
+	get_tree().paused = true
+	Engine.time_scale = 0.0
+
+
+func _soltar() -> void:
 	get_tree().paused = false
+	Engine.time_scale = _escala_antes
 
 
 func _trocar(modo: String) -> void:
 	Sessao.modo = modo
-	get_tree().paused = false
+	_soltar()
 	get_tree().change_scene_to_file("res://cenas/mundo_demo.tscn")
 
 

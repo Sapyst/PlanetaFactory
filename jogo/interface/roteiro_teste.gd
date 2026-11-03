@@ -25,6 +25,7 @@ func _ready() -> void:
 		"painel": _roteiro_painel()
 		"salvar": _roteiro_salvar()
 		"roda_ui": _roteiro_roda_ui()
+		"pausa": _roteiro_pausa()
 		"fotos_ui": _roteiro_fotos_ui()
 		"vento_cmp": _roteiro_vento_cmp()
 		"estresse": _roteiro_estresse()
@@ -2685,6 +2686,43 @@ func _roteiro_roda_ui() -> void:
 	em(17, func():
 		conf.call("mapa de novo", get_viewport().get_visible_rect().size * Vector2(0.4, 0.5), true)
 		print("RODA_UI ", "OK" if falhas.is_empty() else "FALHA %s" % str(falhas))
+		get_tree().quit())
+
+
+## Pausa de verdade (teclas injetadas): Esc abre o menu, a árvore para e o relógio dos shaders (Engine.time_scale) zera;
+## Esc de novo volta ao jogo com o relógio de antes; Esc nas configurações só volta à lista. Imprime PAUSA OK/FALHA e sai
+## (sem janela: -- modo demo roteiro pausa).
+func _roteiro_pausa() -> void:
+	var falhas: Array[String] = []
+	var escala := Engine.time_scale
+	var conf := func(nome: String, aberto: bool) -> void:
+		if cena.pausa.visible != aberto or get_tree().paused != aberto:
+			falhas.append("%s: menu %s, árvore %s" % [nome, "aberto" if cena.pausa.visible else "fechado", "parada" if get_tree().paused else "andando"])
+		if not is_equal_approx(Engine.time_scale, 0.0 if aberto else escala):
+			falhas.append("%s: time_scale %.2f" % [nome, Engine.time_scale])
+	process_mode = Node.PROCESS_MODE_ALWAYS        # o menu de pausa para a árvore
+	em(3, func(): cena.controle.barra.fechar_pecas(); tecla(KEY_ESCAPE))
+	em(6, func(): conf.call("esc abre", true); tecla(KEY_ESCAPE))
+	em(9, func(): conf.call("esc fecha", false); tecla(KEY_ESCAPE))
+	em(12, func():
+		conf.call("abre de novo", true)
+		cena.pausa._caixa.visible = false
+		cena.pausa._config.visible = true
+		tecla(KEY_ESCAPE))
+	em(15, func():
+		conf.call("esc nas configurações", true)
+		if cena.pausa._config.visible or not cena.pausa._caixa.visible:
+			falhas.append("esc não voltou das configurações à lista")
+		tecla(KEY_ESCAPE))
+	em(18, func():
+		conf.call("fecha pela lista", false)
+		cena.pausa.abrir(true)
+		tecla(KEY_ESCAPE))
+	em(21, func():
+		conf.call("derrota não fecha com esc", true)
+		cena.pausa.fechar()
+		conf.call("fechar()", false)
+		print("PAUSA ", "OK" if falhas.is_empty() else "FALHA %s" % str(falhas))
 		get_tree().quit())
 
 
