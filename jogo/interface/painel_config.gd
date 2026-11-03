@@ -73,20 +73,53 @@ func _ready() -> void:
 	op.item_selected.connect(func(i: int): _mudar("autosalvar_s", AUTOSALVAR[i]))
 	auto.add_child(op)
 	_corpo.add_child(auto)
+	var aa_box := HBoxContainer.new()
+	var laa := Label.new()
+	laa.text = "Antisserrilhado"
+	laa.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	aa_box.add_child(laa)
+	var op_aa := OptionButton.new()
+	op_aa.add_item("Desligado")
+	op_aa.add_item("Leve")
+	op_aa.add_item("Alto")
+	var aa_atual: String = str(Sessao.config.get("antialiasing", "leve"))
+	var idx_aa := 1
+	if aa_atual == "desligado":
+		idx_aa = 0
+	elif aa_atual == "alto":
+		idx_aa = 2
+	op_aa.select(idx_aa)
+	op_aa.item_selected.connect(func(i: int):
+		var val := "leve"
+		if i == 0:
+			val = "desligado"
+		elif i == 2:
+			val = "alto"
+		_mudar("antialiasing", val))
+	aa_box.add_child(op_aa)
+	_corpo.add_child(aa_box)
+
 	var v := Button.new()
 	v.text = "Voltar"
 	v.custom_minimum_size = Vector2(0, Tema.n("config_voltar"))
 	v.pressed.connect(func(): voltar.emit())
 	add_child(v)
-	get_viewport().size_changed.connect(_ajustar_rolagem)
+	var vp := get_viewport()
+	if vp != null:
+		vp.size_changed.connect(_ajustar_rolagem)
 	visibility_changed.connect(_ajustar_rolagem)
 	_ajustar_rolagem.call_deferred()
 
 
 ## Altura da lista: o que ela precisa, até o que sobra na tela (título, Voltar e a moldura do painel ficam de fora).
 func _ajustar_rolagem() -> void:
+	if _corpo == null or _rolagem == null:
+		return
+	var vp := get_viewport()
+	var alt_disp := vp.get_visible_rect().size.y if vp != null else 720.0
 	var tam := _corpo.get_combined_minimum_size()
-	_rolagem.custom_minimum_size = Vector2(tam.x + 12.0, minf(tam.y, get_viewport().get_visible_rect().size.y - Tema.f("config_folga")))
+	_rolagem.custom_minimum_size = Vector2(tam.x + 12.0, minf(tam.y, alt_disp - Tema.f("config_folga")))
+
 
 
 ## Opção da lista para o valor salvo (um valor fora dela mostra a mais próxima, sem mudar nada até a pessoa escolher).

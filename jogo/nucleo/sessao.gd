@@ -12,7 +12,7 @@ const LARGURA_REF_PC := 1600.0
 
 static var arq_config := "user://configuracoes.cfg"     ## os testes trocam (nunca gravam na configuração real)
 var modo := "demo"
-var config := {"volume": 0.8, "sombras": true, "texto": TEXTO_PADRAO, "autosalvar_s": 120, "resolucao": 1.0, "fps": true, "clima": true, "grama": true, "recursos_orientacao": "vertical", "recursos_resumo": false}   ## fps ligado por padrão na fase de testes
+var config := {"volume": 0.8, "sombras": true, "texto": TEXTO_PADRAO, "autosalvar_s": 120, "resolucao": 1.0, "fps": true, "clima": true, "grama": true, "recursos_orientacao": "vertical", "recursos_resumo": false, "antialiasing": "leve"}   ## fps ligado por padrão na fase de testes
 
 
 func _init() -> void:
@@ -80,6 +80,7 @@ func aplicar() -> void:
 	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Efeitos"), linear_to_db(maxf(float(config.volume), 0.0001)))
 	tree.root.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR if float(config.resolucao) < 0.99 else Viewport.SCALING_3D_MODE_BILINEAR
 	tree.root.scaling_3d_scale = float(config.resolucao)
+	aplicar_antialiasing(tree.root, str(config.get("antialiasing", "leve")))
 	var cena := tree.current_scene
 	if cena != null:
 		var sol := cena.get_node_or_null("Sol") as DirectionalLight3D
@@ -90,6 +91,23 @@ func aplicar() -> void:
 		var amb := cena.get_node_or_null("Ambiente") as WorldEnvironment
 		if amb != null:
 			amb.environment.glow_enabled = not OS.has_feature("mobile")   # brilho custa caro na GPU do celular
+
+
+## Antisserrilhado no viewport: desligado, leve (FXAA no PC e celular) ou alto (MSAA 4X + FXAA).
+static func aplicar_antialiasing(vp: Viewport, aa: String) -> void:
+	if vp == null:
+		return
+	match aa:
+		"desligado":
+			vp.msaa_3d = Viewport.MSAA_DISABLED
+			vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
+		"alto":
+			vp.msaa_3d = Viewport.MSAA_4X
+			vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
+		"leve", _:
+			vp.msaa_3d = Viewport.MSAA_DISABLED
+			vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
+
 
 
 func _aplicar_escala() -> void:
