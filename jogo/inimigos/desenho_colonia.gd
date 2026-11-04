@@ -81,7 +81,7 @@ func atualizar(eventos: Array[Dictionary], delta: float) -> void:
 	for e in eventos:
 		match e.tipo:
 			"tiro":
-				var de := Grade.ponto_mundo(e.de, 1.25)
+				var de := _boca(e, 1.25)                     # tudo do disparo sai da ponta do cano (girando com ele)
 				var para := Grade.ponto_mundo(e.para, 0.6)
 				var tipo_alvo: String = "aranha" if int(e.get("aranha", -1)) >= 0 else ("estrutura" if int(e.get("ninho", -1)) >= 0 else "chao")
 				var nome_torre: String = String(e.get("nome", ""))
@@ -432,18 +432,23 @@ func _atualizar_fumacinhas(delta: float) -> void:
 		(f.no as CPUParticles3D).emitting = f.t > 0.0
 
 
-# ------------------------------------------------------------------ foguetes, granadas, pulsos e escudo
-## Foguete/granada saindo da boca da torre (ou do centro, sem modelo) em arco até o alvo, no tempo do tiro lógico.
-func _lancar(e: Dictionary) -> void:
-	if not _perto_da_vista(e.de) and not _perto_da_vista(e.para):
-		return
-	var de := Grade.ponto_mundo(e.de, 1.1)
+## Ponta do cano da torre que atirou (Animador.boca: girando com o canhão); sem modelo animado, o centro na altura dada.
+func _boca(e: Dictionary, altura: float) -> Vector3:
 	if animadores_torre.is_valid():
 		var a: Animador = animadores_torre.call(e.get("torre", -1))
 		if a != null:
 			var b := a.boca()
 			if b != Vector3.INF:
-				de = b
+				return b
+	return Grade.ponto_mundo(e.de, altura)
+
+
+# ------------------------------------------------------------------ foguetes, granadas, pulsos e escudo
+## Foguete/granada saindo da boca da torre (ou do centro, sem modelo) em arco até o alvo, no tempo do tiro lógico.
+func _lancar(e: Dictionary) -> void:
+	if not _perto_da_vista(e.de) and not _perto_da_vista(e.para):
+		return
+	var de := _boca(e, 1.1)
 	var granada: bool = Registro.estruturas.get(String(e.get("nome", "")), {}).get("alvo", "") == "ninhos"
 	var no := MeshInstance3D.new()
 	var cil := CylinderMesh.new()

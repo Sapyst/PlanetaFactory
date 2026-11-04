@@ -360,16 +360,46 @@ func ejecao() -> Array:
 
 
 ## Boca da arma no mundo ("boca" em modelos.json, Blender com o giro em 0), girando com o canhão; INF se não há.
+## Sem "boca" nos dados: a ponta da malha do canhão (o ponto mais à frente, no meio do cano).
 func boca() -> Vector3:
 	var m: Dictionary = Registro.modelos.get(modelo, {})
-	if not m.has("boca") or not tem("canhao"):
+	if not tem("canhao"):
 		return Vector3.INF
+	if not m.has("boca"):
+		var ponta := _ponta_canhao()
+		return Vector3.INF if ponta == Vector3.INF else _global(_partes["canhao"] as Node3D) * ponta
 	var piv := Vector3.ZERO
 	for p in m.get("partes", []):
 		if p.nome == "canhao":
 			piv = Vector3(p.pivo[0], p.pivo[1], p.pivo[2])
 	var e: Array = m.boca
 	return _global(_partes["canhao"] as Node3D) * Vector3(e[0] - piv.x, e[2] - piv.z, -(e[1] - piv.y))
+
+
+var _ponta := Vector3.INF
+var _ponta_feita := false
+
+
+## Ponta do cano no espaço do canhão: o meio da face mais à frente (−Z local = para onde o canhão aponta) da caixa
+## das malhas do canhão. Calculada uma vez.
+func _ponta_canhao() -> Vector3:
+	if _ponta_feita:
+		return _ponta
+	_ponta_feita = true
+	var c := _partes["canhao"] as Node3D
+	var caixa := AABB()
+	var tem_caixa := false
+	for n in [c] + c.find_children("*", "MeshInstance3D", true, false):
+		if n is MeshInstance3D and (n as MeshInstance3D).mesh != null:
+			var t := Transform3D.IDENTITY if n == c else c.global_transform.affine_inverse() * (n as Node3D).global_transform \
+					if c.is_inside_tree() else (n as Node3D).transform
+			var bx: AABB = t * (n as MeshInstance3D).get_aabb()
+			caixa = bx if not tem_caixa else caixa.merge(bx)
+			tem_caixa = true
+	if tem_caixa:
+		var meio := caixa.get_center()
+		_ponta = Vector3(meio.x, meio.y, caixa.position.z)
+	return _ponta
 
 
 ## Transform no mundo somando os pais (funciona também fora da árvore de cena).
