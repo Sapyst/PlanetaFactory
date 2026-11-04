@@ -286,11 +286,13 @@ def _assar_e_compactar_materiais(sc, o, nome, antigo):
     compacto = {velho: i for i, velho in enumerate(usados)}
     for f in bm.faces:
         f.material_index = compacto[f.material_index]
+    indices = [f.material_index for f in bm.faces]
     bm.to_mesh(me)
     bm.free()
-    me.materials.clear()
+    me.materials.clear()          # no Blender 5 isto zera o material_index de todas as faces: reaplica depois
     for velho in usados:
         me.materials.append(novos_mats[velho])
+    me.polygons.foreach_set('material_index', indices)
     me.update()
 
 
