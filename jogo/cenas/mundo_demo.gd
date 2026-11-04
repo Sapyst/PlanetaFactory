@@ -1092,13 +1092,13 @@ func _atualizar_sons_mundo() -> void:
 		elif nome in ["montadora", "montadora_2", "montadora_quantica"]:
 			Som.tocar_maquina("maq_montadora", p, -5.0)
 	for c in fabrica.caminhos:
-		if c.itens.size() > 0 and c.nos.size() > 0:
-			var p_est := Grade.ponto_mundo(c.nos[0])
+		if c.esteira.itens.size() > 0 and c.tiles.size() > 0:       # caminho: {esteira, tiles, entra, sai}
+			var p_est := Grade.centro_mundo(c.tiles[0])
 			if p_est.distance_to(p_cam) <= 45.0:
 				Som.tocar_maquina("maq_esteira", p_est, -9.0)
 				break
 	for t in trens:
-		if absf(t.vel) > 0.15:
+		if absf(t.v) > 0.15 and t.acum.size() > 1:             # v = velocidade (m/s); acum vazio = sem trilho
 			var pt := Grade.ponto_mundo(t.ponto_em(t.s).pos)
 			if pt.distance_to(p_cam) <= 55.0:
 				Som.tocar_maquina("trem_trilho", pt, -5.0)
