@@ -210,6 +210,45 @@ def _so_tibia(sc):
     _sem_brilho('OlhosAranha')
 
 
+# ------------------------------------------------------------------ toca das aranhas: véus de teia fora do assado
+_VEUS = []
+TEXTURA_TEIA = os.path.join(AQUI, '..', 'texturas', 'teia.png')
+
+
+def _tirar_veus(sc):
+    import bpy
+    for o in list(sc.objects):
+        if o.type == 'MESH' and any(s.material and s.material.name.startswith('VeuTeia') for s in o.material_slots):
+            sujo = any('Sujo' in s.material.name for s in o.material_slots)
+            for c in list(o.users_collection):
+                c.objects.unlink(o)
+            _VEUS.append((o, sujo))
+    img = bpy.data.images.get('TexTeia')
+    if img is not None:                                   # a textura dos fios vai para o jogo (arte/texturas/teia.png)
+        img.filepath_raw = os.path.abspath(TEXTURA_TEIA)
+        img.file_format = 'PNG'
+        img.save()
+
+
+def _por_veus(sc, raiz, dados):
+    import bpy
+    mats = {}
+    for sujo, nome, cor in ((False, 'P_Teia', (0.78, 0.76, 0.71)), (True, 'P_TeiaSuja', (0.48, 0.46, 0.42))):
+        m = bpy.data.materials.new(nome)
+        b = m.node_tree.nodes['Principled BSDF']
+        b.inputs['Base Color'].default_value = (*cor, 1)
+        b.inputs['Roughness'].default_value = 0.7
+        mats[sujo] = m
+    for o, sujo in _VEUS:
+        sc.collection.objects.link(o)
+        o.data.materials.clear()
+        o.data.materials.append(mats[sujo])
+        mw = o.matrix_world.copy()
+        o.parent = raiz
+        o.matrix_world = mw
+    _VEUS.clear()
+
+
 CONFIG = {
     'plataforma_agua': dict(script='conv_antigos.py', args=['plataforma_agua'], estudo='estudo_plataforma_agua.py', cat='logistica/apoio',
                             tris=600, tex=512, tirar=[], anima=False, por_peca=True, antes_de_exportar=_uma_malha),
@@ -226,8 +265,12 @@ CONFIG = {
     'aranha_tibia': dict(script='conv_antigos.py', args=['aranha_tibia'], estudo='estudo_aranha.py', cat='inimigos/aranha',
                          tris=150, tex=256, tirar=['aranha_corpo', 'aranha_femur'], anima=False, por_peca=True,
                          depois_de_montar=_so_tibia),
-    'ninho_aranha': dict(script='conv_antigos.py', args=['ninho_aranha'], estudo='estudo_ninho_aranha.py', cat='inimigos/aranha',
-                         tris=5000, tex=1024, tirar=['EFEITO_'], por_peca=True),
+    # toca coberta de teia (pedido de Sapyst): o véu de seda (textura de fios com buracos) não entra no assado opaco —
+    # sai antes da limpeza e volta no .glb com material P_Teia/P_TeiaSuja, que o jogo monta com a textura teia.png e
+    # recorte de alfa (render/materiais.gd)
+    'ninho_aranha': dict(script='estudo_toca_aranha.py', args=['nada'], estudo='estudo_toca_aranha.py', cat='inimigos/aranha',
+                         tris=3500, tex=1024, tirar=['EFEITO_'], por_peca=True,   # + ~1.300 dos véus (fora da redução)
+                         depois_de_montar=_tirar_veus, antes_de_exportar=_por_veus),
 }
 
 
