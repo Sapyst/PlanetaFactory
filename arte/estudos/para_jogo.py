@@ -25,6 +25,7 @@ Opções de CONFIG além de script/cat/tris/tex/tirar:
   cotas     com por_peca: {pedaço do nome: triângulos} para peça que manda na silhueta
   intactos  com por_peca: pedaços de nome das malhas que não entram na redução
   frac_miudo  com por_peca: lado da caixa (m) abaixo do qual a peça miúda (parafuso, gota) sai se o orçamento não couber
+  brilho {'nome': material da paleta, 'cor': (r, g, b)}: peças que brilham usam esse material (senão quente = P_Fogo)
   vidro_opaco {pedaço do nome: (r, g, b)}: vidro que é superfície principal fica, opaco e sujo, com essa cor
   cortar_fixos  False ou (x0, x1, y0, y1): o que NÃO se mexe não passa desse retângulo: ilha toda fora sai (pedra,
             entulho, mancha no chão de um objeto que se espalha pela cena), o que cruza a borda é cortado nela.
@@ -472,6 +473,9 @@ def material_assado(nome, img):
 
 
 _PALETA = {}
+BRILHO = {}                                        # cfg['brilho'] = {'nome': 'P_Biomassa', 'cor': (r, g, b)}: brilho que não é fogo
+
+
 
 
 def material_brilho(m):
@@ -480,6 +484,9 @@ def material_brilho(m):
     cor = tuple(p.inputs['Emission Color'].default_value) if p and not p.inputs['Emission Color'].is_linked else (1, 0.4, 0.1, 1)
     quente = cor[0] > cor[2]
     chave = ('P_Fogo' if quente else 'P_Cristal', tuple(round(c, 3) for c in cor))
+    if BRILHO:                                     # ácido, seiva…: cor e efeito fixos pela config
+        cor = tuple(BRILHO['cor']) + (1.0,)
+        chave = (BRILHO['nome'], cor)
     if chave in _PALETA:                           # um material por cor (luzes iguais juntam numa malha só)
         return _PALETA[chave]
     novo = bpy.data.materials.new(chave[0])
@@ -576,6 +583,8 @@ def assar(baixos, altos, lado, nome):
 def main():
     nome = args()
     cfg = CONFIG[nome]
+    BRILHO.clear()
+    BRILHO.update(cfg.get('brilho', {}))
     pasta = os.path.join(MODELOS, cfg['cat'], nome)
     antigo = json.load(open(os.path.join(pasta, nome + '.json'), encoding='utf-8'))
     w, d = antigo['area']

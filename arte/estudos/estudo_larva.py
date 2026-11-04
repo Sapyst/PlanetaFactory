@@ -446,27 +446,35 @@ def _osso(arm, nome):
     return pb
 
 
-def pose_rastejar(arm, u, ondas=2):
-    """A massa contrai e estica numa onda da cauda para a frente: as placas deslizam umas sobre as outras e o trecho
-    contraído sobe. Osso ao longo de +X: no espaço dele, y = comprimento do corpo, z = para cima."""
+def pose_rastejar(arm, u, ondas=1):
+    """Rastejo peristáltico: uma onda de contração corre da cauda para a cabeça. O trecho contraído encurta (até
+    metade), engorda e sobe numa corcova (as placas se encavalam); o resto do corpo fica esticado e rente ao chão.
+    A cabeça estica para a frente quando a onda chega nela (a boca mastiga um pouco) e o corpo serpenteia de leve.
+    Osso ao longo de +X: no espaço dele, y = comprimento do corpo, z = para cima, x = para o lado."""
+    def onda(k, uu):
+        f = (ondas * uu - k / (NP - 1) * 0.85) % 1.0
+        return math.sin(PI * min(1.0, f / 0.55)) ** 2 if f < 0.55 else 0.0     # pulso de 55% do ciclo
+    cs = [onda(k, u) for k in range(NP)]
     x = 0.0
-    xs, zs, sx = [], [], []
+    xs, zs = [], []
     for k in range(NP):
-        c = max(0.0, math.sin(2 * PI * (ondas * u - k / (NP - 1) * 0.8))) ** 2
-        x += L_PLACA * (1.0 - 0.28 * c)
+        x += L_PLACA * (1.0 - 0.36 * cs[k])                                # contraído encurta (as placas se encavalam)
         xs.append(x)
-        zs.append(0.04 * c)
-        sx.append(1.0 - 0.22 * c)
+        zs.append(0.07 * cs[k])
     meio = (xs[0] + xs[-1]) / 2
     for k in range(NP):
         pb = _osso(arm, 'seg%d' % k)
-        pb.location = (0.0, xs[k] - meio - centro_placa(k) + (centro_placa(0) + centro_placa(NP - 1)) / 2, zs[k])
-        pb.scale = (1.0 + 0.1 * (1 - sx[k]), sx[k], 1.0 + 0.14 * (1 - sx[k]))
-        pb.rotation_euler = (0, 0, 0)
+        pb.location = (0.025 * math.sin(2 * PI * (u - k / NP)), xs[k] - meio - centro_placa(k)
+                       + (centro_placa(0) + centro_placa(NP - 1)) / 2, zs[k])
+        g = 1.0 + 0.16 * cs[k]
+        pb.scale = (g, 1.0 - 0.22 * cs[k], 1.0 + 0.18 * cs[k])
+        pb.rotation_euler = (0, 0, 0.05 * math.sin(2 * PI * (u - k / NP)))
     pb = _osso(arm, 'boca')
-    pb.location = (0.0, _osso(arm, 'seg%d' % (NP - 1)).location[1], zs[-1])
+    ch = cs[-1]
+    pb.location = (0.02 * math.sin(2 * PI * u), _osso(arm, 'seg%d' % (NP - 1)).location[1] + 0.04 * (1.0 - ch),
+                   zs[-1] + 0.03 * math.sin(2 * PI * u * 2))
     pb.rotation_euler = (0, 0, 0)
-    pb.scale = (1, 1, 1)
+    pb.scale = (1.0 + 0.12 * ch, 1.0, 1.0 + 0.12 * ch)
 
 
 def pose_cuspe(arm, _boca, k):
