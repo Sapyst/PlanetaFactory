@@ -188,7 +188,8 @@ func _process(delta: float) -> void:
 	var fov := camera.fov if camera != null else 50.0
 	_k_px = 2.0 * tan(deg_to_rad(fov) / 2.0) / maxf(alt_tela, 1.0)
 	_calcular()
-	_desenhar()
+	if vp == null or not vp.disable_3d:                  # versão 2D: o 3D está desligado, só os pontos servem
+		_desenhar()
 	_t_som -= delta
 	if _t_som <= 0.0:
 		_t_som = 0.35

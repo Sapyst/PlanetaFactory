@@ -2226,6 +2226,10 @@ func _roteiro_vida() -> void:
 			var v: DesenhoVidaPequena = cena._vida_pequena
 			var olhos := v.olhos.filter(func(o): return float(o.brilho) > 0.0).size()
 			print("VIDA q=%d vagalumes=%d insetos=%d olhos=%d silencio=%.2f" % [q, v.vagalumes.size(), v.insetos.size(), olhos, v.fatores.silencio]))
+	for q in [200, 330, 560]:                        # PNG sem compressão (o vídeo borra a cor de ponto de 1 pixel)
+		em(q, func():
+			DirAccess.make_dir_recursive_absolute("user://fotos_vida")
+			get_viewport().get_texture().get_image().save_png("user://fotos_vida/vida_%d.png" % q))
 
 
 ## Patch RTS (-- novo roteiro obras): encomenda uma linha de esteira, máquinas, postes sem cobre (âmbar) e uma
